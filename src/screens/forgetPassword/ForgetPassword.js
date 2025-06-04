@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
 import { bg, lock, G, eyeClose } from '../../assets/images';
 import theme from '../../themes/theme'
-import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../components/CustomInput';
 
 const { width } = Dimensions.get('window');
 
-const ResetPassword = ({ navigation }) => {
+const ForgetPassword = ({ navigation }) => {
 
     const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -15,25 +14,12 @@ const ResetPassword = ({ navigation }) => {
         <ImageBackground source={bg} style={styles.container}>
             <Image source={lock} style={styles.image} />
             <View style={styles.bottomcontainer}>
-                <Text style={styles.title}>Reset Password</Text>
-                <Text style={styles.subtitle}>Create your new password</Text>
-                <CustomInput
-                    label="New Password"
-                    placeholder="New Password"
-                    secureTextEntry={!passwordVisible}
-                    icon={passwordVisible ? eyeOpen : eyeClose}
-                    onIconPress={() => setPasswordVisible(!passwordVisible)}
-                />
-                <CustomInput
-                    label="Confirm New Password"
-                    placeholder="Confirm New Password"
-                    secureTextEntry={!passwordVisible}
-                    icon={passwordVisible ? eyeOpen : eyeClose}
-                    onIconPress={() => setPasswordVisible(!passwordVisible)}
-                />
+                <Text style={styles.title}>Forgot Password</Text>
+                <Text style={styles.subtitle}>Enter your email address</Text>
+                <CustomInput placeholder="Enter your Email Address" />
 
                 <TouchableOpacity style={styles.button}>
-                    <Text style={styles.buttonText}>Continue</Text>
+                    <Text style={styles.buttonText}>Verify</Text>
                 </TouchableOpacity>
 
             </View >
@@ -122,4 +108,4 @@ const styles = StyleSheet.create({
     link: { color: theme.primaryColor },
 });
 
-export default ResetPassword;
+export default ForgetPassword;
