@@ -7,66 +7,36 @@ import CustomInput from '../../components/CustomInput';
 
 const { width } = Dimensions.get('window');
 
-const SignUp = ({ navigation }) => {
+const ResetPassword = ({ navigation }) => {
 
     const [passwordVisible, setPasswordVisible] = useState(false);
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            <ScrollView style={{width:"100%", flex: 1}} contentContainerStyle={{ alignItems:"center" }} showsVerticalScrollIndicator={false}>
-                <Image source={userLock} style={styles.image} />
-                <View style={styles.bottomcontainer}>
-                    <Text style={styles.title}>Register Now</Text>
-                    <Text style={styles.subtitle}>Create a new account</Text>
-                    <CustomInput label="Full Name" placeholder="Enter Full Name" />
-                    <CustomInput label="Phone " placeholder="Enter Phone Number" />
-                    <CustomInput label="Email" placeholder="Email Address" />
-                    <CustomInput
-                        label="Password"
-                        placeholder="Password"
+            <Image source={userLock} style={styles.image} />
+            <View style={styles.bottomcontainer}>
+                <Text style={styles.title}>Reset Password</Text>
+                <Text style={styles.subtitle}>Create your new password</Text>
+                <CustomInput
+                        label="New Password"
+                        placeholder="New Password"
                         secureTextEntry={!passwordVisible}
                         icon={passwordVisible ? eyeOpen : eyeClose}
                         onIconPress={() => setPasswordVisible(!passwordVisible)}
                     />
                     <CustomInput
-                        label="Confirm Password"
-                        placeholder="Confirm Password"
+                        label="Confirm New Password"
+                        placeholder="Confirm New Password"
                         secureTextEntry={!passwordVisible}
                         icon={passwordVisible ? eyeOpen : eyeClose}
                         onIconPress={() => setPasswordVisible(!passwordVisible)}
                     />
 
-
-                    <TouchableOpacity style={styles.button}>
-                        <Text style={styles.buttonText}>Sign Up</Text>
-                    </TouchableOpacity>
-                    <View style={styles.orContainer}>
-                        <LinearGradient
-                            start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
-                            colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
-                            style={styles.Line}
-                        />
-                        <Text style={styles.or}>Or continue with</Text>
-                        <LinearGradient
-                            colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
-                            style={styles.Line}
-                        />
-                    </View>
-                    <LinearGradient
-                        start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
-                        colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
-                        style={styles.googleBtn}
-                    >
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
-                            <Text style={styles.googleText}>Continue with Google</Text>
-                        </TouchableOpacity>
-                    </LinearGradient>
-
-
-                    <Text style={styles.footer}>Already have an account? <Text style={styles.link}>Sign In</Text></Text>
-                </View>
-            </ScrollView>
+                <TouchableOpacity style={styles.button}>
+                    <Text style={styles.buttonText}>Continue</Text>
+                </TouchableOpacity>
+                
+            </View >
         </ImageBackground>
     );
 };
@@ -81,12 +51,13 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginTop: 25,
-        alignItems: "center"
     },
     image: { width: 134, height: 134, resizeMode: 'contain', marginTop: 30 },
     title: { fontSize: 28, color: '#EFEFEF', fontFamily: "Inter-SemiBold", marginTop: 25, marginBottom: 8, },
-    subtitle: { color: '#FFFFFF', fontSize: 14, marginBottom: 25, fontFamily: "Inter-Medium", width: "50%", textAlign: 'center', marginBottom: 8 },
+    subtitle: { color: '#FFFFFF', fontSize: 14, marginBottom: 25, fontFamily: "Inter-Medium",  textAlign: 'center', marginBottom: 25 },
     passwordContainer: {
         width: '100%',
         flexDirection: 'row',
@@ -117,7 +88,7 @@ const styles = StyleSheet.create({
         height: 20,
         tintColor: "#aaa",
     },
-    forgot: { alignSelf: 'flex-end', marginBottom: 20 },
+    forgot: { alignSelf: 'flex-end',marginBottom: 20 },
     forgotText: { color: '#FFFFFF', fontSize: 11, fontFamily: "Inter-Medium", },
     label: { fontFamily: "Inter-Medium", width: "100%", textAlign: "left", color: '#FFFFFF', fontSize: 13, marginTop: 17, marginBottom: 5 },
     button: {
@@ -151,4 +122,4 @@ const styles = StyleSheet.create({
     link: { color: theme.primaryColor },
 });
 
-export default SignUp;
+export default ResetPassword;
