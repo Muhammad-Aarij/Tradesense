@@ -3,9 +3,10 @@ import {
     View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions,
     Image, ImageBackground
 } from 'react-native';
-import { bg, verify } from '../../assets/images';
+import { bg, tick, verify } from '../../assets/images';
 import theme from '../../themes/theme';
-import CustomInput from '../../components/CustomInput';
+import ConfirmationModal from '../../components/ConfirmationModal';
+
 
 const { width } = Dimensions.get('window');
 
@@ -68,6 +69,14 @@ const EmailVerification = ({ navigation }) => {
                     <Text style={styles.buttonText}>Verify</Text>
                 </TouchableOpacity>
             </View>
+
+            <ConfirmationModal
+                isVisible={true}
+                icon={tick}
+                onClose={() => setModalVisible(false)}
+                title="Account Created!"
+                message="Your account has been successfully created"
+            />
         </ImageBackground>
     );
 };
