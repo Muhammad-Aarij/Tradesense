@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
-import { bg, userLock, G, eyeClose } from '../../assets/images';
+import { bg,  G, eyeClose, secureUser } from '../../assets/images';
 import theme from '../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../components/CustomInput';
@@ -14,7 +14,7 @@ const SignUp = ({ navigation }) => {
     return (
         <ImageBackground source={bg} style={styles.container}>
             <ScrollView style={{width:"100%", flex: 1}} contentContainerStyle={{ alignItems:"center" }} showsVerticalScrollIndicator={false}>
-                <Image source={userLock} style={styles.image} />
+                <Image source={secureUser} style={styles.image} />
                 <View style={styles.bottomcontainer}>
                     <Text style={styles.title}>Register Now</Text>
                     <Text style={styles.subtitle}>Create a new account</Text>
