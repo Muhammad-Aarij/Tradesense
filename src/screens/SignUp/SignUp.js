@@ -1,43 +1,85 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
-import { bg,  G, eyeClose, secureUser } from '../../assets/images';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Alert } from 'react-native';
+import { bg, G, eyeClose, secureUser } from '../../assets/images';
 import theme from '../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../components/CustomInput';
+import registerUser from '../../functions/registerUser';
+import { sendOTP } from '../../functions/otpService';
 
 const { width } = Dimensions.get('window');
 
 const SignUp = ({ navigation }) => {
 
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [passwordVisible2, setPasswordVisible2] = useState(false);
+    const [name, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setisloading] = useState(false);
+
+
+    const handleSignUp = async () => {
+        if (password !== confirmPassword) {
+            Alert.alert("Passwords do not match!");
+            return;
+        }
+
+        const userData = { name, phone, email, password, role: "user" };
+
+        try {
+            const response = await registerUser(userData);
+            if (response) {
+                console.log("User registered successfully:", response);
+                await sendOTP(email);
+                console.log("OTP sent successfully",);
+
+                // Navigate to Email Verification screen
+                navigation.navigate("EmailVerification",{email: email});
+            } else {
+                Alert.alert("Registration failed", "Please try again");
+                console.error("Registration failed");
+            }
+        } catch (error) {
+            console.error("Error signing up:", error);
+        }
+    };
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            <ScrollView style={{width:"100%", flex: 1}} contentContainerStyle={{ alignItems:"center" }} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ width: "100%", flex: 1 }} contentContainerStyle={{ alignItems: "center" }} showsVerticalScrollIndicator={false}>
                 <Image source={secureUser} style={styles.image} />
                 <View style={styles.bottomcontainer}>
                     <Text style={styles.title}>Register Now</Text>
                     <Text style={styles.subtitle}>Create a new account</Text>
-                    <CustomInput label="Full Name" placeholder="Enter Full Name" />
-                    <CustomInput label="Phone " placeholder="Enter Phone Number" />
-                    <CustomInput label="Email" placeholder="Email Address" />
+                    <CustomInput label="Full Name" placeholder="Enter Full Name" value={name} onChangeText={setFullName} />
+                    <CustomInput label="Phone" placeholder="Enter Phone Number" value={phone} onChangeText={setPhone} />
+                    <CustomInput label="Email" placeholder="Email Address" value={email} onChangeText={setEmail} />
+
                     <CustomInput
                         label="Password"
                         placeholder="Password"
                         secureTextEntry={!passwordVisible}
-                        icon={passwordVisible ? eyeOpen : eyeClose}
+                        value={password}
+                        onChangeText={setPassword}
+                        icon={passwordVisible ? eyeClose : eyeClose}
                         onIconPress={() => setPasswordVisible(!passwordVisible)}
                     />
+
                     <CustomInput
                         label="Confirm Password"
                         placeholder="Confirm Password"
                         secureTextEntry={!passwordVisible}
-                        icon={passwordVisible ? eyeOpen : eyeClose}
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        icon={passwordVisible2 ? eyeClose : eyeClose}
                         onIconPress={() => setPasswordVisible(!passwordVisible)}
                     />
 
-
-                    <TouchableOpacity style={styles.button}>
+                    <TouchableOpacity style={styles.button} onPress={handleSignUp}>
                         <Text style={styles.buttonText}>Sign Up</Text>
                     </TouchableOpacity>
                     <View style={styles.orContainer}>
@@ -63,8 +105,9 @@ const SignUp = ({ navigation }) => {
                         </TouchableOpacity>
                     </LinearGradient>
 
-
-                    <Text style={styles.footer}>Already have an account? <Text style={styles.link}>Sign In</Text></Text>
+                    <TouchableOpacity onPress={() => navigation.navigate("Login")} >
+                        <Text style={styles.footer}>Already have an account? <Text style={styles.link}>Sign In</Text></Text>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </ImageBackground>

@@ -6,17 +6,18 @@ import {
 import { bg, tick, verify } from '../../assets/images';
 import theme from '../../themes/theme';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import { verifyOTP } from '../../functions/otpService';
 
 
 const { width } = Dimensions.get('window');
 
-const EmailVerification = ({ navigation }) => {
+const EmailVerification = ({ navigation, route }) => {
+    const email = route.params?.email || "";
     const [code, setCode] = useState(['', '', '', '']);
     const inputs = useRef([]);
 
     const handleChange = (text, index) => {
-        if (!/^\d*$/.test(text)) return; // Allow only digits
-
+        if (!/^[a-zA-Z0-9]*$/.test(text)) return; // Allow only alphanumeric characters
         const newCode = [...code];
         newCode[index] = text;
         setCode(newCode);
@@ -33,6 +34,42 @@ const EmailVerification = ({ navigation }) => {
         }
     };
 
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const handleVerify = async () => {
+        console.log("Verifying OTP for email");
+        const otp = code.join("");
+        if (otp.length !== 4) {
+            alert("Please enter a 4-digit OTP");
+            return;
+        }
+
+        try {
+            // console.log(email, "Verifying OTP:", otp);
+            const response = await verifyOTP("aarijm5@gmail.com", otp); // Pass both email and OTP
+            if (response?.message === "OTP verified") {
+                console.log("OTP Verified successfully");
+
+                // Show confirmation modal
+                setModalVisible(true);
+
+                // Wait for 2 seconds before navigating
+                setTimeout(() => {
+                    setModalVisible(false);
+                    navigation.navigate("GenderScreen"); // Navigate to next screen
+                }, 2000);
+            } else {
+                alert("Invalid OTP, please try again.");
+                console.error("OTP verification failed");
+            }
+        } catch (error) {
+            console.error("Error verifying OTP:", error);
+            alert("An error occurred, please try again.");
+        }
+    };
+
+
+
     return (
         <ImageBackground source={bg} style={styles.container}>
             <Image source={verify} style={styles.image} />
@@ -42,7 +79,7 @@ const EmailVerification = ({ navigation }) => {
                 <Text style={styles.subtitle}>
                     Enter the verification code we just sent to your email address.
                 </Text>
-                <Text style={styles.email}>example@gmail.com</Text>
+                <Text style={styles.email}>{email}</Text>
 
                 <View style={styles.codeContainer}>
                     {code.map((digit, index) => (
@@ -52,7 +89,6 @@ const EmailVerification = ({ navigation }) => {
                             value={digit}
                             onChangeText={text => handleChange(text, index)}
                             onKeyPress={e => handleKeyPress(e, index)}
-                            keyboardType="number-pad"
                             maxLength={1}
                             style={[
                                 styles.codeInput,
@@ -65,18 +101,20 @@ const EmailVerification = ({ navigation }) => {
                     ))}
                 </View>
 
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button} onPress={handleVerify}>
                     <Text style={styles.buttonText}>Verify</Text>
                 </TouchableOpacity>
+
             </View>
 
             <ConfirmationModal
-                isVisible={true}
+                isVisible={modalVisible}
                 icon={tick}
                 onClose={() => setModalVisible(false)}
                 title="Account Created!"
                 message="Your account has been successfully created"
             />
+
         </ImageBackground>
     );
 };

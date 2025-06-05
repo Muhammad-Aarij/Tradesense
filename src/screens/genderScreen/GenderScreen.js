@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     optionText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter-Medium" },
     selectedOptiontext: { color: theme.primaryColor, fontSize: 16, fontFamily: "Inter-Medium" },
     button: { backgroundColor: theme.primaryColor, padding: 15, borderRadius: 10, marginTop: 20, width: '80%', alignItems: 'center' },
-    disabledButton: { backgroundColor: theme.disabledButton },
+    disabledButton: { backgroundColor: "gray" },
     buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', fontFamily: "Inter-SemiBold" }
 });
 

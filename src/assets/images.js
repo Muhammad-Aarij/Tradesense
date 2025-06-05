@@ -1,10 +1,10 @@
 // Import all age-related images
-import age1 from './age (1).png';
-import age2 from './age (2).png';
-import age3 from './age (3).png';
-import age4 from './age (4).png';
-import age5 from './age (5).png';
-import age6 from './age (6).png';
+import age1 from './age(1).png';
+import age2 from './age(2).png';
+import age3 from './age(3).png';
+import age4 from './age(4).png';
+import age5 from './age(5).png';
+import age6 from './age(6).png';
 
 // Import other individual image assets
 import alarm from './alarm.png';

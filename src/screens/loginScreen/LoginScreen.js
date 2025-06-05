@@ -1,15 +1,41 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { bg, userLock, G, eyeClose } from '../../assets/images';
 import theme from '../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../components/CustomInput';
+import loginUser from '../../functions/auth';
 
 const { width } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
 
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoading, setisloading] = useState(false);
+
+    const handleLogin = async () => {
+        try {
+            setisloading(true);
+            const userData = await loginUser(username, password);
+            setisloading(false);
+            navigation.navigate("GenderScreen");
+        } catch (error) {
+            setisloading(false);
+            Alert.alert("Login failed. Please check your username and password.");
+            console.log("Error logging in:", error);
+        }
+    };
+
+     if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -17,21 +43,27 @@ const LoginScreen = ({ navigation }) => {
             <ScrollView contentContainerStyle={{ alignItems: "center" }} style={styles.bottomcontainer}>
                 <Text style={styles.title}>Login</Text>
                 <Text style={styles.subtitle}>welcome back we missed you</Text>
-                <CustomInput label="Email" placeholder="Email Address" />
+                <CustomInput
+                    label="Username"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChangeText={setUsername}
+                />
 
                 <CustomInput
                     label="Password"
-                    placeholder="Password"
+                    placeholder="Enter your password"
                     secureTextEntry={!passwordVisible}
-                    icon={passwordVisible ? eyeOpen : eyeClose}
+                    value={password}
+                    onChangeText={setPassword}
+                    icon={passwordVisible ? eyeClose : eyeClose}
                     onIconPress={() => setPasswordVisible(!passwordVisible)}
                 />
 
-
-                <TouchableOpacity style={styles.forgot}>
+            <TouchableOpacity style={styles.forgot} onPress={() => navigation.navigate("ForgotPassword")}>
                     <Text style={styles.forgotText}>Forgot Password?</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button} onPress={() => handleLogin()}>
                     <Text style={styles.buttonText}>Sign in</Text>
                 </TouchableOpacity>
                 <View style={styles.orContainer}>
@@ -56,9 +88,9 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.googleText}>Continue with Google</Text>
                     </TouchableOpacity>
                 </LinearGradient>
-
-
-                <Text style={styles.footer}>Don't have any account? <Text style={styles.link}>Sign up here!</Text></Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Signup")} >
+                    <Text style={styles.footer}>Don't have any account? <Text style={styles.link}>Sign up here!</Text></Text>
+                </TouchableOpacity>
             </ScrollView>
         </ImageBackground>
     );
@@ -88,13 +120,13 @@ const styles = StyleSheet.create({
     input: {
         width: '100%',
         flex: 1, // Ensures input fills the available space
-        backgroundColor: "#0d151e",
         color: '#fff',
         fontFamily: "Inter-Regular",
         borderRadius: 8,
         padding: 15,
-        borderWidth: 0.8,
         marginTop: 10,
+        borderWidth: 0.8,
+        backgroundColor: "#0d151e",
         borderColor: theme.borderColor,
         paddingRight: 40, // Adds space for the eye icon
     },
@@ -109,7 +141,7 @@ const styles = StyleSheet.create({
         height: 20,
         tintColor: "#aaa",
     },
-    forgot: { alignSelf: 'flex-end',marginBottom: 20 },
+    forgot: { alignSelf: 'flex-end', marginBottom: 20 },
     forgotText: { color: '#FFFFFF', fontSize: 11, fontFamily: "Inter-Medium", },
     label: { fontFamily: "Inter-Medium", width: "100%", textAlign: "left", color: '#FFFFFF', fontSize: 13, marginTop: 17, marginBottom: 5 },
     button: {

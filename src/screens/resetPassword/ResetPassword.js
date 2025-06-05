@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 30,
         overflow: 'hidden',
         alignItems: 'center',
-        justifyContent: 'center',
         marginTop: 25,
     },
     image: { width: 134, height: 134, resizeMode: 'contain', marginTop: 30 },
