@@ -3,12 +3,30 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image,
 import { bg, lock, G, eyeClose } from '../../assets/images';
 import theme from '../../themes/theme'
 import CustomInput from '../../components/CustomInput';
+import { sendResetEmail } from '../../functions/passwordService';
 
 const { width } = Dimensions.get('window');
 
 const ForgetPassword = ({ navigation }) => {
 
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [email, setEmail] = useState('');
+    const handleVerify = async () => {
+        if (!email) {
+            alert("Please enter your email address");
+            return;
+        }
+
+        try {
+            const response = await sendResetEmail(email);
+            console.log("Reset email sent:", response);
+            alert("Password reset email sent successfully");
+            navigation.navigate("ResetPassword",{token:response.token}); // Navigate to the next screen
+        } catch (error) {
+            console.error("Error sending reset email:", error);
+            alert("Failed to send password reset email. Please try again.");
+        }
+    };
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -16,11 +34,16 @@ const ForgetPassword = ({ navigation }) => {
             <View style={styles.bottomcontainer}>
                 <Text style={styles.title}>Forgot Password</Text>
                 <Text style={styles.subtitle}>Enter your email address</Text>
-                <CustomInput placeholder="Enter your Email Address" />
+                <CustomInput
+                    placeholder="Enter your Email Address"
+                    value={email}
+                    onChangeText={setEmail}
+                />
 
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button} onPress={() => handleVerify()}>
                     <Text style={styles.buttonText}>Verify</Text>
                 </TouchableOpacity>
+
 
             </View >
         </ImageBackground>

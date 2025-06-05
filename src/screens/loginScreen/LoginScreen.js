@@ -5,7 +5,7 @@ import theme from '../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../components/CustomInput';
 import loginUser from '../../functions/auth';
-
+import handleGoogleLogin from '../../functions/handleGoogleLogin';
 const { width } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
@@ -28,7 +28,7 @@ const LoginScreen = ({ navigation }) => {
         }
     };
 
-     if (isLoading) {
+    if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" />
@@ -60,7 +60,7 @@ const LoginScreen = ({ navigation }) => {
                     onIconPress={() => setPasswordVisible(!passwordVisible)}
                 />
 
-            <TouchableOpacity style={styles.forgot} onPress={() => navigation.navigate("ForgotPassword")}>
+                <TouchableOpacity style={styles.forgot} onPress={() => navigation.navigate("ForgotPassword")}>
                     <Text style={styles.forgotText}>Forgot Password?</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleLogin()}>
@@ -83,10 +83,11 @@ const LoginScreen = ({ navigation }) => {
                     colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
                     style={styles.googleBtn}
                 >
-                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={handleGoogleLogin}>
                         <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
                         <Text style={styles.googleText}>Continue with Google</Text>
                     </TouchableOpacity>
+
                 </LinearGradient>
                 <TouchableOpacity onPress={() => navigation.navigate("Signup")} >
                     <Text style={styles.footer}>Don't have any account? <Text style={styles.link}>Sign up here!</Text></Text>

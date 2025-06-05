@@ -2,14 +2,38 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
 import { bg, lock, G, eyeClose } from '../../assets/images';
 import theme from '../../themes/theme'
-import LinearGradient from 'react-native-linear-gradient';
+import { resetPassword } from '../../functions/passwordService';
 import CustomInput from '../../components/CustomInput';
 
 const { width } = Dimensions.get('window');
 
-const ResetPassword = ({ navigation }) => {
+const ResetPassword = ({ navigation, route }) => {
 
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const token = route.params?.token || ""; // Get token from previous screen
+    const handleResetPassword = async () => {
+        if (newPassword !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
+        if (!token) {
+            alert("Missing reset token. Please try again.");
+            return;
+        }
+
+        try {
+            const response = await resetPassword(token, newPassword);
+            console.log("Password reset successful:", response);
+            alert("Your password has been reset successfully!");
+            navigation.navigate("Login"); // Navigate to login screen
+        } catch (error) {
+            console.error("Error resetting password:", error);
+            alert("Failed to reset password. Please try again.");
+        }
+    };
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -21,20 +45,25 @@ const ResetPassword = ({ navigation }) => {
                     label="New Password"
                     placeholder="New Password"
                     secureTextEntry={!passwordVisible}
-                    icon={passwordVisible ? eyeOpen : eyeClose}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    icon={passwordVisible ? eyeClose : eyeClose}
                     onIconPress={() => setPasswordVisible(!passwordVisible)}
                 />
+
                 <CustomInput
                     label="Confirm New Password"
                     placeholder="Confirm New Password"
                     secureTextEntry={!passwordVisible}
-                    icon={passwordVisible ? eyeOpen : eyeClose}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    icon={passwordVisible ? eyeClose : eyeClose}
                     onIconPress={() => setPasswordVisible(!passwordVisible)}
                 />
-
-                <TouchableOpacity style={styles.button}>
+                <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
                     <Text style={styles.buttonText}>Continue</Text>
                 </TouchableOpacity>
+
 
             </View >
         </ImageBackground>

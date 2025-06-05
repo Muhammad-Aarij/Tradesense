@@ -6,6 +6,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../components/CustomInput';
 import registerUser from '../../functions/registerUser';
 import { sendOTP } from '../../functions/otpService';
+import handleGoogleLogin from '../../functions/handleGoogleLogin';
 
 const { width } = Dimensions.get('window');
 
@@ -37,7 +38,7 @@ const SignUp = ({ navigation }) => {
                 console.log("OTP sent successfully",);
 
                 // Navigate to Email Verification screen
-                navigation.navigate("EmailVerification",{email: email});
+                navigation.navigate("EmailVerification", { email: email });
             } else {
                 Alert.alert("Registration failed", "Please try again");
                 console.error("Registration failed");
@@ -99,7 +100,7 @@ const SignUp = ({ navigation }) => {
                         colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
                         style={styles.googleBtn}
                     >
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={handleGoogleLogin}>
                             <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
                             <Text style={styles.googleText}>Continue with Google</Text>
                         </TouchableOpacity>
