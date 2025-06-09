@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontFamily: "Inter-Regular",
         paddingVertical: 15,
+        fontSize:13,
     },
     iconButton: {
         position: "absolute",

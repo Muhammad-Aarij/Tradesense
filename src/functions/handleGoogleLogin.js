@@ -1,27 +1,48 @@
-import axios from "axios";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import { API_URL } from "@env";
 
-GoogleSignin.configure({
-    webClientId: "http://676593938687-l1o5s57r8mv16t9p2dsq4qk6hogpr36c.apps.googleusercontent.com"
-});
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import axios from 'axios';
+import { Alert } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
+import { API_URL } from '@env';
 
-const handleGoogleLogin = async () => {
+export const useGoogleSignIn = () => {
+  const dispatch = useDispatch();
+
+  const signInWithGoogle = async () => {
     try {
-        await GoogleSignin.hasPlayServices();
-        const userInfo = await GoogleSignin.signIn();
+      dispatch(startLoading());
 
-        // Send token to backend API for authentication
-        const response = await axios.get(`${API_URL}/api/auth/google`, {
-            token: userInfo.idToken,
-        });
+      // Ensure device has Google Play Services
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
-        console.log("Google Login successful:", response.data);
-        return response.data;
+      // Start Google sign-in process
+      const userInfo = await GoogleSignin.signIn();
+
+      const { idToken } = await GoogleSignin.getTokens(); // Get ID token for backend verification
+
+      // Optionally: send idToken to your backend to verify & create a user session
+      // const response = await axios.post(`${API_URL}/auth/google-login`, {
+      //   idToken: idToken,
+      // });
+
+      // Do something with the response, e.g., store user info in Redux or AsyncStorage
+      console.log('Login successful:', response.data);
+
     } catch (error) {
-        console.error("Google Login Error:", error);
-        throw error;
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        Alert.alert('Cancelled', 'User cancelled the login flow');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert('In Progress', 'Sign-in already in progress');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Play Services Not Available', 'Please update Google Play Services');
+      } else {
+        Alert.alert('Error', error.message || 'Something went wrong during sign-in');
+      }
+    } finally {
+      dispatch(stopLoading());
     }
-};
+  };
 
-export default handleGoogleLogin;
+  return { signInWithGoogle };
+};

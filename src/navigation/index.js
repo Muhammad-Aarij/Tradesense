@@ -1,13 +1,19 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-// import { View, ActivityIndicator } from 'react-native';
 // import { useSelector, useDispatch } from 'react-redux';
 // import { retrieveToken } from '../redux/slice/authSlice';
-
-import AuthNavigator from './AuthNavigator';
 // import AuthProvider from '../context/AuthProvider';
+import AuthNavigator from './AuthNavigator';
+import { useSelector } from 'react-redux';
+import AnimatedLoader from "react-native-animated-loader";
+import { ActivityIndicator, Text } from 'react-native';
+import Loader from '../components/loader';
+
+
 
 const AppNavContainer = () => {
+
+    const isLoading = useSelector((state) => state.loader.isLoading);
     // const { isLoading, userToken } = useSelector(state => state.auth);
     // const dispatch = useDispatch();
 
@@ -15,21 +21,20 @@ const AppNavContainer = () => {
     //     dispatch(retrieveToken());
     // }, []);
 
-    // if (isLoading) {
+    // if (true) {
     //     return (
-    //         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    //             <ActivityIndicator size="large" />
-    //         </View>
+    //         <Loader/>
     //     );
     // }
 
     return (
-        // <AuthProvider>
-        <NavigationContainer>
-            <AuthNavigator />
-            {/* {userToken ? <BottomTabs /> : <AuthNavigator />} */}
-        </NavigationContainer>
-        // </AuthProvider>
+        <>
+            <NavigationContainer>
+                <AuthNavigator />
+            </NavigationContainer>
+            {isLoading && <Loader />}
+        </>
+
     );
 };
 

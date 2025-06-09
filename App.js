@@ -1,32 +1,26 @@
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer } from '@react-navigation/native'; import LoginScreen from './src/screens/loginScreen/LoginScreen';
-import SignUp from './src/screens/SignUp/SignUp';
-import EmailVerification from './src/screens/emailVerification/EmailVerification';
-import ForgetPassword from './src/screens/forgetPassword/ForgetPassword';
-import GenderScreen from './src/screens/genderScreen/GenderScreen';
-import ResetPassword from './src/screens/resetPassword/ResetPassword';
-// import SignUp from './src/screens/SignUp/SignUp';
-
+import React, { useEffect } from 'react';
+import store from './src/redux/store/store';
+import { Provider } from 'react-redux';
+import AppNavContainer from './src/navigation';
+import { API_URL, GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from "@env";
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const App = () => {
-    const Stack = createNativeStackNavigator();
+
+    useEffect(() => {
+        GoogleSignin.configure({
+            webClientId: GOOGLE_WEB_CLIENT_ID,
+            iosClientId: GOOGLE_IOS_CLIENT_ID,
+            scopes: ['profile', 'email'],
+        });
+
+    }, []);
 
     return (
-        <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="Signup" component={SignUp} />
-                <Stack.Screen name="EmailVerification" component={EmailVerification} />
-                <Stack.Screen name="ForgotPassword" component={ForgetPassword} />
-                <Stack.Screen name="GenderScreen" component={GenderScreen} />
-                <Stack.Screen name="ResetPassword" component={ResetPassword} />
-            </Stack.Navigator>
-        </NavigationContainer>
+        <Provider store={store}>
+            <AppNavContainer />
+        </Provider>
     );
 };
 
 export default App;
-
-// <Provider store={store}>
-// </Provider>

@@ -4,12 +4,14 @@ import { bg, lock, G, eyeClose } from '../../assets/images';
 import theme from '../../themes/theme'
 import CustomInput from '../../components/CustomInput';
 import { sendResetEmail } from '../../functions/passwordService';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 
 const { width } = Dimensions.get('window');
 
 const ForgetPassword = ({ navigation }) => {
+    const dispatch = useDispatch();
 
-    const [passwordVisible, setPasswordVisible] = useState(false);
     const [email, setEmail] = useState('');
     const handleVerify = async () => {
         if (!email) {
@@ -18,11 +20,14 @@ const ForgetPassword = ({ navigation }) => {
         }
 
         try {
+            dispatch(startLoading()); ``
             const response = await sendResetEmail(email);
             console.log("Reset email sent:", response);
+            dispatch(stopLoading());            
             alert("Password reset email sent successfully");
-            navigation.navigate("ResetPassword",{token:response.token}); // Navigate to the next screen
+            navigation.navigate("ResetPassword", { token: response.token }); // Navigate to the next screen
         } catch (error) {
+            dispatch(stopLoading());
             console.error("Error sending reset email:", error);
             alert("Failed to send password reset email. Please try again.");
         }

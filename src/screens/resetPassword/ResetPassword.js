@@ -4,6 +4,8 @@ import { bg, lock, G, eyeClose } from '../../assets/images';
 import theme from '../../themes/theme'
 import { resetPassword } from '../../functions/passwordService';
 import CustomInput from '../../components/CustomInput';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 
 const { width } = Dimensions.get('window');
 
@@ -13,23 +15,27 @@ const ResetPassword = ({ navigation, route }) => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const token = route.params?.token || ""; // Get token from previous screen
+    const dispatch = useDispatch();
+
     const handleResetPassword = async () => {
         if (newPassword !== confirmPassword) {
             alert("Passwords do not match!");
             return;
         }
-
         if (!token) {
-            alert("Missing reset token. Please try again.");
+            navigation.navigate("ForgotPassword")
             return;
         }
-
         try {
+            dispatch(startLoading());
+
             const response = await resetPassword(token, newPassword);
             console.log("Password reset successful:", response);
+            dispatch(stopLoading());
             alert("Your password has been reset successfully!");
             navigation.navigate("Login"); // Navigate to login screen
         } catch (error) {
+            dispatch(stopLoading());
             console.error("Error resetting password:", error);
             alert("Failed to reset password. Please try again.");
         }

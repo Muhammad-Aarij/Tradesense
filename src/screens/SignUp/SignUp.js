@@ -7,6 +7,8 @@ import CustomInput from '../../components/CustomInput';
 import registerUser from '../../functions/registerUser';
 import { sendOTP } from '../../functions/otpService';
 import handleGoogleLogin from '../../functions/handleGoogleLogin';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 
 const { width } = Dimensions.get('window');
 
@@ -19,27 +21,29 @@ const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [isLoading, setisloading] = useState(false);
-
+    const dispatch = useDispatch();
 
     const handleSignUp = async () => {
+        dispatch(startLoading());
+
         if (password !== confirmPassword) {
             Alert.alert("Passwords do not match!");
             return;
         }
-
         const userData = { name, phone, email, password, role: "user" };
-
         try {
             const response = await registerUser(userData);
             if (response) {
                 console.log("User registered successfully:", response);
                 await sendOTP(email);
                 console.log("OTP sent successfully",);
-
                 // Navigate to Email Verification screen
+                dispatch(stopLoading());
                 navigation.navigate("EmailVerification", { email: email });
+
             } else {
+                dispatch(stopLoading());
+
                 Alert.alert("Registration failed", "Please try again");
                 console.error("Registration failed");
             }

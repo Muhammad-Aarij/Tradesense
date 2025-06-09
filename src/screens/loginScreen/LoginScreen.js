@@ -1,104 +1,108 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Pressable, ActivityIndicator, Alert, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard } from 'react-native';
 import { bg, userLock, G, eyeClose } from '../../assets/images';
 import theme from '../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../components/CustomInput';
 import loginUser from '../../functions/auth';
-import handleGoogleLogin from '../../functions/handleGoogleLogin';
+import { useGoogleSignIn } from '../../functions/handleGoogleLogin';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 const { width } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
+    const { signInWithGoogle } = useGoogleSignIn(); // ✅ Hook is called here
 
+    const dispatch = useDispatch();
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [isLoading, setisloading] = useState(false);
 
     const handleLogin = async () => {
         try {
-            setisloading(true);
+            dispatch(startLoading());
+            console.log("Function Called");
             const userData = await loginUser(username, password);
-            setisloading(false);
+            dispatch(stopLoading());
             navigation.navigate("GenderScreen");
         } catch (error) {
-            setisloading(false);
+            dispatch(stopLoading());
             Alert.alert("Login failed. Please check your username and password.");
             console.log("Error logging in:", error);
         }
     };
 
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
+
 
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <Image source={userLock} style={styles.image} />
-            <ScrollView contentContainerStyle={{ alignItems: "center" }} style={styles.bottomcontainer}>
-                <Text style={styles.title}>Login</Text>
-                <Text style={styles.subtitle}>welcome back we missed you</Text>
-                <CustomInput
-                    label="Username"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChangeText={setUsername}
-                />
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} >
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+                <ImageBackground source={bg} style={styles.container}>
+                    <Image source={userLock} style={styles.image} />
+                    <ScrollView contentContainerStyle={{ alignItems: "center" }} style={styles.bottomcontainer}>
+                        <Text style={styles.title}>Login</Text>
+                        <Text style={styles.subtitle}>welcome back we missed you</Text>
+                        <CustomInput
+                            label="Username"
+                            placeholder="Enter your username"
+                            value={username}
+                            onChangeText={setUsername}
+                        />
 
-                <CustomInput
-                    label="Password"
-                    placeholder="Enter your password"
-                    secureTextEntry={!passwordVisible}
-                    value={password}
-                    onChangeText={setPassword}
-                    icon={passwordVisible ? eyeClose : eyeClose}
-                    onIconPress={() => setPasswordVisible(!passwordVisible)}
-                />
+                        <CustomInput
+                            label="Password"
+                            placeholder="Enter your password"
+                            secureTextEntry={!passwordVisible}
+                            value={password}
+                            onChangeText={setPassword}
+                            icon={passwordVisible ? eyeClose : eyeClose}
+                            onIconPress={() => setPasswordVisible(!passwordVisible)}
+                        />
 
-                <TouchableOpacity style={styles.forgot} onPress={() => navigation.navigate("ForgotPassword")}>
-                    <Text style={styles.forgotText}>Forgot Password?</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => handleLogin()}>
-                    <Text style={styles.buttonText}>Sign in</Text>
-                </TouchableOpacity>
-                <View style={styles.orContainer}>
-                    <LinearGradient
-                        start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
-                        colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
-                        style={styles.Line}
-                    />
-                    <Text style={styles.or}>Or continue with</Text>
-                    <LinearGradient
-                        colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
-                        style={styles.Line}
-                    />
-                </View>
-                <LinearGradient
-                    start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
-                    colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
-                    style={styles.googleBtn}
-                >
-                    <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={handleGoogleLogin}>
-                        <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
-                        <Text style={styles.googleText}>Continue with Google</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity style={styles.forgot} onPress={() => navigation.navigate("ForgotPassword")}>
+                            <Text style={styles.forgotText}>Forgot Password?</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.button} onPress={() => handleLogin()}>
+                            <Text style={styles.buttonText}>Sign in</Text>
+                        </TouchableOpacity>
+                        <View style={styles.orContainer}>
+                            <LinearGradient
+                                start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
+                                colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
+                                style={styles.Line}
+                            />
+                            <Text style={styles.or}>Or continue with</Text>
+                            <LinearGradient
+                                start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
 
-                </LinearGradient>
-                <TouchableOpacity onPress={() => navigation.navigate("Signup")} >
-                    <Text style={styles.footer}>Don't have any account? <Text style={styles.link}>Sign up here!</Text></Text>
-                </TouchableOpacity>
-            </ScrollView>
-        </ImageBackground>
+                                colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
+                                style={styles.Line}
+                            />
+                        </View>
+                        <LinearGradient
+                            start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
+                            colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
+                            style={styles.googleBtn}
+                        >
+                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={signInWithGoogle} >
+                                <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+                                <Text style={styles.googleText}>Continue with Google</Text>
+                            </TouchableOpacity>
+
+                        </LinearGradient>
+                        <TouchableOpacity onPress={() => navigation.navigate("Signup")} >
+                            <Text style={styles.footer}>Don't have any account? <Text style={styles.link}>Sign up here!</Text></Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+                </ImageBackground>
+            </KeyboardAvoidingView >
+        </TouchableWithoutFeedback >
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#010b13', alignItems: 'center', },
+    container: { flex: 1, width: "100%", backgroundColor: '#010b13', alignItems: 'center', },
     bottomcontainer: {
         flex: 1,
         backgroundColor: theme.darkBlue,
@@ -111,7 +115,7 @@ const styles = StyleSheet.create({
     },
     image: { width: 134, height: 134, resizeMode: 'contain', marginTop: 30 },
     title: { fontSize: 28, color: '#EFEFEF', fontFamily: "Inter-SemiBold", marginTop: 25, marginBottom: 8, },
-    subtitle: { color: '#FFFFFF', fontSize: 14, marginBottom: 25, fontFamily: "Inter-Medium", width: "50%", textAlign: 'center', marginBottom: 8 },
+    subtitle: { color: '#FFFFFF', fontSize: 12, marginBottom: 25, fontFamily: "Inter-Regular", width: "100%", textAlign: 'center', marginBottom: 25 },
     passwordContainer: {
         width: '100%',
         flexDirection: 'row',
