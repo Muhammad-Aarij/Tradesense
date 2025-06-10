@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground, Dimensions } from 'react-native';
-import theme from '../../themes/theme';
-import { male, female, third, bg } from '../../assets/images'; // Ensure correct icons
+import theme from '../../../themes/theme';
+import { male, female, third, bg } from '../../../assets/images'; // Ensure correct icons
 const { height } = Dimensions.get('window');
 
 const GenderScreen = ({ navigation }) => {
@@ -44,8 +44,8 @@ const GenderScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.darkBlue, paddingVertical: 40, },
-    title: { fontSize: 28, fontFamily: "Inter-SemiBold", color: "#FFFFFF", marginBottom: 10 },
-    subtitle: { fontSize: 14, fontFamily: "Inter-SemiBold", color: "#FFFFFF", marginBottom: 20 },
+    title: { fontSize: 28, fontFamily: "Inter-SemiBold", color: "#FFFFFF",  },
+    subtitle: { fontSize: 13, fontFamily: "Inter-Medium", color: "#FFFFFF", marginBottom: 20 },
     optionsContainer: { flex: 1, flexDirection: 'column', justifyContent: 'center', marginBottom: 20, gap: 20 },
     option: {
         alignItems: 'center',

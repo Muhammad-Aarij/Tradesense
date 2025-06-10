@@ -3,10 +3,10 @@ import {
     View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions,
     Image, ImageBackground
 } from 'react-native';
-import { bg, tick, verify } from '../../assets/images';
-import theme from '../../themes/theme';
-import ConfirmationModal from '../../components/ConfirmationModal';
-import { verifyOTP } from '../../functions/otpService';
+import { bg, tick, verify } from '../../../assets/images';
+import theme from '../../../themes/theme';
+import ConfirmationModal from '../../../components/ConfirmationModal';
+import { verifyOTP } from '../../../functions/otpService';
 
 
 const { width } = Dimensions.get('window');

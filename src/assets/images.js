@@ -25,8 +25,11 @@ import eyeClose from './eye-Close.png';
 import secureUser from './secureUser.png';
 import verify from './verify.png';
 
+import check from './check.png'
+import uncheck from './uncheck.png'
 // Export all imported images as a single object for easy access
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
-  lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify
+  lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify,
+  check,uncheck
 };

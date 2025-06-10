@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Pressable, ActivityIndicator, Alert, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard } from 'react-native';
-import { bg, userLock, G, eyeClose } from '../../assets/images';
-import theme from '../../themes/theme'
+import { bg, userLock, G, eyeClose } from '../../../assets/images';
+import theme from '../../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
-import CustomInput from '../../components/CustomInput';
-import loginUser from '../../functions/auth';
-import { useGoogleSignIn } from '../../functions/handleGoogleLogin';
+import CustomInput from '../../../components/CustomInput';
+import loginUser from '../../../functions/auth';
+import { useGoogleSignIn } from '../../../functions/handleGoogleLogin';
 import { useDispatch } from 'react-redux';
-import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 const { width } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
-    const { signInWithGoogle } = useGoogleSignIn(); // ✅ Hook is called here
+    // const { signInWithGoogle } = useGoogleSignIn(); // ✅ Hook is called here
 
     const dispatch = useDispatch();
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -85,7 +85,7 @@ const LoginScreen = ({ navigation }) => {
                             colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
                             style={styles.googleBtn}
                         >
-                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={signInWithGoogle} >
+                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} >
                                 <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
                                 <Text style={styles.googleText}>Continue with Google</Text>
                             </TouchableOpacity>
