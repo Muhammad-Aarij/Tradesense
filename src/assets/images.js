@@ -38,11 +38,13 @@ import graph from './graph.png'
 import bell from './bell.png'
 import circle from './circle.png'
 import wave from './wave.png'
+import play from './play.png'
+import back from './back.png'
 
 
 // Export all imported images as a single object for easy access
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
   lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify,
-  check, uncheck, home, care, video, book, user, scholar, graph, bell,circle,wave
+  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, back
 };

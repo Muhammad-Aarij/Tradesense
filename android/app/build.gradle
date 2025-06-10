@@ -110,7 +110,7 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    implementation project(':react-native-google-signin') // This line should be present
+    implementation(':react-native-google-signin') 
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
@@ -120,4 +120,4 @@ dependencies {
 }
 
 
-apply plugin: 'com.google.gms.google-services' // Add this line at the very bottom
+// apply plugin: 'com.google.gms.google-services' 
