@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ImageBackground } from 'react-native';
 import CourseCard from './CourseCard';
-import { user, wave } from '../../../assets/images';
+import { bg, user, wave } from '../../../assets/images';
 import Header from '../../../components/Header';
 
 const courses = [
@@ -29,7 +29,7 @@ const OurCoursesScreen = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={bg} style={styles.container}>
       <Header title={"Our Courses"}/>
       <FlatList
         numColumns={2}
@@ -39,7 +39,7 @@ const OurCoursesScreen = ({ navigation }) => {
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.contentContainer}
       />
-    </View>
+    </ImageBackground>
   );
 };
 

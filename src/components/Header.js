@@ -24,13 +24,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginVertical: 35,
         height: 60,
-        backgroundColor: '#08131F',
         paddingHorizontal: 20,
         position: 'relative', // Allows absolute positioning inside
     },
     
     blurWrapper: { 
-        width: 40, height: 40, borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
+        width: 33, height: 33, borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
     },
     
     blurView: { 
