@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
-import { bg, lock, G, eyeClose } from '../../assets/images';
-import theme from '../../themes/theme'
+import theme from '../../../themes/theme';
 import { resetPassword } from '../../functions/passwordService';
-import CustomInput from '../../components/CustomInput';
+import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
-import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
+import { startLoading,stopLoading } from '../../../redux/slice/loaderSlice';
+import { bg, lock, G, eyeClose  } from '../../../assets/images';
 
 const { width } = Dimensions.get('window');
 

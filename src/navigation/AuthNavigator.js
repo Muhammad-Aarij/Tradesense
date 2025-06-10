@@ -5,9 +5,9 @@ import ForgetPassword from '../screens/Auth/forgetPassword/ForgetPassword';
 import SignUp from '../screens/Auth/SignUp/SignUp';
 import EmailVerification from '../screens/Auth/emailVerification/EmailVerification';
 import GenderScreen from '../screens/Profile/genderScreen/GenderScreen';
-import ResetPassword from '../screens/resetPassword/ResetPassword';
 import GoalsScreen from '../screens/Profile/goalScreen/GoalsScreen';
 import AgeScreen from '../screens/Profile/ageScreen/AgeScreen';
+import ResetPassword from '../screens/Auth/resetPassword/ResetPassword';
 const Stack = createNativeStackNavigator();
 
 const AuthNavigator = () => {

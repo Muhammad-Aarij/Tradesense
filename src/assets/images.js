@@ -27,9 +27,22 @@ import verify from './verify.png';
 
 import check from './check.png'
 import uncheck from './uncheck.png'
+
+import home from './home.png'
+import scholar from './scholar.png'
+import care from './care.png'
+import book from './book.png'
+import video from './video.png'
+import user from './user.png'
+import graph from './graph.png'
+import bell from './bell.png'
+import circle from './circle.png'
+import wave from './wave.png'
+
+
 // Export all imported images as a single object for easy access
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
   lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify,
-  check,uncheck
+  check, uncheck, home, care, video, book, user, scholar, graph, bell,circle,wave
 };
