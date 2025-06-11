@@ -8,7 +8,7 @@ const Header = ({ title }) => {
             {/* Circular BlurView around Back Button */}
             <TouchableOpacity style={styles.blurWrapper}>
                 <BlurView blurType="light" blurAmount={20} style={styles.blurView}>
-                    <Image source={back} style={styles.backIcon} />
+                    <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
                 </BlurView>
             </TouchableOpacity>
 
@@ -23,28 +23,26 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 35,
-        height: 60,
-        paddingHorizontal: 20,
         position: 'relative', // Allows absolute positioning inside
     },
-    
-    blurWrapper: { 
-        width: 33, height: 33, borderRadius: 20, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
+
+    blurWrapper: {
+        width: 35, height: 35, borderRadius: 20, padding: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
     },
-    
-    blurView: { 
+
+    blurView: {
         width: "100%", height: "100%", alignItems: 'center', justifyContent: 'center',
     },
 
     backIcon: { width: 17, height: 17, resizeMode: 'contain' },
 
-    title: { 
-        fontSize: 22, 
-        color: '#EFEFEF', 
-        fontFamily: 'Inter-SemiBold', 
-        position: 'absolute', 
-        left: 0, 
-        right: 0, 
+    title: {
+        fontSize: 20,
+        color: '#EFEFEF',
+        fontFamily: 'Inter-SemiBold',
+        position: 'absolute',
+        left: 0,
+        right: 0,
         textAlign: 'center',
     },
 });

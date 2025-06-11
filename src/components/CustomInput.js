@@ -40,10 +40,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '100%',
         position: 'relative',
-        backgroundColor: theme.inputBackground,
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 0.9, borderColor: theme.borderColor,
         borderRadius: 8,
-        borderWidth: 0.8,
-        borderColor: theme.borderColor,
+        // borderWidth: 0.8,
+        // borderColor: theme.borderColor,
         paddingHorizontal: 15,
     },
     input: {
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontFamily: "Inter-Regular",
         paddingVertical: 15,
-        fontSize:13,
+        fontSize: 13,
     },
     iconButton: {
         position: "absolute",
