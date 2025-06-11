@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 35,
+        marginBottom:25,
         position: 'relative', // Allows absolute positioning inside
     },
 

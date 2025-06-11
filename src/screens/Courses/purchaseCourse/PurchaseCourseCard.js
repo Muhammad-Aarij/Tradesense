@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { mountain, play, user } from '../../../assets/images';
+import { copy, mountain, play, user } from '../../../assets/images';
 import theme from '../../../themes/theme';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive design
@@ -24,29 +24,53 @@ const StarRating = ({ rating }) => {
 // import { mountain, play } from '../../../assets/images';
 
 const PurchasedCourseCard = ({ course, onPress }) => (
-    <TouchableOpacity style={styles.card} onPress={() => onPress(course)}>
+    <TouchableOpacity
+        style={{
+            ...styles.card,
+            height: course.type === "Affiliate" ? 180 : 150
+        }}
+        onPress={() => onPress(course)}
+    >
         <View style={styles.imageWrapper}>
             {/* Use course.image for dynamic image source */}
             <Image source={mountain} style={styles.cardImage} />
             <View style={styles.imgOverlay} />
-            <View style={styles.timeOverlay}>
-                {/* Using the imported 'play' image asset */}
-                <Image source={play} style={styles.playIcon} />
-                <Text style={styles.timeText}>{course.time}</Text>
-            </View>
+
+            {course.type != "Affiliate" &&
+                <View style={styles.timeOverlay}>
+                    <Image source={play} style={styles.playIcon} />
+                    <Text style={styles.timeText}>{course.time}</Text>
+                </View>
+            }
+            {course.type == "Affiliate" &&
+                <View style={{ ...styles.timeOverlay, }}>
+                    <Text style={styles.timeText}>{course.percent}</Text>
+                </View>
+            }
+
         </View>
         <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>{course.title}</Text>
-            <Text style={styles.cardDescription} numberOfLines={3}>
+            <Text style={styles.cardDescription} numberOfLines={course.type == "Affiliate" ? 2 : 3}>
                 {course.description}
             </Text>
             <StarRating rating={course.rating} />
             <View style={styles.instructorInfo}>
-                <Image source={user} style={styles.instructorImage} />
-                <View style={{ flexDirection: "column" }}>
-                    <Text style={styles.instructorName}>Alwin</Text>
-                    <Text style={styles.instructorSubtitle}>Mentally Relax</Text>
+                <View style={{ flexDirection: "row" }}>
+                    <Image source={user} style={styles.instructorImage} />
+                    <View style={{ flexDirection: "column" }}>
+                        <Text style={styles.instructorName}>Alwin</Text>
+                        <Text style={styles.instructorSubtitle}>Mentally Relax</Text>
+                    </View>
                 </View>
+                <Text style={styles.price}>{course.price}</Text>
+            </View>
+
+            <View style={styles.urlcontainer}>
+                <Text style={styles.url} numberOfLines={1} ellipsizeMode="tail">
+                    {course.courseUrl}
+                </Text>
+                <Image style={{ width: 10, height: 10, resizeMode: "contain" }} source={copy}></Image>
             </View>
         </View>
     </TouchableOpacity>
@@ -59,7 +83,7 @@ const styles = StyleSheet.create({
         borderWidth: 0.9, borderColor: theme.borderColor,
         borderRadius: 12,
         marginBottom: 15,
-        height:150,
+        height: 150,
         overflow: 'hidden',
 
     },
@@ -106,7 +130,7 @@ const styles = StyleSheet.create({
     },
     timeText: {
         color: '#FFFFFF',
-        fontSize: 9,
+        fontSize: 10,
         marginLeft: 4,
         fontFamily: "Inter-Regular" // Ensure this font is loaded or remove for default
     },
@@ -156,10 +180,16 @@ const styles = StyleSheet.create({
     instructorInfo: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: "space-between",
         borderRadius: 20,
         paddingVertical: 5,
         zIndex: 10,
-
+        marginBottom: 5,
+    },
+    price: {
+        color: "#FFF",
+        fontSize: 13,
+        fontFamily: 'Inter-SemiBold',
     },
     instructorImage: {
         width: 25,
@@ -177,6 +207,22 @@ const styles = StyleSheet.create({
         fontSize: 9,
         fontFamily: 'Inter-Light-BETA',
     },
+
+    urlcontainer: {
+        borderWidth: 1, borderColor: theme.borderColor,
+        borderRadius: 8,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        padding: 5,
+        paddingHorizontal: 8,
+    },
+
+    url: {
+        color: "white",
+        fontSize: 9,
+        fontFamily: 'Inter-Light-BETA',
+        maxWidth: "85%",
+    }
 });
 
 export default PurchasedCourseCard;

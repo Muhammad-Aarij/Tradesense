@@ -46,6 +46,11 @@ import heart from './heart.png'
 import pause from './pause.png'
 import sound from './sound.png'
 import heartOutline from './heartOutline.png'
+import bank from './bank.png'
+import PayPal from './paypal.png'
+import googlePay from './googlePay.png'
+import blueArrow from './blueArrow.png'
+import copy from './copy.png'
 
 
 // Export all imported images as a single object for easy access
@@ -53,5 +58,5 @@ export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
   lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify,
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, back, mountain
-  , CheckMark, heartOutline, heart, pause, sound
+  , CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy
 };
