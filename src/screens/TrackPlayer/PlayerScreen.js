@@ -1,0 +1,280 @@
+import React, { useEffect, useState, useRef } from 'react';
+import Slider from '@react-native-community/slider';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Alert, ScrollView, ImageBackground } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import TrackPlayer, {
+    useTrackPlayerEvents,
+    Event,
+    State as PlaybackState,
+    usePlaybackState,
+    useProgress,
+} from 'react-native-track-player';
+import { back, next, repeat, skip, stop, user, shuffleIcon, play, mountain, playb } from '../../assets/images';
+import { BlurView } from '@react-native-community/blur';
+import theme from '../../themes/theme';
+
+const { width } = Dimensions.get('window');
+
+
+const track = {
+    url: 'https://pagalfree.com/musics/128-Ishq%20Mera%20(Feat.%20Esha%20Gupta)%20-%20Jubin%20Nautiyal%20128%20Kbps.mp3', // Example MP3 URL
+    title: 'Daily ',
+    artist: 'Alwin',
+    album: 'Mentally Relax',
+    artwork: mountain, // Using the main image as artwork
+    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry',
+};
+
+const PlayerScreen = () => {
+    // const navigation = useNavigation();
+    const playbackState = usePlaybackState();
+    const progress = useProgress();
+    const isPlaying = playbackState.state === PlaybackState.Playing;
+
+    // Ref to prevent multiple setup calls
+    const isPlayerSetup = useRef(false);
+
+    useEffect(() => {
+        // Only setup player once
+        if (!isPlayerSetup.current) {
+            setupPlayer();
+            isPlayerSetup.current = true;
+        }
+
+        return () => {
+            // Clean up player when component unmounts if desired
+            // TrackPlayer.destroy(); // Uncomment if you want to destroy player on screen exit
+        };
+    }, []); // Empty dependency array means this effect runs once on mount
+
+    async function setupPlayer() {
+        try {
+            await TrackPlayer.setupPlayer();
+            await TrackPlayer.add([track]); // Add your track(s)
+            console.log('TrackPlayer setup and track added.');
+        } catch (error) {
+            console.error('Failed to setup TrackPlayer:', error);
+            Alert.alert('Error', 'Failed to initialize audio player.');
+        }
+    }
+
+    // Toggle Playback function
+    const togglePlayback = async () => {
+        if (isPlaying) {
+            await TrackPlayer.pause();
+        } else {
+            await TrackPlayer.play();
+        }
+    };
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+    };
+
+    return (
+        <ImageBackground source={mountain} style={styles.container}>
+            <BlurView
+                style={StyleSheet.absoluteFill}
+                blurType="dark" // 'light', 'dark', 'extraLight' on iOS
+                blurAmount={5}
+                reducedTransparencyFallbackColor="#C0C0C0"
+            />
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* Main Album Art & Info */}
+                <View style={styles.albumArtContainer}>
+                    <ImageBackground source={mountain} style={styles.albumArt}>
+                        <View style={styles.albumArtOverlay}>
+                            <View style={styles.artistInfo}>
+                                <Image source={user} style={styles.artistImage} />
+                                <View>
+                                    <Text style={styles.artistName}>Alwin</Text>
+                                    <Text style={styles.artistRole}>Mentally Relax</Text>
+                                </View>
+                            </View>
+                        </View>
+                    </ImageBackground>
+                </View>
+
+                {/* Course Details */}
+                <View style={{ width: "100%" }}>
+                    <Text style={styles.courseTitle}>{track.title}</Text>
+                    <Text style={styles.courseDescription}>{track.description}</Text>
+                </View>
+
+                {/* Progress Bar */}
+                <View style={styles.progressBarContainer}>
+                    <Text style={styles.progressTime}>{formatTime(progress.position)}</Text>
+                    <Slider
+                        style={styles.progressBar}
+                        minimumValue={0}
+                        maximumValue={progress.duration}
+                        value={progress.position}
+                        onSlidingComplete={async (value) => {
+                            await TrackPlayer.seekTo(value);
+                        }}
+                        minimumTrackTintColor={theme.primaryColor}
+                        maximumTrackTintColor="#898989"
+                        thumbTintColor={theme.primaryColor}
+                    />
+                    <Text style={styles.progressTime}>{formatTime(progress.duration)}</Text>
+                </View>
+
+                {/* Playback Controls */}
+                <View style={styles.controlsContainer}>
+                    <TouchableOpacity style={{...styles.controlButton1,marginRight:10}}>
+                        <Image source={shuffleIcon} style={styles.controlIcon} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToPrevious()}>
+                        <Image source={skip} style={styles.controlIcon} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.playPauseButton} onPress={togglePlayback}>
+                        <Image source={isPlaying ? stop : playb} style={styles.playPauseIcon} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
+                        <Image source={next} style={styles.controlIcon} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{...styles.controlButton1,marginLeft:10}}>
+                        <Image source={repeat} style={styles.controlIcon} />
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </ImageBackground>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 30,
+        paddingBottom: 0,
+    },
+    scrollContent: {
+        alignItems: 'center', // Center content horizontally
+        paddingBottom: 80, // Space for mini player if active or bottom controls
+    },
+    albumArtContainer: {
+        width: "100%", // Roughly 80% of screen width
+        height: width * 0.8 * (431 / 323), // Maintain aspect ratio from image 323x431
+        borderRadius: 20,
+        overflow: 'hidden',
+        marginTop: 20,
+        marginBottom: 30,
+        borderWidth: 0.7,
+        borderColor: "#FFF",
+    },
+    albumArt: {
+        flex: 1,
+        justifyContent: 'flex-end', // Align overlay to bottom
+        alignItems: 'flex-start',
+    },
+    albumArtOverlay: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        width: '100%',
+        flex: 1,
+        padding: 15,
+        backgroundColor: 'rgba(0,0,0,0.4)', // Semi-transparent overlay for text
+    },
+    artistInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    artistImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+        backgroundColor: '#666', // Placeholder background
+    },
+    artistName: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontFamily: "Inter-SemiBold",
+    },
+    artistRole: {
+        color: '#CCCCCC',
+        fontSize: 12,
+        fontFamily: "Inter-Regular",
+    },
+
+    courseTitle: {
+        color: '#FFFFFF',
+        fontSize: 22,
+        fontFamily: "Inter-Medium",
+        marginBottom: 10,
+    },
+    courseDescription: {
+        color: '#FFF',
+        fontSize: 12,
+        fontFamily: "Inter-Light-BETA",
+        lineHeight: 18,
+        marginBottom: 30,
+    },
+    progressBarContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '95%',
+        marginBottom: 30,
+    },
+    progressTime: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontFamily: "Inter-Regular",
+        width: 35, // Fixed width for time display
+        textAlign: 'center',
+    },
+    progressBar: {
+        flex: 1, // Take up remaining space
+        marginHorizontal: 10,
+    },
+    controlsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        width: '100%',
+        paddingHorizontal: 20,
+    },
+    controlButton: {
+        padding: 10,
+        backgroundColor: "rgba(255, 255, 255, 0.1)",
+        borderRadius: 100,
+        
+    },
+    controlButton1: {
+        padding: 10,
+        // backgroundColor: "rgba(255, 255, 255, 0.1)",
+        // borderRadius: 100,
+    },
+    controlIcon: {
+        width: 20,
+        height: 20,
+        tintColor: '#FFFFFF',
+        resizeMode: 'contain',
+
+    },
+    playPauseButton: {
+        width: 55, // Larger button
+        height: 55,
+        borderRadius: 30,
+        backgroundColor: theme.primaryColor,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 5,
+        marginHorizontal:15,
+    },
+    playPauseIcon: {
+        width: 20, // Icon size within the button
+        height: 20,
+        tintColor: '#FFFFFF',
+        resizeMode: 'contain',
+    },
+});
+
+export default PlayerScreen;

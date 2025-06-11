@@ -89,7 +89,7 @@ const CourseEpisodesScreen = () => {
                                 {/* Conditionally render filled heart for Episode 2 as per image */}
                                 <Image source={episode.id === 'ep2' ? heart : heartOutline} style={{ width: 20, height: 20, resizeMode: "contain" }} />
                             </TouchableOpacity>
-                        </View>
+                        </View> 
                     ))}
                 </View>
             </ScrollView>

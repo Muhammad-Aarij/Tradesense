@@ -39,6 +39,7 @@ import bell from './bell.png'
 import circle from './circle.png'
 import wave from './wave.png'
 import play from './play.png'
+import playb from './playb.png'
 import back from './back.png'
 import mountain from './mountaim.png'
 import CheckMark from './CheckMark.png'
@@ -51,12 +52,31 @@ import PayPal from './paypal.png'
 import googlePay from './googlePay.png'
 import blueArrow from './blueArrow.png'
 import copy from './copy.png'
+import shuffleIcon from './shuffleIcon.png'
+import next from './next.png'
+import skip from './skip.png'
+import stop from './stop.png'
+import repeat from './repeat.png'
+
+
+import video1 from './video1.png'
+import video2 from './video2.png'
+import video3 from './video3.png'
+import circleTop from './circleTop.png'
+import mobile from './mobile.png'
+import videoY from './videoY.png'
+import success from './success.png'
+import afirm from './afirm.png'
+import calm from './calm.png'
+import meditation from './meditation.png'
+import audio from './audio.png'
 
 
 // Export all imported images as a single object for easy access
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
   lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify,
-  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, back, mountain
-  , CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy
+  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
+  CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
+  skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success
 };
