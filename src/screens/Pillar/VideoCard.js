@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject, // Covers the entire imageWrapper
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.3)', // Slight overlay
+    backgroundColor: 'rgba(0,0,0,0.5)', // Slight overlay
   },
   playButton: {
     backgroundColor: 'rgba(0,0,0,0.7)',

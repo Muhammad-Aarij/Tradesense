@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    backgroundColor: "rgba(255, 255, 255, 0.06)",
     borderWidth: 0.9,
     borderColor: theme.borderColor,
     borderRadius: 8,
