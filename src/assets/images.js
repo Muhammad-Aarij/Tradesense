@@ -75,6 +75,7 @@ import audio2 from './audio2.png'
 import graphical from './graphical.png'
 import text from './text.png'
 import videoIcon from './videoIcon.png'
+import calendar from './calendar.png'
 
 
 // Export all imported images as a single object for easy access
@@ -84,5 +85,5 @@ export {
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
-  audio2, graphical, text, videoIcon
+  audio2, graphical, text, videoIcon,calendar
 };

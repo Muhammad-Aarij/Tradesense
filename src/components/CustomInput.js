@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import theme from '../themes/theme';
-const CustomInput = ({ label, placeholder, secureTextEntry, value, onChangeText, icon, onIconPress }) => {
+const CustomInput = ({ label, placeholder, secureTextEntry, value, onChangeText, icon, onIconPress, style }) => {
     return (
         <View style={styles.wrapper}>
             <Text style={styles.label}>{label}</Text>
-            <View style={styles.container}>
+            <View style={[styles.container,style]}>
                 <TextInput
                     placeholder={placeholder}
                     placeholderTextColor="#aaa"
@@ -37,6 +37,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flexDirection: 'row',
+        height: 55,
         alignItems: 'center',
         width: '100%',
         position: 'relative',
