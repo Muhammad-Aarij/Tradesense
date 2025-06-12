@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { video1 } from '../../assets/images';
 
 const { width } = Dimensions.get('window');
-const cardWidth = (width - 16 * 3) / 2; // (Screen width - 2*padding - 1*spacing) / 2
+const cardWidth = (width - 20 * 3) / 2; // (Screen width - 2*padding - 1*spacing) / 2
 
-
-const VideoCard = ({ title, decription, imageSource, onPress }) => {
+const VideoCard = ({ title, decription, imageSource, onPress, style }) => {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <TouchableOpacity style={[styles.card, style]} onPress={onPress}>
       <View style={styles.imageWrapper}>
-        <Image source={imageSource || videoThumbnail} style={styles.thumbnail} />
+        <Image source={imageSource || video1} style={styles.thumbnail} />
       </View>
       <Text style={styles.title} numberOfLines={1}>{title}</Text>
       <Text style={styles.descr} numberOfLines={2}>{decription}</Text>
@@ -24,9 +24,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginRight: 10,
     overflow: 'hidden',
+    marginBottom:10,
   },
   imageWrapper: {
-    width: '100%',
+    width: 'auto',
     height: cardWidth * 0.5625, // 16:9 aspect ratio for video thumbnail
     position: 'relative',
     justifyContent: 'center',

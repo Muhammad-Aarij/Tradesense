@@ -96,6 +96,7 @@ const PsychologyCategoryScreen = () => {
                                         duration={item.duration}
                                         imageSource={item.image}
                                         decription={item.descr}
+                                        style={{ marginBottom: 10, marginRight: 10 }} 
                                         onPress={() => {
                                             console.log(`Play video: ${item.title}`);
                                             // handleNavigation('VideoPlayer'); // Example of intended navigation
@@ -155,6 +156,7 @@ const styles = StyleSheet.create({
     },
     horizontalCardList: {
         paddingBottom: 8, // pb-2
+        // gap:10
     },
     bottomNavBar: {
         position: 'absolute',
