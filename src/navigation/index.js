@@ -1,13 +1,9 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-// import { useSelector, useDispatch } from 'react-redux';
-// import { retrieveToken } from '../redux/slice/authSlice';
-// import AuthProvider from '../context/AuthProvider';
-import AuthNavigator from './AuthNavigator';
 import { useSelector } from 'react-redux';
-import AnimatedLoader from "react-native-animated-loader";
-import { ActivityIndicator, Text } from 'react-native';
 import Loader from '../components/loader';
+import HomeNavigator from './HomeNavigator';
+import Mode from '../components/Mode';
 
 
 
@@ -30,8 +26,9 @@ const AppNavContainer = () => {
     return (
         <>
             <NavigationContainer>
-                <AuthNavigator />
+                <HomeNavigator />
             </NavigationContainer>
+            <Mode/>
             {isLoading && <Loader />}
         </>
 

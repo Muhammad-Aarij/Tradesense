@@ -1,11 +1,17 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { video1 } from '../../assets/images';
+import { ThemeContext } from '../../context/ThemeProvider';
+import theme from '../../themes/theme';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 20 * 3) / 2; // (Screen width - 2*padding - 1*spacing) / 2
 
 const VideoCard = ({ title, decription, imageSource, onPress, style }) => {
+
+  const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+  const styles = getStyles(theme);
+
   return (
     <TouchableOpacity style={[styles.card, style]} onPress={onPress}>
       <View style={styles.imageWrapper}>
@@ -17,14 +23,14 @@ const VideoCard = ({ title, decription, imageSource, onPress, style }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   card: {
     width: cardWidth, // Responsive width
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderRadius: 12,
     marginRight: 10,
     overflow: 'hidden',
-    marginBottom:10,
+    marginBottom: 10,
   },
   imageWrapper: {
     width: 'auto',
@@ -69,19 +75,19 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   durationText: {
-    color: '#FFFFFF',
+    color: theme.textColor,
     fontSize: 10,
     fontFamily: "Inter-Regular",
   },
   title: {
-    color: '#FFFFFF',
+    color: theme.textColor,
     fontSize: 12,
     fontFamily: "Inter-Regular",
     paddingHorizontal: 10,
     paddingTop: 8, // Adjust spacing
   },
   descr: {
-    color: "#AAAAAA",
+    color: theme.textColor,
     fontSize: 12,
     fontFamily: "Inter-Light-BETA",
     paddingHorizontal: 10,

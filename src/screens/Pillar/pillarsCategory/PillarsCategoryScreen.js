@@ -1,17 +1,11 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image, ImageBackground } from 'react-native';
 import TopMenuScroll from '../TopMenuScroll';
 import { afirm, audio, bg, calm, meditation, mobile, success, video, video1, video2, video3, videoY } from '../../../assets/images';
 import AudioCard from '../AudioCard';
 import VideoCard from '../VideoCard';
 import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
-
-// const pillarIcon = require('../../assets/images/pillar_icon.png'); // Placeholder, replace with actual path if needed
-// const bookIcon = require('../../assets/images/book_icon.png');     // Placeholder, replace with actual path if needed
-// const userIcon = require('../../assets/images/user_icon.png');     // Placeholder, replace with actual path if needed
-// const settingsIcon = require('../../assets/images/settings_icon.png'); // Placeholder, replace with actual path if needed
-
+import { ThemeContext } from '../../../context/ThemeProvider';
 
 const TopCategories = [
     { id: 'meditation', name: 'Meditation', icon: meditation },
@@ -40,21 +34,22 @@ const mockVideos = [
 
 
 const PillarsCategoryScreen = () => {
-    // State for top category selection, defaulting to the first item's ID
+
+    const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+    const styles = getStyles(theme);
+
     const [selectedTopCategory, setSelectedTopCategory] = useState(TopCategories[0].id);
-    // State for content category selection, defaulting to 'audios'
     const [selectedContentCategory, setSelectedContentCategory] = useState('audios');
 
-    // Simple mock for navigation in React Native, in a real app, use React Navigation
     const handleNavigation = (screenName) => {
         console.log(`Navigating to: ${screenName}`);
         // Here you would typically use navigation.navigate(screenName) from @react-navigation/native
     };
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
+        <ImageBackground source={theme.bg} style={styles.container}>
             <ScrollView style={styles.contentScroll}>
-                <View style={{paddingHorizontal:25,}}>
+                <View style={{ paddingHorizontal: 25, }}>
                     <Header title={"Education"} />
                 </View>
 
@@ -64,7 +59,7 @@ const PillarsCategoryScreen = () => {
                     selectedItem={selectedTopCategory}
                     onItemSelected={setSelectedTopCategory}
                 />
-                <View style={{ paddingHorizontal: 25, }}>
+                <View style={{ paddingHorizontal: 25,paddingBottom:100 }}>
 
 
                     {/* Scrollable Content Area */}
@@ -151,7 +146,7 @@ const PillarsCategoryScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1, backgroundColor: '#08131F',
         padding: 0, paddingVertical: 0
@@ -160,10 +155,10 @@ const styles = StyleSheet.create({
         // marginTop: 10,
         width: "100%",
         // paddingHorizontal: 25,
-        paddingBottom: 30, // pb-20 (approx 80px for bottom nav space)
+        paddingBottom: 100, // pb-20 (approx 80px for bottom nav space)
     },
     contentCategoryTitle: {
-        color: 'white',
+        color: theme.textColor,
         fontSize: 17, // text-lg
         fontFamily: "Inter-Light-BETA",
         marginTop: 15, // mt-5 (approx 20px)
@@ -193,7 +188,7 @@ const styles = StyleSheet.create({
         borderRadius: 10, // rounded-xl
     },
     contentCategoryButtonActive: {
-        backgroundColor: '#FF6347', // bg-[#FF6347]
+        color: theme.textColor,
     },
     contentCategoryIcon: {
         maxWidth: 60, // w-5
@@ -203,13 +198,13 @@ const styles = StyleSheet.create({
     },
     contentCategoryButtonText: {
         fontFamily: "Inter-Regular",
-        color: 'white',
+        color: theme.textColor,
         fontSize: 16, // text-sm
     },
     sectionContainer: {
     },
     sectionTitle: {
-        color: 'white',
+        color: theme.textColor,
         fontSize: 17, // text-lg
         fontFamily: "Inter-Light-BETA",
         marginBottom: 16, // mb-4
@@ -245,10 +240,10 @@ const styles = StyleSheet.create({
         height: 24, // h-6
         resizeMode: 'contain',
         marginBottom: 4, // mb-1
-        tintColor: 'white', // text-white (for icons)
+        color: theme.textColor,
     },
     navText: {
-        color: 'white',
+        color: theme.textColor,
         fontSize: 10, // text-xs
     },
 });

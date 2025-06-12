@@ -1,14 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
 import { bg, mountain, play, user, wave } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
-// import { useNavigation, useRoute } from '@react-navigation/native'; // Import hooks for navigation
+import { useNavigation, useRoute } from '@react-navigation/native'; // Import hooks for navigation
 const { width } = Dimensions.get('window');
-
-// Inline SVG for Play icon (as used in previous Card component)
-// If you encounter errors with SVG, ensure you have 'react-native-svg' installed
-// and linked: npm install react-native-svg && cd ios && pod install
 
 const audios = [
     { id: 'a1', title: 'Audio 1', duration: '5 min', description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.' },
@@ -18,11 +14,14 @@ const audios = [
 ];
 
 const CourseDetailScreen = () => {
-    //   const navigation = useNavigation();
-    //   const route = useRoute();
-    // You can get course details passed from the previous screen like this:
-    //   const { courseId, courseTitle } = route.params || { courseId: 'default', courseTitle: 'Daily Calm' };
-    const { courseId, courseTitle } = { courseId: 'default', courseTitle: 'Daily Calm' };
+    const navigation = useNavigation();
+    const route = useRoute();
+    const { courseId, courseTitle } = route.params || { courseId: 'default', courseTitle: 'Daily Calm' };
+    // const { courseId, courseTitle } = { courseId: 'default', courseTitle: 'Daily Calm' };
+
+    useEffect(() => {
+        console.log('CourseDetailScreen Mounted');
+    }, []);
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -79,7 +78,7 @@ const CourseDetailScreen = () => {
                 {/* Buy Now Button */}
                 <TouchableOpacity
                     style={styles.buyNowButton}
-                    onPress={() => navigation.navigate('Plans')} // Navigate to the Plans screen
+                    onPress={() => navigation.navigate('PlansScreen')} // Navigate to the Plans screen
                 >
                     <Text style={styles.buyNowButtonText}>Buy Now</Text>
                 </TouchableOpacity>

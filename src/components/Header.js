@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { BlurView } from "@react-native-community/blur";
 import { back } from '../assets/images';
+import { useNavigation } from '@react-navigation/native';
 const Header = ({ title }) => {
+    const navigation = useNavigation();
     return (
         <View style={styles.header}>
             {/* Circular BlurView around Back Button */}
-            <TouchableOpacity style={styles.blurWrapper}>
+            <TouchableOpacity style={styles.blurWrapper} onPress={() => { navigation.goBack }}>
                 <BlurView blurType="light" blurAmount={20} style={styles.blurView}>
                     <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
                 </BlurView>
@@ -23,7 +25,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 35,
-        marginBottom:25,
+        marginBottom: 25,
         position: 'relative', // Allows absolute positioning inside
     },
 

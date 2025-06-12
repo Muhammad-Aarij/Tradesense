@@ -40,7 +40,7 @@ const mockVideos = [
 
 
 
-const PillarAudioScreen = () => {
+const PillarScreen = () => {
 
     const [selectedTopCategory, setSelectedTopCategory] = useState(TopCategories[0].id);
 
@@ -283,4 +283,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default PillarAudioScreen;
+export default PillarScreen;

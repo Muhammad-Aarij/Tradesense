@@ -78,6 +78,16 @@ import videoIcon from './videoIcon.png'
 import calendar from './calendar.png'
 
 
+import userT from './userT.png'
+import pillar from './pillar.png'
+import course from './course.png'
+import homeT from './homeT.png'
+import affiliate from './affiliate.png'
+import whiteBg from './white.png'
+import light from './light.png'
+import dark from './dark.png'
+
+
 // Export all imported images as a single object for easy access
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
@@ -85,5 +95,5 @@ export {
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
-  audio2, graphical, text, videoIcon,calendar
+  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark
 };

@@ -5,7 +5,7 @@ import { bg, CheckMark } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
 
-const PlanCard = ({ title, price, features, onPress, isSelected }) => (
+const PlanCard = ({ title, price, features, onPress, isSelected, navigation }) => (
     <TouchableOpacity
         style={[styles.planCard, isSelected && styles.planCardSelected]}
         onPress={onPress}
@@ -16,7 +16,7 @@ const PlanCard = ({ title, price, features, onPress, isSelected }) => (
         </View>
         <View style={{ width: "100%", marginBottom: 15, borderTopWidth: 1, borderColor: "rgba(209, 209, 209, 0.46)" }} />
 
-        <Text style={{ ...styles.featureText, marginLeft: 0,marginBottom:15, }}>Single Payment plan to get immediate access to audios</Text>
+        <Text style={{ ...styles.featureText, marginLeft: 0, marginBottom: 15, }}>Single Payment plan to get immediate access to audios</Text>
         <View style={styles.featuresContainer}>
             {features.map((feature, index) => (
                 <View key={index} style={styles.featureItem}>
@@ -25,13 +25,13 @@ const PlanCard = ({ title, price, features, onPress, isSelected }) => (
                 </View>
             ))}
         </View>
-        <TouchableOpacity style={styles.checkoutButton}>
+        <TouchableOpacity style={styles.checkoutButton} onPress={() => { navigation.navigate("CheckoutScreen") }}>
             <Text style={styles.checkoutButtonText}>Join</Text>
         </TouchableOpacity>
     </TouchableOpacity>
 );
 
-const PlansScreen = () => {
+const PlansScreen = ({ navigation }) => {
     //   const navigation = useNavigation(); sty
 
     const [selectedPlan, setSelectedPlan] = useState('single'); // 'single' or 'monthly'
@@ -41,7 +41,7 @@ const PlansScreen = () => {
             {/* Header */}
             <Header title={"Memberships"} />
 
-            <ScrollView contentContainerStyle={styles.scrollContent}  showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Single Payment Plan */}
                 <PlanCard
                     title="Single Payment"
@@ -49,10 +49,12 @@ const PlansScreen = () => {
                     features={['Life Time Access', '3 Bonus Audios', 'Lack of basic Needs']}
                     onPress={() => setSelectedPlan('single')}
                     isSelected={selectedPlan === 'single'}
+                    navigation={navigation}
                 />
 
                 {/* Monthly Payment Plan */}
                 <PlanCard
+                    navigation={navigation}
                     title="2x Monthly Payment"
                     price="$750"
                     features={['Life Time Access', 'Sequential Access', 'Premium Support']}
@@ -70,7 +72,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 25,
-        paddingBottom:0,
+        paddingBottom: 0,
     },
 
     scrollContent: {

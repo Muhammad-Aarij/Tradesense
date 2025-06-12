@@ -15,6 +15,7 @@ const courses = [
 const OurCoursesScreen = ({ navigation }) => {
   const renderCourseItem = ({ item }) => (
     <CourseCard
+    navigation={navigation}
       imageSource={wave}
       time={`${Math.floor(Math.random() * 30) + 10}min`}
       title={item.title}
@@ -24,7 +25,7 @@ const OurCoursesScreen = ({ navigation }) => {
       profileName="Name"
       profileRole="Expert"
       price={item.price}
-      onPress={() => navigation.navigate('CourseDetail', { courseId: item.id, courseTitle: item.title })}
+      onPress={() => navigation.navigate('CourseDetailScreen', { courseId: item.id, courseTitle: item.title })}
     />
   );
 

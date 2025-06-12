@@ -1,15 +1,13 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
-import theme from "../../themes/theme";
 import { heart, heartOutline, hearts } from "../../assets/images";
+import { ThemeContext } from "../../context/ThemeProvider";
 
-// --- Placeholder Images (Replace with your actual imports) ---
-const playIcon = { uri: "https://placehold.co/20x20/FFFFFF/000?text=%E2%96%B6" }; // Play icon
-const heartOutlineIcon = { uri: "https://placehold.co/20x20/FFFFFF/000?text=%E2%99%A1" }; // Heart outline
-const heartFilledIcon = { uri: "https://placehold.co/20x20/FF6347/FFFFFF?text=%E2%99%A5" }; // Heart filled
-// --- End Placeholder Images ---
 
 const AudioCard = ({ episodeNumber, title, duration, isLiked: initialIsLiked, onPress }) => {
+  const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+  const styles = getStyles(theme);
+
   const [isLiked, setIsLiked] = useState(initialIsLiked);
 
   const toggleLike = () => {
@@ -37,7 +35,7 @@ const AudioCard = ({ episodeNumber, title, duration, isLiked: initialIsLiked, on
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   card: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -60,7 +58,7 @@ const styles = StyleSheet.create({
     marginRight: 24,
   },
   episodeNumber: {
-    color: "#FFF",
+    color: theme.textColor,
     fontSize: 19.4,
     fontFamily: "Inter-SemiBold",
   },
@@ -68,12 +66,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   episodeTitle: {
-    color: "#FFFFFF",
+    color: theme.textColor,
     fontSize: 13,
     fontFamily: "Inter-Regular",
   },
   episodeDuration: {
-    color: "#AAAAAA",
+    color: theme.textColor,
     fontSize: 12,
     fontFamily: "Inter-Light-BETA",
   },
