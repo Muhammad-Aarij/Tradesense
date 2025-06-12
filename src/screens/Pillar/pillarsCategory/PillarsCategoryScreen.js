@@ -59,7 +59,7 @@ const PillarsCategoryScreen = () => {
                     selectedItem={selectedTopCategory}
                     onItemSelected={setSelectedTopCategory}
                 />
-                <View style={{ paddingHorizontal: 25,paddingBottom:100 }}>
+                <View style={{ paddingHorizontal: 25, paddingBottom: 100 }}>
 
 
                     {/* Scrollable Content Area */}
@@ -165,7 +165,7 @@ const getStyles = (theme) => StyleSheet.create({
         marginBottom: 16, // mb-4
     },
     category: {
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: theme.transparentBg,
         borderWidth: 0.9, borderColor: theme.borderColor,
         borderRadius: 8,
         marginBottom: 20,

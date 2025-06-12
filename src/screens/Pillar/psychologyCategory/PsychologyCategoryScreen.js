@@ -5,7 +5,6 @@ import { afirm, audio, bg, calm, circleTop, meditation, mobile, success, video, 
 import AudioCard from '../AudioCard';
 import VideoCard from '../VideoCard';
 import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
 const { height, width } = Dimensions.get('window');
 
 const TopCategories = [
@@ -35,15 +34,10 @@ const mockVideos = [
 
 
 const PsychologyCategoryScreen = () => {
-    // State for top category selection, defaulting to the first item's ID
     const [selectedTopCategory, setSelectedTopCategory] = useState(TopCategories[0].id);
-    // State for content category selection, defaulting to 'audios'
-    const [selectedContentCategory, setSelectedContentCategory] = useState('audios');
 
-    // Simple mock for navigation in React Native, in a real app, use React Navigation
     const handleNavigation = (screenName) => {
         console.log(`Navigating to: ${screenName}`);
-        // Here you would typically use navigation.navigate(screenName) from @react-navigation/native
     };
 
     return (

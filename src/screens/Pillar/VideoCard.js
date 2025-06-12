@@ -26,7 +26,9 @@ const VideoCard = ({ title, decription, imageSource, onPress, style }) => {
 const getStyles = (theme) => StyleSheet.create({
   card: {
     width: cardWidth, // Responsive width
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth:0.7,
+    borderColor:theme.borderColor,
+    backgroundColor: theme.transparentBg,
     borderRadius: 12,
     marginRight: 10,
     overflow: 'hidden',

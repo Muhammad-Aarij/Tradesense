@@ -11,9 +11,9 @@ const Pillar = createNativeStackNavigator();
 const PillarNavigator = () => {
     return (
         <Pillar.Navigator screenOptions={{ headerShown: false }}>
-            <Pillar.Screen name="PillarsCategoryScreen" component={PillarsCategoryScreen} />
-            <Pillar.Screen name="PillarScreen" component={PillarScreen} />
             <Pillar.Screen name="PsychologyCategoryScreen" component={PsychologyCategoryScreen} />
+            <Pillar.Screen name="PillarScreen" component={PillarScreen} />
+            <Pillar.Screen name="PillarsCategoryScreen" component={PillarsCategoryScreen} />
         </Pillar.Navigator>
     );
 };

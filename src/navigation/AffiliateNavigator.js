@@ -12,9 +12,9 @@ const Affiliate = createNativeStackNavigator();
 const AffiliateNavigator = () => {
     return (
         <Affiliate.Navigator screenOptions={{ headerShown: false }}>
+            <Affiliate.Screen name="WithdrawScreen" component={WithdrawScreen} />
             <Affiliate.Screen name="AffiliateCoursesScreen" component={AffiliateCoursesScreen} />
             <Affiliate.Screen name="AffiliateDashboardScreen" component={AffiliateDashboardScreen} />
-            <Affiliate.Screen name="WithdrawScreen" component={WithdrawScreen} />
             <Affiliate.Screen name="WithdrawDetailScreen" component={WithdrawDetailScreen} />
         </Affiliate.Navigator>
     );

@@ -13,7 +13,8 @@ export const ThemeProvider = ({ children }) => {
         ...theme,
         textColor: isDarkMode ? "#FFFFFF" : "#000000", // Dynamically update text color
         bg: isDarkMode ? bg : whiteBg,
-        borderColor: isDarkMode ? '#272e36' : "#d4d4d4",
+        borderColor: isDarkMode ? '#272e36' : "#cacaca",
+        transparentBg: isDarkMode ? 'rgba(255, 255, 255, 0.06)' : "#e3e3e3",
     };
 
     return (

@@ -7,8 +7,8 @@ const Mode = () => {
     const { theme, isDarkMode, toggleTheme } = useContext(ThemeContext);
 
     return (
-        <TouchableOpacity 
-            style={styles.container} 
+        <TouchableOpacity
+            style={{ ...styles.container, backgroundColor: !isDarkMode ? "rgba(0, 0, 0, 0.35)" :"rgba(255, 255, 255, 0.2)"}}
             onPress={toggleTheme} // Toggle theme on click
         >
             <Image source={isDarkMode ? dark : light} style={styles.icon} />

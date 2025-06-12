@@ -10,6 +10,7 @@ const HomeNavigator = () => {
     return (
         <Home.Navigator screenOptions={{ headerShown: false }}>
             <Home.Screen name="BottomTabs" component={BottomNavigator} />
+
         </Home.Navigator>
     );
 };

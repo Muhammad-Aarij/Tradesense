@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { BlurView } from "@react-native-community/blur";
 import { back } from '../assets/images';
-import { useNavigation } from '@react-navigation/native';
+// import { useNavigation } from '@react-navigation/native';
+import { ThemeContext } from '../context/ThemeProvider';
+
 const Header = ({ title }) => {
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
+    const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+    const styles = getStyles(theme);
+
     return (
         <View style={styles.header}>
             {/* Circular BlurView around Back Button */}
-            <TouchableOpacity style={styles.blurWrapper} onPress={() => { navigation.goBack }}>
+            <TouchableOpacity style={styles.blurWrapper} >
+                {/* // onPress={() => { navigation.goBack }}> */}
                 <BlurView blurType="light" blurAmount={20} style={styles.blurView}>
                     <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
                 </BlurView>
@@ -20,7 +26,7 @@ const Header = ({ title }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -31,6 +37,7 @@ const styles = StyleSheet.create({
 
     blurWrapper: {
         width: 35, height: 35, borderRadius: 20, padding: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: "rgba(0, 0, 0, 0.35)"
     },
 
     blurView: {
@@ -41,7 +48,7 @@ const styles = StyleSheet.create({
 
     title: {
         fontSize: 20,
-        color: '#EFEFEF',
+        color: theme.textColor,
         fontFamily: 'Inter-SemiBold',
         position: 'absolute',
         left: 0,
