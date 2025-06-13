@@ -15,13 +15,13 @@ const Stack = createNativeStackNavigator();
 
 const AuthNavigator = () => {
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='GenderScreen'>
+        <Stack.Navigator screenOptions={{ headerShown: false }} >
             <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="GenderScreen" component={GenderScreen} />
+            <Stack.Screen name="AgeScreen" component={AgeScreen} />
             <Stack.Screen name="Signup" component={SignUp} />
             <Stack.Screen name="EmailVerification" component={EmailVerification} />
             <Stack.Screen name="ForgotPassword" component={ForgetPassword} />
-            <Stack.Screen name="GenderScreen" component={GenderScreen} />
-            <Stack.Screen name="AgeScreen" component={AgeScreen} />
             <Stack.Screen name="AreasScreen" component={AreasScreen} />
             <Stack.Screen name="GoalScreen" component={GoalsScreen} />
             <Stack.Screen name="ResetPassword" component={ResetPassword} />

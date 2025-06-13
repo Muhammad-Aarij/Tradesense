@@ -1,45 +1,129 @@
-// import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { startLoading, stopLoading } from './loaderSlice';
 
-// // Thunk to retrieve token from AsyncStorage
-// export const retrieveToken = createAsyncThunk('auth/retrieveToken', async () => {
-//     try {
-//         const token = await AsyncStorage.getItem('token');
-//         return token || null;
-//     } catch (error) {
-//         console.error("Error retrieving token:", error);
-//         return null;
-//     }
-// });
+// Thunk: Retrieve data on app start
+export const retrieveToken = createAsyncThunk('auth/retrieveToken', async (_, thunkAPI) => {
+  try {
+    thunkAPI.dispatch(startLoading());
 
-// const authSlice = createSlice({
-//     name: 'auth',
-//     initialState: {
-//         isLoading: true,
-//         userToken: null,
-//         userName: null,
-//     },
-//     reducers: {
-//         login: (state, action) => {
-//             state.userName = action.payload.userName;
-//             state.userToken = action.payload.userToken;
-//             state.isLoading = false;
-//             AsyncStorage.setItem('token', action.payload.userToken);
-//         },
-//         logout: (state) => {
-//             state.userName = null;
-//             state.userToken = null;
-//             state.isLoading = false;
-//             AsyncStorage.removeItem('token');
-//         },
-//     },
-//     extraReducers: (builder) => {
-//         builder.addCase(retrieveToken.fulfilled, (state, action) => {
-//             state.userToken = action.payload;
-//             state.isLoading = false;
-//         });
-//     },
-// });
+    const [token, userData, theme] = await Promise.all([
+      AsyncStorage.getItem('token'),
+      AsyncStorage.getItem('user'),
+      AsyncStorage.getItem('themeType'),
+    ]);
 
-// export const { login, logout } = authSlice.actions;
-// export default authSlice.reducer;
+    const user = userData ? JSON.parse(userData) : null;
+    const isProfilingDone = user?.choosenArea?.length > 0;
+
+    return {
+      token: token || null,
+      user,
+      isProfilingDone,
+      themeType: theme || 'light',
+    };
+  } catch (error) {
+    console.error('❌ Error retrieving auth data:', error);
+    return {
+      token: null,
+      user: null,
+      isProfilingDone: false,
+      themeType: 'light',
+    };
+  } finally {
+    thunkAPI.dispatch(stopLoading());
+  }
+});
+
+// Thunk: Login
+export const loginUser = createAsyncThunk('auth/loginUser', async ({ token, user, themeType = 'light' }, thunkAPI) => {
+  try {
+    thunkAPI.dispatch(startLoading());
+
+    await AsyncStorage.multiSet([
+      ['token', token],
+      ['user', JSON.stringify(user)],
+      ['themeType', themeType],
+    ]);
+
+    const isProfilingDone = user?.choosenArea?.length > 0;
+
+    return {
+      token,
+      user,
+      isProfilingDone,
+      themeType,
+    };
+  } finally {
+    thunkAPI.dispatch(stopLoading());
+  }
+});
+
+// Thunk: Logout
+export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, thunkAPI) => {
+  try {
+    thunkAPI.dispatch(startLoading());
+    await AsyncStorage.multiRemove(['token', 'user', 'themeType']);
+  } finally {
+    thunkAPI.dispatch(stopLoading());
+  }
+});
+
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: {
+    isLoading: true,
+    isSignedIn: false,
+    isProfilingDone: false,
+    userToken: null,
+    userId: null,
+    userObject: null,
+    themeType: 'light',
+  },
+  reducers: {
+    setTheme: (state, action) => {
+      state.themeType = action.payload;
+      AsyncStorage.setItem('themeType', action.payload);
+    },
+    setProfilingDone: (state, action) => {
+      state.isProfilingDone = action.payload;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(retrieveToken.fulfilled, (state, action) => {
+        const { token, user, isProfilingDone, themeType } = action.payload;
+
+        state.userToken = token;
+        state.userObject = user;
+        state.userId = user?._id || null;
+        state.isSignedIn = !!token && !!user;
+        state.isProfilingDone = isProfilingDone;
+        state.themeType = themeType;
+        state.isLoading = false;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        const { token, user, isProfilingDone, themeType } = action.payload;
+
+        state.userToken = token;
+        state.userObject = user;
+        state.userId = user._id;
+        state.isSignedIn = true;
+        state.isProfilingDone = isProfilingDone;
+        state.themeType = themeType;
+        state.isLoading = false;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.userToken = null;
+        state.userObject = null;
+        state.userId = null;
+        state.isSignedIn = false;
+        state.isProfilingDone = false;
+        state.themeType = 'light';
+        state.isLoading = false;
+      });
+  },
+});
+
+export const { setTheme, setProfilingDone } = authSlice.actions;
+export default authSlice.reducer;

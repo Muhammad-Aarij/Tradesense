@@ -5,6 +5,7 @@ import { bg, check, uncheck } from '../../../assets/images';
 import setupProfile from '../../../functions/setupProfile';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { setProfilingDone } from '../../../redux/slice/authSlice';
 
 const AreasScreen = ({ navigation, route }) => {
     const [selectedAreas, setSelectedAreas] = useState([]);
@@ -38,16 +39,18 @@ const AreasScreen = ({ navigation, route }) => {
                 return;
             }
             console.log('Profile setup successful:', response);
+
+            // ✅ Set profiling done to true
+            dispatch(setProfilingDone(true));
+
+            // Optionally navigate to next screen
             // navigation.navigate('HomeScreen');
         } catch (error) {
             console.error('Unexpected error during profile setup:', error);
-        }
-        finally {
-            dispatch(stopLoading())
+        } finally {
+            dispatch(stopLoading());
         }
     };
-
-
 
 
     return (

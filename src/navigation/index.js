@@ -1,40 +1,41 @@
-import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import Loader from '../components/loader';
-import Mode from '../components/Mode';
+import { NavigationContainer } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+
 import AuthNavigator from './AuthNavigator';
-import DrawerNavigator from './DrawerNavigator';
-import PillarNavigator from './PillarNavigator';
 import HomeNavigator from './HomeNavigator';
+import ProfilingNavigator from './ProfilingNavigator'; // 👈 import your profiling stack
+import Mode from '../components/Mode';
+import Loader from '../components/loader';
 
-
+import { retrieveToken } from '../redux/slice/authSlice';
 
 const AppNavContainer = () => {
+    const dispatch = useDispatch();
+    const { isSignedIn, isLoading, userToken, isProfilingDone } = useSelector(state => state.auth);
 
-    const isLoading = useSelector((state) => state.loader.isLoading);
-    // const { isLoading, userToken } = useSelector(state => state.auth);
-    // const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(retrieveToken());
+    }, []);
 
-    // useEffect(() => {
-    //     dispatch(retrieveToken());
-    // }, []);
-
-    // if (true) {
-    //     return (
-    //         <Loader/>
-    //     );
-    // }
+    const renderNavigator = () => {
+        if (isSignedIn && userToken) {
+            if (!isProfilingDone) {
+                return <ProfilingNavigator />; // 👈 go through profiling flow
+            }
+            return <HomeNavigator />; // 👈 go to main app
+        }
+        return <AuthNavigator />; // 👈 not signed in
+    };
 
     return (
         <>
             <NavigationContainer>
-                <AuthNavigator />
+                {renderNavigator()}
             </NavigationContainer>
-            {/* <Mode /> */}
+            <Mode />
             {isLoading && <Loader />}
         </>
-
     );
 };
 

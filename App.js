@@ -5,6 +5,7 @@ import AppNavContainer from "./src/navigation";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from "@env";
 import { ThemeProvider } from "./src/context/ThemeProvider";
+import AuthProvider from "./src/context/AuthProvider";
 
 const App = () => {
   useEffect(() => {
@@ -17,9 +18,11 @@ const App = () => {
 
   return (
     <Provider store={store}>
-      {/* <ThemeProvider> */}
-        <AppNavContainer />
-      {/* </ThemeProvider> */}
+      <ThemeProvider>
+        <AuthProvider>
+          <AppNavContainer />
+        </AuthProvider>
+      </ThemeProvider>
     </Provider>
   );
 };
