@@ -2,14 +2,25 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Image } from 'react-native';
 import { trophy, wallet, bg, alarm, board, health, hearts, check, uncheck } from '../../../assets/images';
 import theme from '../../../themes/theme';
-const GoalsScreen = ({ navigation }) => {
+
+const GoalsScreen = ({ navigation, route }) => {
     const [selectedGoals, setSelectedGoals] = useState([]);
+    const [request, setRequest] = useState(route.params?.request || { gender: null, ageRange: null, goals: [], choosenArea: [] });
+
+    console.log(request);
 
     const toggleGoal = (goal) => {
-        setSelectedGoals((prev) =>
-            prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
-        );
+        setSelectedGoals((prev) => {
+            const updatedGoals = prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal];
+            setRequest(prevRequest => ({
+                ...prevRequest,
+                goals: updatedGoals
+            }));
+            return updatedGoals;
+        });
     };
+
+
 
     const goals = [
         { label: 'Win at work', icon: trophy },
@@ -46,10 +57,12 @@ const GoalsScreen = ({ navigation }) => {
                 <TouchableOpacity
                     style={[styles.button, selectedGoals.length === 0 && styles.disabledButton]}
                     disabled={selectedGoals.length === 0}
-                    onPress={() => navigation.navigate('AreasScreen')}
+                    onPress={() => navigation.navigate('AreasScreen', { request })}
                 >
                     <Text style={styles.buttonText}>Next</Text>
                 </TouchableOpacity>
+
+
             </ScrollView>
 
         </ImageBackground>
@@ -74,7 +87,7 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 10,
         marginTop: 20,
-        marginBottom:50,
+        marginBottom: 50,
         alignItems: 'center',
     },
     goalIcon: { width: 40, height: 40, resizeMode: 'contain', marginRight: 10 },

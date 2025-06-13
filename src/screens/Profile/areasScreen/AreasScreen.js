@@ -2,22 +2,53 @@ import React, { useState } from 'react';
 import { Image, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
 import theme from '../../../themes/theme';
 import { bg, check, uncheck } from '../../../assets/images';
+import setupProfile from '../../../functions/setupProfile';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
-const AreasScreen = ({ navigation }) => {
+const AreasScreen = ({ navigation, route }) => {
     const [selectedAreas, setSelectedAreas] = useState([]);
-
+    const [request, setRequest] = useState(route.params?.request || { gender: null, ageRange: null, goals: [], choosenArea: [] });
+    const dispatch = useDispatch();
     const areas = [
         'Motivation', 'Leadership', 'Management', 'Planning',
         'Time Management', 'Parenting', 'Emotions', 'Nutrition', 'Habits',
         'Self Confidence', 'Intimacy', 'Mindset', 'Self care',
         'Communication', 'Exercises', 'Empathy'
     ];
-
     const toggleArea = (area) => {
-        setSelectedAreas((prev) =>
-            prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]
-        );
+        setSelectedAreas((prev) => {
+            const updatedAreas = prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area];
+
+            setRequest((prevRequest) => ({
+                ...prevRequest,
+                choosenArea: updatedAreas
+            }));
+
+            return updatedAreas;
+        });
     };
+
+    const handleProfileSetup = async () => {
+        try {
+            dispatch(startLoading());
+            const response = await setupProfile(request);
+            if (response.error) {
+                console.error('Failed to setup profile:', response.error);
+                return;
+            }
+            console.log('Profile setup successful:', response);
+            // navigation.navigate('HomeScreen');
+        } catch (error) {
+            console.error('Unexpected error during profile setup:', error);
+        }
+        finally {
+            dispatch(stopLoading())
+        }
+    };
+
+
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -50,10 +81,11 @@ const AreasScreen = ({ navigation }) => {
             <TouchableOpacity
                 style={[styles.button, selectedAreas.length === 0 && styles.disabledButton]}
                 disabled={selectedAreas.length === 0}
-                onPress={() => navigation.navigate('HomeScreen')}
+                onPress={handleProfileSetup}
             >
                 <Text style={styles.buttonText}>Next</Text>
             </TouchableOpacity>
+
         </ImageBackground>
     );
 };

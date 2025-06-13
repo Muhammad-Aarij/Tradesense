@@ -6,12 +6,29 @@ const { height } = Dimensions.get('window');
 
 const GenderScreen = ({ navigation }) => {
     const [selectedGender, setSelectedGender] = useState(null);
-
+    const [request, setRequest] = useState({
+        "gender": null,
+        "ageRange": null,
+        "goals": [],
+        "choosenArea": []
+    })
     const genders = [
-        { label: "Male", icon: male },
-        { label: "Female", icon: female },
-        { label: "Other", icon: third }
+        { label: "Male", value: "male", icon: male },
+        { label: "Female", value: "female", icon: female },
+        { label: "Other", value: "other", icon: third }
     ];
+
+    const handleGenderSelection = (gender) => {
+        console.log("Handling Gender: ", gender);
+        setSelectedGender(gender);
+        setRequest(prevRequest => ({
+            ...prevRequest,
+            gender: gender
+        }));
+    };
+
+
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -22,7 +39,7 @@ const GenderScreen = ({ navigation }) => {
                     <TouchableOpacity
                         key={gender.label}
                         style={[styles.option, selectedGender === gender.label && styles.selectedOption]}
-                        onPress={() => setSelectedGender(gender.label)}
+                        onPress={() => handleGenderSelection(gender.value)}
                     >
                         <Image source={gender.icon} style={styles.icon} />
                         <Text style={[styles.optionText, selectedGender === gender.label && styles.selectedOptiontext]}
@@ -34,17 +51,22 @@ const GenderScreen = ({ navigation }) => {
             <TouchableOpacity
                 style={[styles.button, !selectedGender && styles.disabledButton]}
                 disabled={!selectedGender}
-                onPress={() => navigation.navigate('AgeScreen')}
+                onPress={() => {
+                    if (selectedGender) {
+                        navigation.navigate('AgeScreen', { request });
+                    }
+                }}
             >
                 <Text style={styles.buttonText}>Next</Text>
             </TouchableOpacity>
+
         </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
     container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.darkBlue, paddingVertical: 40, },
-    title: { fontSize: 28, fontFamily: "Inter-SemiBold", color: "#FFFFFF",  },
+    title: { fontSize: 28, fontFamily: "Inter-SemiBold", color: "#FFFFFF", },
     subtitle: { fontSize: 13, fontFamily: "Inter-Medium", color: "#FFFFFF", marginBottom: 20 },
     optionsContainer: { flex: 1, flexDirection: 'column', justifyContent: 'center', marginBottom: 20, gap: 20 },
     option: {

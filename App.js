@@ -17,9 +17,9 @@ const App = () => {
 
   return (
     <Provider store={store}>
-      <ThemeProvider>
+      {/* <ThemeProvider> */}
         <AppNavContainer />
-      </ThemeProvider>
+      {/* </ThemeProvider> */}
     </Provider>
   );
 };

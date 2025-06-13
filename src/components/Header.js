@@ -4,10 +4,10 @@ import { BlurView } from "@react-native-community/blur";
 import { back } from '../assets/images';
 // import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../context/ThemeProvider';
-
+import theme from '../themes/theme';
 const Header = ({ title }) => {
     // const navigation = useNavigation();
-    const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+    // const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
     const styles = getStyles(theme);
 
     return (

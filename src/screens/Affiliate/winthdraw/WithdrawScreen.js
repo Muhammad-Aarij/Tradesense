@@ -14,7 +14,7 @@ const withdrawalHistoryData = [
     { id: 'wh6', type: 'Bank', amount: '$345', status: 'pending' },
 ];
 
-const WithdrawScreen = () => {
+const WithdrawScreen = ({navigation}) => {
     //   const navigation = useNavigation();
 
     const getIconForType = (type) => {
@@ -43,7 +43,7 @@ const WithdrawScreen = () => {
                     style={styles.withdrawButton}
                     onPress={() => {
                         if (navigation && navigation.navigate) {
-                            navigation.navigate('WithdrawDetail'); // Navigate to WithdrawDetailScreen
+                            navigation.navigate('WithdrawDetailScreen'); 
                         } else {
                             console.warn("Navigation navigate not available.");
                         }

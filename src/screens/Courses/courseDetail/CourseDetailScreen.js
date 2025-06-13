@@ -3,7 +3,9 @@ import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions
 import { bg, mountain, play, user, wave } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
-import { useNavigation, useRoute } from '@react-navigation/native'; // Import hooks for navigation
+import { useNavigation, useRoute } from '@react-navigation/native'; 
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 const { width } = Dimensions.get('window');
 
 const audios = [
@@ -16,15 +18,21 @@ const audios = [
 const CourseDetailScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
+    const dispatch = useDispatch();
+
     const { courseId, courseTitle } = route.params || { courseId: 'default', courseTitle: 'Daily Calm' };
     // const { courseId, courseTitle } = { courseId: 'default', courseTitle: 'Daily Calm' };
 
     useEffect(() => {
         console.log('CourseDetailScreen Mounted');
+        dispatch(startLoading());
+        setTimeout(() => {
+            dispatch(stopLoading());
+        }, 1500);
     }, []);
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
+        <View style={styles.container}>
             {/* Header */}
             <Header title={courseTitle} />
 
@@ -83,7 +91,7 @@ const CourseDetailScreen = () => {
                     <Text style={styles.buyNowButtonText}>Buy Now</Text>
                 </TouchableOpacity>
             </ScrollView>
-        </ImageBackground>
+        </View>
     );
 };
 
@@ -92,6 +100,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 25,
         paddingVertical: 0,
+        backgroundColor:"black",
     },
     header: {
         flexDirection: 'row',

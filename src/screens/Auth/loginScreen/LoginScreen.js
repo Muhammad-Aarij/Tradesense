@@ -41,7 +41,9 @@ const LoginScreen = ({ navigation }) => {
                 <ImageBackground source={bg} style={styles.container}>
                     <Image source={userLock} style={styles.image} />
                     <ScrollView contentContainerStyle={{ alignItems: "center" }} style={styles.bottomcontainer}>
+                        <Pressable onPress={()=>navigation.navigate("WithdrawScreen")}>
                         <Text style={styles.title}>Login</Text>
+                        </Pressable>
                         <Text style={styles.subtitle}>welcome back we missed you</Text>
                         <CustomInput
                             label="Username"

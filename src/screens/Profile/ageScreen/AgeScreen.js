@@ -3,8 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground, Scrol
 import theme from '../../../themes/theme';
 import { age1, age2, age3, age4, age5, age6, bg } from '../../../assets/images';
 
-const AgeScreen = ({ navigation }) => {
+const AgeScreen = ({ navigation, route }) => {
     const [selectedAge, setSelectedAge] = useState(null);
+    const { request } = route.params || {};
+    console.log(request);
 
     const ageGroups = [
         { label: '18-24', icon: age2 },
@@ -14,6 +16,19 @@ const AgeScreen = ({ navigation }) => {
         { label: '55-64', icon: age1 },
         { label: '65+', icon: age6 }
     ];
+    const handleAgeSelection = (age) => {
+        setSelectedAge(age);
+    };
+
+    const handleNext = () => {
+        if (selectedAge) {
+            const updatedRequest = {
+                ...request,
+                ageRange: selectedAge.label
+            };
+            navigation.navigate('GoalScreen', { request: updatedRequest });
+        }
+    };
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -25,8 +40,9 @@ const AgeScreen = ({ navigation }) => {
                         <TouchableOpacity
                             key={age.label}
                             style={[styles.option, selectedAge?.label === age.label && styles.selectedOption]}
-                            onPress={() => setSelectedAge(age)}
-                        >
+                            onPress={() => handleAgeSelection(age)
+
+                            }                        >
                             <Image source={age.icon} style={{ width: 45, height: 45, resizeMode: "contain" }} />
                             <Text style={[styles.optionText, selectedAge?.label === age.label && { color: "#70C2E8" }]}>{age.label}</Text>
                         </TouchableOpacity>
@@ -35,7 +51,7 @@ const AgeScreen = ({ navigation }) => {
                 <TouchableOpacity
                     style={[styles.button, !selectedAge && styles.disabledButton]}
                     disabled={!selectedAge}
-                    onPress={() => navigation.navigate('GoalScreen')}
+                    onPress={handleNext}
                 >
                     <Text style={styles.buttonText}>Next</Text>
                 </TouchableOpacity>
@@ -45,7 +61,7 @@ const AgeScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({ 
+const styles = StyleSheet.create({
     container: { flex: 1, alignItems: 'center', backgroundColor: theme.darkBlue, paddingHorizontal: 50, paddingBottom: 10 },
     title: { fontSize: 28, fontFamily: "Inter-SemiBold", color: "#FFFFFF", marginTop: 50 },
     subtitle: { fontSize: 13, fontFamily: "Inter-Medium", color: "#FFFFFF", marginBottom: 20 },

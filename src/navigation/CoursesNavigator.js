@@ -15,8 +15,7 @@ const CoursesNavigator = () => {
     <CoursesStack.Navigator
       initialRouteName="OurCoursesScreen"
       screenOptions={{
-        headerShown: false,
-        gestureEnabled: true, // Optional, but helps transitions
+        headerShown: false
       }}
     >
       <CoursesStack.Screen name="OurCoursesScreen" component={OurCoursesScreen} />

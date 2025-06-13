@@ -1,8 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, ImageBackground } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, ImageBackground, Touchable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { bell, bg, user, back } from '../../../assets/images';
-import theme from '../../../themes/theme';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { useDispatch } from 'react-redux';
+// import theme from '../../../themes/theme';
+
+const theme = {
+    primaryColor: '#70C2E8', // Green
+    darkBlue: '#080E17', // Dark Blue
+    black: "000000", // Black
+    borderColor: '#272e36', // Border Color
+    lightGray: '#B6B6B6', // Light Gray
+    bg: bg,
+    textColor: "#FFFFFF",
+    transparentBg: 'rgba(255, 255, 255, 0.06)',
+}
 
 const { width } = Dimensions.get('window');
 
@@ -20,11 +33,19 @@ const { width } = Dimensions.get('window');
 
 // const chartHeightScale = 100 / maxChartValue; // Scale bars to max height of 100px
 const AffiliateDashboardScreen = () => {
-    // const navigation = useNavigation();
-
+    const dispatch = useDispatch();
+    const navigation = useNavigation();
     const [selectedFilter, setSelectedFilter] = useState('Daily');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
     const filterOptions = ['Daily', 'Monthly', 'Yearly'];
+
+    useEffect(() => {
+        console.log('CourseDetailScreen Mounted');
+        dispatch(startLoading());
+        setTimeout(() => {
+            dispact(stopLoading());
+        }, 3000);
+    }, []);
 
     return (
 
@@ -47,10 +68,10 @@ const AffiliateDashboardScreen = () => {
 
                 {/* Stats Section */}
                 <View style={styles.statsContainer}>
-                    <View style={styles.statCard}>
+                    <TouchableOpacity style={styles.statCard} onPress={() => navigation.navigate("WithdrawScreen")}>
                         <Text style={styles.statLabel}>$1534.09</Text>
                         <Text style={styles.statValue}>Available Balance</Text>
-                    </View>
+                    </TouchableOpacity>
                     <View style={styles.statCard}>
                         <Text style={styles.statLabel}>9.7%</Text>
                         <Text style={styles.statValue}>Conversion Rate</Text>

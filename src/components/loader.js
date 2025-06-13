@@ -1,44 +1,51 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, ActivityIndicator, Text } from "react-native";
+import React from "react";
+import { StyleSheet, View, Text } from "react-native";
+import LottieView from "lottie-react-native";
 import { BlurView } from "@react-native-community/blur";
 import theme from "../themes/theme";
 
 export default function Loader() {
-  const [visible, setVisible] = useState(false);
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setVisible((prev) => !prev);
-  //   }, 2000);
-
-  //   return () => clearInterval(interval);
-  // }, []);
-
-  // if (!visible) return null;
-
   return (
-    <View style={styles.overlay}>
-      <BlurView style={styles.blur} blurType="light" blurAmount={10}>
-        {/* <ActivityIndicator style={{}} size="small" color="#70C2E8" /> */}
-        <Text style={{ fontFamily: "Inter-Light", fontSize: 20, color: theme.primaryColor, marginTop: 20 }}>Loading</Text>
-      </BlurView>
+    <View style={styles.container}>
+      <BlurView style={styles.blur} blurType="dark" blurAmount={10} />
+      <View style={styles.overlay}>
+        <LottieView 
+          source={require("../assets/loader.json")} 
+          autoPlay 
+          loop 
+          style={styles.animation} 
+        />
+        <Text style={styles.text}>Loading</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
+  container: {
+    ...StyleSheet.absoluteFillObject, // Ensure it overlays on top
     justifyContent: "center",
     alignItems: "center",
-    width: "100%", height: "100%",
   },
   blur: {
     ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
+  },
+  overlay: {
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
+    borderRadius: 10,
+  },
+  animation: {
+    width: 150,
+    height: 150,
+  },
+  text: {
+    fontFamily: "Inter-Medium",
+    fontSize: 20,
+    color: theme.primaryColor,
+    marginTop: 10,
   },
 });
-

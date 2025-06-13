@@ -2,8 +2,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Loader from '../components/loader';
-import HomeNavigator from './HomeNavigator';
 import Mode from '../components/Mode';
+import AuthNavigator from './AuthNavigator';
+import DrawerNavigator from './DrawerNavigator';
+import PillarNavigator from './PillarNavigator';
+import HomeNavigator from './HomeNavigator';
 
 
 
@@ -26,9 +29,9 @@ const AppNavContainer = () => {
     return (
         <>
             <NavigationContainer>
-                <HomeNavigator />
+                <AuthNavigator />
             </NavigationContainer>
-            <Mode/>
+            {/* <Mode /> */}
             {isLoading && <Loader />}
         </>
 
