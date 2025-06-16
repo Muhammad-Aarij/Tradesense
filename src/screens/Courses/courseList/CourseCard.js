@@ -5,7 +5,7 @@ import theme from '../../../themes/theme';
 
 // Get screen width for responsive card sizing
 const { width } = Dimensions.get('window');
-const cardWidth = (width - 35 * 2 - 15) / 2;
+const cardWidth = (width - 20 * 2 - 25) / 2;
 
 // Star rating component
 const StarRating = ({ rating }) => {
@@ -46,7 +46,7 @@ const CourseCard = ({ imageSource, time, title, rating, description, profileImag
                 <StarRating rating={rating} />
                 <View style={cardStyles.footer}>
                     <View style={cardStyles.profileInfo}>
-                        <Image source={profileImage} style={cardStyles.profileImage} />
+                        {/* <Image source={profileImage} style={cardStyles.profileImage} /> */}
                         <View>
                             <Text style={cardStyles.profileName}>{profileName}</Text>
                             <Text style={cardStyles.profileRole}>{profileRole}</Text>
@@ -156,7 +156,7 @@ const cardStyles = StyleSheet.create({
     },
     price: {
         color: '#FFFFFF',
-        fontSize: 14,
+        fontSize: 12,
         fontWeight: 'bold',
         fontFamily: "Inter-SemiBold",
     },

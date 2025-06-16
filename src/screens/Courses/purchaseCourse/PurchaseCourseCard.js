@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { copy, mountain, play, user } from '../../../assets/images';
+import { copy, course, mountain, play, user } from '../../../assets/images';
 import theme from '../../../themes/theme';
+import { addToFavorites } from '../../../functions/handleCourses';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive design
 
-// Re-defining StarRating locally for self-containation
 const StarRating = ({ rating }) => {
+    const displayRating = rating ? rating : 1; // fallback to 1 if rating is falsy
+
     const stars = [];
     for (let i = 0; i < 5; i++) {
         stars.push(
-            <Text key={i} style={rating > i ? styles.filledStar : styles.emptyStar}>
+            <Text key={i} style={displayRating > i ? styles.filledStar : styles.emptyStar}>
                 ★
             </Text>
         );
@@ -18,25 +20,24 @@ const StarRating = ({ rating }) => {
     return <View style={styles.starContainer}>{stars}</View>;
 };
 
-// Assuming 'play' image is a static asset. If you prefer SVG, ensure react-native-svg is installed.
-// Example placeholder for 'play' and 'mountain' if not available via actual assets.
-// In your actual project, ensure these paths are correct:
-// import { mountain, play } from '../../../assets/images';
 
-const PurchasedCourseCard = ({ course, onPress }) => (
+
+
+
+const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = true }) => (
     <TouchableOpacity
         style={{
             ...styles.card,
             height: course.type === "Affiliate" ? 180 : 150
         }}
-        onPress={() => onPress(course)}
+        onPress={onPress}
     >
         <View style={styles.imageWrapper}>
             {/* Use course.image for dynamic image source */}
             <Image source={mountain} style={styles.cardImage} />
             <View style={styles.imgOverlay} />
 
-            {course.type != "Affiliate" &&
+            {course.type != "Affiliate" && false &&
                 <View style={styles.timeOverlay}>
                     <Image source={play} style={styles.playIcon} />
                     <Text style={styles.timeText}>{course.time}</Text>
@@ -59,19 +60,19 @@ const PurchasedCourseCard = ({ course, onPress }) => (
                 <View style={{ flexDirection: "row" }}>
                     <Image source={user} style={styles.instructorImage} />
                     <View style={{ flexDirection: "column" }}>
-                        <Text style={styles.instructorName}>Alwin</Text>
-                        <Text style={styles.instructorSubtitle}>Mentally Relax</Text>
+                        <Text style={styles.instructorName}>{course.instructorName}</Text>
+                        <Text style={styles.instructorSubtitle}>{course.instructorExperienceLevel}</Text>
                     </View>
                 </View>
                 <Text style={styles.price}>{course.price}</Text>
             </View>
 
-            <View style={styles.urlcontainer}>
+            {showUrl && <View style={styles.urlcontainer}>
                 <Text style={styles.url} numberOfLines={1} ellipsizeMode="tail">
                     {course.courseUrl}
                 </Text>
                 <Image style={{ width: 10, height: 10, resizeMode: "contain" }} source={copy}></Image>
-            </View>
+            </View>}
         </View>
     </TouchableOpacity>
 );
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     cardContent: {
         flex: 1,
         padding: 12,
-        paddingLeft: 20,
+        paddingLeft: 10,
         justifyContent: 'space-between',
     },
     cardTitle: {
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     filledStar: {
-        color: '#FFD700', // Gold color for filled stars
+        color: 'yellow', // Gold color for filled stars
         fontSize: 14,
     },
     emptyStar: {

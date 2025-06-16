@@ -7,13 +7,14 @@ import CourseEpisodesScreen from "../screens/Courses/courseEpisodes/CourseEpisod
 import OurCoursesScreen from "../screens/Courses/courseList/OurCoursesScreen";
 import PlansScreen from "../screens/Courses/Plans/PlansScreen";
 import PurchasedCoursesScreen from "../screens/Courses/purchaseCourse/purchasedCoursesData";
+import PlayerScreen from "../screens/TrackPlayer/PlayerScreen";
 
 const CoursesStack = createNativeStackNavigator();
 
 const CoursesNavigator = () => {
   return (
     <CoursesStack.Navigator
-      initialRouteName="OurCoursesScreen"
+      initialRouteName="PurchasedCoursesScreen"
       screenOptions={{
         headerShown: false
       }}
@@ -24,6 +25,7 @@ const CoursesNavigator = () => {
       <CoursesStack.Screen name="PlansScreen" component={PlansScreen} />
       <CoursesStack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       <CoursesStack.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} />
+      <CoursesStack.Screen name="TrackPlayer" component={PlayerScreen} />
     </CoursesStack.Navigator>
   );
 };

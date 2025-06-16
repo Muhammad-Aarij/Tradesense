@@ -1,85 +1,90 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
 import theme from '../../../themes/theme';
 import { bg, check, uncheck } from '../../../assets/images';
 import setupProfile from '../../../functions/setupProfile';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { setProfilingDone } from '../../../redux/slice/authSlice';
+import { fetchChosenAreas } from '../../../functions/profiling';
 
 const AreasScreen = ({ navigation, route }) => {
     const [selectedAreas, setSelectedAreas] = useState([]);
-    const [request, setRequest] = useState(route.params?.request || { gender: null, ageRange: null, goals: [], choosenArea: [] });
+    const [availableAreas, setAvailableAreas] = useState([]);
+    const { userId } = useSelector(state => state.auth);
+    const [request, setRequest] = useState(route.params?.request || {
+        gender: null,
+        ageRange: null,
+        goals: [],
+        choosenArea: [],
+    });
     const dispatch = useDispatch();
-    const areas = [
-        'Motivation', 'Leadership', 'Management', 'Planning',
-        'Time Management', 'Parenting', 'Emotions', 'Nutrition', 'Habits',
-        'Self Confidence', 'Intimacy', 'Mindset', 'Self care',
-        'Communication', 'Exercises', 'Empathy'
-    ];
-    const toggleArea = (area) => {
-        setSelectedAreas((prev) => {
-            const updatedAreas = prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area];
 
-            setRequest((prevRequest) => ({
-                ...prevRequest,
-                choosenArea: updatedAreas
+    useEffect(() => {
+        const loadAreas = async () => {
+            const data = await fetchChosenAreas();
+            setAvailableAreas(data);
+        };
+        loadAreas();
+    }, []);
+
+    const toggleArea = (areaId) => {
+        setSelectedAreas((prev) => {
+            const updated = prev.includes(areaId)
+                ? prev.filter((a) => a !== areaId)
+                : [...prev, areaId];
+
+            setRequest((prevReq) => ({
+                ...prevReq,
+                choosenArea: updated,
             }));
 
-            return updatedAreas;
+            return updated;
         });
     };
 
     const handleProfileSetup = async () => {
         try {
             dispatch(startLoading());
-            const response = await setupProfile(request);
+            const response = await setupProfile(request, userId);
             if (response.error) {
                 console.error('Failed to setup profile:', response.error);
                 return;
             }
-            console.log('Profile setup successful:', response);
-
-            // ✅ Set profiling done to true
             dispatch(setProfilingDone(true));
-
-            // Optionally navigate to next screen
-            // navigation.navigate('HomeScreen');
-        } catch (error) {
-            console.error('Unexpected error during profile setup:', error);
+        } catch (err) {
+            console.error('Unexpected error during profile setup:', err);
         } finally {
             dispatch(stopLoading());
         }
     };
-
 
     return (
         <ImageBackground source={bg} style={styles.container}>
             <Text style={styles.title}>Areas</Text>
             <Text style={styles.subtitle}>Choose areas you’d like to elevate</Text>
             <ScrollView contentContainerStyle={styles.tagsWrapper} showsVerticalScrollIndicator={false}>
-                {areas.map((area) => (
+                {availableAreas.map((area) => (
                     <TouchableOpacity
-                        key={area}
+                        key={area._id}
                         style={[
                             styles.tag,
-                            selectedAreas.includes(area) && styles.selectedTag,
+                            selectedAreas.includes(area._id) && styles.selectedTag,
                         ]}
-                        onPress={() => toggleArea(area)}
+                        onPress={() => toggleArea(area._id)}
                     >
-                        {/* Checkbox on the Left */}
                         <Image
-                            source={selectedAreas.includes(area) ? check : uncheck}
+                            source={selectedAreas.includes(area._id) ? check : uncheck}
                             style={styles.checkbox}
                         />
-
-                        {/* Area Text */}
-                        <Text style={[styles.tagText, selectedAreas.includes(area) && { color: '#70C2E8' }]}>
-                            {area}
+                        <Text style={[
+                            styles.tagText,
+                            selectedAreas.includes(area._id) && { color: '#70C2E8' },
+                        ]}>
+                            {area.text}
                         </Text>
                     </TouchableOpacity>
                 ))}
-
             </ScrollView>
             <TouchableOpacity
                 style={[styles.button, selectedAreas.length === 0 && styles.disabledButton]}
@@ -88,7 +93,6 @@ const AreasScreen = ({ navigation, route }) => {
             >
                 <Text style={styles.buttonText}>Next</Text>
             </TouchableOpacity>
-
         </ImageBackground>
     );
 };

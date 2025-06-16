@@ -43,7 +43,7 @@ const AffiliateDashboardScreen = () => {
         console.log('CourseDetailScreen Mounted');
         dispatch(startLoading());
         setTimeout(() => {
-            dispact(stopLoading());
+            dispatch(stopLoading());
         }, 3000);
     }, []);
 

@@ -1,25 +1,39 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
+
 import HomeScreen from "../screens/home/HomeScreen";
 import CoursesNavigator from "./CoursesNavigator";
 import PillarNavigator from "./PillarNavigator";
 import AccountabilityNavigator from "./AccountabilityNavigator";
-import CustomBottomTab from "../components/CustomBottomTab"; // ✅ Import custom tab
 import AffiliateNavigator from "./AffiliateNavigator";
+import CustomBottomTab from "../components/CustomBottomTab";
 
 const Tab = createBottomTabNavigator();
 
 export default function BottomNavigator() {
   return (
     <Tab.Navigator
-      tabBar={(props) => <CustomBottomTab {...props} />} // ✅ Use custom tab
+      tabBar={(props) => <CustomBottomTab {...props} />}
       screenOptions={{
         headerShown: false,
       }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Pillars" component={PillarNavigator} />
-      <Tab.Screen name="Courses" component={CoursesNavigator} />
+      <Tab.Screen
+        name="Courses"
+        component={CoursesNavigator}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+
+          return {
+            tabBarStyle: {
+              display: routeName === 'CourseEpisodesScreen' ? 'none' : 'flex',
+            },
+          };
+        }}
+      />
       <Tab.Screen name="Accountability" component={AccountabilityNavigator} />
       <Tab.Screen name="Affiliate" component={AffiliateNavigator} />
     </Tab.Navigator>

@@ -1,35 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Image } from 'react-native';
-import { trophy, wallet, bg, alarm, board, health, hearts, check, uncheck } from '../../../assets/images';
+import { check, uncheck, bg } from '../../../assets/images';
 import theme from '../../../themes/theme';
+import { fetchGoals } from '../../../functions/profiling';
 
 const GoalsScreen = ({ navigation, route }) => {
+    const [goals, setGoals] = useState([]);
     const [selectedGoals, setSelectedGoals] = useState([]);
-    const [request, setRequest] = useState(route.params?.request || { gender: null, ageRange: null, goals: [], choosenArea: [] });
+    const [request, setRequest] = useState(route.params?.request || {
+        gender: null,
+        ageRange: null,
+        goals: [],
+        choosenArea: [],
+    });
 
-    console.log(request);
+    useEffect(() => {
+        const loadGoals = async () => {
+            const data = await fetchGoals();
+            setGoals(data);
+        };
+        loadGoals();
+    }, []);
 
-    const toggleGoal = (goal) => {
+    const toggleGoal = (goalId) => {
         setSelectedGoals((prev) => {
-            const updatedGoals = prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal];
-            setRequest(prevRequest => ({
+            const updatedGoals = prev.includes(goalId)
+                ? prev.filter((g) => g !== goalId)
+                : [...prev, goalId];
+
+            setRequest((prevRequest) => ({
                 ...prevRequest,
-                goals: updatedGoals
+                goals: updatedGoals,
             }));
+
             return updatedGoals;
         });
     };
-
-
-
-    const goals = [
-        { label: 'Win at work', icon: trophy },
-        { label: 'Have more money', icon: wallet },
-        { label: 'Be productive', icon: alarm },
-        { label: 'Stick to trading plan', icon: board },
-        { label: 'Have a healthy body', icon: health },
-        { label: 'Love & beloved', icon: hearts },
-    ];
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -39,18 +45,18 @@ const GoalsScreen = ({ navigation, route }) => {
                 <View style={styles.tilesContainer}>
                     {goals.map((goal) => (
                         <TouchableOpacity
-                            key={goal.label}
+                            key={goal._id}
                             style={[
                                 styles.option,
-                                selectedGoals.includes(goal.label) && styles.selectedOption,
+                                selectedGoals.includes(goal._id) && styles.selectedOption,
                             ]}
-                            onPress={() => toggleGoal(goal.label)}
+                            onPress={() => toggleGoal(goal._id)}
                         >
-                            <Image source={goal.icon} style={styles.goalIcon} />
-                            <Text style={[styles.optionText, selectedGoals.includes(goal.label) && { color: '#70C2E8' }]}>
-                                {goal.label}
+                            <Image source={{ uri: goal.image }} style={styles.goalIcon} />
+                            <Text style={[styles.optionText, selectedGoals.includes(goal._id) && { color: '#70C2E8' }]}>
+                                {goal.text}
                             </Text>
-                            <Image style={styles.checkbox} source={selectedGoals.includes(goal.label) ? check : uncheck} />
+                            <Image style={styles.checkbox} source={selectedGoals.includes(goal._id) ? check : uncheck} />
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -61,13 +67,11 @@ const GoalsScreen = ({ navigation, route }) => {
                 >
                     <Text style={styles.buttonText}>Next</Text>
                 </TouchableOpacity>
-
-
             </ScrollView>
-
         </ImageBackground>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, alignItems: 'center', backgroundColor: theme.darkBlue, paddingHorizontal: 50, paddingBottom: 10 },

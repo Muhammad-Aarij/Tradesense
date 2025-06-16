@@ -86,6 +86,7 @@ import affiliate from './affiliate.png'
 import whiteBg from './white.png'
 import light from './light.png'
 import dark from './dark.png'
+import hamburger from './ham.png'
 
 
 // Export all imported images as a single object for easy access
@@ -95,5 +96,5 @@ export {
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
-  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark
+  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger
 };

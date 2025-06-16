@@ -7,14 +7,19 @@ export const retrieveToken = createAsyncThunk('auth/retrieveToken', async (_, th
   try {
     thunkAPI.dispatch(startLoading());
 
-    const [token, userData, theme] = await Promise.all([
+    const [token, userData, theme, profilingFlag] = await Promise.all([
       AsyncStorage.getItem('token'),
       AsyncStorage.getItem('user'),
       AsyncStorage.getItem('themeType'),
+      AsyncStorage.getItem('isProfilingDone'), // ✅ retrieve profiling status
     ]);
 
     const user = userData ? JSON.parse(userData) : null;
-    const isProfilingDone = user?.choosenArea?.length > 0;
+
+    const isProfilingDone =
+      profilingFlag !== null
+        ? JSON.parse(profilingFlag)
+        : user?.choosenArea?.length > 0;
 
     return {
       token: token || null,
@@ -40,13 +45,14 @@ export const loginUser = createAsyncThunk('auth/loginUser', async ({ token, user
   try {
     thunkAPI.dispatch(startLoading());
 
+    const isProfilingDone = user?.choosenArea?.length > 0;
+
     await AsyncStorage.multiSet([
       ['token', token],
       ['user', JSON.stringify(user)],
       ['themeType', themeType],
+      ['isProfilingDone', JSON.stringify(isProfilingDone)], // ✅ persist profiling status
     ]);
-
-    const isProfilingDone = user?.choosenArea?.length > 0;
 
     return {
       token,
@@ -63,7 +69,7 @@ export const loginUser = createAsyncThunk('auth/loginUser', async ({ token, user
 export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, thunkAPI) => {
   try {
     thunkAPI.dispatch(startLoading());
-    await AsyncStorage.multiRemove(['token', 'user', 'themeType']);
+    await AsyncStorage.multiRemove(['token', 'user', 'themeType', 'isProfilingDone']); // ✅ wipe it clean
   } finally {
     thunkAPI.dispatch(stopLoading());
   }
@@ -87,6 +93,7 @@ const authSlice = createSlice({
     },
     setProfilingDone: (state, action) => {
       state.isProfilingDone = action.payload;
+      AsyncStorage.setItem('isProfilingDone', JSON.stringify(action.payload)); // ✅ keep in sync
     },
   },
   extraReducers: (builder) => {

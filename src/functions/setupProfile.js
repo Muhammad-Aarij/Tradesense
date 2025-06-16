@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { API_URL } from "@env";
 
-const setupProfile = async (profileData) => {
+const setupProfile = async (profileData, userId) => {
     try {
-        const response = await fetch(`${API_URL}/api/auth/setup-profile/6833ffbf746f530daeaea011`, {
+        const response = await fetch(`${API_URL}/api/auth/setup-profile/${userId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

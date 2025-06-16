@@ -7,6 +7,11 @@ import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from "@env";
 import { ThemeProvider } from "./src/context/ThemeProvider";
 import AuthProvider from "./src/context/AuthProvider";
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Create a new QueryClient instance
+const queryClient = new QueryClient();
+
 const App = () => {
   useEffect(() => {
     GoogleSignin.configure({
@@ -18,11 +23,13 @@ const App = () => {
 
   return (
     <Provider store={store}>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppNavContainer />
-        </AuthProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppNavContainer />
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </Provider>
   );
 };

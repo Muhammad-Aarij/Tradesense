@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import Slider from '@react-native-community/slider';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Alert, ScrollView, ImageBackground } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import TrackPlayer, {
     useTrackPlayerEvents,
     Event,
@@ -27,12 +29,26 @@ const track = {
 
 const PlayerScreen = () => {
     // const navigation = useNavigation();
+    const dispatch = useDispatch();
     const playbackState = usePlaybackState();
     const progress = useProgress();
     const isPlaying = playbackState.state === PlaybackState.Playing;
 
     // Ref to prevent multiple setup calls
     const isPlayerSetup = useRef(false);
+    const [currentTrack, setCurrentTrack] = useState(null);
+
+    useEffect(() => {
+        const getCurrentTrack = async () => {
+            const trackId = await TrackPlayer.getCurrentTrack();
+            if (trackId !== null) {
+                const trackObject = await TrackPlayer.getTrack(trackId);
+                setCurrentTrack(trackObject);
+            }
+        };
+
+        getCurrentTrack();
+    }, []);
 
     useEffect(() => {
         // Only setup player once
@@ -48,15 +64,18 @@ const PlayerScreen = () => {
     }, []); // Empty dependency array means this effect runs once on mount
 
     async function setupPlayer() {
+        dispatch(startLoading());
         try {
             await TrackPlayer.setupPlayer();
-            await TrackPlayer.add([track]); // Add your track(s)
+            await TrackPlayer.add([track]);
             console.log('TrackPlayer setup and track added.');
         } catch (error) {
-            console.error('Failed to setup TrackPlayer:', error);
-            Alert.alert('Error', 'Failed to initialize audio player.');
+            console.error('TrackPlayer setup failed:', error); // Silent log only
+        } finally {
+            dispatch(stopLoading());
         }
     }
+
 
     // Toggle Playback function
     const togglePlayback = async () => {
@@ -123,7 +142,7 @@ const PlayerScreen = () => {
 
                 {/* Playback Controls */}
                 <View style={styles.controlsContainer}>
-                    <TouchableOpacity style={{...styles.controlButton1,marginRight:10}}>
+                    <TouchableOpacity style={{ ...styles.controlButton1, marginRight: 10 }}>
                         <Image source={shuffleIcon} style={styles.controlIcon} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToPrevious()}>
@@ -135,7 +154,7 @@ const PlayerScreen = () => {
                     <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
                         <Image source={next} style={styles.controlIcon} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={{...styles.controlButton1,marginLeft:10}}>
+                    <TouchableOpacity style={{ ...styles.controlButton1, marginLeft: 10 }}>
                         <Image source={repeat} style={styles.controlIcon} />
                     </TouchableOpacity>
                 </View>
@@ -241,7 +260,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: "rgba(255, 255, 255, 0.1)",
         borderRadius: 100,
-        
+
     },
     controlButton1: {
         padding: 10,
@@ -267,7 +286,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.4,
         shadowRadius: 5,
-        marginHorizontal:15,
+        marginHorizontal: 15,
     },
     playPauseIcon: {
         width: 20, // Icon size within the button

@@ -1,76 +1,76 @@
-import React from 'react';
-import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
+import React, { useEffect } from 'react';
+import {
+    View,
+    Text,
+    FlatList,
+    StyleSheet,
+    ImageBackground,
+    SafeAreaView,
+} from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { bg } from '../../../assets/images';
 import Header from '../../../components/Header';
 import PurchasedCourseCard from './PurchaseCourseCard';
-import { bg } from '../../../assets/images';
-
-const { width } = Dimensions.get('window');
-
-// Sample data for purchased courses
-const purchasedCoursesData = [
-    {
-        id: 'pc1',
-        title: 'Daily Calm',
-        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-        rating: 2,
-        time: '15min',
-        instructor: 'Alwin',
-        image: 'https://placehold.co/400x200/524855/FFF?text=Daily+Calm+Course',
-        instructorImage: 'https://placehold.co/50x50/ADD8E6/000?text=A',
-    },
-    {
-        id: 'pc2',
-        title: 'Finding Connections',
-        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
-        rating: 5,
-        time: '17min',
-        instructor: 'Smith',
-        image: 'https://placehold.co/400x200/524855/FFF?text=Connections+Course',
-        instructorImage: 'https://placehold.co/50x50/FFB6C1/000?text=S',
-    },
-];
-
-
+import { useEnrolledCourses } from '../../../functions/handleCourses';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
 const PurchasedCoursesScreen = () => {
-    // const navigation = useNavigation();
+    const navigation = useNavigation();
+    const userData = useSelector(state => state.auth); // adapt if slice name differs
+    const studentId = userData.userObject?._id;
+    const dispatch = useDispatch();
+    const { data: enrolledCourses, isLoading, error } = useEnrolledCourses(studentId);
+
+    useEffect(() => {
+        dispatch(startLoading());
+        const timeout = setTimeout(() => {
+            if (!isLoading) dispatch(stopLoading());
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [isLoading]);
 
     const renderItem = ({ item }) => (
-        <PurchasedCourseCard
+        console.log(item.courseId, item.courseTitle, item.courseImage),
+        < PurchasedCourseCard
             course={item}
-            onPress={() => {
-                if (navigation && navigation.navigate) {
-                    navigation.navigate('CourseEpisodes', { courseId: item.id, courseTitle: item.title, courseImage: item.image });
-                } else {
-                    console.warn("Navigation prop is not available. Cannot navigate to CourseEpisodes.");
-                }
-            }}
+            showplaybtn={false}
+            showUrl={false}
+            onPress={() => navigation.navigate('CourseEpisodesScreen', {
+                courseId: item._id,
+                courseTitle: item.title,
+                courseImage: item.thumbnail
+            })}
         />
     );
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            {/* Header */}
-            <Header title={"Purchased Courses"} />
+            <SafeAreaView>
 
-            <FlatList
-                data={purchasedCoursesData}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContainer}
-                showsVerticalScrollIndicator={false}
-            />
+                <Header title="Purchased Courses" />
+                {error ? (
+                    <View style={styles.centered}>
+                        <Text style={{ color: 'white' }}>Error loading courses: {error.message}</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={enrolledCourses}
+                        renderItem={renderItem}
+                        keyExtractor={item => item._id}
+                        contentContainerStyle={styles.listContainer}
+                        showsVerticalScrollIndicator={false}
+                    />
+                )}
+            </SafeAreaView>
         </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#08131F', padding: 25,paddingTop:0 },
-    listContainer: {
-        paddingVertical: 10,
-    },
-
+    container: { flex: 1, backgroundColor: '#08131F', padding: 25, paddingBottom: 150 },
+    listContainer: { paddingVertical: 10 },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default PurchasedCoursesScreen;

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from 'react-na
 import { BlurView } from '@react-native-community/blur';
 import theme from '../themes/theme';
 
-const ConfirmationModal = ({ isVisible, onClose, title, message, icon }) => {
+const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = true }) => {
     return (
         <Modal transparent animationType="fade" visible={isVisible} onRequestClose={onClose}>
             <View style={styles.overlay}>
@@ -12,9 +12,9 @@ const ConfirmationModal = ({ isVisible, onClose, title, message, icon }) => {
                     {icon && <Image source={icon} style={styles.icon} />}
                     <Text style={styles.title}>{title}</Text>
                     <Text style={styles.message}>{message}</Text>
-                    <TouchableOpacity onPress={onClose} style={styles.button}>
+                    {button && <TouchableOpacity onPress={onClose} style={styles.button}>
                         <Text style={styles.buttonText}>Continue</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity>}
                 </View>
             </View>
         </Modal>
@@ -50,6 +50,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontFamily: "Inter-SemiBold",
         color: "#EFEFEF",
+        textAlign:"center",
         marginBottom: 8,
     },
     message: {

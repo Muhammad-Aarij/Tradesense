@@ -1,10 +1,14 @@
 import React, { useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { BlurView } from "@react-native-community/blur";
-import { back } from '../assets/images';
+import { back, hamburger } from '../assets/images';
 // import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../context/ThemeProvider';
 import theme from '../themes/theme';
+
+import { openSidebar } from '../redux/slice/loaderSlice'
+import { useDispatch } from 'react-redux'
+
 const Header = ({ title }) => {
     // const navigation = useNavigation();
     // const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
@@ -13,12 +17,19 @@ const Header = ({ title }) => {
     return (
         <View style={styles.header}>
             {/* Circular BlurView around Back Button */}
-            <TouchableOpacity style={styles.blurWrapper} >
-                {/* // onPress={() => { navigation.goBack }}> */}
+            {/* <TouchableOpacity style={styles.blurWrapper} >
                 <BlurView blurType="light" blurAmount={20} style={styles.blurView}>
                     <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
                 </BlurView>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+            
+            {/* <TouchableOpacity onPress={() => dispatch(openSidebar())}
+                style={{
+                    position: "absolute", top: 35, left: 30,
+                    zIndex: 1000, backgroundColor: "#rgba(252, 254, 255, 0.69)", padding: 10, borderRadius: 100
+                }}>
+                <Image source={hamburger} style={{ width: 20, height: 20, resizeMode: "contain", tintColor: "black" }} />
+            </TouchableOpacity> */}
 
             {/* Centered Title using absolute positioning */}
             <Text style={styles.title}>{title}</Text>
@@ -31,7 +42,7 @@ const getStyles = (theme) => StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginVertical: 35,
-        marginBottom: 25,
+        marginBottom: 45,
         position: 'relative', // Allows absolute positioning inside
     },
 

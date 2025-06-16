@@ -10,7 +10,7 @@ export default function Loader() {
       <BlurView style={styles.blur} blurType="dark" blurAmount={10} />
       <View style={styles.overlay}>
         <LottieView 
-          source={require("../assets/loader.json")} 
+          source={require("../assets/loaderr.json")} 
           autoPlay 
           loop 
           style={styles.animation} 

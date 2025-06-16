@@ -1,111 +1,216 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
-import { bg, heart, heartOutline, mountain, pause, play, user, wave } from '../../../assets/images';
+import React, { useEffect, useState } from 'react';
+import {
+    View,
+    Text,
+    Image,
+    StyleSheet,
+    ScrollView,
+    TouchableOpacity,
+    Dimensions,
+    ImageBackground
+} from 'react-native';
+import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
+import { useNavigation } from '@react-navigation/native';
+import { bg, heart, heartOutline, mountain, pause, play, stop, user } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import Header from '../../../components/Header';
-// import { useNavigation, useRoute } from '@react-navigation/native';
+import { addToFavorites, deleteFavorite, useCourseDetail } from '../../../functions/handleCourses';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
-// Reusing PlayIcon from previous components
+const CourseEpisodesScreen = ({ route }) => {
+    const dispatch = useDispatch();
+    const navigation = useNavigation();
+    const { courseId, courseTitle, courseImage } = route.params || {};
+    const { data: course, isLoading } = useCourseDetail(courseId);
+    const [currentEpisode, setCurrentEpisode] = useState(null);
+    const [favoriteIds, setFavoriteIds] = useState([]); // Store _id values of favorite items
+    const playbackState = usePlaybackState();
+    const isPlaying = playbackState.state === State.Playing;
+    const userId = useSelector(state => state.auth);
 
-const courseEpisodes = [
-    { id: 'ep1', title: 'Episode 1', duration: '5 min' },
-    { id: 'ep2', title: 'Episode 2', duration: '5 min' },
-    { id: 'ep3', title: 'Episode 3', duration: '5 min' },
-    { id: 'ep4', title: 'Episode 4', duration: '5 min' },
-    { id: 'ep5', title: 'Episode 5', duration: '5 min' },
-    { id: 'ep6', title: 'Episode 6', duration: '5 min' },
-];
+    const modules = course?.courseModules || [];
 
-const CourseEpisodesScreen = () => {
-    //   const navigation = useNavigation();
-    //   const route = useRoute();
-    //   const { courseId, courseTitle, courseImage } = route.params || {
-    //     courseId: 'default',
-    //     courseTitle: 'Daily Calm',
-    //     courseImage: 'https://placehold.co/800x400/524855/FFF?text=Default+Course',
-    //   };
-    const { courseId, courseTitle, courseImage } = {
-        courseId: 'default',
-        courseTitle: 'Daily Calm',
-        courseImage: 'https://placehold.co/800x400/524855/FFF?text=Default+Course',
+    useEffect(() => {
+        dispatch(startLoading());
+        const timeout = setTimeout(() => {
+            if (!isLoading) dispatch(stopLoading());
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [isLoading]);
+
+    useEffect(() => {
+        TrackPlayer.setupPlayer();
+        TrackPlayer.updateOptions({
+            stopWithApp: true,
+            capabilities: [
+                TrackPlayer.CAPABILITY_PLAY,
+                TrackPlayer.CAPABILITY_PAUSE,
+            ],
+        });
+
+        return () => {
+            // TrackPlayer.reset();
+        };
+    }, []);
+
+    const playEpisode = async (episode) => {
+        try {
+            await TrackPlayer.reset();
+            await TrackPlayer.add({
+                id: episode._id,
+                url: episode.url, // Ensure this is a valid audio URL
+                title: episode.title,
+                artist: course?.instructorName || "Instructor",
+                artwork: courseImage,
+            });
+            await TrackPlayer.play();
+            setCurrentEpisode(episode);
+        } catch (error) {
+            console.log('Error playing episode:', error);
+        }
     };
 
-    const [currentEpisode, setCurrentEpisode] = React.useState(courseEpisodes[0].id); // State to track current playing episode
+    const togglePlayback = async () => {
+        const currentState = await TrackPlayer.getState();
+        if (currentState === State.Playing) {
+            await TrackPlayer.pause();
+        } else {
+            await TrackPlayer.play();
+        }
+    };
+
+    const handleFavorite = async (episode) => {
+        console.log('Adding to favorites:', userId);
+        const result = await addToFavorites({
+            userId: userId.userId,
+            itemId: episode._id,
+            itemType: 'CourseModule',
+        });
+
+        if (result.error) {
+            console.warn('Failed to favorite:', result.error);
+        } else {
+            console.log('Favorited successfully:', result);
+        }
+    };
+
+
+    const handleUnstar = async (ItemID) => {
+        const result = await deleteFavorite(ItemID);
+
+        if (result.error) {
+            console.warn('Failed to unstar:', result.error);
+        } else {
+            console.log('Successfully removed favorite:', result);
+        }
+    };
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            {/* Header */}
-            <Header title={courseTitle} />
+            <Header title={course?.title || courseTitle} />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Course Banner / Currently Playing */}
                 <View style={styles.mainImageContainer}>
                     <Image
-                        source={mountain}
+                        source={courseImage ? { uri: courseImage } : mountain}
                         style={styles.mainCourseImage}
                     />
                     <View style={styles.imgOverlay} />
                     <View style={styles.imageOverlay}>
                         <View style={styles.overlayTop}>
-                            <View style={styles.timeBadge}>
-                                <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
+                            {/* <View style={styles.timeBadge}>
+                                <Image source={play} style={{ width: 10, height: 10 }} />
                                 <Text style={styles.timeBadgeText}>15min</Text>
-                            </View>
+                            </View> */}
                             <View style={styles.instructorInfo}>
                                 <Image source={user} style={styles.instructorImage} />
-                                <View style={{ flexDirection: "column" }}>
-                                    <Text style={styles.instructorName}>Alwin</Text>
-                                    <Text style={styles.instructorSubtitle}>Mentally Relax</Text>
+                                <View>
+                                    <Text style={styles.instructorName}>{course?.instructorName}</Text>
+                                    <Text style={styles.instructorSubtitle}>{course?.instructorExperienceLevel}</Text>
                                 </View>
                             </View>
                         </View>
                     </View>
                 </View>
 
-                {/* Course Details */}
                 <View style={styles.courseDetails}>
                     <Text style={styles.courseDescription}>
                         Lorem Ipsum is simply dummy text of the printing and typesetting industry.
                         Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
                     </Text>
                 </View>
+
                 <View style={{ width: "100%", marginBottom: 20, borderTopWidth: 1, borderColor: "rgba(119, 119, 119, 0.23)" }} />
 
-
-                {/* Episodes List */}
                 <View style={styles.episodesList}>
-                    {courseEpisodes.map((episode, index) => (
-                        <View key={episode.id} style={styles.episodeItem}>
+                    {modules.map((episode, index) => (
+                        <TouchableOpacity key={episode.id} onPress={() => playEpisode(episode)} style={styles.episodeItem}>
                             <View style={styles.episodeNumberContainer}>
                                 <Text style={styles.episodeNumber}>{index + 1}</Text>
                             </View>
                             <View style={styles.episodeInfo}>
                                 <Text style={styles.episodeTitle}>{episode.title}</Text>
-                                <Text style={styles.episodeDuration}>{episode.duration}</Text>
                             </View>
-                            <TouchableOpacity style={styles.heartButton}>
-                                {/* Conditionally render filled heart for Episode 2 as per image */}
-                                <Image source={episode.id === 'ep2' ? heart : heartOutline} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+                            <TouchableOpacity
+                                style={styles.heartButton}
+                                onPress={async () => {
+                                    const isFavorited = favoriteIds.includes(episode._id);
+
+                                    if (isFavorited) {
+                                        await handleUnstar(episode._id);
+                                        setFavoriteIds(prev => prev.filter(id => id !== episode._id));
+                                    } else {
+                                        await handleFavorite(episode); // ← see tweak below
+                                        setFavoriteIds(prev => [...prev, episode._id]);
+                                    }
+                                }}
+                            >
+                                <Image
+                                    source={favoriteIds.includes(episode._id) ? heart : heartOutline}
+                                    style={{ width: 20, height: 20 }}
+                                />
                             </TouchableOpacity>
-                        </View> 
+                        </TouchableOpacity>
                     ))}
                 </View>
             </ScrollView>
 
             {/* Mini Player */}
-            <View style={styles.miniPlayer}>
-                <Image source={wave} style={styles.miniPlayerImage} />
-                <View style={styles.miniPlayerTextContent}>
-                    <Text style={styles.miniPlayerTitle}>Episode 1</Text> {/* Assuming first episode is playing */}
-                    <Text style={styles.miniPlayerCourse}>{courseTitle}</Text>
-                </View>
-                <TouchableOpacity style={styles.miniPlayerPlayPauseButton}>
-                    <Image source={pause} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+            {currentEpisode && (
+                <TouchableOpacity
+                    style={styles.miniPlayer}
+                    onPress={() =>
+                        navigation.navigate('TrackPlayer', {
+                            AudioTitle: currentEpisode.title,
+                            AudioDescr: currentEpisode.description,
+                            Thumbnail: courseImage ? { uri: courseImage } : mountain,
+                        })
+                    }
+                >
+                    <Image
+                        source={courseImage ? { uri: courseImage } : mountain}
+                        style={styles.miniPlayerImage}
+                    />
+                    <View style={styles.miniPlayerTextContent}>
+                        <Text style={styles.miniPlayerTitle}>{currentEpisode?.title}</Text>
+                        <Text style={styles.miniPlayerCourse}>{courseTitle}</Text>
+                    </View>
+                    <TouchableOpacity
+                        style={styles.miniPlayerPlayPauseButton}
+                        onPress={togglePlayback}
+                    >
+                        <Image source={isPlaying ? stop : play}
+                            style={{ width: 20, height: 18, resizeMode: 'contain' }}
+                        />
+                    </TouchableOpacity>
                 </TouchableOpacity>
-            </View>
-        </ImageBackground>
+            )
+            }
+        </ImageBackground >
     );
 };
 
@@ -113,14 +218,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 25,
-        paddingVertical: 0,
+        // paddingVertical: 0,
+        paddingBottom: 120,
     },
     scrollContent: {
         paddingBottom: 20,
     },
     mainImageContainer: {
         width: '100%',
-        height: width * 0.55, // Responsive height based on width
+        height: width * 0.55,
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 12,
@@ -139,7 +245,6 @@ const styles = StyleSheet.create({
         height: "100%",
         position: "absolute",
         backgroundColor: 'rgba(31, 30, 30, 0.7)',
-
     },
     imageOverlay: {
         position: 'absolute',
@@ -147,11 +252,10 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 15,
-        justifyContent: 'space-between',
     },
     overlayTop: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'flex-end',
     },
     timeBadge: {
@@ -161,8 +265,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         paddingHorizontal: 8,
         paddingVertical: 4,
-        zIndex: 100,
-
     },
     timeBadgeText: {
         color: '#FFFFFF',
@@ -172,11 +274,9 @@ const styles = StyleSheet.create({
     instructorInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 20,
         paddingHorizontal: 10,
         paddingVertical: 5,
-        zIndex: 10,
-
+        zIndex: 100,
     },
     instructorImage: {
         width: 40,
@@ -202,7 +302,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 13,
         lineHeight: 20,
-        fontFamily: "Inter-Light-BETA"
+        fontFamily: "Inter-Light-BETA",
     },
     episodesList: {
         paddingHorizontal: 9,
@@ -211,7 +311,7 @@ const styles = StyleSheet.create({
     episodeItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: 14,
     },
     episodeNumberContainer: {
         alignItems: 'center',
@@ -231,12 +331,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: "Inter-Regular"
     },
-    episodeDuration: {
-        color: '#AAAAAA',
-        fontSize: 12,
-        fontFamily: "Inter-Light-BETA"
-    },
-
     miniPlayer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -244,7 +338,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 25,
         position: 'absolute',
-        bottom: 0,
+        bottom: 90,
         left: 0,
         right: 0,
     },
@@ -266,7 +360,6 @@ const styles = StyleSheet.create({
         color: '#AAAAAA',
         fontSize: 11,
         fontFamily: "Inter-Light-BETA"
-
     },
     miniPlayerPlayPauseButton: {
         padding: 5,
