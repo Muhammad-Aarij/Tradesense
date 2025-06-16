@@ -5,135 +5,111 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ImageBackground,
   Image,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomInput from "../../../components/CustomInput";
-import { bg, calendar } from "../../../assets/images";
+import CustomDropdown from "../../../components/CustomSelector";
+import { bg, tick } from "../../../assets/images";
 import Header from "../../../components/Header";
 import theme from "../../../themes/theme";
-
-const CustomPicker = ({ label, selectedValue, onValueChange, items }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <View style={styles.pickerContainer}>
-      <Picker
-        selectedValue={selectedValue}
-        onValueChange={onValueChange}
-        style={styles.picker}
-        itemStyle={styles.pickerItem} // Apply style to picker items
-        dropdownIconColor="#FFF" // Set dropdown arrow color
-      >
-        {items.map((item, index) => (
-          <Picker.Item style={styles.pickerTxt} key={index} label={item.label} value={item.value} />
-        ))}
-      </Picker>
-    </View>
-  </View>
-);
+import { useDispatch, useSelector } from "react-redux";
+import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
+import { postHabit } from "../../../functions/habbitFunctions";
+import ConfirmationModal from "../../../components/ConfirmationModal";
 
 export default function HabitTracking() {
-  // State variables for form fields
-  const [goalName, setGoalName] = useState("");
-  const [goalType, setGoalType] = useState("Personal");
-  const [priority, setPriority] = useState("High");
-  const [status, setStatus] = useState("Not Started");
-  const [targetDate, setTargetDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [habitName, setHabitName] = useState("");
+  const [habitType, setHabitType] = useState("Daily");
+  const [habitStatus, setHabitStatus] = useState("Pending");
   const [description, setDescription] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
-  // Picker options
-  const goalTypeOptions = [
-    { label: "Personal", value: "Personal" },
-    { label: "Work", value: "Work" },
-    { label: "Health", value: "Health" },
-  ];
+  const userId = useSelector((state) => state.auth.userId);
+  const dispatch = useDispatch();
 
-  const priorityOptions = [
-    { label: "High", value: "High" },
-    { label: "Medium", value: "Medium" },
-    { label: "Low", value: "Low" },
-  ];
+  const habitTypeOptions = ["Daily", "Weekly", "Monthly"];
+  const habitStatusOptions = ["Pending", "Completed", "Failed"];
 
-  const statusOptions = [
-    { label: "Not Started", value: "Not Started" },
-    { label: "In Progress", value: "In Progress" },
-    { label: "Completed", value: "Completed" },
-  ];
+  const handleSubmit = async () => {
+    dispatch(startLoading());
 
-  // Date picker handlers
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || targetDate;
-    setShowDatePicker(Platform.OS === "ios"); // On iOS, keep showing until done button is pressed
-    setTargetDate(currentDate);
-  };
-
-  const handleDatePress = () => {
-    setShowDatePicker(true);
-  };
-
-  // Submit handler
-  const handleSubmit = () => {
-    const formData = {
-      goalName,
-      goalType,
-      priority,
-      status,
-      targetDate: targetDate.toISOString().split("T")[0], // Format date as YYYY-MM-DD
+    const payload = {
+      userId,
+      title: habitName,
       description,
+      type: habitType.toLowerCase(),
+      status: habitStatus.toLowerCase(),
     };
-    console.log("Form Submitted:", formData);
-    // Here, you would typically send this data to a server or save it locally.
+
+    const result = await postHabit(payload);
+    dispatch(stopLoading());
+
+    if (result.error) {
+      console.warn("Habit creation failed:", result.error);
+    } else {
+      console.log("Habit created successfully:", result);
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        // Optionally reset form fields
+        setHabitName("");
+        setHabitType("Daily");
+        setHabitStatus("Pending");
+        setDescription("");
+      }, 2000);
+       
+    }
   };
 
   return (
     <ImageBackground source={bg} style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
-          {/* Header */}
-          <Header title={"Habit Tracking"} />
+        <>
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <Header title="Habit Tracking" />
 
-          <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
-            {/* Goal Name */}
-            <CustomInput
-              label="Habit Name"
-              value={goalName}
-              onChangeText={setGoalName}
-              placeholder="Habit Name..."
-            />
+            <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
+              <CustomInput
+                label="Habit Name"
+                value={habitName}
+                onChangeText={setHabitName}
+                placeholder="Enter your habit..."
+              />
 
-            {/* Goal Type Picker */}
-            <CustomPicker label="Habit Type" selectedValue={goalType} onValueChange={setGoalType} items={goalTypeOptions} />
+              <CustomDropdown
+                label="Habit Type"
+                options={habitTypeOptions}
+                selectedValue={habitType}
+                onValueChange={setHabitType}
+              />
 
+              <CustomDropdown
+                label="Status"
+                options={habitStatusOptions}
+                selectedValue={habitStatus}
+                onValueChange={setHabitStatus}
+              />
 
-            {/* Status Picker */}
-            <CustomPicker label="Status" selectedValue={status} onValueChange={setStatus} items={statusOptions} />
+              <CustomInput
+                label="Description"
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Add more details..."
+                isMultiline={true}
+                style={{ height: 100 }}
+              />
 
-            {/* Description */}
-            <CustomInput
-              label="Description"
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Add more details..."
-              isMultiline={true}
-              style={{ height: 100 }}
-            />
-
-            {/* Submit Button */}
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitButtonText}>Submit</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </KeyboardAvoidingView>
+              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                <Text style={styles.submitButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </>
+        {showModal && <ConfirmationModal title={"Habit Added!"} message={"Your habit has been added successfully "} icon={tick} />}
       </SafeAreaView>
     </ImageBackground>
   );
@@ -143,57 +119,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 25,
-    paddingVertical: 0,
+    // paddingVertical: 0,
   },
   formContainer: {
     paddingBottom: 40,
-  },
-  inputGroup: {
-    marginBottom: 15,
-  },
-  inputLabel: {
-    fontFamily: "Inter-Medium",
-    fontSize: 13,
-    color: "#fff",
-    marginBottom: 5,
-  },
-  pickerTxt: {
-    fontFamily: "Inter-Medium",
-    fontSize: 13,
-    color: "#fff",
-    marginBottom: 5,
-  },
-  datePickerInput: {
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
-    borderWidth: 0.9,
-    borderColor: theme.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    height: 60,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  textInputContent: {
-    color: "#fff",
-    fontFamily: "Inter-Regular",
-    paddingVertical: 15,
-    fontSize: 13,
-  },
-  pickerContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.06)",
-    borderWidth: 0.9,
-    borderColor: theme.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-  },
-  picker: {
-    height: 55,
-    color: "#fff",
-    fontFamily: "Inter-Light-BETA",
-    paddingVertical: 15,
-    fontSize: 10,
-
   },
   submitButton: {
     backgroundColor: theme.primaryColor,
@@ -210,4 +139,3 @@ const styles = StyleSheet.create({
     fontFamily: "Inter-SemiBold",
   },
 });
-

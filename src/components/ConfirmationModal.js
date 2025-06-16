@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontFamily: "Inter-SemiBold",
         color: "#EFEFEF",
-        textAlign:"center",
+        textAlign: "center",
         marginBottom: 8,
     },
     message: {

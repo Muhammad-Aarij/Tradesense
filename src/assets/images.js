@@ -88,13 +88,16 @@ import light from './light.png'
 import dark from './dark.png'
 import hamburger from './ham.png'
 
+import editwhite from './editwhite.png'
+import deletewhite from './deletewhite.png'
 
-// Export all imported images as a single object for easy access
+
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
   lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify,
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
-  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger
+  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
+  editwhite, deletewhite
 };

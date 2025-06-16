@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground
+    View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
+    Dimensions,
+    SafeAreaView
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,6 +12,8 @@ import theme from '../../../themes/theme';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { enrollInCourse } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+const { width, height } = Dimensions.get('window');
+
 const PlanCard = ({
     title,
     price,
@@ -70,7 +74,7 @@ const PlansScreen = () => {
             dispatch(stopLoading);
             setModalVisible(true);
         } catch (error) {
-            dispatch(stopLoading );
+            dispatch(stopLoading);
             console.error('Enrollment error:', error);
             // You can add a toast here if you want
         }
@@ -93,30 +97,32 @@ const PlansScreen = () => {
 
             <ImageBackground source={bg} style={styles.container}>
                 <Header title={'Memberships'} />
-                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                    {plans.map((plan) => (
-                        <PlanCard
-                            key={plan._id}
-                            title={plan.name}
-                            price={plan.price}
-                            description={plan.description}
-                            planId={plan._id}
-                            courseId={courseId}
-                            studentId={studentId}
-                            onPress={() => setSelectedPlanId(plan._id)}
-                            isSelected={selectedPlanId === plan._id}
-                            onEnroll={handleEnroll}
-                        />
-                    ))}
-                </ScrollView>
+                <SafeAreaView>
+                    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                        {plans.map((plan) => (
+                            <PlanCard
+                                key={plan._id}
+                                title={plan.name}
+                                price={plan.price}
+                                description={plan.description}
+                                planId={plan._id}
+                                courseId={courseId}
+                                studentId={studentId}
+                                onPress={() => setSelectedPlanId(plan._id)}
+                                isSelected={selectedPlanId === plan._id}
+                                onEnroll={handleEnroll}
+                            />
+                        ))}
+                    </ScrollView>
+                </SafeAreaView>
             </ImageBackground>
         </>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 25, paddingVertical: 0 },
-    scrollContent: { paddingBottom: 30 },
+    container: { flex: 1, padding: 25, paddingTop: 20 },
+    scrollContent: { paddingBottom: height * 0.1 },
     planCard: {
         padding: 16,
         borderRadius: 15,

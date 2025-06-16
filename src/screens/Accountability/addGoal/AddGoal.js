@@ -1,70 +1,42 @@
 import React, { useState } from "react";
 import {
-  SafeAreaView,
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ImageBackground,
-  Image,
+  SafeAreaView, StyleSheet, View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, ImageBackground, Image,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomInput from "../../../components/CustomInput";
-import { bg, calendar } from "../../../assets/images";
+import { bg, calendar, tick } from "../../../assets/images";
 import Header from "../../../components/Header";
 import theme from "../../../themes/theme";
-
-const CustomPicker = ({ label, selectedValue, onValueChange, items }) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <View style={styles.pickerContainer}>
-      <Picker
-        selectedValue={selectedValue}
-        onValueChange={onValueChange}
-        style={styles.picker}
-        itemStyle={styles.pickerItem} // Apply style to picker items
-        dropdownIconColor="#FFF" // Set dropdown arrow color
-      >
-        {items.map((item, index) => (
-          <Picker.Item style={styles.pickerTxt} key={index} label={item.label} value={item.value} />
-        ))}
-      </Picker>
-    </View>
-  </View>
-);
+import { postGoal } from "../../../functions/Goal";
+import { useDispatch, useSelector } from 'react-redux';
+import ConfirmationModal from "../../../components/ConfirmationModal";
+import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
+import CustomDropdown from "../../../components/CustomSelector";
 
 export default function AddGoal() {
-  // State variables for form fields
   const [goalName, setGoalName] = useState("");
-  const [goalType, setGoalType] = useState("Personal");
-  const [priority, setPriority] = useState("High");
-  const [status, setStatus] = useState("Not Started");
+  const [goalType, setGoalType] = useState("Daily");
+  const [status, setStatus] = useState("Active");
   const [targetDate, setTargetDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState("");
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+  const userId = useSelector((state) => state.auth.userId);
+  const dispatch = useDispatch();
 
   // Picker options
   const goalTypeOptions = [
-    { label: "Personal", value: "Personal" },
-    { label: "Work", value: "Work" },
-    { label: "Health", value: "Health" },
-  ];
-
-  const priorityOptions = [
-    { label: "High", value: "High" },
-    { label: "Medium", value: "Medium" },
-    { label: "Low", value: "Low" },
+    { label: "Daily", value: "daily" },
+    { label: "Weekly", value: "weekly" },
+    { label: "Monthly", value: "monthly" },
   ];
 
   const statusOptions = [
-    { label: "Not Started", value: "Not Started" },
-    { label: "In Progress", value: "In Progress" },
-    { label: "Completed", value: "Completed" },
+    { label: "Active", value: "active" },
+    { label: "Completed", value: "completed" },
+    { label: "Dropped", value: "dropped" },
   ];
 
   // Date picker handlers
@@ -79,17 +51,37 @@ export default function AddGoal() {
   };
 
   // Submit handler
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    dispatch(startLoading());
     const formData = {
-      goalName,
-      goalType,
-      priority,
-      status,
-      targetDate: targetDate.toISOString().split("T")[0], // Format date as YYYY-MM-DD
+      userId,
+      title: goalName,
+      status: status.toLowerCase(),
       description,
+      frequency: goalType.toLowerCase(),
+      targetDate: targetDate.toISOString().split('T')[0],
     };
-    console.log("Form Submitted:", formData);
-    // Here, you would typically send this data to a server or save it locally.
+
+    const result = await postGoal(formData);
+    console.log(formData); formData
+
+    if (result.error) {
+      console.warn('Goal creation failed:', result.error);
+      dispatch(stopLoading());
+    } else {
+      console.log('Goal created:', result);
+      dispatch(stopLoading());
+      setShowConfirmationModal(true);
+      // setTimeout(() => {
+      //   setShowConfirmationModal(false);
+      //   // Optionally reset form fields
+      //   setGoalName("");
+      //   setGoalType("Daily");
+      //   setStatus("Active");
+      //   setDescription("");
+      //   setTargetDate(new Date());
+      // }, 2000);
+    }
   };
 
   return (
@@ -123,14 +115,19 @@ export default function AddGoal() {
               )}
             </View>
 
-            {/* Goal Type Picker */}
-            <CustomPicker label="Goal Type" selectedValue={goalType} onValueChange={setGoalType} items={goalTypeOptions} />
+            <CustomDropdown
+              label="Goal Type"
+              options={goalTypeOptions.map((item) => item.label)} // Just labels
+              selectedValue={goalType}
+              onValueChange={setGoalType}
+            />
 
-            {/* Priority Picker */}
-            <CustomPicker label="Priority Level" selectedValue={priority} onValueChange={setPriority} items={priorityOptions} />
-
-            {/* Status Picker */}
-            <CustomPicker label="Status" selectedValue={status} onValueChange={setStatus} items={statusOptions} />
+            <CustomDropdown
+              label="Status"
+              options={statusOptions.map((item) => item.label)}
+              selectedValue={status}
+              onValueChange={setStatus}
+            />
 
             {/* Description */}
             <CustomInput
@@ -147,6 +144,7 @@ export default function AddGoal() {
               <Text style={styles.submitButtonText}>Submit</Text>
             </TouchableOpacity>
           </ScrollView>
+        {showConfirmationModal && <ConfirmationModal title={"Goal Added!"} message={"Your goal has been added successfully "} icon={tick} onClose={() => setShowConfirmationModal(false)} />}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </ImageBackground>
@@ -157,7 +155,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 25,
-    paddingVertical: 0,
+
   },
   formContainer: {
     paddingBottom: 40,

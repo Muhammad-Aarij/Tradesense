@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image, ImageBackground, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image, ImageBackground, Dimensions, SafeAreaView } from 'react-native';
 import TopMenuScroll from '../TopMenuScroll';
 import { audio2, bg, graphical, pause, text, video1, video2, video3, videoIcon, wave, } from '../../../assets/images';
 import AudioCard from '../AudioCard';
@@ -21,9 +21,9 @@ const mockAudios = [
     { id: 'a3', title: 'Focus and Productivity', duration: '6 min', isLiked: false },
 ];
 const TextEpisodes = [
-    { id: 'a1', title: 'Episode 1',descr: 'Lorem Ipsum is simply dummy text of the printing and type setting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.',  },
-    { id: 'a2', title: 'Episode 2',descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',  },
-    { id: 'a3', title: 'Episode 3',descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',  },
+    { id: 'a1', title: 'Episode 1', descr: 'Lorem Ipsum is simply dummy text of the printing and type setting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.Lorem Ipsum is simply dummy text of the printing and typesetting industry.', },
+    { id: 'a2', title: 'Episode 2', descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', },
+    { id: 'a3', title: 'Episode 3', descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', },
 ];
 const mockVideos = [
     { id: 'v1', title: "Psychology", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video1 },
@@ -43,128 +43,129 @@ const mockVideos = [
 const PillarScreen = () => {
 
     const [selectedTopCategory, setSelectedTopCategory] = useState(TopCategories[0].id);
-
     const handleNavigation = (screenName) => {
         console.log(`Navigating to: ${screenName}`);
     };
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            <ScrollView style={styles.contentScroll}>
-                <View style={{ paddingHorizontal: 25 }}>
-                    <Header title={"Psychology"} />
-                </View>
-                {/* Top Menu Scroll */}
-                <TopMenuScroll
-                    items={TopCategories}
-                    selectedItem={selectedTopCategory}
-                    onItemSelected={setSelectedTopCategory}
-                />
-                <View style={{ paddingLeft: 25, marginTop: 25, }}>
-                    <View style={{ ...styles.sectionContainer, paddingRight: 25 }}>
-                        {selectedTopCategory == "Audios" &&
-                            <View style={styles.category}>
-                                {mockAudios.map((audio) => (
-                                    <AudioCard
-                                        key={audio.id}
-                                        episodeNumber={audio.id.replace('a', '')}
-                                        title={audio.title}
-                                        duration={audio.duration}
-                                        isLiked={audio.isLiked}
-                                        onPress={() => {
-                                            console.log(`Play audio: ${audio.title}`);
-                                            // handleNavigation('AudioPlayer'); // Example of intended navigation
-                                        }}
+            <SafeAreaView>
+                <ScrollView style={styles.contentScroll}>
+                    <View style={{ paddingHorizontal: 25 }}>
+                        <Header title={"Psychology"} />
+                    </View>
+                    {/* Top Menu Scroll */}
+                    <TopMenuScroll
+                        items={TopCategories}
+                        selectedItem={selectedTopCategory}
+                        onItemSelected={setSelectedTopCategory}
+                    />
+                    <View style={{ paddingLeft: 25, marginTop: 25, }}>
+                        <View style={{ ...styles.sectionContainer, paddingRight: 25 }}>
+                            {selectedTopCategory == "Audios" &&
+                                <View style={styles.category}>
+                                    {mockAudios.map((audio) => (
+                                        <AudioCard
+                                            key={audio.id}
+                                            episodeNumber={audio.id.replace('a', '')}
+                                            title={audio.title}
+                                            duration={audio.duration}
+                                            isLiked={audio.isLiked}
+                                            onPress={() => {
+                                                console.log(`Play audio: ${audio.title}`);
+                                                // handleNavigation('AudioPlayer'); // Example of intended navigation
+                                            }}
+                                        />
+                                    ))}
+                                </View>
+                            }
+                            {selectedTopCategory == "Videos" &&
+                                <View style={styles.category}>
+                                    <FlatList
+                                        data={mockVideos}
+                                        keyExtractor={(item) => item.id}
+                                        numColumns={2}
+                                        showsVerticalScrollIndicator={false}
+                                        contentContainerStyle={styles.videoGridList}
+                                        columnWrapperStyle={styles.columnWrapper}
+                                        renderItem={({ item }) => (
+                                            <View style={styles.videoCardWrapper}>
+                                                <VideoCard
+                                                    title={item.title}
+                                                    duration={item.duration}
+                                                    imageSource={item.image}
+                                                    decription={item.descr}
+                                                    onPress={() => {
+                                                        console.log(`Play video: ${item.title}`);
+                                                    }}
+                                                />
+                                            </View>
+                                        )}
                                     />
-                                ))}
-                            </View>
-                        }
-                        {selectedTopCategory == "Videos" &&
-                            <View style={styles.category}>
-                                <FlatList
-                                    data={mockVideos}
-                                    keyExtractor={(item) => item.id}
-                                    numColumns={2}
-                                    showsVerticalScrollIndicator={false}
-                                    contentContainerStyle={styles.videoGridList}
-                                    columnWrapperStyle={styles.columnWrapper}
-                                    renderItem={({ item }) => (
-                                        <View style={styles.videoCardWrapper}>
-                                            <VideoCard
-                                                title={item.title}
-                                                duration={item.duration}
-                                                imageSource={item.image}
-                                                decription={item.descr}
-                                                onPress={() => {
-                                                    console.log(`Play video: ${item.title}`);
-                                                }}
-                                            />
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                        }
-                        {selectedTopCategory == "Graphical" &&
-                            <View style={styles.category}>
-                                <FlatList
-                                    data={mockVideos}
-                                    keyExtractor={(item) => item.id}
-                                    numColumns={2}
-                                    showsVerticalScrollIndicator={false}
-                                    contentContainerStyle={styles.videoGridList}
-                                    columnWrapperStyle={styles.columnWrapper}
-                                    renderItem={({ item }) => (
-                                        <View style={styles.videoCardWrapper}>
-                                            <VideoCard
-                                                title={item.title}
-                                                duration={item.duration}
-                                                imageSource={item.image}
-                                                decription={item.descr}
-                                                onPress={() => {
-                                                    console.log(`Play video: ${item.title}`);
-                                                }}
-                                            />
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                        }
-                        {selectedTopCategory == "Text" &&
-                            <View style={styles.category}>
-                                <FlatList
-                                    data={TextEpisodes}
-                                    keyExtractor={(item) => item.id}
-                                    showsVerticalScrollIndicator={false}
-                                    contentContainerStyle={styles.videoGridList}
-                                    renderItem={({ item }) => (
-                                        <View style={styles.videoCardWrapper}>
-                                            <TextCard
-                                                title={item.title}
-                                                decription={item.descr}
-                                                onPress={() => {
-                                                    console.log(`Play video: ${item.title}`);
-                                                }}
-                                            />
-                                        </View>
-                                    )}
-                                />
-                            </View>
-                        }
+                                </View>
+                            }
+                            {selectedTopCategory == "Graphical" &&
+                                <View style={styles.category}>
+                                    <FlatList
+                                        data={mockVideos}
+                                        keyExtractor={(item) => item.id}
+                                        numColumns={2}
+                                        showsVerticalScrollIndicator={false}
+                                        contentContainerStyle={styles.videoGridList}
+                                        columnWrapperStyle={styles.columnWrapper}
+                                        renderItem={({ item }) => (
+                                            <View style={styles.videoCardWrapper}>
+                                                <VideoCard
+                                                    title={item.title}
+                                                    duration={item.duration}
+                                                    imageSource={item.image}
+                                                    decription={item.descr}
+                                                    onPress={() => {
+                                                        console.log(`Play video: ${item.title}`);
+                                                    }}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                </View>
+                            }
+                            {selectedTopCategory == "Text" &&
+                                <View style={styles.category}>
+                                    <FlatList
+                                        data={TextEpisodes}
+                                        keyExtractor={(item) => item.id}
+                                        showsVerticalScrollIndicator={false}
+                                        contentContainerStyle={styles.videoGridList}
+                                        renderItem={({ item }) => (
+                                            <View style={styles.videoCardWrapper}>
+                                                <TextCard
+                                                    title={item.title}
+                                                    decription={item.descr}
+                                                    onPress={() => {
+                                                        console.log(`Play video: ${item.title}`);
+                                                    }}
+                                                />
+                                            </View>
+                                        )}
+                                    />
+                                </View>
+                            }
+                        </View>
                     </View>
-                </View>
-            </ScrollView>
-            {/* Mini Player */}
-            {selectedTopCategory == "Audios" &&
-                <View style={styles.miniPlayer}>
-                    <Image source={wave} style={styles.miniPlayerImage} />
-                    <View style={styles.miniPlayerTextContent}>
-                        <Text style={styles.miniPlayerTitle}>Episode 1</Text>
-                        <Text style={styles.miniPlayerCourse}>Daily Calm</Text>
-                    </View>
-                    <TouchableOpacity style={styles.miniPlayerPlayPauseButton}>
-                        <Image source={pause} style={{ width: 20, height: 20, resizeMode: "contain" }} />
-                    </TouchableOpacity>
-                </View>}
+                </ScrollView>
+                {/* Mini Player */}
+                {selectedTopCategory == "Audios" &&
+                    <View style={styles.miniPlayer}>
+                        <Image source={wave} style={styles.miniPlayerImage} />
+                        <View style={styles.miniPlayerTextContent}>
+                            <Text style={styles.miniPlayerTitle}>Episode 1</Text>
+                            <Text style={styles.miniPlayerCourse}>Daily Calm</Text>
+                        </View>
+                        <TouchableOpacity style={styles.miniPlayerPlayPauseButton}>
+                            <Image source={pause} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+                        </TouchableOpacity>
+                    </View>}
+            </SafeAreaView>
         </ImageBackground >
     );
 };

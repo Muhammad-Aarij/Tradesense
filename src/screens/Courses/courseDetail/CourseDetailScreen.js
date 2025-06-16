@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     Dimensions,
     ImageBackground,
-    ActivityIndicator,
+    SafeAreaView,
 } from 'react-native';
 import { bg, play, user } from '../../../assets/images';
 import Header from '../../../components/Header';
@@ -18,7 +18,7 @@ import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useCourseDetail } from '../../../functions/handleCourses';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const CourseDetailScreen = () => {
     const navigation = useNavigation();
@@ -61,77 +61,80 @@ const CourseDetailScreen = () => {
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            <Header title={course?.title || courseTitle} />
+            <SafeAreaView>
 
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Course Main Image */}
-                <View style={styles.mainImageContainer}>
-                    <Image source={{ uri: course?.thumbnail }} style={styles.mainCourseImage} />
-                    <View style={styles.imgOverlay} />
-                    <View style={styles.imageOverlay}>
-                        <View style={styles.overlayTop}>
-                            <View style={styles.timeBadge}>
-                                <Image source={play} style={{ width: 10, height: 10, resizeMode: 'contain' }} />
-                                <Text style={styles.timeBadgeText}>15min</Text>
-                            </View>
-                            <View style={styles.instructorInfo}>
-                                <Image source={user} style={styles.instructorImage} />
-                                <View>
-                                    <Text style={styles.instructorName}>Instructor</Text>
-                                    <Text style={styles.instructorSubtitle}>Guided Audio</Text>
+                <Header title={course?.title || courseTitle} />
+
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    {/* Course Main Image */}
+                    <View style={styles.mainImageContainer}>
+                        <Image source={{ uri: course?.thumbnail }} style={styles.mainCourseImage} />
+                        <View style={styles.imgOverlay} />
+                        <View style={styles.imageOverlay}>
+                            <View style={styles.overlayTop}>
+                                <View style={styles.timeBadge}>
+                                    <Image source={play} style={{ width: 10, height: 10, resizeMode: 'contain' }} />
+                                    <Text style={styles.timeBadgeText}>15min</Text>
+                                </View>
+                                <View style={styles.instructorInfo}>
+                                    <Image source={user} style={styles.instructorImage} />
+                                    <View>
+                                        <Text style={styles.instructorName}>Instructor</Text>
+                                        <Text style={styles.instructorSubtitle}>Guided Audio</Text>
+                                    </View>
                                 </View>
                             </View>
                         </View>
                     </View>
-                </View>
 
-                {/* Description */}
-                <View style={styles.courseInfoSection}>
-                    <Text style={styles.courseDescription}>
-                        {course?.description}
-                    </Text>
-                </View>
-                <View style={{ width: '100%', marginBottom: 20, borderTopWidth: 1, borderColor: 'rgba(119, 119, 119, 0.23)' }} />
+                    {/* Description */}
+                    <View style={styles.courseInfoSection}>
+                        <Text style={styles.courseDescription}>
+                            {course?.description}
+                        </Text>
+                    </View>
+                    <View style={{ width: '100%', marginBottom: 20, borderTopWidth: 1, borderColor: 'rgba(119, 119, 119, 0.23)' }} />
 
-                {/* Course Modules */}
-                <View style={styles.audiosSection}>
-                    {modules.map((module) => (
-                        <View key={module._id} style={styles.audioItem}>
-                            <View style={styles.audioLeft}>
-                                <Text style={styles.audioTitle}>{module.title}</Text>
+                    {/* Course Modules */}
+                    <View style={styles.audiosSection}>
+                        {modules.map((module) => (
+                            <View key={module._id} style={styles.audioItem}>
+                                <View style={styles.audioLeft}>
+                                    <Text style={styles.audioTitle}>{module.title}</Text>
+                                </View>
+                                <Text style={styles.audioDuration}>
+                                    {/* {`${Math.floor(Math.random() * 10) + 5} min`} */}
+                                </Text>
+                                <Text style={styles.audioDescription}>{module.description}</Text>
                             </View>
-                            <Text style={styles.audioDuration}>
-                                {/* {`${Math.floor(Math.random() * 10) + 5} min`} */}
-                            </Text>
-                            <Text style={styles.audioDescription}>{module.description}</Text>
-                        </View>
-                    ))}
-                </View>
+                        ))}
+                    </View>
 
-                {/* Buy Button */}
-                {(
-                    <TouchableOpacity
-                        style={styles.buyNowButton}
-                        onPress={() =>
-                            navigation.navigate('PlansScreen', {
-                                plans: course.plans,
-                                Courseid: course.Courseid
-                            })
-                        }
-                    >
-                        <Text style={styles.buyNowButtonText}>Buy Now</Text>
-                    </TouchableOpacity>
-                )}
+                    {/* Buy Button */}
+                    {(
+                        <TouchableOpacity
+                            style={styles.buyNowButton}
+                            onPress={() =>
+                                navigation.navigate('PlansScreen', {
+                                    plans: course.plans,
+                                    Courseid: course.Courseid
+                                })
+                            }
+                        >
+                            <Text style={styles.buyNowButtonText}>Buy Now</Text>
+                        </TouchableOpacity>
+                    )}
 
-            </ScrollView>
+                </ScrollView>
+            </SafeAreaView>
         </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 25, paddingBottom: 100, paddingVertical: 0, backgroundColor: 'black' },
+    container: { flex: 1, padding: 25, paddingVertical: 0, paddingBottom: height * 0.1, backgroundColor: 'black' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#08131F' },
-    scrollContent: { paddingBottom: 20 },
+    // scrollContent: { paddingBottom: 20 },
     mainImageContainer: {
         width: '100%',
         height: width * 0.55,
@@ -139,7 +142,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 12,
         overflow: 'hidden',
-        marginBottom: 20,
+        // marginBottom: 20,
     },
     mainCourseImage: { width: '100%', height: '100%', resizeMode: 'cover', position: 'relative' },
     imgOverlay: { position: 'absolute', width: '100%', height: '100%', backgroundColor: 'rgba(31, 30, 30, 0.7)', zIndex: 10 },
@@ -154,7 +157,7 @@ const styles = StyleSheet.create({
     instructorImage: { width: 40, height: 40, borderRadius: 100, marginRight: 5 },
     instructorName: { color: theme.primaryColor, fontSize: 13, fontFamily: 'Inter-SemiBold' },
     instructorSubtitle: { color: 'white', fontSize: 11, fontFamily: 'Inter-Light-BETA' },
-    courseInfoSection: { marginBottom: 20 },
+    courseInfoSection: {  },
     courseDescription: { color: '#FFFFFF', fontSize: 13, lineHeight: 20, fontFamily: 'Inter-Light-BETA' },
     audiosSection: { paddingVertical: 10, gap: 10 },
     audioItem: {

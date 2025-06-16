@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 20,
     borderRadius: 50,
-    height: 70,
+    height: 60,
     alignItems: "center",
     justifyContent: "space-around",
     paddingHorizontal: 10,

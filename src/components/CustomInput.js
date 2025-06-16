@@ -20,7 +20,7 @@ const CustomInput = ({ label, placeholder, secureTextEntry, value, onChangeText,
                     </TouchableOpacity>
                 )}
             </View>
-        </View>
+        </View> 
     );
 };
 

@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image, ImageBackground, Dimensions } from 'react-native';
 import TopMenuScroll from '../TopMenuScroll';
 import { afirm, audio, bg, calm, meditation, mobile, success, video, video1, video2, video3, videoY } from '../../../assets/images';
 import AudioCard from '../AudioCard';
@@ -7,6 +7,8 @@ import VideoCard from '../VideoCard';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 
+
+const { height, width } = Dimensions.get('window');
 const TopCategories = [
     { id: 'meditation', name: 'Meditation', icon: meditation },
     { id: 'calm', name: 'Calm', icon: calm },
@@ -149,7 +151,7 @@ const PillarsCategoryScreen = () => {
 const getStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1, backgroundColor: '#08131F',
-        padding: 0, paddingVertical: 0
+        padding: 0, paddingTop: 25, paddingBottom: height * 0.1,
     },
     contentScroll: {
         // marginTop: 10,

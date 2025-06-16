@@ -7,7 +7,8 @@ import {
     ScrollView,
     TouchableOpacity,
     Dimensions,
-    ImageBackground
+    ImageBackground,
+    SafeAreaView
 } from 'react-native';
 import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import { useNavigation } from '@react-navigation/native';
@@ -18,7 +19,7 @@ import { addToFavorites, deleteFavorite, useCourseDetail } from '../../../functi
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
-const { width } = Dimensions.get('window');
+const { width,height } = Dimensions.get('window');
 
 const CourseEpisodesScreen = ({ route }) => {
     const dispatch = useDispatch();
@@ -111,8 +112,8 @@ const CourseEpisodesScreen = ({ route }) => {
 
     return (
         <ImageBackground source={bg} style={styles.container}>
+            <SafeAreaView>
             <Header title={course?.title || courseTitle} />
-
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.mainImageContainer}>
                     <Image
@@ -210,6 +211,7 @@ const CourseEpisodesScreen = ({ route }) => {
                 </TouchableOpacity>
             )
             }
+            </SafeAreaView>
         </ImageBackground >
     );
 };
@@ -217,11 +219,13 @@ const CourseEpisodesScreen = ({ route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 25,
+        // padding: 25,
+        paddingTop:20,
         // paddingVertical: 0,
-        paddingBottom: 120,
+        paddingBottom: height*0.1,
     },
     scrollContent: {
+        paddingHorizontal:25,
         paddingBottom: 20,
     },
     mainImageContainer: {

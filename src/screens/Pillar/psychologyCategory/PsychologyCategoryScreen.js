@@ -109,7 +109,7 @@ const PsychologyCategoryScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1, backgroundColor: '#08131F',
-        padding: 0, paddingVertical: 0
+        padding: 0, paddingTop: 0,paddingBottom:height*0.1,
     },
     title: {
         fontSize: 23,
