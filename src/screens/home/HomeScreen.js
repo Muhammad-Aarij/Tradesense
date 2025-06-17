@@ -143,7 +143,7 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const getStyles = (theme) => StyleSheet.create({
-  container1: { flex: 1, alignItems: 'center' },
+  container1: { flex: 1, alignItems: 'center',paddingTop:20, },
   container: { flex: 1, padding: 24 },
   header: {
     flexDirection: 'row',

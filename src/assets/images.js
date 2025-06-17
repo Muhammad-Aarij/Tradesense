@@ -90,6 +90,8 @@ import hamburger from './ham.png'
 
 import editwhite from './editwhite.png'
 import deletewhite from './deletewhite.png'
+import searchMf from './searchMf.png'
+import shape from './shape.png'
 
 
 export {
@@ -99,5 +101,5 @@ export {
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
-  editwhite, deletewhite
+  editwhite, deletewhite, searchMf,shape
 };

@@ -8,13 +8,14 @@ import CustomInput from "../../../components/CustomInput";
 import { bg, calendar, tick } from "../../../assets/images";
 import Header from "../../../components/Header";
 import theme from "../../../themes/theme";
-import { postGoal } from "../../../functions/Goal";
+import { postGoal, updateGoal } from "../../../functions/Goal";
 import { useDispatch, useSelector } from 'react-redux';
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
 import CustomDropdown from "../../../components/CustomSelector";
+// import { useRoute } from '@react-navigation/native';
 
-export default function AddGoal() {
+export default function AddGoal({ route, navigation }) {
   const [goalName, setGoalName] = useState("");
   const [goalType, setGoalType] = useState("Daily");
   const [status, setStatus] = useState("Active");
@@ -25,6 +26,8 @@ export default function AddGoal() {
 
   const userId = useSelector((state) => state.auth.userId);
   const dispatch = useDispatch();
+  // const route = useRoute();
+  const editingGoal = route.params?.goal;
 
   // Picker options
   const goalTypeOptions = [
@@ -50,9 +53,9 @@ export default function AddGoal() {
     setShowDatePicker(true);
   };
 
-  // Submit handler
   const handleSubmit = async () => {
     dispatch(startLoading());
+
     const formData = {
       userId,
       title: goalName,
@@ -62,27 +65,42 @@ export default function AddGoal() {
       targetDate: targetDate.toISOString().split('T')[0],
     };
 
-    const result = await postGoal(formData);
-    console.log(formData); formData
+    let result;
+
+    if (editingGoal) {
+      result = await updateGoal(editingGoal._id, formData);
+      console.log('Updating goal:', formData);
+    } else {
+      result = await postGoal(formData);
+      console.log('Creating goal:', formData);
+    }
+
+    dispatch(stopLoading());
 
     if (result.error) {
-      console.warn('Goal creation failed:', result.error);
-      dispatch(stopLoading());
+      console.warn(`${editingGoal ? 'Update' : 'Creation'} failed:`, result.error);
     } else {
-      console.log('Goal created:', result);
-      dispatch(stopLoading());
+      console.log(`Goal ${editingGoal ? 'updated' : 'created'} successfully:`, result);
       setShowConfirmationModal(true);
-      // setTimeout(() => {
-      //   setShowConfirmationModal(false);
-      //   // Optionally reset form fields
-      //   setGoalName("");
-      //   setGoalType("Daily");
-      //   setStatus("Active");
-      //   setDescription("");
-      //   setTargetDate(new Date());
-      // }, 2000);
     }
   };
+
+
+  React.useEffect(() => {
+    console.log(" useeffect Editing Goal:", editingGoal);
+    if (editingGoal) {
+      setGoalName(editingGoal.title || "");
+      setGoalType(capitalizeFirst(editingGoal.frequency || "Daily"));
+      setStatus(capitalizeFirst(editingGoal.status || "Active"));
+      setDescription(editingGoal.description || "");
+      if (editingGoal.targetDate) {
+        setTargetDate(new Date(editingGoal.targetDate));
+      }
+    }
+  }, [editingGoal]);
+
+  const capitalizeFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
 
   return (
     <ImageBackground source={bg} style={styles.container}>
@@ -92,7 +110,7 @@ export default function AddGoal() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           {/* Header */}
-          <Header title={"Set Goal"} />
+          <Header title={editingGoal ? "Edit Goal" : "Set Goal"} />
 
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
             {/* Goal Name */}
@@ -141,10 +159,21 @@ export default function AddGoal() {
 
             {/* Submit Button */}
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitButtonText}>Submit</Text>
+              <Text style={styles.submitButtonText}>{editingGoal ? "Edit" : "Submit"}</Text>
             </TouchableOpacity>
           </ScrollView>
-        {showConfirmationModal && <ConfirmationModal title={"Goal Added!"} message={"Your goal has been added successfully "} icon={tick} onClose={() => setShowConfirmationModal(false)} />}
+          {showConfirmationModal && (
+            <ConfirmationModal
+              title={editingGoal ? "Goal Updated!" : "Goal Added!"}
+              message={
+                editingGoal
+                  ? "Your goal has been updated successfully."
+                  : "Your goal has been added successfully."
+              }
+              icon={tick}
+              onClose={() => setShowConfirmationModal(false)}
+            />
+          )}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </ImageBackground>

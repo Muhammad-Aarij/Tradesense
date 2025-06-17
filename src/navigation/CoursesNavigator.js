@@ -18,6 +18,7 @@ const CoursesNavigator = () => {
       screenOptions={{
         headerShown: false
       }}
+      detachInactiveScreens={false}
     >
       <CoursesStack.Screen name="OurCoursesScreen" component={OurCoursesScreen} />
       <CoursesStack.Screen name="CourseDetailScreen" component={CourseDetailScreen} />

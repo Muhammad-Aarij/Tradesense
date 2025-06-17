@@ -104,24 +104,27 @@ const MenuComponent = ({ visible, }) => {
                         <TouchableOpacity>
                             <Text style={styles.sectionTitle}>Accountability</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("WithdrawScreen", "Accountability") }}>
+                        <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("Acc_Stocks", "Accountability") }}>
                             <Text style={styles.menuItem}>Analytics</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("WithdrawScreen", "Accountability") }}>
                             <Text style={styles.menuItem}>Trading</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("AddGoal", "Accountability") }}>
-                            <Text style={styles.menuItem}>Add Goal</Text>
+                        <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("AccountabilityPartner", "Accountability") }}>
+                            <Text style={styles.menuItem}>Accountability Partner</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("HabitTracking", "Accountability") }}>
-                            <Text style={styles.menuItem}>Add Habit</Text>
+                        <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("ChatScreen", "Accountability") }}>
+                            <Text style={styles.menuItem}>Chat</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("Gamification", "Accountability") }}>
+                            <Text style={styles.menuItem}>Gamification Reward </Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItemWithKey} onPress={() => dispatch(logoutUser())}>
                             <Text style={styles.menuItem}>Logout</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Text style={styles.closeButtonText}>Close</Text>
+                            <Text style={styles.closeButtonText}>Close </Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -164,7 +167,7 @@ const styles = StyleSheet.create({
         // backgroundColor:"black",
     },
     menuItemWithKey: {
-        // backgroundColor: theme.primaryColor,
+        // backgroundColor : theme.primaryColor,
         marginVertical: 6,
         borderRadius: 10,
         marginHorizontal: 10,

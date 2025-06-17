@@ -18,6 +18,7 @@ export default function BottomNavigator() {
       screenOptions={{
         headerShown: false,
       }}
+      detachInactiveScreens={false}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Pillars" component={PillarNavigator} />

@@ -3,6 +3,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AddGoal from '../screens/Accountability/addGoal/AddGoal';
 import HabitTracking from '../screens/Accountability/habitTracking/HabitTracking';
 import Acc_FormData from '../screens/Accountability/formData/Acc_FormData';
+import AccountabilityScreen from '../screens/Accountability/StockAnalytics';
+import AccountabilityPartnerChatScreen from '../screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen';
+import GamificationRewardsScreen from '../screens/Accountability/Gamification/GamificationRewardsScreen';
+import AccountabilityPartnerListScreen from '../screens/Accountability/partnerList/PartnerList';
 
 
 const Accountability = createNativeStackNavigator();
@@ -11,8 +15,12 @@ const AccountabilityNavigator = () => {
     return (
         <Accountability.Navigator screenOptions={{ headerShown: false }}>
             <Accountability.Screen name="AddGoal" component={AddGoal} />
-            <Accountability.Screen name="HabitTracking" component={HabitTracking} />
+            <Accountability.Screen name="AddHabit" component={HabitTracking} />
             <Accountability.Screen name="Acc_FormData" component={Acc_FormData} />
+            <Accountability.Screen name="Acc_Stocks" component={AccountabilityScreen} />
+            <Accountability.Screen name="ChatScreen" component={AccountabilityPartnerChatScreen} />
+            <Accountability.Screen name="AccountabilityPartner" component={AccountabilityPartnerListScreen} />
+            <Accountability.Screen name="Gamification" component={GamificationRewardsScreen} />
         </Accountability.Navigator>
     );
 };
