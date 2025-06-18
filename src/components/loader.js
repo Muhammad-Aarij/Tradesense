@@ -1,13 +1,13 @@
 import React from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, ImageBackground } from "react-native";
 import LottieView from "lottie-react-native";
-import { BlurView } from "@react-native-community/blur";
 import theme from "../themes/theme";
+import { bg } from "../assets/images";
 
 export default function Loader() {
   return (
-    <View style={styles.container}>
-      <BlurView style={styles.blur} blurType="dark" blurAmount={10} />
+<ImageBackground  style={styles.container} resizeMode="cover">
+      {/* <BlurView style={styles.blur} blurType="dark" blurAmount={10} /> */}
       <View style={styles.overlay}>
         <LottieView 
           source={require("../assets/loaderr.json")} 
@@ -17,18 +17,21 @@ export default function Loader() {
         />
         <Text style={styles.text}>Loading</Text>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject, // Ensure it overlays on top
-    justifyContent: "center",
-    alignItems: "center",
-  },
+ container: {
+  justifyContent: "center",
+  alignItems: "center",
+  width: "100%",
+  height: "100%",
+  backgroundColor:"black"
+},
+
   blur: {
-    ...StyleSheet.absoluteFillObject,
+    // ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
   },

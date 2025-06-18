@@ -5,7 +5,7 @@ import { ThemeContext } from '../../context/ThemeProvider';
 import theme from '../../themes/theme';
 
 const { width } = Dimensions.get('window');
-const cardWidth = (width - 20 * 3) / 2; // (Screen width - 2*padding - 1*spacing) / 2
+const cardWidth = (width - 20 * 3 ) / 2; // (Screen width - 2*padding - 1*spacing) / 2
 
 const VideoCard = ({ title, decription, imageSource, onPress, style }) => {
 
@@ -15,7 +15,7 @@ const VideoCard = ({ title, decription, imageSource, onPress, style }) => {
   return (
     <TouchableOpacity style={[styles.card, style]} onPress={onPress}>
       <View style={styles.imageWrapper}>
-        <Image source={imageSource || video1} style={styles.thumbnail} />
+        <Image source={imageSource ? { uri: imageSource } : video1} style={styles.thumbnail} />
       </View>
       <Text style={styles.title} numberOfLines={1}>{title}</Text>
       <Text style={styles.descr} numberOfLines={2}>{decription}</Text>
@@ -26,13 +26,13 @@ const VideoCard = ({ title, decription, imageSource, onPress, style }) => {
 const getStyles = (theme) => StyleSheet.create({
   card: {
     width: cardWidth, // Responsive width
-    borderWidth:0.7,
-    borderColor:theme.borderColor,
+    borderWidth: 0.7,
+    borderColor: theme.borderColor,
     backgroundColor: theme.transparentBg,
     borderRadius: 12,
-    marginRight: 10,
+    // marginRight: 10,
     overflow: 'hidden',
-    marginBottom: 10,
+    // marginBottom: 5,
   },
   imageWrapper: {
     width: 'auto',
@@ -89,7 +89,7 @@ const getStyles = (theme) => StyleSheet.create({
     paddingTop: 8, // Adjust spacing
   },
   descr: {
-    color: theme.textColor,
+    color: "rgb(161, 161, 161)",
     fontSize: 12,
     fontFamily: "Inter-Light-BETA",
     paddingHorizontal: 10,

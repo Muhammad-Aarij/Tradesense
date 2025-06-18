@@ -18,24 +18,25 @@ import theme from '../../themes/theme';
 const { width } = Dimensions.get('window');
 
 
-const track = {
-    url: 'https://pagalfree.com/musics/128-Ishq%20Mera%20(Feat.%20Esha%20Gupta)%20-%20Jubin%20Nautiyal%20128%20Kbps.mp3', // Example MP3 URL
-    title: 'Daily ',
-    artist: 'Alwin',
-    album: 'Mentally Relax',
-    artwork: mountain, // Using the main image as artwork
-    description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry',
-};
 
-const PlayerScreen = () => {
+const PlayerScreen = ({ route }) => {
+    const { AudioTitle, AudioDescr, Thumbnail, AudioUrl, shouldFetchTrack } = route.params;
     // const navigation = useNavigation();
     const dispatch = useDispatch();
     const playbackState = usePlaybackState();
     const progress = useProgress();
     const isPlaying = playbackState.state === PlaybackState.Playing;
+    const track = {
+        url: AudioUrl,
+        title: AudioTitle,
+        artist: 'Alwin',
+        album: 'Mentally Relax',
+        artwork: Thumbnail, // Using the main image as artwork
+        description: AudioDescr,
+    };
 
-    // Ref to prevent multiple setup calls
     const isPlayerSetup = useRef(false);
+    const [audioLoading, setAudioLoading] = useState(true); // new loading state
     const [currentTrack, setCurrentTrack] = useState(null);
 
     useEffect(() => {
@@ -47,34 +48,55 @@ const PlayerScreen = () => {
             }
         };
 
-        getCurrentTrack();
-    }, []);
-
-    useEffect(() => {
-        // Only setup player once
-        if (!isPlayerSetup.current) {
-            setupPlayer();
-            isPlayerSetup.current = true;
+        if (shouldFetchTrack) {
+            getCurrentTrack();
         }
+    }, [shouldFetchTrack]);
 
-        return () => {
-            // Clean up player when component unmounts if desired
-            // TrackPlayer.destroy(); // Uncomment if you want to destroy player on screen exit
-        };
-    }, []); // Empty dependency array means this effect runs once on mount
 
-    async function setupPlayer() {
-        dispatch(startLoading());
+
+    const setupPlayer = async () => {
         try {
-            await TrackPlayer.setupPlayer();
+            dispatch(startLoading());
+            setAudioLoading(true);
+
+            // Only setup player if not already initialized
+            const playerState = await TrackPlayer.getState().catch(() => null);
+
+            if (!isPlayerSetup.current && playerState === null) {
+                console.log("Initializing TrackPlayer...");
+                await TrackPlayer.setupPlayer();
+                isPlayerSetup.current = true;
+                console.log("Player initialized");
+            } else {
+                console.log("Player already initialized");
+            }
+
+            console.log("Resetting & loading track...");
+            await TrackPlayer.reset(); // Clear previous track
             await TrackPlayer.add([track]);
-            console.log('TrackPlayer setup and track added.');
+            await TrackPlayer.play();
+            console.log("Playback started");
         } catch (error) {
-            console.error('TrackPlayer setup failed:', error); // Silent log only
+            console.error('TrackPlayer failed to load/play track:', error);
+            Alert.alert("Audio Error", error.message || "Failed to start audio.");
         } finally {
             dispatch(stopLoading());
+            setAudioLoading(false);
         }
-    }
+    };
+
+
+
+    useEffect(() => {
+        setupPlayer();
+
+        return () => {
+            // Clean up properly
+            TrackPlayer.stop();
+            TrackPlayer.reset();
+        };
+    }, [AudioUrl]);
 
 
     // Toggle Playback function
@@ -93,7 +115,7 @@ const PlayerScreen = () => {
     };
 
     return (
-        <ImageBackground source={mountain} style={styles.container}>
+        <ImageBackground source={{ uri: Thumbnail }} style={styles.container}>
             <BlurView
                 style={StyleSheet.absoluteFill}
                 blurType="dark" // 'light', 'dark', 'extraLight' on iOS
@@ -103,7 +125,7 @@ const PlayerScreen = () => {
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Main Album Art & Info */}
                 <View style={styles.albumArtContainer}>
-                    <ImageBackground source={mountain} style={styles.albumArt}>
+                    <ImageBackground source={{ uri: Thumbnail }} style={styles.albumArt}>
                         <View style={styles.albumArtOverlay}>
                             <View style={styles.artistInfo}>
                                 <Image source={user} style={styles.artistImage} />
@@ -118,8 +140,8 @@ const PlayerScreen = () => {
 
                 {/* Course Details */}
                 <View style={{ width: "100%" }}>
-                    <Text style={styles.courseTitle}>{track.title}</Text>
-                    <Text style={styles.courseDescription}>{track.description}</Text>
+                    <Text style={styles.courseTitle}>{AudioTitle}</Text>
+                    <Text style={styles.courseDescription}>{AudioDescr}</Text>
                 </View>
 
                 {/* Progress Bar */}

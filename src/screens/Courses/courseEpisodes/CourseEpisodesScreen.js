@@ -19,7 +19,7 @@ import { addToFavorites, deleteFavorite, useCourseDetail } from '../../../functi
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useDispatch, useSelector } from 'react-redux';
 
-const { width,height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const CourseEpisodesScreen = ({ route }) => {
     const dispatch = useDispatch();
@@ -113,104 +113,105 @@ const CourseEpisodesScreen = ({ route }) => {
     return (
         <ImageBackground source={bg} style={styles.container}>
             <SafeAreaView>
-            <Header title={course?.title || courseTitle} />
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <View style={styles.mainImageContainer}>
-                    <Image
-                        source={courseImage ? { uri: courseImage } : mountain}
-                        style={styles.mainCourseImage}
-                    />
-                    <View style={styles.imgOverlay} />
-                    <View style={styles.imageOverlay}>
-                        <View style={styles.overlayTop}>
-                            {/* <View style={styles.timeBadge}>
+                <Header title={course?.title || courseTitle} />
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    <View style={styles.mainImageContainer}>
+                        <Image
+                            source={courseImage ? { uri: courseImage } : mountain}
+                            style={styles.mainCourseImage}
+                        />
+                        <View style={styles.imgOverlay} />
+                        <View style={styles.imageOverlay}>
+                            <View style={styles.overlayTop}>
+                                {/* <View style={styles.timeBadge}>
                                 <Image source={play} style={{ width: 10, height: 10 }} />
                                 <Text style={styles.timeBadgeText}>15min</Text>
                             </View> */}
-                            <View style={styles.instructorInfo}>
-                                <Image source={user} style={styles.instructorImage} />
-                                <View>
-                                    <Text style={styles.instructorName}>{course?.instructorName}</Text>
-                                    <Text style={styles.instructorSubtitle}>{course?.instructorExperienceLevel}</Text>
+                                <View style={styles.instructorInfo}>
+                                    <Image source={user} style={styles.instructorImage} />
+                                    <View>
+                                        <Text style={styles.instructorName}>{course?.instructorName}</Text>
+                                        <Text style={styles.instructorSubtitle}>{course?.instructorExperienceLevel}</Text>
+                                    </View>
                                 </View>
                             </View>
                         </View>
                     </View>
-                </View>
 
-                <View style={styles.courseDetails}>
-                    <Text style={styles.courseDescription}>
-                        Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                        Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
-                    </Text>
-                </View>
-
-                <View style={{ width: "100%", marginBottom: 20, borderTopWidth: 1, borderColor: "rgba(119, 119, 119, 0.23)" }} />
-
-                <View style={styles.episodesList}>
-                    {modules.map((episode, index) => (
-                        <TouchableOpacity key={episode.id} onPress={() => playEpisode(episode)} style={styles.episodeItem}>
-                            <View style={styles.episodeNumberContainer}>
-                                <Text style={styles.episodeNumber}>{index + 1}</Text>
-                            </View>
-                            <View style={styles.episodeInfo}>
-                                <Text style={styles.episodeTitle}>{episode.title}</Text>
-                            </View>
-                            <TouchableOpacity
-                                style={styles.heartButton}
-                                onPress={async () => {
-                                    const isFavorited = favoriteIds.includes(episode._id);
-
-                                    if (isFavorited) {
-                                        await handleUnstar(episode._id);
-                                        setFavoriteIds(prev => prev.filter(id => id !== episode._id));
-                                    } else {
-                                        await handleFavorite(episode); // ← see tweak below
-                                        setFavoriteIds(prev => [...prev, episode._id]);
-                                    }
-                                }}
-                            >
-                                <Image
-                                    source={favoriteIds.includes(episode._id) ? heart : heartOutline}
-                                    style={{ width: 20, height: 20 }}
-                                />
-                            </TouchableOpacity>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </ScrollView>
-
-            {/* Mini Player */}
-            {currentEpisode && (
-                <TouchableOpacity
-                    style={styles.miniPlayer}
-                    onPress={() =>
-                        navigation.navigate('TrackPlayer', {
-                            AudioTitle: currentEpisode.title,
-                            AudioDescr: currentEpisode.description,
-                            Thumbnail: courseImage ? { uri: courseImage } : mountain,
-                        })
-                    }
-                >
-                    <Image
-                        source={courseImage ? { uri: courseImage } : mountain}
-                        style={styles.miniPlayerImage}
-                    />
-                    <View style={styles.miniPlayerTextContent}>
-                        <Text style={styles.miniPlayerTitle}>{currentEpisode?.title}</Text>
-                        <Text style={styles.miniPlayerCourse}>{courseTitle}</Text>
+                    <View style={styles.courseDetails}>
+                        <Text style={styles.courseDescription}>
+                            Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+                            Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
+                        </Text>
                     </View>
+
+                    <View style={{ width: "100%", marginBottom: 20, borderTopWidth: 1, borderColor: "rgba(119, 119, 119, 0.23)" }} />
+
+                    <View style={styles.episodesList}>
+                        {modules.map((episode, index) => (
+                            <TouchableOpacity key={episode.id} onPress={() => playEpisode(episode)} style={styles.episodeItem}>
+                                <View style={styles.episodeNumberContainer}>
+                                    <Text style={styles.episodeNumber}>{index + 1}</Text>
+                                </View>
+                                <View style={styles.episodeInfo}>
+                                    <Text style={styles.episodeTitle}>{episode.title}</Text>
+                                </View>
+                                <TouchableOpacity
+                                    style={styles.heartButton}
+                                    onPress={async () => {
+                                        const isFavorited = favoriteIds.includes(episode._id);
+
+                                        if (isFavorited) {
+                                            await handleUnstar(episode._id);
+                                            setFavoriteIds(prev => prev.filter(id => id !== episode._id));
+                                        } else {
+                                            await handleFavorite(episode); // ← see tweak below
+                                            setFavoriteIds(prev => [...prev, episode._id]);
+                                        }
+                                    }}
+                                >
+                                    <Image
+                                        source={favoriteIds.includes(episode._id) ? heart : heartOutline}
+                                        style={{ width: 20, height: 20 }}
+                                    />
+                                </TouchableOpacity>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </ScrollView>
+
+                {/* Mini Player */}
+                {currentEpisode && (
                     <TouchableOpacity
-                        style={styles.miniPlayerPlayPauseButton}
-                        onPress={togglePlayback}
+                        style={styles.miniPlayer}
+                        onPress={() =>
+                            navigation.navigate('TrackPlayer', {
+                                AudioTitle: currentEpisode.title,
+                                AudioDescr: currentEpisode.description,
+                                Thumbnail: courseImage,
+                                shouldFetchTrack: true,
+                            })
+                        }
                     >
-                        <Image source={isPlaying ? stop : play}
-                            style={{ width: 20, height: 18, resizeMode: 'contain' }}
+                        <Image
+                            source={courseImage ? { uri: courseImage } : mountain}
+                            style={styles.miniPlayerImage}
                         />
+                        <View style={styles.miniPlayerTextContent}>
+                            <Text style={styles.miniPlayerTitle}>{currentEpisode?.title}</Text>
+                            <Text style={styles.miniPlayerCourse}>{courseTitle}</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.miniPlayerPlayPauseButton}
+                            onPress={togglePlayback}
+                        >
+                            <Image source={isPlaying ? stop : play}
+                                style={{ width: 20, height: 18, resizeMode: 'contain' }}
+                            />
+                        </TouchableOpacity>
                     </TouchableOpacity>
-                </TouchableOpacity>
-            )
-            }
+                )
+                }
             </SafeAreaView>
         </ImageBackground >
     );
@@ -220,12 +221,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         // padding: 25,
-        paddingTop:20,
+        paddingTop: 20,
         // paddingVertical: 0,
-        paddingBottom: height*0.1,
+        paddingBottom: height * 0.1,
     },
     scrollContent: {
-        paddingHorizontal:25,
+        paddingHorizontal: 25,
         paddingBottom: 20,
     },
     mainImageContainer: {
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 25,
         position: 'absolute',
-        bottom: 90,
+        bottom: 0,
         left: 0,
         right: 0,
     },

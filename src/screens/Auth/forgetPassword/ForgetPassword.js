@@ -6,6 +6,7 @@ import CustomInput from '../../../components/CustomInput';
 import { sendResetEmail } from '../../../functions/passwordService';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { sendOTP } from '../../../functions/otpService';
 
 const { width } = Dimensions.get('window');
 
@@ -20,10 +21,10 @@ const ForgetPassword = ({ navigation }) => {
         }
 
         try {
-            dispatch(startLoading()); ``
-            const response = await sendResetEmail(email);
+            dispatch(startLoading()); 
+            const response = await sendOTP(email, false);
             console.log("Reset email sent:", response);
-            dispatch(stopLoading());            
+            dispatch(stopLoading());
             alert("Password reset email sent successfully");
             navigation.navigate("ResetPassword", { token: response.token }); // Navigate to the next screen
         } catch (error) {

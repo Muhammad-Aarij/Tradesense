@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { bg, G, eyeClose, secureUser } from '../../../assets/images';
 import theme from '../../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
@@ -24,7 +24,6 @@ const SignUp = ({ navigation }) => {
     const dispatch = useDispatch();
 
     const handleSignUp = async () => {
-        dispatch(startLoading());
 
         if (password !== confirmPassword) {
             Alert.alert("Passwords do not match!");
@@ -32,12 +31,12 @@ const SignUp = ({ navigation }) => {
         }
         const userData = { name, phone, email, password, role: "user" };
         try {
+            dispatch(startLoading());
             const response = await registerUser(userData);
             if (response) {
                 console.log("User registered successfully:", response);
-                await sendOTP(email);
+                await sendOTP(email, true);
                 console.log("OTP sent successfully",);
-                // Navigate to Email Verification screen
                 dispatch(stopLoading());
                 navigation.navigate("EmailVerification", { email: email });
 
@@ -55,66 +54,68 @@ const SignUp = ({ navigation }) => {
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            <ScrollView style={{ width: "100%", flex: 1 }} contentContainerStyle={{ alignItems: "center" }} showsVerticalScrollIndicator={false}>
-                <Image source={secureUser} style={styles.image} />
-                <View style={styles.bottomcontainer}>
-                    <Text style={styles.title}>Register Now</Text>
-                    <Text style={styles.subtitle}>Create a new account</Text>
-                    <CustomInput label="Full Name" placeholder="Enter Full Name" value={name} onChangeText={setFullName} />
-                    <CustomInput label="Phone" placeholder="Enter Phone Number" value={phone} onChangeText={setPhone} />
-                    <CustomInput label="Email" placeholder="Email Address" value={email} onChangeText={setEmail} />
+            <KeyboardAvoidingView style={{ width: "100%", flex: 1 }}>
+                <ScrollView style={{ width: "100%", flex: 1 }} contentContainerStyle={{ alignItems: "center" }} showsVerticalScrollIndicator={false}>
+                    <Image source={secureUser} style={styles.image} />
+                    <View style={styles.bottomcontainer}>
+                        <Text style={styles.title}>Register Now</Text>
+                        <Text style={styles.subtitle}>Create a new account</Text>
+                        <CustomInput label="Full Name" placeholder="Enter Full Name" value={name} onChangeText={setFullName} />
+                        <CustomInput label="Phone" placeholder="Enter Phone Number" value={phone} onChangeText={setPhone} />
+                        <CustomInput label="Email" placeholder="Email Address" value={email} onChangeText={setEmail} />
 
-                    <CustomInput
-                        label="Password"
-                        placeholder="Password"
-                        secureTextEntry={!passwordVisible}
-                        value={password}
-                        onChangeText={setPassword}
-                        icon={passwordVisible ? eyeClose : eyeClose}
-                        onIconPress={() => setPasswordVisible(!passwordVisible)}
-                    />
+                        <CustomInput
+                            label="Password"
+                            placeholder="Password"
+                            secureTextEntry={!passwordVisible}
+                            value={password}
+                            onChangeText={setPassword}
+                            icon={passwordVisible ? eyeClose : eyeClose}
+                            onIconPress={() => setPasswordVisible(!passwordVisible)}
+                        />
 
-                    <CustomInput
-                        label="Confirm Password"
-                        placeholder="Confirm Password"
-                        secureTextEntry={!passwordVisible}
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        icon={passwordVisible2 ? eyeClose : eyeClose}
-                        onIconPress={() => setPasswordVisible(!passwordVisible)}
-                    />
+                        <CustomInput
+                            label="Confirm Password"
+                            placeholder="Confirm Password"
+                            secureTextEntry={!passwordVisible2}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            icon={passwordVisible2 ? eyeClose : eyeClose}
+                            onIconPress={() => setPasswordVisible2(!passwordVisible2)}
+                        />
 
-                    <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-                        <Text style={styles.buttonText}>Sign Up</Text>
-                    </TouchableOpacity>
-                    <View style={styles.orContainer}>
+                        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+                            <Text style={styles.buttonText}>Sign Up</Text>
+                        </TouchableOpacity>
+                        <View style={styles.orContainer}>
+                            <LinearGradient
+                                start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
+                                colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
+                                style={styles.Line}
+                            />
+                            <Text style={styles.or}>Or continue with</Text>
+                            <LinearGradient
+                                colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
+                                style={styles.Line}
+                            />
+                        </View>
                         <LinearGradient
                             start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
-                            colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
-                            style={styles.Line}
-                        />
-                        <Text style={styles.or}>Or continue with</Text>
-                        <LinearGradient
-                            colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
-                            style={styles.Line}
-                        />
-                    </View>
-                    <LinearGradient
-                        start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
-                        colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
-                        style={styles.googleBtn}
-                    >
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={handleGoogleLogin}>
-                            <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
-                            <Text style={styles.googleText}>Continue with Google</Text>
-                        </TouchableOpacity>
-                    </LinearGradient>
+                            colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
+                            style={styles.googleBtn}
+                        >
+                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }} onPress={handleGoogleLogin}>
+                                <Image source={G} style={{ width: 20, height: 20, resizeMode: "contain" }} />
+                                <Text style={styles.googleText}>Continue with Google</Text>
+                            </TouchableOpacity>
+                        </LinearGradient>
 
-                    <TouchableOpacity onPress={() => navigation.navigate("Login")} >
-                        <Text style={styles.footer}>Already have an account? <Text style={styles.link}>Sign In</Text></Text>
-                    </TouchableOpacity>
-                </View>
-            </ScrollView>
+                        <TouchableOpacity onPress={() => navigation.navigate("Login")} >
+                            <Text style={styles.footer}>Already have an account? <Text style={styles.link}>Sign In</Text></Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </ImageBackground>
     );
 };

@@ -1,12 +1,28 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { heart, heartOutline, hearts } from "../../assets/images";
 import { ThemeContext } from "../../context/ThemeProvider";
+import Sound from "react-native-sound";
 
 
-const AudioCard = ({ episodeNumber, title, duration, isLiked: initialIsLiked, onPress }) => {
+const AudioCard = ({ episodeNumber, title, duration, isLiked: initialIsLiked, onPress, audio }) => {
   const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
   const styles = getStyles(theme);
+  const [durationSec, setDurationSec] = useState(null);
+
+  useEffect(() => {
+    if (audio) {
+      const sound = new Sound(audio, null, (error) => {
+        if (error) {
+          console.log('Failed to load audio:', error);
+          return;
+        }
+        const secs = sound.getDuration();
+        setDurationSec(secs);
+        sound.release(); // Good practice to clean up
+      });
+    }
+  }, [audio]);
 
   const [isLiked, setIsLiked] = useState(initialIsLiked);
 
@@ -22,7 +38,9 @@ const AudioCard = ({ episodeNumber, title, duration, isLiked: initialIsLiked, on
         </View>
         <View style={styles.episodeInfo}>
           <Text style={styles.episodeTitle}>{title}</Text>
-          <Text style={styles.episodeDuration}>{duration}</Text>
+          <Text style={styles.episodeDuration}>
+            {durationSec ? `${Math.floor(durationSec / 60)}:${String(Math.floor(durationSec % 60)).padStart(2, '0')}` : '0:00'}
+          </Text>
         </View>
         <TouchableOpacity style={styles.heartButton} onPress={toggleLike}>
           <Image

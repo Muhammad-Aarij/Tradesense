@@ -18,21 +18,34 @@ import Header from "../../../components/Header";
 import theme from "../../../themes/theme";
 import { useDispatch, useSelector } from "react-redux";
 import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
-import { postHabit } from "../../../functions/habbitFunctions";
+import { postHabit, updateHabit } from "../../../functions/habbitFunctions";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import { useQueryClient } from "@tanstack/react-query";
 
-export default function HabitTracking() {
+export default function HabitTracking({ route }) {
+  const editingHabit = route?.params?.habit;
   const [habitName, setHabitName] = useState("");
   const [habitType, setHabitType] = useState("Daily");
   const [habitStatus, setHabitStatus] = useState("Pending");
   const [description, setDescription] = useState("");
   const [showModal, setShowModal] = useState(false);
-
+  const quertClient = useQueryClient();
   const userId = useSelector((state) => state.auth.userId);
   const dispatch = useDispatch();
 
   const habitTypeOptions = ["Daily", "Weekly", "Monthly"];
   const habitStatusOptions = ["Pending", "Completed", "Failed"];
+  React.useEffect(() => {
+    if (editingHabit) {
+      setHabitName(editingHabit.title || "");
+      setHabitType(capitalizeFirst(editingHabit.type || "Daily"));
+      setHabitStatus(capitalizeFirst(editingHabit.status || "Pending"));
+      setDescription(editingHabit.description || "");
+    }
+  }, [editingHabit]);
+
+  const capitalizeFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
 
   const handleSubmit = async () => {
     dispatch(startLoading());
@@ -45,25 +58,30 @@ export default function HabitTracking() {
       status: habitStatus.toLowerCase(),
     };
 
-    const result = await postHabit(payload);
+    const result = editingHabit
+      ? await updateHabit(editingHabit._id, payload)
+      : await postHabit(payload);
+
     dispatch(stopLoading());
 
     if (result.error) {
-      console.warn("Habit creation failed:", result.error);
+      console.warn(`${editingHabit ? "Update" : "Creation"} failed:`, result.error);
     } else {
-      console.log("Habit created successfully:", result);
+      quertClient.invalidateQueries(['Habit', userId]);
+      console.log(`Habit ${editingHabit ? "updated" : "created"}:`, result);
       setShowModal(true);
       setTimeout(() => {
         setShowModal(false);
-        // Optionally reset form fields
-        setHabitName("");
-        setHabitType("Daily");
-        setHabitStatus("Pending");
-        setDescription("");
+        if (!editingHabit) {
+          setHabitName("");
+          setHabitType("Daily");
+          setHabitStatus("Pending");
+          setDescription("");
+        }
       }, 2000);
-       
     }
   };
+
 
   return (
     <ImageBackground source={bg} style={styles.container}>
@@ -104,12 +122,13 @@ export default function HabitTracking() {
               />
 
               <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Submit</Text>
+                <Text style={styles.submitButtonText}>{editingHabit ? "Update" : "Submit"}</Text>
               </TouchableOpacity>
             </ScrollView>
           </KeyboardAvoidingView>
         </>
-        {showModal && <ConfirmationModal title={"Habit Added!"} message={"Your habit has been added successfully "} icon={tick} />}
+        {showModal && <ConfirmationModal title={editingHabit ? "Habit Updated" : "Habit Added!"} message={editingHabit ? "Your habit has been updated successfully" : "Your habit has been added successfully "} onClose={() => setShowModal(false)}
+          icon={tick} />}
       </SafeAreaView>
     </ImageBackground>
   );

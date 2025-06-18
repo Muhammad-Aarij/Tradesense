@@ -21,7 +21,23 @@ export default function BottomNavigator() {
       detachInactiveScreens={false}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Pillars" component={PillarNavigator} />
+      <Tab.Screen
+        name="Pillars"
+        component={PillarNavigator}
+        options={({ route }) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+
+          // List of screens where tab bar should be hidden
+          const hideOnScreens = ['TrackPlayer'];
+
+          return {
+            tabBarStyle: {
+              height: hideOnScreens.includes(routeName) ? 0 : 'auto',
+            },
+          };
+        }}
+      />
+
       <Tab.Screen
         name="Courses"
         component={CoursesNavigator}

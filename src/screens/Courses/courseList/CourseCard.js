@@ -59,18 +59,14 @@ const CourseCard = ({ imageSource, time, title, rating, description, profileImag
     );
 };
 
-// Styles for the CourseCard component
+
 const cardStyles = StyleSheet.create({
     card: {
-        backgroundColor: '#2e2e2e', // Card background color
-        borderRadius: 12,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderWidth: 0.9, borderColor: theme.borderColor,
+        borderRadius: 8,
         width: cardWidth,
         overflow: 'hidden', // Ensures image corners are rounded
-        elevation: 5, // Android shadow
-        shadowColor: '#000', // iOS shadow
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
         marginBottom: 16, // Space between rows
     },
     imageWrapper: {

@@ -1,44 +1,69 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image, ImageBackground, Dimensions } from 'react-native';
 import TopMenuScroll from '../TopMenuScroll';
 import { afirm, audio, bg, calm, circleTop, meditation, mobile, success, video, video1, video2, video3, videoY } from '../../../assets/images';
 import AudioCard from '../AudioCard';
 import VideoCard from '../VideoCard';
 import Header from '../../../components/Header';
+import theme from '../../../themes/theme';
+import { useResources } from '../../../functions/PillarsFunctions';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 const { height, width } = Dimensions.get('window');
 
-const TopCategories = [
-    { id: 'meditation', name: 'Meditation', icon: meditation },
-    { id: 'calm', name: 'Calm', icon: calm },
-    { id: 'affirmation', name: 'Affirmation', icon: afirm },
-    { id: 'success', name: 'Success', icon: success },
-];
+// const mockAudios = [
+//     { id: 'a1', title: 'The Power of Mindfulness', duration: '5 min', isLiked: false },
+//     { id: 'a2', title: 'Daily Gratitude Practice', duration: '8 min', isLiked: true },
+//     { id: 'a3', title: 'Focus and Productivity', duration: '6 min', isLiked: false },
+// ];
 
-const contentCategories = [
-    { id: 'audios', name: 'Audios', icon: audio },
-    { id: 'videos', name: 'Videos', icon: videoY },
-    { id: 'illustrationVideos', name: 'Illustration Videos', icon: mobile },
-];
-
-const mockAudios = [
-    { id: 'a1', title: 'The Power of Mindfulness', duration: '5 min', isLiked: false },
-    { id: 'a2', title: 'Daily Gratitude Practice', duration: '8 min', isLiked: true },
-    { id: 'a3', title: 'Focus and Productivity', duration: '6 min', isLiked: false },
-];
-
-const mockVideos = [
-    { id: 'v1', title: "Psychology", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video1 },
-    { id: 'v2', title: "Meditation", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video2 },
-    { id: 'v3', title: "Fitness", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video3 },
-];
+// const mockVideos = [
+//     { id: 'v1', title: "Psychology", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video1 },
+//     { id: 'v2', title: "Meditation", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video2 },
+//     { id: 'v3', title: "Fitness", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video3 },
+// ];
 
 
-const PsychologyCategoryScreen = () => {
-    const [selectedTopCategory, setSelectedTopCategory] = useState(TopCategories[0].id);
+const PsychologyCategoryScreen = ({ navigation, route }) => {
+    const dispatch = useDispatch();
+    const { name, categories } = route.params;
+    const [selectedTopCategory, setSelectedTopCategory] = useState(() => categories?.[0] || '');
 
-    const handleNavigation = (screenName) => {
-        console.log(`Navigating to: ${screenName}`);
-    };
+    useEffect(() => {
+        if (categories?.length > 0) {
+            setSelectedTopCategory(categories[0]);
+        }
+    }, [categories]);
+
+    const {
+        data: audios = [],
+        isLoading: isLoadingAudios,
+    } = useResources({
+        name,
+        category: selectedTopCategory,
+        type: 'audio',
+    });
+
+    const {
+        data: videos = [],
+        isLoading: isLoadingVideos,
+    } = useResources({
+        name,
+        category: selectedTopCategory,
+        type: 'video',
+    });
+
+
+    useEffect(() => {
+        dispatch(startLoading());
+        const timeout = setTimeout(() => {
+            if (!isLoadingAudios && !isLoadingVideos) {
+                dispatch(stopLoading());
+            }
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, [isLoadingAudios, isLoadingVideos]);
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -47,50 +72,85 @@ const PsychologyCategoryScreen = () => {
                     <Header title={""} />
                 </View>
                 <Image source={circleTop} style={styles.topImg} />
-                <Text style={styles.title}>Psychology</Text>
+                <Text style={styles.title}>{name}</Text>
                 {/* Top Menu Scroll */}
-                <TopMenuScroll
-                    items={TopCategories}
-                    selectedItem={selectedTopCategory}
-                    onItemSelected={setSelectedTopCategory}
-                />
+                {categories?.length > 0 && (
+                    <TopMenuScroll
+                        items={categories.map((cat) => ({ id: cat, name: cat }))}
+                        selectedItem={selectedTopCategory}
+                        onItemSelected={setSelectedTopCategory}
+                    />
+                )}
                 <View style={{ paddingLeft: 25, }}>
 
                     <View style={{ ...styles.sectionContainer, paddingRight: 25 }}>
-                        <Text style={{ ...styles.sectionTitle, marginTop: 25, }}>Audios | Meditation & Calm</Text>
+                        <TouchableOpacity
+                            style={{
+                                marginTop: 25,
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "center"
+                            }}
+                            onPress={() =>
+                                navigation.navigate("PillarScreen", {
+                                    audios: audios,
+                                    name: name,
+                                    ContentOption: selectedTopCategory,
+                                    contentType: "audio",
+                                    category: categories,
+
+                                })
+                            }
+                        >
+                            <Text style={{ ...styles.sectionTitle, }}>Audios | Meditation & Calm</Text>
+                            <Text style={{ ...styles.sectionTitle, color: theme.primaryColor, fontFamily: "Inter-Medium", fontSize: 11, }}>View All</Text>
+                        </TouchableOpacity>
                         <View style={styles.category}>
-                            {mockAudios.map((audio) => (
+                            {audios.slice(0, 3).map((audio, index) => (
                                 <AudioCard
                                     key={audio.id}
-                                    episodeNumber={audio.id.replace('a', '')}
+                                    episodeNumber={`${index + 1}`}
                                     title={audio.title}
-                                    duration={audio.duration}
+                                    audio={audio.url}
                                     isLiked={audio.isLiked}
-                                    onPress={() => {
-                                        console.log(`Play audio: ${audio.title}`);
-                                        // handleNavigation('AudioPlayer'); // Example of intended navigation
-                                    }}
+                                    onPress={() => navigation.navigate('TrackPlayer', {
+                                        AudioTitle: audio.title,
+                                        AudioDescr: audio.description,
+                                        Thumbnail: audio.thumbnail,
+                                        AudioUrl: audio.url,
+                                    })}
                                 />
                             ))}
                         </View>
                     </View>
 
                     <View style={styles.sectionContainer}>
-                        <Text style={styles.sectionTitle}>Guided Meditation | Illustration Videos</Text>
+                        <TouchableOpacity style={{ flexDirection: "row", justifyContent: "space-between", paddingRight: 25, }}
+                            onPress={() =>
+                                navigation.navigate("PillarScreen", {
+                                    audios: videos,
+                                    ContentOption: selectedTopCategory,
+                                    contentType: "video",
+                                    category: categories,
+                                    name: name,
+                                })}>
+                            <Text style={styles.sectionTitle}>Guided Meditation | Illustration Videos</Text>
+                            <Text style={{ ...styles.sectionTitle, color: theme.primaryColor, fontFamily: "Inter-Medium", fontSize: 11, }}>View All</Text>
+                        </TouchableOpacity>
                         <View style={styles.category}>
                             <FlatList
                                 horizontal
-                                data={mockVideos}
+                                data={videos.slice(0, 3)}
                                 keyExtractor={(item) => item.id}
                                 showsHorizontalScrollIndicator={false}
                                 contentContainerStyle={styles.horizontalCardList}
                                 renderItem={({ item }) => (
                                     <VideoCard
+                                        style={{ marginRight: 10 }}
                                         title={item.title}
                                         duration={item.duration}
-                                        imageSource={item.image}
-                                        decription={item.descr}
-                                        style={{ marginBottom: 10, marginRight: 10 }} 
+                                        imageSource={item.thumbnail}
+                                        decription={item.description}
                                         onPress={() => {
                                             console.log(`Play video: ${item.title}`);
                                             // handleNavigation('VideoPlayer'); // Example of intended navigation
@@ -109,7 +169,7 @@ const PsychologyCategoryScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1, backgroundColor: '#08131F',
-        padding: 0, paddingTop: 0,paddingBottom:height*0.1,
+        padding: 0, paddingTop: 0, paddingBottom: height * 0.1,
     },
     title: {
         fontSize: 23,
@@ -149,7 +209,7 @@ const styles = StyleSheet.create({
         marginBottom: 16, // mb-4
     },
     horizontalCardList: {
-        paddingBottom: 8, // pb-2
+        // paddingBottom: 8, // pb-2
         // gap:10
     },
     bottomNavBar: {

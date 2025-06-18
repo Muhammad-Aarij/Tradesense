@@ -12,6 +12,7 @@ import { deleteHabit, useHabitByUser, updateHabit } from '../../functions/habbit
 import { back } from '../../assets/images';
 import theme from '../../themes/theme';
 import HabitCard from '../../components/HabbitCard';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function HabitContainer({ navigation }) {
     const userId = useSelector(state => state.auth.userId);
@@ -21,7 +22,7 @@ export default function HabitContainer({ navigation }) {
     const [selectedFilter, setSelectedFilter] = useState('All');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
     const [localHabits, setLocalHabits] = useState([]);
-
+    const queryClient = useQueryClient();
 
     const filterOptions = ['All', 'Weekly', 'Monthly'];
 
@@ -40,6 +41,8 @@ export default function HabitContainer({ navigation }) {
         } else {
             console.log(`Successfully deleted ${type} with ID:`, result);
             console.log(`${type} deleted successfully`);
+            queryClient.invalidateQueries(['Habit', userId]);
+
         }
     };
 
@@ -47,7 +50,7 @@ export default function HabitContainer({ navigation }) {
         const frequency = habit.frequency || '';
         return selectedFilter === 'All' || frequency === selectedFilter;
     });
-
+    
 
     return (
         <View style={styles.sectionContainer}>
@@ -129,7 +132,7 @@ export default function HabitContainer({ navigation }) {
                 renderItem={({ item }) => (
                     <HabitCard
                         habit={item}
-                        onEdit={id => handleEdit(item._id, 'Habit')}
+                        onEdit={id => handleEdit(item, 'Habit')}
                         onDelete={id => handleDelete(item._id, 'Habit')}
                     />
                 )}
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     sectionTitle: {
-        fontSize: 22,
+        fontSize: 20,
         color: '#fff',
         fontFamily: 'Inter-SemiBold',
     },

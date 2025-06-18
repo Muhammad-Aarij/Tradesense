@@ -132,9 +132,9 @@ const CourseDetailScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 25, paddingVertical: 0, paddingBottom: height * 0.1, backgroundColor: 'black' },
+    container: { flex: 1, padding: 20, paddingBottom: 0, paddingBottom: height * 0.2, backgroundColor: 'black' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#08131F' },
-    // scrollContent: { paddingBottom: 20 },
+    scrollContent: { paddingBottom: 20 },
     mainImageContainer: {
         width: '100%',
         height: width * 0.55,
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     instructorImage: { width: 40, height: 40, borderRadius: 100, marginRight: 5 },
     instructorName: { color: theme.primaryColor, fontSize: 13, fontFamily: 'Inter-SemiBold' },
     instructorSubtitle: { color: 'white', fontSize: 11, fontFamily: 'Inter-Light-BETA' },
-    courseInfoSection: {  },
+    courseInfoSection: {  marginTop:20,paddingBottom:10,},
     courseDescription: { color: '#FFFFFF', fontSize: 13, lineHeight: 20, fontFamily: 'Inter-Light-BETA' },
     audiosSection: { paddingVertical: 10, gap: 10 },
     audioItem: {

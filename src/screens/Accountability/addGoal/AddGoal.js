@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
 import CustomDropdown from "../../../components/CustomSelector";
-// import { useRoute } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function AddGoal({ route, navigation }) {
   const [goalName, setGoalName] = useState("");
@@ -23,6 +23,7 @@ export default function AddGoal({ route, navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [description, setDescription] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const queryClient = useQueryClient();
 
   const userId = useSelector((state) => state.auth.userId);
   const dispatch = useDispatch();
@@ -82,6 +83,7 @@ export default function AddGoal({ route, navigation }) {
     } else {
       console.log(`Goal ${editingGoal ? 'updated' : 'created'} successfully:`, result);
       setShowConfirmationModal(true);
+      queryClient.invalidateQueries(['goals', userId]);
     }
   };
 

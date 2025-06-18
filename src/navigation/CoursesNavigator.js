@@ -25,8 +25,8 @@ const CoursesNavigator = () => {
       <CoursesStack.Screen name="PurchasedCoursesScreen" component={PurchasedCoursesScreen} />
       <CoursesStack.Screen name="PlansScreen" component={PlansScreen} />
       <CoursesStack.Screen name="CheckoutScreen" component={CheckoutScreen} />
-      <CoursesStack.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} />
-      <CoursesStack.Screen name="TrackPlayer" component={PlayerScreen} />
+      {/* <CoursesStack.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} /> */}
+      {/* <CoursesStack.Screen name="TrackPlayer" component={PlayerScreen} /> */}
     </CoursesStack.Navigator>
   );
 };

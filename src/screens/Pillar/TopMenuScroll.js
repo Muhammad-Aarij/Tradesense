@@ -18,7 +18,7 @@ const TopMenuScroll = ({ items, selectedItem, onItemSelected }) => {
                     ]}
                     onPress={() => onItemSelected(item.id)}
                 >
-                    <Image style={{ width: 20, height: 20, resizeMode: "contain", marginRight: 10, }} source={item.icon}></Image>
+                    {/* <Image style={{ width: 20, height: 20, resizeMode: "contain", marginRight: 10, }} source={item.icon}></Image> */}
                     <Text
                         style={[
                             styles.menuItemText,
@@ -44,12 +44,12 @@ const styles = StyleSheet.create({
         // borderWidth:3,
         // borderColor:"white", // Center items vertically in the scroll view
         flexDirection: "row",
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.14)',
         borderWidth: 1,
-        borderColor: '#2e2e2e', // Slight border for unselected items
+        borderColor: 'rgba(255, 255, 255, 0.21)', // Slight border for unselected items
         borderRadius: 20,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        paddingVertical: 6,
+        paddingHorizontal: 18,
         marginRight: 10,
     },
     selectedMenuItem: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     },
     menuItemText: {
         color: '#FFFFFF',
-        fontSize: 14,
+        fontSize: 12,
         fontFamily: "Inter-Regular", // Ensure font is loaded
     },
     selectedMenuItemText: {

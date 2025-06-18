@@ -3,8 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, 
 import { check, uncheck, bg } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import { fetchGoals } from '../../../functions/profiling';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
 const GoalsScreen = ({ navigation, route }) => {
+    const dispatch = useDispatch();
     const [goals, setGoals] = useState([]);
     const [selectedGoals, setSelectedGoals] = useState([]);
     const [request, setRequest] = useState(route.params?.request || {
@@ -14,13 +17,36 @@ const GoalsScreen = ({ navigation, route }) => {
         choosenArea: [],
     });
 
+
     useEffect(() => {
-        const loadGoals = async () => {
-            const data = await fetchGoals();
-            setGoals(data);
+
+        const MAX_RETRIES = 5;
+
+        const loadGoals = async (retryCount = 0) => {
+            dispatch(startLoading());
+
+            try {
+                const data = await fetchGoals();
+                setGoals(data);
+                dispatch(stopLoading());
+            } catch (error) {
+                console.warn(`Fetch failed (attempt ${retryCount + 1}):`, error);
+
+                if (retryCount < MAX_RETRIES) {
+                    const delay = Math.pow(2, retryCount) * 500; // exponential backoff
+                    setTimeout(() => {
+                        loadGoals(retryCount + 1);
+                    }, delay);
+                } else {
+                    dispatch(stopLoading());
+                    Alert.alert('Error', 'Failed to fetch goals after multiple attempts.');
+                }
+            }
         };
+
         loadGoals();
     }, []);
+
 
     const toggleGoal = (goalId) => {
         setSelectedGoals((prev) => {

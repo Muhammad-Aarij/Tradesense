@@ -1,32 +1,32 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  ImageBackground,
-  Pressable,
-  SafeAreaView
+  View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ImageBackground, Pressable, SafeAreaView, FlatList, Dimensions
 } from 'react-native';
 import {
   user, video, graph, bg, bell,
   book, scholar, care, circle, wave
 } from '../../assets/images';
 import { ThemeContext } from '../../context/ThemeProvider';
+import { useAllPillars } from '../../functions/PillarsFunctions';
+import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
+import { useDispatch } from 'react-redux';
+
+const { width, height } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
   const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
   const styles = getStyles(theme);
+  const { data: pillars, isLoading, error } = useAllPillars();
 
-  const navigateTo = (screen, stack) => {
-    if (stack) {
-      navigation.navigate(stack, { screen });
-    } else {
-      navigation.navigate(screen);
-    }
-  }
+  useEffect(() => {
+    dispatch(startLoading());
+    const timeout = setTimeout(() => {
+      if (!isLoading) dispatch(stopLoading());
+    }, 2000);
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
+
 
   return (
     <ImageBackground source={theme.bg} style={styles.container1}>
@@ -108,42 +108,36 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Pillars</Text>
 
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <Pressable style={styles.pillars} onPress={() => { navigateTo("PsychologyCategoryScreen", "Pillars") }}>
-                <Image source={book} style={styles.pillarIcon} />
-                <Text style={styles.smallhd}>Psychology</Text>
-              </Pressable>
-              <Pressable style={styles.pillars} onPress={() => { navigateTo("PillarsCategoryScreen", "Pillars") }}>
-                <Image source={scholar} style={styles.pillarIcon} />
-                <Text style={styles.smallhd}>Education</Text>
-              </Pressable>
-            </View>
-
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <View style={styles.pillars}>
-                <Image source={care} style={styles.pillarIcon} />
-                <Text style={styles.smallhd}>Wellbeing</Text>
-              </View>
-              <View style={styles.pillars}>
-                <Image source={book} style={styles.pillarIcon} />
-                <Text style={styles.smallhd}>Health</Text>
-              </View>
-            </View>
+            <FlatList
+              data={pillars}
+              keyExtractor={(item) => item._id}
+              numColumns={2}
+              columnWrapperStyle={{ flex: 1, justifyContent: 'space-between', }}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.pillars}
+                  onPress={() => navigation.navigate('Pillars', {
+                    screen: 'PsychologyCategoryScreen',
+                    params: {
+                      name: item.name,
+                      categories: item.categories,
+                    },
+                  })}
+                >
+                  <Image source={{ uri: item.image }} style={styles.pillarIcon} />
+                  <Text style={styles.smallhd}>{item.name}</Text>
+                </Pressable>
+              )}
+            />
           </View>
-
-          {/* Optional Daily Breakdown */}
-          {/* <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Daily Breakdown</Text>
-          <View style={styles.graphPlaceholder}><Text style={{ color: '#aaa' }}>Graph for Jan 05, 2025</Text></View>
-        </View> */}
         </ScrollView>
       </SafeAreaView>
-    </ImageBackground>
+    </ImageBackground >
   );
 };
 
 const getStyles = (theme) => StyleSheet.create({
-  container1: { flex: 1, alignItems: 'center',paddingTop:20, },
+  container1: { flex: 1, alignItems: 'center', paddingTop: 20, },
   container: { flex: 1, padding: 24 },
   header: {
     flexDirection: 'row',
@@ -160,7 +154,7 @@ const getStyles = (theme) => StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.borderColor,
     borderRadius: 10,
-    padding: 13,
+    padding: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   sectionTitle: {
@@ -179,7 +173,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   smallhd: {
     color: theme.textColor,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter-Regular',
     marginTop: 5,
   },
@@ -193,12 +187,12 @@ const getStyles = (theme) => StyleSheet.create({
   weekDots: { color: '#70C2E8', fontSize: 18 },
   pillars: {
     flexDirection: "row",
-    width: "48%",
+    width: (width - 72 - 10) / 2,
     borderWidth: 1,
     borderColor: theme.borderColor,
     borderRadius: 10,
     padding: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 6,
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     marginBottom: 8,
   },

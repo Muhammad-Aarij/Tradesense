@@ -44,7 +44,7 @@ const AccountabilityScreen = ({ navigation }) => {
 
       {/* Watchlist Header */}
       <View style={[styles.sectionContainer, styles.graybg]}>
-        <View style={{ ...styles.sectionHeader, flexDirection: "row",justifyContent:"space-between",alignItems:"center", marginBottom: 10 }}>
+        <View style={{ ...styles.sectionHeader, flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
           <Text style={styles.sectionTitle}>Watchlist</Text>
           <TouchableOpacity onPress={() => console.log('Watchlist search')}>
             <View style={{ padding: 12, borderRadius: 100, backgroundColor: 'rgba(255, 255, 255, 0.06)' }}>
@@ -128,8 +128,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionContainer: {
-    marginBottom: 10,
+    // marginBottom: 10,
     paddingVertical: 10,
+
   },
   graybg: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -145,9 +146,11 @@ const styles = StyleSheet.create({
   watchlistItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    // borderRadius: 12,
     paddingVertical: 10,
-    marginHorizontal: 25,
+    // borderWidth: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 25,
   },
   watchlistImage: {
     width: 44,

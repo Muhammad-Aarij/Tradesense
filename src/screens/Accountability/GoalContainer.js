@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
     View,
     Text,
@@ -7,26 +7,36 @@ import {
     TouchableOpacity,
     Image,
 } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector,useDispatch } from 'react-redux';
 import { deleteGoal, useGoalsByUser } from '../../functions/Goal';
 import GoalCard from '../../components/GoalCard';
 import { back } from '../../assets/images';
 import theme from '../../themes/theme';
+import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function GoalContainer({ navigation }) {
-    const userId = useSelector(state => state.auth.userId);
-    const { data: goalsData = [] } = useGoalsByUser(userId);
 
+    const userId = useSelector(state => state.auth.userId);
+    const { data: goalsData = [], isLoading } = useGoalsByUser(userId);
+    const queryClient = useQueryClient();
     const [activeGoalFilter, setActiveGoalFilter] = useState("");
     const [selectedFilter, setSelectedFilter] = useState('All');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
     const [localGoals, setLocalGoals] = useState([]);
-
+    const dispatch=useDispatch();
 
     const filterOptions = ['All', 'Weekly', 'Monthly'];
 
+    useEffect(() => {
+        dispatch(startLoading());
+        const timeout = setTimeout(() => {
+            if (!isLoading) dispatch(stopLoading());
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [isLoading]);
+
     const handleEdit = (goal, type) => {
-        // console.log(`Editing ${type}:`, goal);
         navigation.navigate('AddGoal', { goal });
     };
 
@@ -39,9 +49,9 @@ export default function GoalContainer({ navigation }) {
             console.warn(`Failed to delete ${type}:`, result.error);
         } else {
             console.log(`${type} deleted successfully`);
+            queryClient.invalidateQueries(['goals', userId]); // ✅ invalidate the goals query
         }
     };
-
     const filteredGoals = goalsData.filter(goal => {
         const frequency = goal.frequency || '';
         return selectedFilter === 'All' || frequency === selectedFilter;
@@ -156,7 +166,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     sectionTitle: {
-        fontSize: 22,
+        fontSize: 20,
         color: '#fff',
         fontFamily: 'Inter-SemiBold',
     },

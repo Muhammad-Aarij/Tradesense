@@ -38,7 +38,7 @@ const GenderScreen = ({ navigation }) => {
                 {genders.map((gender) => (
                     <TouchableOpacity
                         key={gender.label}
-                        style={[styles.option, selectedGender === gender.label && styles.selectedOption]}
+                        style={[styles.option, selectedGender === gender.value && styles.selectedOption]}
                         onPress={() => handleGenderSelection(gender.value)}
                     >
                         <Image source={gender.icon} style={styles.icon} />
