@@ -7,6 +7,7 @@ import { sendResetEmail } from '../../../functions/passwordService';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { sendOTP } from '../../../functions/otpService';
+import { reset } from 'react-native-track-player/lib/src/trackPlayer';
 
 const { width } = Dimensions.get('window');
 
@@ -21,12 +22,12 @@ const ForgetPassword = ({ navigation }) => {
         }
 
         try {
-            dispatch(startLoading()); 
+            dispatch(startLoading());
             const response = await sendOTP(email, false);
             console.log("Reset email sent:", response);
             dispatch(stopLoading());
             alert("Password reset email sent successfully");
-            navigation.navigate("ResetPassword", { token: response.token }); // Navigate to the next screen
+            navigation.navigate("EmailVerification", { email: email, status: "forget", token: response.token });
         } catch (error) {
             dispatch(stopLoading());
             console.error("Error sending reset email:", error);

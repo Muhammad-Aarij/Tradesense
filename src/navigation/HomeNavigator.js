@@ -9,6 +9,11 @@ import Hamburger from '../components/Hamburger';
 import PlansScreen from '../screens/Courses/Plans/PlansScreen';
 import PlayerScreen from '../screens/TrackPlayer/PlayerScreen';
 import CourseEpisodesScreen from '../screens/Courses/courseEpisodes/CourseEpisodesScreen';
+import VideoPlayerScreen from '../screens/VideoPlayer/VideoPlayer';
+import AddGoal from '../screens/Accountability/addGoal/AddGoal';
+import HabitTracking from '../screens/Accountability/habitTracking/HabitTracking';
+import AccountabilityPartnerChatScreen from '../screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen';
+import Acc_FormData from '../screens/Accountability/formData/Acc_FormData';
 
 const Home = createNativeStackNavigator();
 
@@ -20,7 +25,12 @@ const HomeNavigator = () => {
       <Home.Navigator screenOptions={{ headerShown: false }}>
         <Home.Screen name="BottomTabs" component={BottomNavigator} />
         <Home.Screen name="TrackPlayer" component={PlayerScreen} />
+        <Home.Screen name="VideoPlayer" component={VideoPlayerScreen} />
         <Home.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} />
+        <Home.Screen name="AddGoal" component={AddGoal} />
+        <Home.Screen name="AddHabit" component={HabitTracking} />
+        <Home.Screen name="Acc_FormData" component={Acc_FormData} />
+        <Home.Screen name="ChatScreen" component={AccountabilityPartnerChatScreen} />
       </Home.Navigator>
 
       {isSidebarOpen && <MenuComponent />}

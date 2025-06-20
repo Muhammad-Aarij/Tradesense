@@ -6,6 +6,7 @@ import { age1, age2, age3, age4, age5, age6, bg } from '../../../assets/images';
 const AgeScreen = ({ navigation, route }) => {
     const [selectedAge, setSelectedAge] = useState(null);
     const { request } = route.params || {};
+    const { user, token } = route.params;;
     console.log(request);
 
     const ageGroups = [
@@ -26,7 +27,7 @@ const AgeScreen = ({ navigation, route }) => {
                 ...request,
                 ageRange: selectedAge.label
             };
-            navigation.navigate('GoalScreen', { request: updatedRequest });
+            navigation.navigate('GoalScreen', { request: updatedRequest, user, token });
         }
     };
 

@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Image } from 'react-native';
 import { check, uncheck, bg } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import { fetchGoals } from '../../../functions/profiling';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { ThemeContext } from '../../../context/ThemeProvider';
 
 const GoalsScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
+    const { goalImages, areaImages } = useContext(ThemeContext);
     const [goals, setGoals] = useState([]);
     const [selectedGoals, setSelectedGoals] = useState([]);
+    const { user, token } = route.params;;
     const [request, setRequest] = useState(route.params?.request || {
         gender: null,
         ageRange: null,
@@ -21,9 +24,9 @@ const GoalsScreen = ({ navigation, route }) => {
     useEffect(() => {
 
         const MAX_RETRIES = 5;
-
         const loadGoals = async (retryCount = 0) => {
-            dispatch(startLoading());
+            console.log("get the images staus", goalImages),
+                dispatch(startLoading());
 
             try {
                 const data = await fetchGoals();
@@ -78,7 +81,7 @@ const GoalsScreen = ({ navigation, route }) => {
                             ]}
                             onPress={() => toggleGoal(goal._id)}
                         >
-                            <Image source={{ uri: goal.image }} style={styles.goalIcon} />
+                            {goalImages && <Image source={{ uri: goal.image }} style={styles.goalIcon} />}
                             <Text style={[styles.optionText, selectedGoals.includes(goal._id) && { color: '#70C2E8' }]}>
                                 {goal.text}
                             </Text>
@@ -89,7 +92,7 @@ const GoalsScreen = ({ navigation, route }) => {
                 <TouchableOpacity
                     style={[styles.button, selectedGoals.length === 0 && styles.disabledButton]}
                     disabled={selectedGoals.length === 0}
-                    onPress={() => navigation.navigate('AreasScreen', { request })}
+                    onPress={() => navigation.navigate('AreasScreen', { request, user, token })}
                 >
                     <Text style={styles.buttonText}>Next</Text>
                 </TouchableOpacity>

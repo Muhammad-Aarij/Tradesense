@@ -4,10 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import AuthNavigator from './AuthNavigator';
 import HomeNavigator from './HomeNavigator';
 import ProfilingNavigator from './ProfilingNavigator';
-import Mode from '../components/Mode';
 import Loader from '../components/loader';
 
 import { retrieveToken } from '../redux/slice/authSlice';
+import PillarNavigator from './PillarNavigator';
 
 const AppNavContainer = () => {
     const dispatch = useDispatch();
@@ -22,7 +22,7 @@ const AppNavContainer = () => {
     const renderNavigator = () => {
         if (isSignedIn && userToken) {
             if (!isProfilingDone) {
-                return <ProfilingNavigator />;
+                return <AuthNavigator />;
             }
             return <HomeNavigator />;
         }
@@ -32,6 +32,7 @@ const AppNavContainer = () => {
     return (
         <>
             <NavigationContainer>
+                {/* <PillarNavigator /> */}
                 {renderNavigator()}
             </NavigationContainer>
             {/* <Mode /> */}

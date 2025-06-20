@@ -4,7 +4,8 @@ import theme from '../../../themes/theme';
 import { male, female, third, bg } from '../../../assets/images'; // Ensure correct icons
 const { height } = Dimensions.get('window');
 
-const GenderScreen = ({ navigation }) => {
+const GenderScreen = ({ navigation, route }) => {
+    const { user, token } = route.params;
     const [selectedGender, setSelectedGender] = useState(null);
     const [request, setRequest] = useState({
         "gender": null,
@@ -53,7 +54,7 @@ const GenderScreen = ({ navigation }) => {
                 disabled={!selectedGender}
                 onPress={() => {
                     if (selectedGender) {
-                        navigation.navigate('AgeScreen', { request });
+                        navigation.navigate('AgeScreen', { request, user, token });
                     }
                 }}
             >

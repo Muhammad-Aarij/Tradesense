@@ -1,17 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView } from 'react-native';
 import theme from '../../../themes/theme';
 import { bg, check, uncheck } from '../../../assets/images';
 import setupProfile from '../../../functions/setupProfile';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { setProfilingDone } from '../../../redux/slice/authSlice';
+import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
 import { fetchChosenAreas } from '../../../functions/profiling';
+import { ThemeContext } from '@react-navigation/native';
 
 const AreasScreen = ({ navigation, route }) => {
+    const { areaImages } = useContext(ThemeContext);
     const [selectedAreas, setSelectedAreas] = useState([]);
     const [availableAreas, setAvailableAreas] = useState([]);
-    const { userId } = useSelector(state => state.auth);
+    const { user, token } = route.params;;
+    const userId = user?._id;
     const [request, setRequest] = useState(route.params?.request || {
         gender: null,
         ageRange: null,
@@ -46,18 +49,30 @@ const AreasScreen = ({ navigation, route }) => {
     const handleProfileSetup = async () => {
         try {
             dispatch(startLoading());
+
             const response = await setupProfile(request, userId);
             if (response.error) {
                 console.error('Failed to setup profile:', response.error);
                 return;
             }
+
+            // ✅ Push user & token to Redux
+            await dispatch(loginUser({
+                token: token,
+                user: user,
+                themeType: 'dark', // or read from API/config
+            }));
+
             dispatch(setProfilingDone(true));
+
+
         } catch (err) {
             console.error('Unexpected error during profile setup:', err);
         } finally {
             dispatch(stopLoading());
         }
     };
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>
@@ -73,16 +88,19 @@ const AreasScreen = ({ navigation, route }) => {
                         ]}
                         onPress={() => toggleArea(area._id)}
                     >
-                        <Image
+                        {!areaImages && <Image
                             source={selectedAreas.includes(area._id) ? check : uncheck}
                             style={styles.checkbox}
-                        />
+                        />}
                         <Text style={[
                             styles.tagText,
                             selectedAreas.includes(area._id) && { color: '#70C2E8' },
                         ]}>
                             {area.text}
                         </Text>
+                        {areaImages && <Image source={{ uri: area.image }} style={styles.goalIcon} />}
+
+
                     </TouchableOpacity>
                 ))}
             </ScrollView>
@@ -110,6 +128,7 @@ const styles = StyleSheet.create({
     selectedTag: { backgroundColor: 'rgba(112,194,232,0.3)', borderColor: theme.primaryColor },
     tagText: { color: '#fff', fontFamily: 'Inter-Medium', fontSize: 13 },
     checkbox: { width: 20, height: 25, resizeMode: "contain", marginRight: 10 },
+    goalIcon: { width: 30, height: 30, resizeMode: 'contain', marginRight: 10 },
 
     button: {
         backgroundColor: theme.primaryColor, padding: 15, borderRadius: 10, marginTop: 20, width: '100%', alignItems: 'center', marginBottom: 40,

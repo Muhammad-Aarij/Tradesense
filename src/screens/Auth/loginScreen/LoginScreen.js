@@ -32,18 +32,22 @@ const LoginScreen = ({ navigation }) => {
             setLoading(true);
             dispatch(startLoading());
 
-            // 🌐 Call the actual API
-            const data = await loginApi(username, password); // assuming username = email
+            const data = await loginApi(username, password);
 
-            // ✅ Dispatch login info to Redux
-            await dispatch(loginUser({
-                token: data.token,
-                user: data.user,
-                themeType: 'dark', // adjust as needed
-            }));
-
-            // Optional: redirect depending on profiling
-            // navigation.replace("GenderScreen"); // if needed, remove and let AppNavContainer handle it
+            if (Array.isArray(data.user?.choosenArea) && data.user.choosenArea.length === 0) {
+                // 👣 Navigate to profiling stack
+                navigation.replace("GenderScreen", {
+                    user: data.user,
+                    token: data.token,
+                });
+            } else {
+                // ✅ User already profiled — proceed to Redux + home flow
+                await dispatch(loginUser({
+                    token: data.token,
+                    user: data.user,
+                    themeType: 'dark',
+                }));
+            }
 
         } catch (error) {
             Alert.alert("Login failed", "Please check your credentials and try again.");
@@ -53,6 +57,7 @@ const LoginScreen = ({ navigation }) => {
             dispatch(stopLoading());
         }
     };
+
 
 
     return (

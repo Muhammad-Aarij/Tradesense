@@ -4,8 +4,8 @@ import theme from '../../../themes/theme';
 import { resetPassword } from '../../functions/passwordService';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
-import { startLoading,stopLoading } from '../../../redux/slice/loaderSlice';
-import { bg, lock, G, eyeClose  } from '../../../assets/images';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { bg, lock } from '../../../assets/images';
 
 const { width } = Dimensions.get('window');
 
@@ -14,7 +14,7 @@ const ResetPassword = ({ navigation, route }) => {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const token = route.params?.token || ""; // Get token from previous screen
+    const token = route.params?.token || "";
     const dispatch = useDispatch();
 
     const handleResetPassword = async () => {
@@ -32,7 +32,7 @@ const ResetPassword = ({ navigation, route }) => {
             const response = await resetPassword(token, newPassword);
             console.log("Password reset successful:", response);
             dispatch(stopLoading());
-            alert("Your password has been reset successfully!");
+            // alert("Your password has been reset successfully!");
             navigation.navigate("Login"); // Navigate to login screen
         } catch (error) {
             dispatch(stopLoading());
@@ -42,8 +42,8 @@ const ResetPassword = ({ navigation, route }) => {
     };
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <Image source={lock} style={styles.image} />
+        <ImageBackground style={styles.container}>
+            {/* <Image source={lock} style={styles.image} /> */}
             <View style={styles.bottomcontainer}>
                 <Text style={styles.title}>Reset Password</Text>
                 <Text style={styles.subtitle}>Create your new password</Text>
@@ -53,7 +53,7 @@ const ResetPassword = ({ navigation, route }) => {
                     secureTextEntry={!passwordVisible}
                     value={newPassword}
                     onChangeText={setNewPassword}
-                    icon={passwordVisible ? eyeClose : eyeClose}
+                    // icon={passwordVisible ? eyeClose : eyeClose}
                     onIconPress={() => setPasswordVisible(!passwordVisible)}
                 />
 
@@ -63,7 +63,7 @@ const ResetPassword = ({ navigation, route }) => {
                     secureTextEntry={!passwordVisible}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    icon={passwordVisible ? eyeClose : eyeClose}
+                    // icon={passwordVisible ? eyeClose : eyeClose}
                     onIconPress={() => setPasswordVisible(!passwordVisible)}
                 />
                 <TouchableOpacity style={styles.button} onPress={handleResetPassword}>

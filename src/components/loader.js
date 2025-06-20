@@ -1,54 +1,66 @@
-import React from "react";
-import { StyleSheet, View, Text, ImageBackground } from "react-native";
-import LottieView from "lottie-react-native";
-import theme from "../themes/theme";
-import { bg } from "../assets/images";
+import React, { useState, useEffect } from 'react'
+import { StyleSheet, View, Text, Image } from 'react-native';
+import spinner from '../assets/Spinner.gif'
+import FastImage from 'react-native-fast-image';
+
 
 export default function Loader() {
+  const [loadingText, setLoadingText] = useState('Loading');
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLoadingText(prevText => {
+        const dotCount = (prevText.match(/\./g) || []).length;
+        return dotCount < 3 ? prevText + '.' : 'Loading';
+      });
+    }, 500); // Adjust the interval time as needed
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-<ImageBackground  style={styles.container} resizeMode="cover">
-      {/* <BlurView style={styles.blur} blurType="dark" blurAmount={10} /> */}
-      <View style={styles.overlay}>
-        <LottieView 
-          source={require("../assets/loaderr.json")} 
-          autoPlay 
-          loop 
-          style={styles.animation} 
-        />
-        <Text style={styles.text}>Loading</Text>
+    <View style={[StyleSheet.absoluteFillObject, styles.container]}>
+      <View style={styles.modalView}>
+        <FastImage style={{ opacity: 0.7, width: 170, height: 190 }} source={spinner} />
+        <Text style={styles.modalText}>{loadingText}</Text>
       </View>
-    </ImageBackground>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
- container: {
-  justifyContent: "center",
-  alignItems: "center",
-  width: "100%",
-  height: "100%",
-  backgroundColor:"black"
-},
-
-  blur: {
-    // ...StyleSheet.absoluteFillObject,
-    width: "100%",
-    height: "100%",
-  },
-  overlay: {
+  container: {
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    // backgroundColor:"red",
+    zIndex: 10,
   },
-  animation: {
-    width: 150,
-    height: 150,
+  modalText: {
+    marginBottom: 5,
+    textAlign: 'center',
+    fontWeight: "bold",
+    color: "black",
+    marginBottom: "8%",
+    width: 110, // Set a fixed width for the text container
+    // borderWidth:2,
+    // borderColor: "#33cc66",
   },
-  text: {
-    fontFamily: "Inter-Medium",
-    fontSize: 20,
-    color: theme.primaryColor,
-    marginTop: 10,
+
+  modalView: {
+    margin: 80,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-});
+
+})

@@ -57,8 +57,8 @@ export const useCourseDetail = (courseId) => {
         queryKey: ['courseDetail', courseId],
         queryFn: () => fetchCourseDetail(courseId),
         enabled: !!courseId,
-        onSuccess: () => dispatch(stopLoading()),
-        onError: () => dispatch(stopLoading()),
+        // onSuccess: () => dispatch(stopLoading()),
+        // onError: () => dispatch(stopLoading()),
         retry: 1,
         refetchOnWindowFocus: false
     });

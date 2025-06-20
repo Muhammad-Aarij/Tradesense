@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ImageBackground } from 'react-native';
 import { back, bg, shape, user } from '../../../assets/images';
-import { BlurView } from '@react-native-community/blur';
+// import { BlurView } from '@react-native-community/blur';
 import theme from '../../../themes/theme';
 
 const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
@@ -55,9 +55,10 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                 {/* Header */}
                 <View style={styles.header}>
                     <TouchableOpacity style={styles.blurWrapper} >
-                        <BlurView blurType="dark" blurAmount={20} style={styles.blurView}>
+                        {/* <BlurView blurType="dark" blurAmount={20} style={styles.blurView}> */}
+                        <View style={styles.blurView}>
                             <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
-                        </BlurView>
+                        </View>
                     </TouchableOpacity>
                     <View style={styles.partnerHeaderInfo}>
                         <Image source={user} style={styles.partnerAvatar} />

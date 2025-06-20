@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
     Dimensions,
@@ -85,6 +85,14 @@ const PlansScreen = () => {
         navigation.navigate('PurchasedCoursesScreen');
     };
 
+    // useEffect(()=>{
+    //     dispatch(startLoading);    
+    //     setTimeout(() => {
+
+    //         dispatch(stopLoading);    
+    //     }, 1000);
+    // })
+
     return (
         <>
             {modalVisible && (
@@ -137,8 +145,8 @@ const styles = StyleSheet.create({
     divider: {
         width: '100%',
         marginBottom: 15,
-        borderTopWidth: 1,
-        borderColor: 'rgba(209, 209, 209, 0.46)',
+        borderWidth: 0.7,
+        borderColor: theme.borderColor,
     },
     description: {
         color: '#FFFFFF',

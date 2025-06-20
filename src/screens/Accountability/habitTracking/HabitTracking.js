@@ -127,7 +127,11 @@ export default function HabitTracking({ route }) {
             </ScrollView>
           </KeyboardAvoidingView>
         </>
-        {showModal && <ConfirmationModal title={editingHabit ? "Habit Updated" : "Habit Added!"} message={editingHabit ? "Your habit has been updated successfully" : "Your habit has been added successfully "} onClose={() => setShowModal(false)}
+        {showModal && <ConfirmationModal title={editingHabit ? "Habit Updated" : "Habit Added!"} message={editingHabit ? "Your habit has been updated successfully" : "Your habit has been added successfully "}
+          onClose={() => {
+            setShowModal(false);
+            navigation.navigate("Acc_Stocks")
+          }}
           icon={tick} />}
       </SafeAreaView>
     </ImageBackground>

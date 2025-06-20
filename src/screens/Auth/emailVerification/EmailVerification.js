@@ -7,12 +7,21 @@ import { bg, tick, verify } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { verifyOTP } from '../../../functions/otpService';
+import registerUser from '../../../functions/registerUser';
+import { useDispatch } from 'react-redux';
+import { startLoading ,stopLoading} from '../../../redux/slice/loaderSlice';
 
 
 const { width } = Dimensions.get('window');
 
 const EmailVerification = ({ navigation, route }) => {
     const email = route.params?.email || "";
+    const reset = route.params?.reset || false;
+    const token = route.params?.token || "";
+    const userData = route.params?.userData || null;
+    const status = route.params?.status || "";
+    const dispatch = useDispatch();
+
     const [code, setCode] = useState(['', '', '', '']);
     const inputs = useRef([]);
 
@@ -32,6 +41,7 @@ const EmailVerification = ({ navigation, route }) => {
         if (nativeEvent.key === 'Backspace' && code[index] === '' && index > 0) {
             inputs.current[index - 1].focus();
         }
+
     };
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -39,25 +49,44 @@ const EmailVerification = ({ navigation, route }) => {
     const handleVerify = async () => {
         console.log("Verifying OTP for email");
         const otp = code.join("");
+
         if (otp.length !== 4) {
             alert("Please enter a 4-digit OTP");
             return;
         }
 
         try {
-            // console.log(email, "Verifying OTP:", otp);
-            const response = await verifyOTP("aarijm5@gmail.com", otp); // Pass both email and OTP
+            dispatch(startLoading());
+
+            const response = await verifyOTP(email, otp);
+
             if (response?.message === "OTP verified") {
                 console.log("OTP Verified successfully");
 
-                // Show confirmation modal
-                setModalVisible(true);
+                if (status === "register") {
+                    try {
+                        const regResponse = await registerUser(userData);
+                        if (regResponse) {
+                            console.log("User registered successfully:", regResponse);
+                            setModalVisible(true); // Show success modal
 
-                // Wait for 2 seconds before navigating
-                setTimeout(() => {
-                    setModalVisible(false);
-                    navigation.navigate("GenderScreen"); // Navigate to next screen
-                }, 2000);
+                            setTimeout(() => {
+                                dispatch(stopLoading());
+                                navigation.navigate("Login"); // Navigate after delay
+                            }, 2000);
+                        } else {
+                            alert("Registration failed.");
+                            console.error("No response from registerUser.");
+                        }
+                    } catch (regError) {
+                        console.error("Registration failed:", regError);
+                        alert("Something went wrong during registration.");
+                    }
+                } else {
+                    dispatch(stopLoading());
+                    navigation.navigate("ResetPassword", { email, token });
+                }
+
             } else {
                 alert("Invalid OTP, please try again.");
                 console.error("OTP verification failed");
@@ -65,6 +94,8 @@ const EmailVerification = ({ navigation, route }) => {
         } catch (error) {
             console.error("Error verifying OTP:", error);
             alert("An error occurred, please try again.");
+        } finally {
+            dispatch(stopLoading());
         }
     };
 

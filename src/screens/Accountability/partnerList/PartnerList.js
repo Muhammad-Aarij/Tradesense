@@ -58,7 +58,7 @@ const AccountabilityPartnerListScreen = ({ navigation }) => {
                     <TouchableOpacity
                         key={partner.id}
                         style={styles.partnerItem}
-                        onPress={() => navigation?.navigate('AccountabilityPartnerChatScreen', { partnerId: partner.id, partnerName: partner.name, partnerAvatar: partner.avatar, isOnline: partner.isOnline })}
+                        onPress={() => navigation?.navigate('ChatScreen', { partnerId: partner.id, partnerName: partner.name, partnerAvatar: partner.avatar, isOnline: partner.isOnline })}
                     >
                         <View style={styles.partnerAvatarContainer}>
                             <Image source={partner.avatar} style={styles.partnerAvatar} />

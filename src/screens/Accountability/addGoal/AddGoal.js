@@ -173,7 +173,9 @@ export default function AddGoal({ route, navigation }) {
                   : "Your goal has been added successfully."
               }
               icon={tick}
-              onClose={() => setShowConfirmationModal(false)}
+              onClose={() => {setShowConfirmationModal(false);
+                navigation.navigate("Acc_Stocks")
+              }}
             />
           )}
         </KeyboardAvoidingView>
@@ -181,6 +183,7 @@ export default function AddGoal({ route, navigation }) {
     </ImageBackground>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

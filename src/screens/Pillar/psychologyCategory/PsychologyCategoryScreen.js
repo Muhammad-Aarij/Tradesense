@@ -1,45 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Image, ImageBackground, Dimensions } from 'react-native';
 import TopMenuScroll from '../TopMenuScroll';
-import { afirm, audio, bg, calm, circleTop, meditation, mobile, success, video, video1, video2, video3, videoY } from '../../../assets/images';
 import AudioCard from '../AudioCard';
 import VideoCard from '../VideoCard';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
-import { useResources } from '../../../functions/PillarsFunctions';
+import { useResources, useAllPillars } from '../../../functions/PillarsFunctions';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { bg, circleTop, pillar } from '../../../assets/images';
+
 const { height, width } = Dimensions.get('window');
-
-// const mockAudios = [
-//     { id: 'a1', title: 'The Power of Mindfulness', duration: '5 min', isLiked: false },
-//     { id: 'a2', title: 'Daily Gratitude Practice', duration: '8 min', isLiked: true },
-//     { id: 'a3', title: 'Focus and Productivity', duration: '6 min', isLiked: false },
-// ];
-
-// const mockVideos = [
-//     { id: 'v1', title: "Psychology", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video1 },
-//     { id: 'v2', title: "Meditation", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video2 },
-//     { id: 'v3', title: "Fitness", descr: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry.', image: video3 },
-// ];
-
 
 const PsychologyCategoryScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
-    const { name, categories } = route.params;
-    const [selectedTopCategory, setSelectedTopCategory] = useState(() => categories?.[0] || '');
 
+    const { data: allPillars = [], isLoading: isLoadingPillars } = useAllPillars();
+
+    const [pillarName, setPillarName] = useState(route.params?.name || '');
+    const [categories, setCategories] = useState(route.params?.categories || []);
+    const [selectedTopCategory, setSelectedTopCategory] = useState(route.params?.categories?.[0] || '');
+
+    // Fallback: Load first pillar if no route data
     useEffect(() => {
-        if (categories?.length > 0) {
-            setSelectedTopCategory(categories[0]);
+        if ((!pillarName || categories.length === 0) && allPillars.length > 0) {
+            const firstPillar = allPillars[0];
+            setPillarName(firstPillar.name);
+            setCategories(firstPillar.categories);
+            setSelectedTopCategory(firstPillar.categories?.[0] || '');
         }
-    }, [categories]);
+    }, [allPillars]);
 
     const {
         data: audios = [],
         isLoading: isLoadingAudios,
     } = useResources({
-        name,
+        name: pillarName,
         category: selectedTopCategory,
         type: 'audio',
     });
@@ -48,11 +44,10 @@ const PsychologyCategoryScreen = ({ navigation, route }) => {
         data: videos = [],
         isLoading: isLoadingVideos,
     } = useResources({
-        name,
+        name: pillarName,
         category: selectedTopCategory,
         type: 'video',
     });
-
 
     useEffect(() => {
         dispatch(startLoading());
@@ -72,7 +67,7 @@ const PsychologyCategoryScreen = ({ navigation, route }) => {
                     <Header title={""} />
                 </View>
                 <Image source={circleTop} style={styles.topImg} />
-                <Text style={styles.title}>{name}</Text>
+                <Text style={styles.title}>{pillarName}</Text>
                 {/* Top Menu Scroll */}
                 {categories?.length > 0 && (
                     <TopMenuScroll
@@ -151,10 +146,13 @@ const PsychologyCategoryScreen = ({ navigation, route }) => {
                                         duration={item.duration}
                                         imageSource={item.thumbnail}
                                         decription={item.description}
-                                        onPress={() => {
-                                            console.log(`Play video: ${item.title}`);
-                                            // handleNavigation('VideoPlayer'); // Example of intended navigation
-                                        }}
+
+                                        onPress={() => navigation.navigate('VideoPlayer', {
+                                            VideoTitle: item.title,
+                                            VideoDescr: item.description,
+                                            Thumbnail: item.thumbnail,
+                                            VideoUrl: item.url,
+                                        })}
                                     />
                                 )}
                             />

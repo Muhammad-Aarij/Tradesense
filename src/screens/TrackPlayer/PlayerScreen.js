@@ -12,7 +12,7 @@ import TrackPlayer, {
     useProgress,
 } from 'react-native-track-player';
 import { back, next, repeat, skip, stop, user, shuffleIcon, play, mountain, playb } from '../../assets/images';
-import { BlurView } from '@react-native-community/blur';
+// import { BlurView } from '@react-native-community/blur';
 import theme from '../../themes/theme';
 
 const { width } = Dimensions.get('window');
@@ -116,11 +116,11 @@ const PlayerScreen = ({ route }) => {
 
     return (
         <ImageBackground source={{ uri: Thumbnail }} style={styles.container}>
-            <BlurView
-                style={StyleSheet.absoluteFill}
-                blurType="dark" // 'light', 'dark', 'extraLight' on iOS
-                blurAmount={5}
-                reducedTransparencyFallbackColor="#C0C0C0"
+            <View
+                style={[StyleSheet.absoluteFill, styles.blurOverlay]}
+            // blurType="dark" // 'light', 'dark', 'extraLight' on iOS
+            // blurAmount={5}
+            // reducedTransparencyFallbackColor="#C0C0C0"
             />
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Main Album Art & Info */}
@@ -191,13 +191,23 @@ const styles = StyleSheet.create({
         padding: 30,
         paddingBottom: 0,
     },
+    blurOverlay: {
+        backgroundColor: 'rgba(12, 12, 12, 0.5)', // Translucent white for light glass
+        // borderColor: 'rgba(255, 255, 255, 0.3)',
+        // borderWidth: 1,
+        backdropFilter: 'blur(10px)', // Only for web — won’t apply natively
+        shadowColor: '#fff',
+        shadowOffset: { width: -2, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+    },
     scrollContent: {
-        alignItems: 'center', // Center content horizontally
-        paddingBottom: 80, // Space for mini player if active or bottom controls
+        alignItems: 'center',
+        paddingBottom: 80,
     },
     albumArtContainer: {
-        width: "100%", // Roughly 80% of screen width
-        height: width * 0.8 * (431 / 323), // Maintain aspect ratio from image 323x431
+        width: "100%",
+        height: width * 0.8 * (431 / 323),
         borderRadius: 20,
         overflow: 'hidden',
         marginTop: 20,
@@ -207,7 +217,7 @@ const styles = StyleSheet.create({
     },
     albumArt: {
         flex: 1,
-        justifyContent: 'flex-end', // Align overlay to bottom
+        justifyContent: 'flex-end',
         alignItems: 'flex-start',
     },
     albumArtOverlay: {
@@ -217,7 +227,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flex: 1,
         padding: 15,
-        backgroundColor: 'rgba(0,0,0,0.4)', // Semi-transparent overlay for text
+        backgroundColor: 'rgba(0,0,0,0.4)',
     },
     artistInfo: {
         flexDirection: 'row',
@@ -228,7 +238,7 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
         marginRight: 10,
-        backgroundColor: '#666', // Placeholder background
+        backgroundColor: '#666',
     },
     artistName: {
         color: '#FFFFFF',
@@ -264,11 +274,11 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 12,
         fontFamily: "Inter-Regular",
-        width: 35, // Fixed width for time display
+        width: 35,
         textAlign: 'center',
     },
     progressBar: {
-        flex: 1, // Take up remaining space
+        flex: 1,
         marginHorizontal: 10,
     },
     controlsContainer: {
@@ -311,7 +321,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 15,
     },
     playPauseIcon: {
-        width: 20, // Icon size within the button
+        width: 20,
         height: 20,
         tintColor: '#FFFFFF',
         resizeMode: 'contain',

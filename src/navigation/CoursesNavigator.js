@@ -23,7 +23,7 @@ const CoursesNavigator = () => {
       <CoursesStack.Screen name="OurCoursesScreen" component={OurCoursesScreen} />
       <CoursesStack.Screen name="CourseDetailScreen" component={CourseDetailScreen} />
       <CoursesStack.Screen name="PurchasedCoursesScreen" component={PurchasedCoursesScreen} />
-      <CoursesStack.Screen name="PlansScreen" component={PlansScreen} />
+      <CoursesStack.Screen name="PlansScreen" component={PlansScreen} detachInactiveScreens={false} />
       <CoursesStack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       {/* <CoursesStack.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} /> */}
       {/* <CoursesStack.Screen name="TrackPlayer" component={PlayerScreen} /> */}

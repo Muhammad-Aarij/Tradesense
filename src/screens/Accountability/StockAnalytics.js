@@ -31,7 +31,7 @@ const AccountabilityScreen = ({ navigation }) => {
 
       {/* Balance Section */}
       <View style={styles.balanceSection}>
-        <Text style={{ fontSize: 13, color: "gray", fontFamily: "Barlow-Regular", textTransform: "uppercase", marginBottom: 7 }}>Total Amount</Text>
+        <Text style={{ fontSize: 13, color: "gray", fontFamily: "Inter-Thin-BETA", textTransform: "uppercase", marginBottom: 7 }}>Total Amount</Text>
         <Text style={{ fontSize: 13, color: "black", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 5, fontFamily: "Inter-Medium", backgroundColor: "#0EEF9E", marginBottom: 15, }}>Demo</Text>
         <Text style={styles.balanceAmount}>€9,968.00</Text>
         <Text style={{ fontSize: 13, color: "white", fontFamily: "Barlow-Regular", marginBottom: 7 }}>
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   balanceAmount: {
     fontSize: 44,
-    fontFamily: "Barlow-Light",
+    fontFamily: "Inter-Thin-BETA",
     color: 'white',
     marginBottom: 10,
   },
@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   watchlistItemName: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 13,
+    fontFamily: "Barlow-Thin",
     color: '#E0E0E0',
   },
   watchlistItemValue: {

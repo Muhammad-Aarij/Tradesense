@@ -51,7 +51,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
 
         </View>
         <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{course.title}</Text>
+            <Text style={styles.cardTitle}>{course.title || "Untitled Course"}</Text>
             <Text style={styles.cardDescription} numberOfLines={course.type == "Affiliate" ? 2 : 3}>
                 {course.description}
             </Text>
@@ -60,7 +60,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                 <View style={{ flexDirection: "row" }}>
                     <Image source={user} style={styles.instructorImage} />
                     <View style={{ flexDirection: "column" }}>
-                        <Text style={styles.instructorName}>{course.instructorName}</Text>
+                        <Text>{course.instructorName || "Unknown Instructor"}</Text>
                         <Text style={styles.instructorSubtitle}>{course.instructorExperienceLevel}</Text>
                     </View>
                 </View>

@@ -118,7 +118,7 @@ const MenuComponent = ({ visible, }) => { // Removed 'onClose' prop as it's hand
                             <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("AccountabilityPartner", "Accountability") }}>
                                 <Text style={styles.menuItem}>Accountability Partner</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("ChatScreen", "Accountability") }}>
+                            <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("ChatScreen") }}>
                                 <Text style={styles.menuItem}>Chat</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("Gamification", "Accountability") }}>

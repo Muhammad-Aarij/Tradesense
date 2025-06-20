@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 17,
         color: '#fff',
         fontFamily: 'Inter-SemiBold',
     },

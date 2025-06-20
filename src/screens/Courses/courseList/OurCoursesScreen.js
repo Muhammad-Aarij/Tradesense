@@ -32,7 +32,7 @@ const OurCoursesScreen = ({ navigation }) => {
     setTimeout(() => {
       setRefreshing(false);
       dispatch(stopLoading());
-    }, 2000); 
+    }, 2000);
   }, [refetch]);
 
   const renderCourseItem = ({ item }) => (
@@ -45,8 +45,8 @@ const OurCoursesScreen = ({ navigation }) => {
       description={item.description}
       profileImage={user}
       profileName={item.instructorName}
-      profileRole={item.instructorExperienceLevel}
-      price={item.isPremium ? `${item.price} $` : 'Free'}
+      // profileRole={item.instructorExperienceLevel}
+      price={`${item.price} $`}
       onPress={() =>
         navigation.navigate('CourseDetailScreen', {
           courseId: item._id,
@@ -84,7 +84,7 @@ const OurCoursesScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#08131F', paddingTop: 20, padding: 10, paddingBottom: height*0.1 },
+  container: { flex: 1, backgroundColor: '#08131F', paddingTop: 20, padding: 10, paddingBottom: height * 0.2   },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#08131F' },
   columnWrapper: { justifyContent: 'space-between', paddingHorizontal: 16 },
   contentContainer: { paddingBottom: 20 }

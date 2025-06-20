@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
-import { BlurView } from '@react-native-community/blur';
+// import { BlurView } from '@react-native-community/blur';
 import theme from '../themes/theme';
 
 const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = true }) => {
     return (
         <Modal transparent animationType="fade" visible={isVisible} onRequestClose={onClose}>
             <View style={styles.overlay}>
-                <BlurView style={styles.blurContainer} blurType="dark" blurAmount={1} />
+                {/* <BlurView style={styles.blurContainer} blurType="dark" blurAmount={1} /> */}
+                <View style={styles.blurContainer} />
                 <View style={styles.modalContainer}>
                     {icon && <Image source={icon} style={styles.icon} />}
                     <Text style={styles.title}>{title}</Text>

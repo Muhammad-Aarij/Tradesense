@@ -35,10 +35,10 @@ const CourseCard = ({ imageSource, time, title, rating, description, profileImag
         <TouchableOpacity style={cardStyles.card} onPress={onPress}>
             <View style={cardStyles.imageWrapper}>
                 <Image source={imageSource} style={cardStyles.cardImage} />
-                <View style={cardStyles.timeOverlay}>
-                    <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
-                    <Text style={cardStyles.timeText}>{time}</Text>
-                </View>
+                {/* <View style={cardStyles.timeOverlay}> */}
+                    {/* <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} /> */}
+                    {/* <Text style={cardStyles.timeText}>{time}</Text> */}
+                {/* </View> */}
             </View>
             <View style={cardStyles.content}>
                 <Text style={cardStyles.title} numberOfLines={2}>{title}</Text>
@@ -46,10 +46,10 @@ const CourseCard = ({ imageSource, time, title, rating, description, profileImag
                 <StarRating rating={rating} />
                 <View style={cardStyles.footer}>
                     <View style={cardStyles.profileInfo}>
-                        {/* <Image source={profileImage} style={cardStyles.profileImage} /> */}
+                        <Image source={profileImage} style={cardStyles.profileImage} />
                         <View>
                             <Text style={cardStyles.profileName}>{profileName}</Text>
-                            <Text style={cardStyles.profileRole}>{profileRole}</Text>
+                            {/* <Text style={cardStyles.profileRole}>{profileRole}</Text> */}
                         </View>
                     </View>
                     <Text style={cardStyles.price}>{price}</Text>

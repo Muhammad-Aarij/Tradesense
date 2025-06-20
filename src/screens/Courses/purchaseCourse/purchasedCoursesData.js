@@ -33,16 +33,25 @@ const PurchasedCoursesScreen = () => {
     }, [isLoading]);
 
     const renderItem = ({ item }) => (
-        console.log(item.courseId, item.courseTitle, item.courseImage),
         < PurchasedCourseCard
             course={item}
             showplaybtn={false}
             showUrl={false}
-            onPress={() => navigation.navigate('CourseEpisodesScreen', {
-                courseId: item._id,
-                courseTitle: item.title,
-                courseImage: item.thumbnail
-            })}
+            onPress={() => {
+                try {
+                    if (item._id && item.title && item.thumbnail) {
+                        navigation.navigate('CourseEpisodesScreen', {
+                            courseId: item._id,
+                            courseTitle: item.title,
+                            courseImage: item.thumbnail
+                        });
+                    } else {
+                        console.warn("Incomplete item data:", item);
+                    }
+                } catch (e) {
+                    console.error("Navigation error:", e);
+                }
+            }}
         />
     );
 

@@ -24,32 +24,41 @@ const SignUp = ({ navigation }) => {
     const dispatch = useDispatch();
 
     const handleSignUp = async () => {
-
         if (password !== confirmPassword) {
             Alert.alert("Passwords do not match!");
             return;
         }
+
         const userData = { name, phone, email, password, role: "user" };
+
         try {
             dispatch(startLoading());
-            const response = await registerUser(userData);
-            if (response) {
-                console.log("User registered successfully:", response);
-                await sendOTP(email, true);
-                console.log("OTP sent successfully",);
-                dispatch(stopLoading());
-                navigation.navigate("EmailVerification", { email: email });
 
+            const response = await sendOTP(email, true);
+            console.log("OTP sent successfully");
+
+            if (response) {
+                dispatch(stopLoading());
+                navigation.navigate("EmailVerification", {
+                    email: email,
+                    userData: userData,
+                    status: "register",
+                });
             } else {
                 dispatch(stopLoading());
-
-                Alert.alert("Registration failed", "Please try again");
-                console.error("Registration failed");
+                Alert.alert("OTP confirmation failed", "Please try again");
+                console.error("OTP failed");
             }
         } catch (error) {
+            dispatch(stopLoading());
+
+            const serverMessage =
+                error?.response?.data?.message || "Something went wrong. Please try again.";
+            Alert.alert("Error", serverMessage);
             console.error("Error signing up:", error);
         }
     };
+
 
 
     return (

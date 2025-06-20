@@ -1,7 +1,7 @@
 import React from "react";
 import { View, TouchableOpacity, Text, Image, StyleSheet, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BlurView } from "@react-native-community/blur"; // or "expo-blur"
+// import { BlurView } from "@react-native-community/blur"; // or "expo-blur"
 import { homeT, pillar, course, affiliate, userT } from "../assets/images";
 import theme from "../themes/theme";
 
@@ -21,11 +21,15 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
   return (
     <View style={[styles.tabBarWrapper, { paddingBottom: insets.bottom }]}>
       {/* ✅ Blur only the background */}
-      <BlurView
-        style={StyleSheet.absoluteFill}
-        blurType="light"
-        blurAmount={25}
-        reducedTransparencyFallbackColor="rgba(255,255,255,0.9)"
+      <View
+        style={[StyleSheet.absoluteFill, {
+          backgroundColor: 'rgba(255, 255, 255, 0.09)',
+          borderWidth: 0.9, borderColor: theme.borderColor,
+          borderRadius: 8,
+        }]}
+      // blurType="light"
+      // blurAmount={25}
+      // reducedTransparencyFallbackColor="rgba(255,255,255,0.9)"
       />
 
       {/* ✅ Foreground content unchanged */}
@@ -68,7 +72,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     marginBottom: 20,
     borderRadius: 50,
-    height: 60,
+    height: 70,
     alignItems: "center",
     justifyContent: "space-around",
     paddingHorizontal: 10,

@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageBackground, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../../../components/Header';
 import { bank, bg, blueArrow, googlePay, PayPal } from '../../../assets/images';
 import theme from '../../../themes/theme';
+
+const { height } = Dimensions.get("window");
 
 const withdrawalHistoryData = [
     { id: 'wh1', type: 'PayPal', amount: '$345', status: 'completed' },
@@ -14,7 +16,7 @@ const withdrawalHistoryData = [
     { id: 'wh6', type: 'Bank', amount: '$345', status: 'pending' },
 ];
 
-const WithdrawScreen = ({navigation}) => {
+const WithdrawScreen = ({ navigation }) => {
     //   const navigation = useNavigation();
 
     const getIconForType = (type) => {
@@ -43,7 +45,7 @@ const WithdrawScreen = ({navigation}) => {
                     style={styles.withdrawButton}
                     onPress={() => {
                         if (navigation && navigation.navigate) {
-                            navigation.navigate('WithdrawDetailScreen'); 
+                            navigation.navigate('WithdrawDetailScreen');
                         } else {
                             console.warn("Navigation navigate not available.");
                         }
@@ -77,7 +79,7 @@ const WithdrawScreen = ({navigation}) => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#08131F', padding: 25, paddingVertical: 0 },
+    container: { flex: 1, backgroundColor: '#08131F', padding: 25, paddingTop: 20, paddingBottom: height * 0.1 },
 
     scrollContent: {
         // paddingHorizontal: 16,
