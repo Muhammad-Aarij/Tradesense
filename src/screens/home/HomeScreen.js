@@ -10,6 +10,7 @@ import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
 import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import { useDispatch } from 'react-redux';
+import { initializeTrackPlayer } from '../../utils/initializeTrackPlayer';
 
 const { width, height } = Dimensions.get("window");
 
@@ -26,6 +27,10 @@ const HomeScreen = ({ navigation }) => {
     }, 2000);
     return () => clearTimeout(timeout);
   }, [isLoading]);
+
+  // useEffect(() => {
+  //   // initializeTrackPlayer();
+  // }, [])
 
 
   return (
@@ -47,10 +52,10 @@ const HomeScreen = ({ navigation }) => {
           </View>
 
           {/* Main Content Row */}
-          <View style={{ flexDirection: "row", width: "100%", gap: 15 }}>
+          <View style={{ flexDirection: "row", width: "100%", gap: 10 }}>
 
             {/* Left Column */}
-            <View style={{ flexDirection: "column", width: "45%", height: "100%" }}>
+            <View style={{ flexDirection: "column", width: "47%", height: "100%" }}>
               {/* Mindfulness Section */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Mindfulness & Motivation</Text>
@@ -149,7 +154,7 @@ const getStyles = (theme) => StyleSheet.create({
   greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Inter-Regular' },
   username: { color: theme.textColor, fontSize: 12, fontFamily: 'Inter-Medium' },
   section: {
-    marginBottom: 15,
+    marginBottom: 10,
     width: "100%",
     borderWidth: 1,
     borderColor: theme.borderColor,
@@ -159,8 +164,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionTitle: {
     color: theme.textColor,
-    fontSize: 16.5,
-    fontFamily: 'Inter-Light-BETA',
+    fontSize: 15,
+    fontFamily: 'Inter-Thin-BETA',
     marginBottom: 5,
   },
   card: {},

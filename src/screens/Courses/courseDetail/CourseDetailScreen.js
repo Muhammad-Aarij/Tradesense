@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -18,6 +18,7 @@ import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useCourseDetail } from '../../../functions/handleCourses';
 import Loader from '../../../components/loader';
+import Sound from 'react-native-sound';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,7 +26,7 @@ const CourseDetailScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const dispatch = useDispatch();
-
+    const [durations, setDurations] = useState({});
     const { courseId, courseTitle } = route.params || {};
     const {
         data: course,
@@ -33,24 +34,16 @@ const CourseDetailScreen = () => {
         error,
     } = useCourseDetail(courseId);
 
-    // useEffect(() => {
-    //     dispatch(startLoading());
-    //     const timeout = setTimeout(() => {
-    //         if (!isLoading) dispatch(stopLoading());
-    //     }, 2000);
-    //     return () => clearTimeout(timeout);
-    // }, [isLoading]);
+    useEffect(() => {
+        dispatch(startLoading());
+        const timeout = setTimeout(() => {
+            if (!isLoading) dispatch(stopLoading());
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [isLoading]);
 
 
     const modules = course?.courseModules || [];
-
-    // if (isLoading) {
-    //     return (
-    //         <View style={styles.centered}>
-    //             <ActivityIndicator size="large" color={theme.primaryColor} />
-    //         </View>
-    //     );
-    // }
 
     if (error) {
         return (
@@ -59,6 +52,40 @@ const CourseDetailScreen = () => {
             </View>
         );
     }
+    const getAudioDuration = (url, id) => {
+        const sound = new Sound(url, null, (error) => {
+            if (error) {
+                console.log(`Failed to load sound for ${id}:`, error);
+                return;
+            }
+            const duration = sound.getDuration();
+            setDurations(prev => ({ ...prev, [id]: duration }));
+            sound.release(); // good practice
+        });
+    };
+
+
+    useEffect(() => {
+        modules.forEach(episode => {
+            if (episode.url && !durations[episode._id]) {
+                getAudioDuration(episode.url, episode._id);
+            }
+        });
+    }, [modules]);
+
+    const formatDuration = (durationInSeconds) => {
+        const hrs = Math.floor(durationInSeconds / 3600);
+        const mins = Math.floor((durationInSeconds % 3600) / 60);
+
+        if (hrs > 0) {
+            return `${hrs}h ${mins}min`;
+        } else {
+            return `${mins}min`;
+        }
+    };
+
+
+
 
     return (
         <>
@@ -76,8 +103,8 @@ const CourseDetailScreen = () => {
                             <View style={styles.imageOverlay}>
                                 <View style={styles.overlayTop}>
                                     <View style={styles.timeBadge}>
-                                        {/* <Image source={play} style={{ width: 10, height: 10, resizeMode: 'contain' }} /> */}
-                                        {/* <Text style={styles.timeBadgeText}>15min</Text> */}
+                                        {/* <Image source={play} style={{ width: 10, height: 10, resizeMode: 'contain' }} />
+                                        <Text style={styles.timeBadgeText}>15min</Text> */}
                                     </View>
                                     <View style={styles.instructorInfo}>
                                         <Image source={user} style={styles.instructorImage} />
@@ -106,6 +133,9 @@ const CourseDetailScreen = () => {
                                         <Text style={styles.audioTitle}>{module.title}</Text>
                                     </View>
                                     <Text style={styles.audioDuration}>
+                                        {durations[module._id]
+                                            ? formatDuration(durations[module._id])
+                                            : 'Loading...'}
                                         {/* {`${Math.floor(Math.random() * 10) + 5} min`} */}
                                     </Text>
                                     <Text style={styles.audioDescription}>{module.description}</Text>
@@ -149,11 +179,11 @@ const styles = StyleSheet.create({
         // marginBottom: 20,
     },
     mainCourseImage: { width: '100%', height: '100%', resizeMode: 'cover', position: 'relative' },
-    imgOverlay: { position: 'absolute', width: '100%', height: '100%', backgroundColor: 'rgba(31, 30, 30, 0.7)', zIndex: 10 },
+    imgOverlay: { position: 'absolute', width: '100%', height: '100%', backgroundColor: 'rgba(31, 30, 30, 0.4)', zIndex: 10 },
     imageOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 15 },
     overlayTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
     timeBadge: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(119, 119, 119, 0.66)',
+        flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(119, 119, 119, 0)',
         borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, zIndex: 100,
     },
     timeBadgeText: { color: '#FFFFFF', fontSize: 12, marginLeft: 5 },
@@ -165,13 +195,13 @@ const styles = StyleSheet.create({
     courseDescription: { color: '#FFFFFF', fontSize: 13, lineHeight: 20, fontFamily: 'Inter-Light-BETA' },
     audiosSection: { paddingVertical: 10, gap: 10 },
     audioItem: {
-        padding: 14,paddingVertical:16, borderRadius: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        padding: 14, paddingVertical: 16, borderRadius: 10,
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
         borderWidth: 1, borderColor: theme.borderColor,
     },
     audioLeft: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     audioTitle: { color: '#FFFFFF', fontSize: 16, fontFamily: 'Inter-Medium' },
-    audioDuration: { color: '#AAAAAA', fontFamily: 'Inter-Light-BETA', fontSize: 12, marginBottom:0},
+    audioDuration: { color: '#AAAAAA', fontFamily: 'Inter-Light-BETA', fontSize: 12, marginBottom: 10, },
     audioDescription: { color: '#FFFFFF', fontFamily: 'Inter-Light-BETA', fontSize: 13, lineHeight: 12 },
     buyNowButton: { backgroundColor: theme.primaryColor, width: '100%', padding: 15, borderRadius: 14, marginTop: 20, alignItems: 'center' },
     buyNowButtonText: { color: '#fff', fontSize: 17, fontWeight: '600', fontFamily: 'Inter-SemiBold' },

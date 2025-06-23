@@ -13,6 +13,7 @@ import {
 import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import { useNavigation } from '@react-navigation/native';
 import { bg, heart, heartOutline, mountain, pause, play, stop, user } from '../../../assets/images';
+import Sound from 'react-native-sound';
 import theme from '../../../themes/theme';
 import Header from '../../../components/Header';
 import { addToFavorites, deleteFavorite, useCourseDetail } from '../../../functions/handleCourses';
@@ -31,7 +32,7 @@ const CourseEpisodesScreen = ({ route }) => {
     const playbackState = usePlaybackState();
     const isPlaying = playbackState.state === State.Playing;
     const userId = useSelector(state => state.auth);
-
+    const [durations, setDurations] = useState({});
     const modules = course?.courseModules || [];
 
     useEffect(() => {
@@ -42,27 +43,71 @@ const CourseEpisodesScreen = ({ route }) => {
         return () => clearTimeout(timeout);
     }, [isLoading]);
 
-    useEffect(() => {
-        TrackPlayer.setupPlayer();
-        TrackPlayer.updateOptions({
-            stopWithApp: true,
-            capabilities: [
-                TrackPlayer.CAPABILITY_PLAY,
-                TrackPlayer.CAPABILITY_PAUSE,
-            ],
-        });
+    // useEffect(() => {
+    //     TrackPlayer.setupPlayer();
+    //     TrackPlayer.updateOptions({
+    //         stopWithApp: true,
+    //         capabilities: [
+    //             TrackPlayer.CAPABILITY_PLAY,
+    //             TrackPlayer.CAPABILITY_PAUSE,
+    //         ],
+    //     });
 
-        return () => {
-            // TrackPlayer.reset();
-        };
-    }, []);
+    //     return () => {
+    //         // TrackPlayer.reset();
+    //     };
+    // }, []);
+
+    const getAudioDuration = (url, id) => {
+        const sound = new Sound(url, null, (error) => {
+            if (error) {
+                console.log(`Failed to load sound for ${id}:`, error);
+                return;
+            }
+            const duration = sound.getDuration();
+            setDurations(prev => ({ ...prev, [id]: duration }));
+            sound.release(); // good practice
+        });
+    };
+
+
+    useEffect(() => {
+        modules.forEach(episode => {
+            if (episode.url && !durations[episode._id]) {
+                getAudioDuration(episode.url, episode._id);
+            }
+        });
+    }, [modules]);
+
+    const formatDuration = (durationInSeconds) => {
+        const hrs = Math.floor(durationInSeconds / 3600);
+        const mins = Math.floor((durationInSeconds % 3600) / 60);
+        const secs = Math.floor(durationInSeconds % 60);
+
+        const padded = (val) => val.toString().padStart(2, '0');
+        return `${hrs}:${padded(mins)}:${padded(secs)}`;
+    };
+
+
+
 
     const playEpisode = async (episode) => {
         try {
+            // ✅ Check if TrackPlayer is already initialized
+            const isInitialized = await TrackPlayer.getState()
+                .then(() => true)
+                .catch(() => false); // If error, not initialized
+
+            if (!isInitialized) {
+                console.log("🛠 Setting up TrackPlayer...");
+                await TrackPlayer.setupPlayer();
+            }
+
+            // ✅ Reset and load the new episode
             await TrackPlayer.reset();
             await TrackPlayer.add({
                 id: episode._id,
-                url: episode.url, // Ensure this is a valid audio URL
+                url: episode.url,
                 title: episode.title,
                 artist: course?.instructorName || "Instructor",
                 artwork: courseImage,
@@ -70,9 +115,10 @@ const CourseEpisodesScreen = ({ route }) => {
             await TrackPlayer.play();
             setCurrentEpisode(episode);
         } catch (error) {
-            console.log('Error playing episode:', error);
+            console.log('❌ Error playing episode:', error);
         }
     };
+
 
     const togglePlayback = async () => {
         const currentState = await TrackPlayer.getState();
@@ -110,6 +156,7 @@ const CourseEpisodesScreen = ({ route }) => {
     };
 
 
+
     return (
         <ImageBackground source={bg} style={styles.container}>
             <SafeAreaView>
@@ -124,9 +171,9 @@ const CourseEpisodesScreen = ({ route }) => {
                         <View style={styles.imageOverlay}>
                             <View style={styles.overlayTop}>
                                 {/* <View style={styles.timeBadge}>
-                                <Image source={play} style={{ width: 10, height: 10 }} />
-                                <Text style={styles.timeBadgeText}>15min</Text>
-                            </View> */}
+                                    <Image source={play} style={{ width: 10, height: 10 }} />
+                                    <Text style={styles.timeBadgeText}>15min</Text>
+                                </View> */}
                                 <View style={styles.instructorInfo}>
                                     <Image source={user} style={styles.instructorImage} />
                                     <View>
@@ -140,8 +187,7 @@ const CourseEpisodesScreen = ({ route }) => {
 
                     <View style={styles.courseDetails}>
                         <Text style={styles.courseDescription}>
-                            Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                            Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
+                            {course?.description}
                         </Text>
                     </View>
 
@@ -155,6 +201,12 @@ const CourseEpisodesScreen = ({ route }) => {
                                 </View>
                                 <View style={styles.episodeInfo}>
                                     <Text style={styles.episodeTitle}>{episode.title}</Text>
+                                    <Text style={styles.episodeDuration}>
+                                        {durations[episode._id]
+                                            ? formatDuration(durations[episode._id])
+                                            : 'Loading...'}
+                                    </Text>
+
                                 </View>
                                 <TouchableOpacity
                                     style={styles.heartButton}
@@ -189,7 +241,8 @@ const CourseEpisodesScreen = ({ route }) => {
                                 AudioTitle: currentEpisode.title,
                                 AudioDescr: currentEpisode.description,
                                 Thumbnail: courseImage,
-                                shouldFetchTrack: true,
+                                AudioUrl: currentEpisode.url,
+                                shouldFetchTrack: true, // ✅ from mini player
                             })
                         }
                     >
@@ -333,7 +386,12 @@ const styles = StyleSheet.create({
     },
     episodeTitle: {
         color: '#FFFFFF',
-        fontSize: 16,
+        fontSize: 14,
+        fontFamily: "Inter-Regular"
+    },
+    episodeDuration: {
+        color: '#FFFFFF',
+        fontSize: 12,
         fontFamily: "Inter-Regular"
     },
     miniPlayer: {

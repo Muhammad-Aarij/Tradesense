@@ -4,8 +4,7 @@ import { bell, bg, user, searchMf } from '../../assets/images';
 import theme from '../../themes/theme';
 import GoalContainer from './GoalContainer';
 import HabitContainer from './HabitContainer';
-
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const AccountabilityScreen = ({ navigation }) => {
   const watchlistData = [
@@ -98,6 +97,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#111317',
+    paddingBottom: 88,
   },
   scrollContent: {
     paddingBottom: 100,

@@ -15,7 +15,7 @@ import { back, next, repeat, skip, stop, user, shuffleIcon, play, mountain, play
 // import { BlurView } from '@react-native-community/blur';
 import theme from '../../themes/theme';
 
-const { width } = Dimensions.get('window');
+const { height,width } = Dimensions.get('window');
 
 
 
@@ -60,26 +60,39 @@ const PlayerScreen = ({ route }) => {
             dispatch(startLoading());
             setAudioLoading(true);
 
-            // Only setup player if not already initialized
-            const playerState = await TrackPlayer.getState().catch(() => null);
+            const playerState = await TrackPlayer.getState();
+            const isInitialized = playerState !== null;
 
-            if (!isPlayerSetup.current && playerState === null) {
-                console.log("Initializing TrackPlayer...");
+            if (!isInitialized) {
+                console.log("🛠 Setting up TrackPlayer...");
                 await TrackPlayer.setupPlayer();
-                isPlayerSetup.current = true;
-                console.log("Player initialized");
             } else {
-                console.log("Player already initialized");
+                console.log("✅ TrackPlayer already setup.");
             }
 
-            console.log("Resetting & loading track...");
-            await TrackPlayer.reset(); // Clear previous track
-            await TrackPlayer.add([track]);
-            await TrackPlayer.play();
-            console.log("Playback started");
+            const currentTrackId = await TrackPlayer.getCurrentTrack();
+            const currentTrack = currentTrackId ? await TrackPlayer.getTrack(currentTrackId) : null;
+
+            const isSameTrack = currentTrack && currentTrack.url === track.url;
+
+            // 🟢 Always reset and play if the track is different OR shouldFetchTrack is false
+            if (!isSameTrack || !shouldFetchTrack) {
+                console.log("🔁 Replacing track:", track.title);
+                await TrackPlayer.reset();
+                await TrackPlayer.add({
+                    ...track,
+                    id: `${track.title}-${Date.now()}` // unique ID to avoid caching
+                });
+                await TrackPlayer.play();
+            } else {
+                console.log("🎧 Same track playing, skipping reset.");
+            }
+
         } catch (error) {
-            console.error('TrackPlayer failed to load/play track:', error);
-            Alert.alert("Audio Error", error.message || "Failed to start audio.");
+            console.error("Error in setupPlayer:", error);
+            if (!error.message?.includes("already been initialized")) {
+                Alert.alert("Track Error", error.message || "Playback failed");
+            }
         } finally {
             dispatch(stopLoading());
             setAudioLoading(false);
@@ -87,16 +100,15 @@ const PlayerScreen = ({ route }) => {
     };
 
 
-
     useEffect(() => {
+        console.log("URl", AudioUrl);
         setupPlayer();
 
         return () => {
-            // Clean up properly
-            TrackPlayer.stop();
-            TrackPlayer.reset();
+            // Don't reset on unmount if you want to keep mini-player alive
+            dispatch(stopLoading());
         };
-    }, [AudioUrl]);
+    }, [AudioUrl]); // changed: only track AudioUrl to ensure reset when new one comes
 
 
     // Toggle Playback function
@@ -192,7 +204,7 @@ const styles = StyleSheet.create({
         paddingBottom: 0,
     },
     blurOverlay: {
-        backgroundColor: 'rgba(12, 12, 12, 0.5)', // Translucent white for light glass
+        backgroundColor: 'rgba(12, 12, 12, 0.7)', // Translucent white for light glass
         // borderColor: 'rgba(255, 255, 255, 0.3)',
         // borderWidth: 1,
         backdropFilter: 'blur(10px)', // Only for web — won’t apply natively
@@ -207,7 +219,7 @@ const styles = StyleSheet.create({
     },
     albumArtContainer: {
         width: "100%",
-        height: width * 0.8 * (431 / 323),
+        height: height * 0.55 ,
         borderRadius: 20,
         overflow: 'hidden',
         marginTop: 20,
@@ -227,7 +239,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flex: 1,
         padding: 15,
-        backgroundColor: 'rgba(0,0,0,0.4)',
+        backgroundColor: 'rgba(0,0,0,0.2)',
     },
     artistInfo: {
         flexDirection: 'row',

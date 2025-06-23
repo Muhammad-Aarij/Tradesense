@@ -108,13 +108,17 @@ const PsychologyCategoryScreen = ({ navigation, route }) => {
                                     title={audio.title}
                                     audio={audio.url}
                                     isLiked={audio.isLiked}
-                                    onPress={() => navigation.navigate('TrackPlayer', {
-                                        AudioTitle: audio.title,
-                                        AudioDescr: audio.description,
-                                        Thumbnail: audio.thumbnail,
-                                        AudioUrl: audio.url,
-                                    })}
+                                    onPress={() =>
+                                        navigation.navigate('TrackPlayer', {
+                                            AudioTitle: audio.title,
+                                            AudioDescr: audio.description,
+                                            Thumbnail: audio.thumbnail,
+                                            AudioUrl: audio.url,
+                                            shouldFetchTrack: false, // ✅ force reset and play new track
+                                        })
+                                    }
                                 />
+
                             ))}
                         </View>
                     </View>
@@ -167,7 +171,7 @@ const PsychologyCategoryScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1, backgroundColor: '#08131F',
-        padding: 0, paddingTop: 0, paddingBottom: height * 0.1,
+        padding: 0, paddingTop: 0, paddingBottom: 90,
     },
     title: {
         fontSize: 23,

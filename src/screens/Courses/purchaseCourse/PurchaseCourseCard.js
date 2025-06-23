@@ -60,7 +60,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                 <View style={{ flexDirection: "row" }}>
                     <Image source={user} style={styles.instructorImage} />
                     <View style={{ flexDirection: "column" }}>
-                        <Text>{course.instructorName || "Unknown Instructor"}</Text>
+                        <Text style={styles.instructorName}>{course.instructorName || "Unknown Instructor"}</Text>
                         <Text style={styles.instructorSubtitle}>{course.instructorExperienceLevel}</Text>
                     </View>
                 </View>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
         position: "absolute",
-        backgroundColor: 'rgba(31, 30, 30, 0.5)',
+        backgroundColor: 'rgba(31, 30, 30, 0.4)',
 
     },
     timeOverlay: {
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         color: '#FFFFFF',
-        fontSize: 14,
+        fontSize: 13,
         fontFamily: "Inter-Medium",
         marginBottom: 2,
     },
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         paddingVertical: 5,
         zIndex: 10,
-        marginBottom: 5,
+        // marginBottom: 5,
     },
     price: {
         color: "#FFF",
