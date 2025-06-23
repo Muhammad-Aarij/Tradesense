@@ -109,7 +109,7 @@ export default function AddGoal({ route, navigation }) {
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        // behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           {/* Header */}
           <Header title={editingGoal ? "Edit Goal" : "Set Goal"} />
@@ -173,8 +173,9 @@ export default function AddGoal({ route, navigation }) {
                   : "Your goal has been added successfully."
               }
               icon={tick}
-              onClose={() => {setShowConfirmationModal(false);
-                navigation.navigate("Acc_Stocks")
+              onClose={() => {
+                setShowConfirmationModal(false);
+                navigation.goBack()
               }}
             />
           )}

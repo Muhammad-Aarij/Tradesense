@@ -8,7 +8,6 @@ import CourseCard from './CourseCard';
 import { useCourses } from '../../../functions/handleCourses';
 const { height, width } = Dimensions.get('window');
 
-
 const OurCoursesScreen = ({ navigation }) => {
 
   const dispatch = useDispatch();

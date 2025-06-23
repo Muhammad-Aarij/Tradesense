@@ -35,9 +35,11 @@ const MenuComponent = ({ visible, }) => { // Removed 'onClose' prop as it's hand
     }, [visible, dispatch]); // Added dispatch to dependency array
 
     const navigateTo = (screen, stack) => {
-        dispatch(closeSidebar()); // Always close sidebar before navigating
+        dispatch(closeSidebar());
         if (stack) {
-            navigation.navigate(stack, { screen });
+            navigation.navigate(stack, {
+                screen: screen,
+            });
         } else {
             navigation.navigate(screen);
         }
@@ -115,7 +117,11 @@ const MenuComponent = ({ visible, }) => { // Removed 'onClose' prop as it's hand
                             {/* <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("WithdrawScreen", "Accountability") }}>
                                 <Text style={styles.menuItem}>Trading</Text>
                             </TouchableOpacity> */}
-                            <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("AccountabilityPartner", "Accountability") }}>
+                            <TouchableOpacity style={styles.menuItemWithKey} onPress={() => {
+                                navigation.navigate("Accountability", {
+                                    screen: "AccountabilityPartner",
+                                });
+                            }}>
                                 <Text style={styles.menuItem}>Accountability Partner</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.menuItemWithKey} onPress={() => { navigateTo("ChatScreen") }}>

@@ -28,7 +28,7 @@ const StarRating = ({ rating }) => {
     }
     return <View style={cardStyles.starContainer}>{stars}</View>;
 };
-
+ 
 // Reusable Card Component (now part of this file)
 const CourseCard = ({ imageSource, time, title, rating, description, profileImage, profileName, profileRole, price, onPress }) => {
     return (

@@ -7,18 +7,20 @@ import { bg, user } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useCourseDetail } from '../../../functions/handleCourses';
 import Loader from '../../../components/loader';
 import Sound from 'react-native-sound';
+import { trackAffiliateVisit } from '../../../functions/affiliateApi';
 
 const { width, height } = Dimensions.get('window');
 
-const CourseDetailScreen = () => {
+const CourseDeepLink = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const dispatch = useDispatch();
+    const { isSignedIn } = useSelector(state => state.auth);
 
     const [durations, setDurations] = useState({});
     const { courseId, courseTitle, affiliateToken } = route.params || {};
@@ -63,6 +65,46 @@ const CourseDetailScreen = () => {
         const hrs = Math.floor(durationInSeconds / 3600);
         const mins = Math.floor((durationInSeconds % 3600) / 60);
         return hrs > 0 ? `${hrs}h ${mins}min` : `${mins}min`;
+    };
+
+
+    const logVisit = async () => {
+        const result = await trackAffiliateVisit({
+            referrerUserId: affiliateToken,
+            courseId,
+            type: 'visited',
+        });
+
+        if (result.error) {
+            console.warn("Affiliate visit tracking failed:", result.details || result.error);
+        } else {
+            console.log("Affiliate visit logged successfully");
+        }
+    };
+
+    useEffect(() => {
+        if (course && affiliateToken && courseId) {
+            logVisit();
+        }
+    }, [course]);
+
+
+    const handleBuyPress = () => {
+        if (!isSignedIn) {
+            navigation.navigate("SignInModal", {
+                pendingDeepLink: {
+                    courseId,
+                    affiliateToken,
+                }
+            });
+            return;
+        }
+
+        navigation.navigate('PlansScreenDeepLink', {
+            plans: course?.plans || [],
+            Courseid: course?.Courseid || courseId,
+            affiliateToken: affiliateToken || null
+        });
     };
 
     if (error) {
@@ -121,16 +163,7 @@ const CourseDetailScreen = () => {
                             ))}
                         </View>
 
-                        <TouchableOpacity
-                            style={styles.buyNowButton}
-                            onPress={() =>
-                                navigation.navigate('PlansScreen', {
-                                    plans: course?.plans || [],
-                                    Courseid: course?.Courseid || courseId,
-                                    affiliateToken: affiliateToken || null
-                                })
-                            }
-                        >
+                        <TouchableOpacity style={styles.buyNowButton} onPress={handleBuyPress}>
                             <Text style={styles.buyNowButtonText}>Buy Now</Text>
                         </TouchableOpacity>
 
@@ -145,7 +178,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        paddingBottom: height * 0.2,
+        paddingBottom: height * 0.1,
         backgroundColor: 'black'
     },
     centered: {
@@ -154,7 +187,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#08131F'
     },
-    scrollContent: { paddingBottom: 20 },
     mainImageContainer: {
         width: '100%',
         height: width * 0.55,
@@ -262,6 +294,7 @@ const styles = StyleSheet.create({
         padding: 15,
         borderRadius: 14,
         marginTop: 20,
+        marginBottom: 80,
         alignItems: 'center'
     },
     buyNowButtonText: {
@@ -272,4 +305,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default CourseDetailScreen;
+export default CourseDeepLink;

@@ -14,16 +14,17 @@ import AddGoal from '../screens/Accountability/addGoal/AddGoal';
 import HabitTracking from '../screens/Accountability/habitTracking/HabitTracking';
 import AccountabilityPartnerChatScreen from '../screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen';
 import Acc_FormData from '../screens/Accountability/formData/Acc_FormData';
+import CoursesNavigator from './CoursesNavigator';
 
 const Home = createNativeStackNavigator();
 
 const HomeNavigator = () => {
-  const { isSidebarOpen } = useSelector(state => state.loader);
 
   return (
     <>
       <Home.Navigator screenOptions={{ headerShown: false }}>
         <Home.Screen name="BottomTabs" component={BottomNavigator} />
+        <Home.Screen name="CoursesStack" component={CoursesNavigator} />
         <Home.Screen name="TrackPlayer" component={PlayerScreen} />
         <Home.Screen name="VideoPlayer" component={VideoPlayerScreen} />
         <Home.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} />
@@ -33,7 +34,7 @@ const HomeNavigator = () => {
         <Home.Screen name="ChatScreen" component={AccountabilityPartnerChatScreen} />
       </Home.Navigator>
 
-      {isSidebarOpen && <MenuComponent />}
+      {/* {isSidebarOpen && <MenuComponent />} */}
       <Hamburger />
     </>
   );

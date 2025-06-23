@@ -15,8 +15,10 @@ import loginApi from '../../../functions/auth';
 
 const { width } = Dimensions.get('window');
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
+    const pendingDeepLink = route?.params?.pendingDeepLink;
+
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -42,11 +44,16 @@ const LoginScreen = ({ navigation }) => {
                 });
             } else {
                 // ✅ User already profiled — proceed to Redux + home flow
-                await dispatch(loginUser({
-                    token: data.token,
-                    user: data.user,
-                    themeType: 'dark',
-                }));
+                await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
+
+                if (pendingDeepLink) {
+                    navigation.replace('CourseDeepLink', {
+                        courseId: pendingDeepLink.courseId,
+                        affiliateToken: pendingDeepLink.token
+                    });
+                } else {
+                    navigation.replace('MainFlow');
+                }
             }
 
         } catch (error) {

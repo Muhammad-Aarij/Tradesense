@@ -14,7 +14,7 @@ const CoursesStack = createNativeStackNavigator();
 const CoursesNavigator = () => {
   return (
     <CoursesStack.Navigator
-      initialRouteName="PurchasedCoursesScreen"
+      initialRouteName="OurCoursesScreen"
       screenOptions={{
         headerShown: false
       }}

@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions, ToastAndroid } from 'react-native';
 import { copy, course, mountain, play, user } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import { addToFavorites } from '../../../functions/handleCourses';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive design
 
@@ -22,8 +23,6 @@ const StarRating = ({ rating }) => {
 
 
 
-
-
 const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = true }) => (
     <TouchableOpacity
         style={{
@@ -34,7 +33,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
     >
         <View style={styles.imageWrapper}>
             {/* Use course.image for dynamic image source */}
-            <Image source={mountain} style={styles.cardImage} />
+            <Image source={{ uri: course.thumbnail }} style={styles.cardImage} />
             <View style={styles.imgOverlay} />
 
             {course.type != "Affiliate" && false &&
@@ -43,11 +42,11 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                     <Text style={styles.timeText}>{course.time}</Text>
                 </View>
             }
-            {course.type == "Affiliate" &&
+            {/* {course.type == "Affiliate" &&
                 <View style={{ ...styles.timeOverlay, }}>
                     <Text style={styles.timeText}>{course.percent}</Text>
                 </View>
-            }
+            } */}
 
         </View>
         <View style={styles.cardContent}>
@@ -60,8 +59,8 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                 <View style={{ flexDirection: "row" }}>
                     <Image source={user} style={styles.instructorImage} />
                     <View style={{ flexDirection: "column" }}>
-                        <Text style={styles.instructorName}>{course.instructorName || "Unknown Instructor"}</Text>
-                        <Text style={styles.instructorSubtitle}>{course.instructorExperienceLevel}</Text>
+                        <Text style={styles.instructorName}>{course.instructorName || "Instructor"}</Text>
+                        {/* <Text style={styles.instructorSubtitle}>{course.instructorExperienceLevel}</Text> */}
                     </View>
                 </View>
                 <Text style={styles.price}>{course.price}</Text>
@@ -69,9 +68,15 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
 
             {showUrl && <View style={styles.urlcontainer}>
                 <Text style={styles.url} numberOfLines={1} ellipsizeMode="tail">
-                    {course.courseUrl}
+                    {course.url}
                 </Text>
-                <Image style={{ width: 10, height: 10, resizeMode: "contain" }} source={copy}></Image>
+                <TouchableOpacity
+                    onPress={() => {
+                        Clipboard.setString(course.url);
+                        ToastAndroid.show('Link copied!', ToastAndroid.SHORT);
+                    }}>
+                    <Image style={{ width: 15, height: 15, resizeMode: "contain" }} source={copy}></Image>
+                </TouchableOpacity>
             </View>}
         </View>
     </TouchableOpacity>
@@ -222,7 +227,7 @@ const styles = StyleSheet.create({
         color: "white",
         fontSize: 9,
         fontFamily: 'Inter-Light-BETA',
-        maxWidth: "85%",
+        // maxWidth: "85%",
     }
 });
 

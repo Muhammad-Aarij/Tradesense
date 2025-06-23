@@ -10,7 +10,6 @@ import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
 import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import { useDispatch } from 'react-redux';
-import { initializeTrackPlayer } from '../../utils/initializeTrackPlayer';
 
 const { width, height } = Dimensions.get("window");
 
@@ -113,13 +112,10 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Pillars</Text>
 
-            <FlatList
-              data={pillars}
-              keyExtractor={(item) => item._id}
-              numColumns={2}
-              columnWrapperStyle={{ flex: 1, justifyContent: 'space-between', }}
-              renderItem={({ item }) => (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+              {pillars?.map((item) => (
                 <Pressable
+                  key={item._id}
                   style={styles.pillars}
                   onPress={() => navigation.navigate('Pillars', {
                     screen: 'PsychologyCategoryScreen',
@@ -132,8 +128,9 @@ const HomeScreen = ({ navigation }) => {
                   <Image source={{ uri: item.image }} style={styles.pillarIcon} />
                   <Text style={styles.smallhd}>{item.name}</Text>
                 </Pressable>
-              )}
-            />
+              ))}
+            </View>
+
           </View>
         </ScrollView>
       </SafeAreaView>
