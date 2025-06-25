@@ -11,7 +11,7 @@ const tabItems = [
   { name: "Home", icon: homeT },
   { name: "Pillars", icon: pillar },
   { name: "Courses", icon: course },
-  { name: "Accountability", icon: affiliate },
+  // { name: "Accountability", icon: affiliate },
   { name: "Affiliate", icon: userT },
 ];
 
@@ -68,17 +68,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     position: "absolute",
     bottom: 0,
-    width: width - 20,
-    marginHorizontal: 10,
-    marginBottom: 20,
+    alignSelf: "center",              // ✅ Centers the tab bar horizontally
+    width: width - 40,
     borderRadius: 50,
     height: 70,
     alignItems: "center",
     justifyContent: "space-around",
     paddingHorizontal: 10,
-    overflow: "hidden", // required for rounded corners to apply to blur
-    backgroundColor: "transparent", // so blur is visible
+    marginBottom: 20,
+    overflow: "hidden",
+    backgroundColor: "transparent",
   },
+
   tabItem: {
     borderRadius: 25,
     alignItems: "center",
@@ -88,9 +89,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.primaryColor,
     paddingHorizontal: 16,
     paddingVertical: 6,
-    // width: 120,
     height: 40,
+    borderRadius: 20,
+    shadowColor: theme.primaryColor,
+    shadowOffset: {
+      width: 15,
+      height: 15,
+    },
+    shadowOpacity: 0.7,
+    shadowRadius: 20,
+    elevation: 5, // Android glow
   },
+
   inactiveTab: {
     width: 45,
     height: 45,

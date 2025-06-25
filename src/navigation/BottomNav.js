@@ -51,7 +51,7 @@ export default function BottomNavigator() {
           };
         }}
       />
-      <Tab.Screen name="Accountability" component={AccountabilityNavigator} />
+      {/* <Tab.Screen name="Accountability" component={AccountabilityNavigator} /> */}
       <Tab.Screen name="Affiliate" component={AffiliateNavigator} />
     </Tab.Navigator>
   );

@@ -16,13 +16,17 @@ const Header = ({ title }) => {
 
     return (
         <View style={styles.header}>
-            {/* Circular BlurView around Back Button */}
+            <TouchableOpacity style={styles.blurWrapper} >
+                <Image source={back} style={{ width: 12, height: 12, resizeMode: 'contain' }} />
+            </TouchableOpacity>
+
+
             {/* <TouchableOpacity style={styles.blurWrapper} >
                 <BlurView blurType="light" blurAmount={20} style={styles.blurView}>
                     <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
                 </BlurView>
             </TouchableOpacity> */}
-            
+
             {/* <TouchableOpacity onPress={() => dispatch(openSidebar())}
                 style={{
                     position: "absolute", top: 35, left: 30,
@@ -48,7 +52,7 @@ const getStyles = (theme) => StyleSheet.create({
 
     blurWrapper: {
         width: 35, height: 35, borderRadius: 20, padding: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: "rgba(0, 0, 0, 0.35)"
+        backgroundColor: "rgba(42, 75, 138, 0.39)"
     },
 
     blurView: {

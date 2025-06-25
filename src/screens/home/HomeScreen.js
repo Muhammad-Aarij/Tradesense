@@ -1,15 +1,16 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ImageBackground, Pressable, SafeAreaView, FlatList, Dimensions
 } from 'react-native';
 import {
   user, video, graph, bg, bell,
-  book, scholar, care, circle, wave
+  book, scholar, care, circle, wave, back
 } from '../../assets/images';
 import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
 import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import { useDispatch } from 'react-redux';
+import DailyBreakdownChart from '../../components/DailyBreakdownChart';
 
 const { width, height } = Dimensions.get("window");
 
@@ -18,6 +19,10 @@ const HomeScreen = ({ navigation }) => {
   const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
   const styles = getStyles(theme);
   const { data: pillars, isLoading, error } = useAllPillars();
+  const [selectedFilter, setSelectedFilter] = useState('Daily');
+  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
+  const filterOptions = ['Daily', 'Monthly', 'Yearly'];
+
 
   useEffect(() => {
     dispatch(startLoading());
@@ -27,9 +32,6 @@ const HomeScreen = ({ navigation }) => {
     return () => clearTimeout(timeout);
   }, [isLoading]);
 
-  // useEffect(() => {
-  //   // initializeTrackPlayer();
-  // }, [])
 
 
   return (
@@ -87,6 +89,7 @@ const HomeScreen = ({ navigation }) => {
                     </View>
                   ))}
                 </View>
+                <Text style={{ ...styles.playButtonText, textAlign: "center" }}>Daily Goal Progress</Text>
               </View>
 
               {/* Trading Journal */}
@@ -94,13 +97,13 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.sectionTitle}>Trading Journal</Text>
                 <View style={styles.card}>
                   <Image source={graph} style={styles.cardImage} />
-                  <Text style={styles.smallhd}>Track Your Trades</Text>
+                  <Text style={{ ...styles.playButtonText, textAlign: "center" }}>Track Your Trades</Text>
                 </View>
               </View>
 
               {/* Affirmation Quote */}
               <View style={{ ...styles.section, flexDirection: "row" }}>
-                <Text style={styles.sectionTitle}>
+                <Text style={styles.sectionTitle2}>
                   <Image source={circle} style={{ width: 25, height: 15, resizeMode: "contain" }} />
                   I execute trades with discipline and confidence.
                 </Text>
@@ -109,9 +112,8 @@ const HomeScreen = ({ navigation }) => {
           </View>
 
           {/* Pillars Section */}
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <Text style={styles.sectionTitle}>Pillars</Text>
-
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
               {pillars?.map((item) => (
                 <Pressable
@@ -130,8 +132,46 @@ const HomeScreen = ({ navigation }) => {
                 </Pressable>
               ))}
             </View>
+          </View> */}
+          <View style={styles.dailyBreakdownContainer}>
+            <View style={styles.dailyBreakdownHeader}>
+              <View>
+                <Text style={styles.dailyBreakdownTitle}>Daily Breakdown</Text>
+                <Text style={styles.dailyBreakdownDate}>January 18, 2020</Text>
+              </View>
+              <View style={{ position: "relative" }}>
+                <TouchableOpacity
+                  style={styles.dropdownContainer}
+                  onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
+                >
+                  <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
+                  <Image
+                    source={back}
+                    style={{
+                      ...styles.dropdownArrow,
+                      transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
+                    }}
+                  />
+                </TouchableOpacity>
 
+                {/* Dropdown options */}
+                {filterDropdownVisible && (
+                  <View style={styles.dropdownOptions}>
+                    {filterOptions.map((option) => (
+                      <TouchableOpacity key={option} style={styles.optionItem} onPress={() => {
+                        setSelectedFilter(option);
+                        setFilterDropdownVisible(false);
+                      }}>
+                        <Text style={styles.optionText}>{option}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+              {/* <DailyBreakdownChart /> */}
+            </View>
           </View>
+
         </ScrollView>
       </SafeAreaView>
     </ImageBackground >
@@ -160,15 +200,22 @@ const getStyles = (theme) => StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   sectionTitle: {
-    color: theme.textColor,
-    fontSize: 15,
-    fontFamily: 'Inter-Thin-BETA',
+    color: "#C4C7C9",
+    fontSize: 16,
+    fontFamily: 'Inter-Light-BETA',
     marginBottom: 5,
+  },
+  sectionTitle2: {
+    color: "#C4C7C9",
+    fontSize: 14.5,
+    fontFamily: 'Inter-Light-BETA',
+    marginBottom: 1,
   },
   card: {},
   cardImage: { width: '100%', height: 50, resizeMode: 'contain' },
   playButtonText: {
-    color: theme.textColor,
+    // textAlign: "center",
+    color: "#B3B9BC",
     fontSize: 13,
     marginTop: 10,
     fontFamily: 'Inter-Light-BETA',
@@ -207,6 +254,50 @@ const getStyles = (theme) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  dailyBreakdownContainer: {
+    backgroundColor: '#1C2B3A',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 30,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 0.9, borderColor: theme.borderColor,
+    borderRadius: 8,
+  },
+  dailyBreakdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    // alignItems: 'center',
+    marginBottom: 20,
+  },
+  dailyBreakdownTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: "Inter-SemiBold",
+  },
+  dailyBreakdownDate: {
+    color: '#AAAAAA',
+    fontSize: 12,
+    fontFamily: "Inter-Light-BETA",
+  },
+  dailyBreakdownFilter: {
+    // backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    // borderWidth: 0.9, borderColor: theme.borderColor,
+    borderRadius: 8,
+    // paddingVertical: 7,
+    paddingHorizontal: 8,
+    color: '#FFF',
+    fontSize: 12,
+    fontFamily: "Inter-Medium",
+  },
+  chartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-end', // Bars should start from bottom
+    height: 100, // Fixed height for chart area
+    marginBottom: 20,
+  },
+
 });
 
 export default HomeScreen;

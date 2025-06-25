@@ -18,12 +18,10 @@ import male from './male.png';
 import third from './third.png';
 import tick from './tick.png';
 import trophy from './trophy.png';
-import userLock from './userLock.png';
 import wallet from './wallet.png';
 import G from './G.png';
 import eyeClose from './eye-Close.png';
 import secureUser from './secureUser.png';
-import verify from './verify.png';
 
 import check from './check.png'
 import uncheck from './uncheck.png'
@@ -92,14 +90,27 @@ import editwhite from './editwhite.png'
 import deletewhite from './deletewhite.png'
 import searchMf from './searchMf.png'
 import shape from './shape.png'
+import login from './login.png'
+import applePay from './applePay.png'
+
+import p1 from './p1.png'
+import p2 from './p2.png'
+import p3 from './p3.png'
+import p4 from './p4.png'
+import p5 from './p5.png'
+import p6 from './p6.png'
+import p7 from './p7.png'
+import p8 from './p8.png'
+import p9 from './p9.png'
+import userProfile from './userProfile.jpg'
 
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
-  lock, male, third, tick, trophy, userLock, wallet, G, eyeClose, secureUser, verify,
+  lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser,
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
-  editwhite, deletewhite, searchMf,shape
+  editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile
 };

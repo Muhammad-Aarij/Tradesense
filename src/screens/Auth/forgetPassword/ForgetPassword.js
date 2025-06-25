@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
-import { bg, lock, G, eyeClose } from '../../../assets/images';
+import { bg, lock, } from '../../../assets/images';
 import theme from '../../../themes/theme'
 import CustomInput from '../../../components/CustomInput';
-import { sendResetEmail } from '../../../functions/passwordService';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { sendOTP } from '../../../functions/otpService';
-import { reset } from 'react-native-track-player/lib/src/trackPlayer';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const ForgetPassword = ({ navigation }) => {
     const dispatch = useDispatch();
@@ -56,23 +54,43 @@ const ForgetPassword = ({ navigation }) => {
         </ImageBackground>
     );
 };
-
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#010b13', alignItems: 'center', },
+    container: {
+        flex: 1,
+        backgroundColor: '#010b13',
+        alignItems: 'center',
+    },
     bottomcontainer: {
         flex: 1,
         backgroundColor: theme.darkBlue,
-        width: "100.5%",
-        paddingHorizontal: 43,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+        width: width,
+        paddingHorizontal: width * 0.1,
+        borderTopLeftRadius: width * 0.08,
+        borderTopRightRadius: width * 0.08,
         overflow: 'hidden',
         alignItems: 'center',
-        marginTop: 25,
+        marginTop: height * 0.03,
     },
-    image: { width: 134, height: 134, resizeMode: 'contain', marginTop: 30 },
-    title: { fontSize: 28, color: '#EFEFEF', fontFamily: "Inter-SemiBold", marginTop: 25, marginBottom: 8, },
-    subtitle: { color: '#FFFFFF', fontSize: 14, marginBottom: 25, fontFamily: "Inter-Medium", textAlign: 'center', marginBottom: 25 },
+    image: {
+        width: width * 0.55,
+        height: width * 0.45,
+        resizeMode: 'contain',
+        marginTop: height * 0.015,
+    },
+    title: {
+        fontSize: width * 0.07,
+        color: '#EFEFEF',
+        fontFamily: 'Inter-SemiBold',
+        marginTop: height * 0.03,
+        marginBottom: height * 0.015,
+    },
+    subtitle: {
+        color: '#FFFFFF',
+        fontSize: width * 0.035,
+        fontFamily: 'Inter-Medium',
+        textAlign: 'center',
+        marginBottom: height * 0.03,
+    },
     passwordContainer: {
         width: '100%',
         flexDirection: 'row',
@@ -81,60 +99,75 @@ const styles = StyleSheet.create({
     },
     input: {
         width: '100%',
-        flex: 1, // Ensures input fills the available space
-        backgroundColor: "#0d151e",
+        flex: 1,
+        backgroundColor: '#0d151e',
         color: '#fff',
-        fontFamily: "Inter-Regular",
-        borderRadius: 8,
-        padding: 15,
+        fontFamily: 'Inter-Regular',
+        borderRadius: width * 0.02,
+        padding: width * 0.04,
         borderWidth: 0.8,
-        marginTop: 10,
+        marginTop: height * 0.012,
         borderColor: theme.borderColor,
-        paddingRight: 40, // Adds space for the eye icon
+        paddingRight: 40,
     },
-    inputsimple: { width: '100%', backgroundColor: "#0d151e", color: '#fff', fontFamily: "Inter-Regular", borderRadius: 8, padding: 15, marginTop: 10, borderWidth: 0.8, borderColor: theme.borderColor, justifyContent: "space-between", flexDirection: "row", height: 50, },
+    inputsimple: {
+        width: '100%',
+        backgroundColor: '#0d151e',
+        color: '#fff',
+        fontFamily: 'Inter-Regular',
+        borderRadius: width * 0.02,
+        padding: width * 0.04,
+        marginTop: height * 0.012,
+        borderWidth: 0.8,
+        borderColor: theme.borderColor,
+        justifyContent: 'space-between',
+        flexDirection: 'row',
+        height: height * 0.06,
+    },
     eyeButton: {
-        position: "absolute",
-        right: 15, // Positions eye icon inside the input field
+        position: 'absolute',
+        right: 15,
         padding: 5,
     },
     eyeIcon: {
-        width: 20,
-        height: 20,
-        tintColor: "#aaa",
+        width: width * 0.05,
+        height: width * 0.05,
+        tintColor: '#aaa',
     },
-    forgot: { alignSelf: 'flex-end', marginBottom: 20 },
-    forgotText: { color: '#FFFFFF', fontSize: 11, fontFamily: "Inter-Medium", },
-    label: { fontFamily: "Inter-Medium", width: "100%", textAlign: "left", color: '#FFFFFF', fontSize: 13, marginTop: 17, marginBottom: 5 },
+    forgot: {
+        alignSelf: 'flex-end',
+        marginBottom: height * 0.025,
+    },
+    forgotText: {
+        color: '#FFFFFF',
+        fontSize: width * 0.028,
+        fontFamily: 'Inter-Medium',
+    },
+    label: {
+        fontFamily: 'Inter-Medium',
+        width: '100%',
+        textAlign: 'left',
+        color: '#FFFFFF',
+        fontSize: width * 0.032,
+        marginTop: height * 0.02,
+        marginBottom: height * 0.008,
+    },
     button: {
-        backgroundColor: theme.primaryColor, width: '100%',
-        padding: 15, borderRadius: 14, marginTop: 20, alignItems: 'center'
+        backgroundColor: theme.primaryColor,
+        width: '100%',
+        padding: height * 0.017,
+        borderRadius: width * 0.04,
+        marginTop: height * 0.02,
+        alignItems: 'center',
     },
-    buttonText: { color: '#fff', fontSize: 17, fontWeight: '600', fontFamily: "Inter-SemiBold", },
-    orContainer: {
-        marginVertical: 28,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    Line: {
-        flex: 1,  // Makes each line take up equal available space
-        height: 0.8,
-    },
-    or: {
-        fontFamily: "Inter-Regular",
-        color: '#ccc',
-        fontSize: 12,
-        marginHorizontal: 10, // Adds spacing between the lines and text
+    buttonText: {
+        color: '#fff',
+        fontSize: width * 0.041,
+        fontWeight: '600',
+        fontFamily: 'Inter-SemiBold',
     },
 
-    googleBtn: {
-        flexDirection: 'row', borderWidth: 0.3, borderColor: "#B6B6B6", borderRadius: 14,
-        alignItems: 'center', paddingVertical: 15, paddingHorizontal: 40
-    },
-    googleText: { color: '#fff', marginLeft: 10, fontFamily: "Inter-Medium", },
-    footer: { color: '#ccc', marginTop: 33, marginBottom: 40, fontFamily: "Inter-Regular", fontSize: 12, },
-    link: { color: theme.primaryColor },
 });
+
 
 export default ForgetPassword;

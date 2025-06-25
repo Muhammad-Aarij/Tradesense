@@ -3,16 +3,16 @@ import {
     View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions,
     Image, ImageBackground
 } from 'react-native';
-import { bg, tick, verify } from '../../../assets/images';
+import { bg, lock, tick, } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { verifyOTP } from '../../../functions/otpService';
 import registerUser from '../../../functions/registerUser';
 import { useDispatch } from 'react-redux';
-import { startLoading ,stopLoading} from '../../../redux/slice/loaderSlice';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const EmailVerification = ({ navigation, route }) => {
     const email = route.params?.email || "";
@@ -103,7 +103,7 @@ const EmailVerification = ({ navigation, route }) => {
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            <Image source={verify} style={styles.image} />
+            <Image source={lock} style={styles.image} />
 
             <View style={styles.bottomcontainer}>
                 <Text style={styles.title}>Email Verification</Text>
@@ -149,57 +149,65 @@ const EmailVerification = ({ navigation, route }) => {
         </ImageBackground>
     );
 };
-
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#010b13', alignItems: 'center' },
+    container: {
+        flex: 1,
+        backgroundColor: '#010b13',
+        alignItems: 'center',
+    },
     bottomcontainer: {
         flex: 1,
         backgroundColor: theme.darkBlue,
-        width: "100%",
-        paddingHorizontal: 43,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
+        width: '100%',
+        paddingHorizontal: width * 0.1,
+        borderTopLeftRadius: width * 0.08,
+        borderTopRightRadius: width * 0.08,
         overflow: 'hidden',
         alignItems: 'center',
-        marginTop: 25,
+        marginTop: height * 0.03,
     },
-    image: { width: 134, height: 134, resizeMode: 'contain', marginTop: 30 },
+    image: {
+        width: width * 0.55,
+        height: width * 0.45,
+        resizeMode: 'contain',
+        marginTop: height * 0.02,
+    },
     title: {
-        fontSize: 28,
+        fontSize: width * 0.07,
         color: '#EFEFEF',
-        fontFamily: "Inter-SemiBold",
-        marginTop: 25,
-        marginBottom: 8,
+        fontFamily: 'Inter-SemiBold',
+        marginTop: height * 0.03,
+        marginBottom: height * 0.015,
     },
     subtitle: {
         color: '#FFFFFF',
-        fontSize: 15,
-        fontFamily: "Inter-Thin",
+        fontSize: width * 0.035,
+        fontFamily: 'Inter-Light-BETA',
         textAlign: 'center',
-        marginBottom: 5
+        marginBottom: height * 0.015,
     },
     email: {
         color: theme.primaryColor,
-        fontSize: 16,
-        fontFamily: "Inter-Medium",
+        fontSize: width * 0.038,
+        fontFamily: 'Inter-Regular',
         textAlign: 'center',
-        marginBottom: 25
+        marginBottom: height * 0.04,
     },
     codeContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        marginBottom: 20,
-        gap: 10,
+        marginBottom: height * 0.03,
+        gap: width * 0.025,
     },
     codeInput: {
-        width: width / 5.5,
-        height: width / 5.5,
+        width: width * 0.16,
+        height: width * 0.16,
         borderWidth: 2,
         borderColor: theme.borderColor,
-        borderRadius: 10,
+        borderRadius: width * 0.03,
         textAlign: 'center',
-        fontSize: 22,
+        fontSize: width * 0.055,
         color: '#fff',
         fontFamily: 'Inter-SemiBold',
     },
@@ -209,16 +217,16 @@ const styles = StyleSheet.create({
     button: {
         backgroundColor: theme.primaryColor,
         width: '100%',
-        padding: 15,
-        borderRadius: 14,
-        marginTop: 20,
-        alignItems: 'center'
+        paddingVertical: height * 0.018,
+        borderRadius: width * 0.035,
+        marginTop: height * 0.03,
+        alignItems: 'center',
     },
     buttonText: {
         color: '#fff',
-        fontSize: 17,
+        fontSize: width * 0.042,
         fontWeight: '600',
-        fontFamily: "Inter-SemiBold",
+        fontFamily: 'Inter-SemiBold',
     },
 });
 
