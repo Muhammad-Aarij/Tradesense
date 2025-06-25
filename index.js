@@ -7,9 +7,7 @@ import App from './App';
 import { name as appName } from './app.json';
 import trackPlayerService from './src/utils/trackPlayerService';
 import TrackPlayer from 'react-native-track-player';
-import AccountSecurityScreen from './src/screens/Settings/AccountSecurity/AccountSecurityScreen';
-import HelpCenterScreen from './src/screens/Settings/HelpCenter/HelpCenterScreen';
-import ReportProblemScreen from './src/screens/Settings/ReportProblem/ReportProblemScreen';
+import TermsAndConditionsScreen from './src/screens/Settings/TermsAndConditions/TermsAndConditionsScreen';
 
-AppRegistry.registerComponent(appName, () => ReportProblemScreen);
+AppRegistry.registerComponent(appName, () => App);
 TrackPlayer.registerPlaybackService(() => trackPlayerService);

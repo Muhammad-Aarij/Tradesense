@@ -103,6 +103,7 @@ import p7 from './p7.png'
 import p8 from './p8.png'
 import p9 from './p9.png'
 import userProfile from './userProfile.jpg'
+import logoWhite from './logoWhite.png'
 
 
 export {
@@ -112,5 +113,5 @@ export {
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
-  editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile
+  editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite
 };

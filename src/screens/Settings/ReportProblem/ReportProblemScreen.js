@@ -263,22 +263,23 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
+    alignItems: "center",
     justifyContent: 'center',
     marginTop: responsiveHeight(10),
   },
   submitButton: {
-    width: responsiveWidth(10),
+    width: responsiveWidth(140),
     backgroundColor: theme.primaryColor,
     borderRadius: responsiveWidth(13),
     paddingVertical: responsiveHeight(15),
     alignItems: 'center',
-    flex: 1,
-    marginRight: responsiveWidth(10),
+    // flex: 1,
+    // marginRight: responsiveWidth(10),
   },
   submitButtonText: {
     color: '#FFFFFF',
-    fontSize: responsiveFontSize(16),
-    fontWeight: 'bold',
+    fontSize: responsiveFontSize(12),
+    fontFamily: "Inter-Medium"
   },
   absoluteFooter: {
     position: 'absolute',
