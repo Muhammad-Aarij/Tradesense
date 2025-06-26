@@ -8,6 +8,8 @@ import PillarNavigator from "./PillarNavigator";
 import AccountabilityNavigator from "./AccountabilityNavigator";
 import AffiliateNavigator from "./AffiliateNavigator";
 import CustomBottomTab from "../components/CustomBottomTab";
+import AccountabilityPartnerChatScreen from "../screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen";
+import SidebarNavigator from "./SidebarNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -41,18 +43,11 @@ export default function BottomNavigator() {
       <Tab.Screen
         name="Courses"
         component={CoursesNavigator}
-        options={({ route }) => {
-          const routeName = getFocusedRouteNameFromRoute(route) ?? '';
-
-          return {
-            tabBarStyle: {
-              display: routeName === 'CourseEpisodesScreen' ? 'none' : 'flex',
-            },
-          };
-        }}
       />
       {/* <Tab.Screen name="Accountability" component={AccountabilityNavigator} /> */}
-      <Tab.Screen name="Affiliate" component={AffiliateNavigator} />
+      {/* <Tab.Screen name="Affiliate" component={AffiliateNavigator} /> */}
+      <Tab.Screen name="ChatBot" component={AccountabilityPartnerChatScreen} />
+      <Tab.Screen name="Sidebar" component={SidebarNavigator} />
     </Tab.Navigator>
   );
 }

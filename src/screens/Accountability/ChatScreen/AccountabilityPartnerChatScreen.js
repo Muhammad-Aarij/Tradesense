@@ -1,72 +1,201 @@
+// src/screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen.js
 
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ImageBackground } from 'react-native';
-import { back, bg, shape, user } from '../../../assets/images';
-// import { BlurView } from '@react-native-community/blur';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ImageBackground, Animated } from 'react-native';
+// import { BlurView } from '@react-native-community/blur'; // Keep commented out if not installed
+import { bg, chatbot, send2, back } from '../../../assets/images'; // Assuming these paths are correct
 import theme from '../../../themes/theme';
+import { getChatbotSessionId, sendChatbotMessage } from '../../../functions/chatbotApi';
 
 const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
-    // Get partner details from route params
-    const { partnerId, partnerName, partnerAvatar, isOnline } = route.params || {
-        partnerId: 'default',
-        partnerName: 'Dianne', // Default to Dianne as shown in the image
-        partnerAvatar: 'https://placehold.co/40x40/90EE90/000?text=D',
-        isOnline: true,
-    };
+    const { partnerName } = route.params || { partnerName: 'AI Companion' };
 
-    // Mock chat messages
-    const [messages, setMessages] = useState([
-        { id: 'm1', text: "Hey! what's the update ?", sender: 'partner', time: '10:00 AM' },
-        { id: 'm2', text: "Yeah, will be up in a minute.", sender: 'me', time: '10:05 AM' },
-        { id: 'm3', text: "I'm nervous", sender: 'me', time: '10:06 AM' },
-        { id: 'm4', text: "Trust you girl you will be fine", sender: 'partner', time: '10:10 AM' },
-        { id: 'm5', text: "Thank you", sender: 'me', time: '10:11 AM' },
-        { id: 'm6', text: "Nice performance today dear!", sender: 'partner', time: '10:30 AM' },
-    ]);
-
+    const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [sessionId, setSessionId] = useState(null);
+    const [isBotTyping, setIsBotTyping] = useState(false);
     const scrollViewRef = useRef();
 
-    // Scroll to bottom on new message
-    useEffect(() => {
-        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
-    }, [messages]);
+    // Animated values for loading dots (for the "..." effect)
+    const dot1Anim = useRef(new Animated.Value(0)).current;
+    const dot2Anim = useRef(new Animated.Value(0)).current;
+    const dot3Anim = useRef(new Animated.Value(0)).current;
 
-    const handleSendMessage = () => {
-        if (newMessage.trim()) {
-            const newMsg = {
-                id: `m${messages.length + 1}`,
-                text: newMessage.trim(),
-                sender: 'me',
-                time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
-            };
-            setMessages([...messages, newMsg]);
-            setNewMessage('');
+    // --- Animation for loading dots ---
+    const startDotAnimation = useCallback(() => {
+        const createAnimation = (dotAnim, delay) => {
+            return Animated.loop(
+                Animated.sequence([
+                    Animated.timing(dotAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        delay,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(dotAnim, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                ])
+            );
+        };
+
+        const anim1 = createAnimation(dot1Anim, 0);
+        const anim2 = createAnimation(dot2Anim, 100);
+        const anim3 = createAnimation(dot3Anim, 200);
+
+        anim1.start();
+        anim2.start();
+        anim3.start();
+
+        return () => { // Cleanup function to stop animations
+            anim1.stop();
+            anim2.stop();
+            anim3.stop();
+        };
+    }, [dot1Anim, dot2Anim, dot3Anim]);
+
+
+    // --- API Calls Integration ---
+
+    // 1. Get Session ID on component mount
+    useEffect(() => {
+        const initializeChat = async () => {
+            try {
+                const newSessionId = await getChatbotSessionId();
+                if (newSessionId) {
+                    setSessionId(newSessionId);
+                    setMessages([{ id: 'bot-greeting', text: `Hello, how can I assist you today?`, sender: 'partner', time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) }]);
+                } else {
+                    // Handle case where session ID could not be retrieved
+                    setMessages([{ id: 'error-init', text: 'Failed to start chat. Please try again later.', sender: 'partner', time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) }]);
+                }
+            } catch (error) {
+                console.error('Chat initialization error:', error);
+                setMessages([{ id: 'error-init-catch', text: 'Error connecting to chat service. Please try again.', sender: 'partner', time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) }]);
+            }
+        };
+
+        initializeChat();
+    }, []);
+
+
+    // 2. Send message to bot and get response
+    const handleSendMessageToBot = useCallback(async (messageText) => {
+        if (!sessionId) {
+            console.warn('Session ID not available. Cannot send message.');
+            setMessages(prevMessages => [...prevMessages, { id: `warn-${Date.now()}`, text: 'Chat not ready. Please wait or restart.', sender: 'partner', time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) }]);
+            return;
         }
+
+        setIsBotTyping(true); // Show loading indicator
+        const stopLoadingAnimation = startDotAnimation(); // Start loading animation
+
+        try {
+            const botResponse = await sendChatbotMessage(sessionId, messageText);
+            if (botResponse) {
+                setMessages(prevMessages => [
+                    ...prevMessages,
+                    {
+                        id: `bot-${Date.now()}`,
+                        text: botResponse,
+                        sender: 'partner',
+                        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                    },
+                ]);
+            } else {
+                console.warn('Bot response was empty or null.');
+                setMessages(prevMessages => [
+                    ...prevMessages,
+                    {
+                        id: `bot-empty-response-${Date.now()}`,
+                        text: "I didn't get a clear response. Could you rephrase?",
+                        sender: 'partner',
+                        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                    },
+                ]);
+            }
+        } catch (error) {
+            console.error('Error in sendChatbotMessage:', error);
+            setMessages(prevMessages => [
+                ...prevMessages,
+                {
+                    id: `bot-api-error-${Date.now()}`,
+                    text: `Error contacting chat service: ${error.message || 'Unknown error'}.`,
+                    sender: 'partner',
+                    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                },
+            ]);
+        } finally {
+            setIsBotTyping(false); // Hide loading indicator
+            stopLoadingAnimation(); // Stop loading animation
+        }
+    }, [sessionId, startDotAnimation]);
+
+
+    // --- Message handling and UI updates ---
+
+    const handleUserSendMessage = () => {
+        if (newMessage.trim() === '' || isBotTyping) {
+            return; // Prevent sending empty messages or while bot is typing
+        }
+
+        const userMsg = {
+            id: `user-${Date.now()}`,
+            text: newMessage.trim(),
+            sender: 'me',
+            time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        };
+        setMessages(prevMessages => [...prevMessages, userMsg]);
+        const messageToSend = newMessage.trim();
+        setNewMessage(''); // Clear input immediately
+        handleSendMessageToBot(messageToSend); // Send to bot API
+    };
+
+    // Scroll to bottom when messages update or bot starts/stops typing
+    useEffect(() => {
+        // Use a slight delay to ensure layout has updated before scrolling
+        setTimeout(() => {
+            if (scrollViewRef.current) {
+                scrollViewRef.current.scrollToEnd({ animated: true });
+            }
+        }, 100);
+    }, [messages, isBotTyping]);
+
+
+    const getDotStyle = (animValue) => {
+        return {
+            marginBottom: animValue.interpolate({
+                inputRange: [0, 0.5, 1],
+                outputRange: [0, 3, 0], // Bounces up by 3 units
+            }),
+        };
     };
 
     return (
-        <ImageBackground source={bg} style={{ flex: 1, }}>
+        <ImageBackground source={bg} style={{ flex: 1 }}>
             <KeyboardAvoidingView
                 style={styles.container}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // Adjust as needed
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
             >
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.blurWrapper} >
+                    <TouchableOpacity style={styles.blurWrapper} onPress={() => navigation.goBack()}>
                         {/* <BlurView blurType="dark" blurAmount={20} style={styles.blurView}> */}
                         <View style={styles.blurView}>
-                            <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
+                            <Image source={back} style={styles.backIcon} />
                         </View>
+                        {/* </BlurView> */}
                     </TouchableOpacity>
                     <View style={styles.partnerHeaderInfo}>
-                        <Image source={user} style={styles.partnerAvatar} />
+                        <Image source={chatbot} style={styles.partnerAvatar} />
                         <View>
                             <Text style={styles.partnerName}>{partnerName}</Text>
-                            <Text style={styles.partnerStatus}>{isOnline ? 'Online' : 'Offline'}</Text>
                         </View>
                     </View>
+                    {/* Optional: Add a 3-dot options button here if needed */}
                 </View>
 
                 {/* Chat Messages */}
@@ -79,17 +208,30 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                                 message.sender === 'me' ? styles.myMessage : styles.partnerMessage,
                             ]}
                         >
-                            {/* <Image source={shape}  style={{width:202,height:220,resizeMode:"contain", position:"absolute",bottom:0,right: -15,}}/> */}
                             <Text style={[
                                 styles.messageText,
                                 message.sender === 'me' ? styles.myMessageText : styles.partnerMessageText,
-                            ]} >{message.text}</Text>
-                            <Text style={[
-                                styles.messageText,
-                                message.sender === 'me' ? styles.myMessageText : styles.partnerMessageText,
-                            ]}>{message.time}</Text>
+                            ]}>{message.text}</Text>
+                            {/* You can uncomment this if you want to show time within the bubble */}
+                            {/* <Text style={[
+                                styles.messageTimeSmall,
+                                message.sender === 'me' ? { color: 'rgba(255,255,255,0.7)' } : { color: 'rgba(0,0,0,0.5)' },
+                            ]}>{message.time}</Text> */}
                         </View>
                     ))}
+
+                    {/* Loading Indicator for Bot Typing */}
+                    {isBotTyping && (
+                        <View style={styles.typingIndicatorContainer}>
+                            <View style={styles.partnerMessage}>
+                                <View style={styles.typingDotsWrapper}>
+                                    <Animated.Text style={[styles.typingDot, getDotStyle(dot1Anim)]}>.</Animated.Text>
+                                    <Animated.Text style={[styles.typingDot, getDotStyle(dot2Anim)]}>.</Animated.Text>
+                                    <Animated.Text style={[styles.typingDot, getDotStyle(dot3Anim)]}>.</Animated.Text>
+                                </View>
+                            </View>
+                        </View>
+                    )}
                 </ScrollView>
 
                 {/* Message Input */}
@@ -100,14 +242,12 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                         placeholderTextColor="#A0A0A0"
                         value={newMessage}
                         onChangeText={setNewMessage}
-                        onSubmitEditing={handleSendMessage} // Allows sending on keyboard return
-                        multiline={false} // Prevents multiline input expanding vertically
+                        onSubmitEditing={handleUserSendMessage}
+                        multiline={false}
+                        editable={!isBotTyping} // Disable input while bot is typing
                     />
-                    <TouchableOpacity onPress={handleSendMessage} style={styles.sendButton}>
-                        <Text style={styles.sendIcon}>⬆️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => console.log('Attach file pressed')} style={styles.attachButton}>
-                        <Text style={styles.attachIcon}>📎</Text>
+                    <TouchableOpacity onPress={handleUserSendMessage} style={styles.sendButton} disabled={isBotTyping}>
+                        <Image source={send2} style={{ width: 25, height: 25, resizeMode: "contain" }} />
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
@@ -118,76 +258,54 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: Platform.OS === 'ios' ? 0 : 20, // Adjust for Android status bar
+        paddingTop: Platform.OS === 'ios' ? 0 : 20,
     },
-
     blurWrapper: {
         width: 35, height: 35, borderRadius: 20, padding: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
         backgroundColor: "rgba(0, 0, 0, 0.35)"
     },
-
     blurView: {
         width: "100%", height: "100%", alignItems: 'center', justifyContent: 'center',
     },
-
-    backIcon: { width: 17, height: 17, resizeMode: 'contain' },
-
+    backIcon: {
+        width: 15,
+        height: 15,
+        resizeMode: 'contain',
+        tintColor: 'white', // Assuming back icon is white
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#2A2A2A', // Separator line
-    },
-    backButton: {
-        paddingRight: 15,
-    },
-    backIcon: {
-        fontSize: 24,
-        color: '#E0E0E0',
-        fontWeight: 'bold',
+        borderBottomColor: '#2A2A2A',
     },
     partnerHeaderInfo: {
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
         marginLeft: 10,
-        // justifyContent: 'center', // Center partner info
     },
     partnerAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 30,
+        height: 30,
+        resizeMode: 'contain',
         marginRight: 10,
-        backgroundColor: '#555',
     },
     partnerName: {
         fontSize: 13,
-        fontFamily: "Inter-Medium",
-        color: '#E0E0E0',
-    },
-    partnerStatus: {
-        fontSize: 11,
-        fontFamily: "Inter-Medium",
-        color: '#4CAF50',
-    },
-    optionsButton: {
-        paddingLeft: 15,
-    },
-    optionsIcon: {
-        fontSize: 24,
+        fontFamily: "Inter-Medium", // Ensure font is loaded
         color: '#E0E0E0',
     },
     messagesContainer: {
         flexGrow: 1,
-        position:"relative",
+        paddingTop: 30,
         paddingHorizontal: 20,
         paddingVertical: 10,
     },
     messageBubble: {
-        maxWidth: '80%', // Limit bubble width
+        maxWidth: '80%',
         borderRadius: 18,
         paddingHorizontal: 15,
         paddingVertical: 8,
@@ -196,71 +314,74 @@ const styles = StyleSheet.create({
     myMessage: {
         marginRight: 10,
         alignSelf: 'flex-end',
-        backgroundColor: theme.primaryColor, // Blue for sender's messages
-        borderBottomRightRadius: 5, // Pointed corner for sender
+        backgroundColor: theme.primaryColor, // Use theme.primaryColor
+        borderBottomRightRadius: 5,
+        // Optional: remove bottom-right if you want full rounded bubble
     },
     partnerMessage: {
         alignSelf: 'flex-start',
-        backgroundColor: 'white', // Dark grey for partner's messages
-        borderBottomLeftRadius: 5, // Pointed corner for partner
-    },
-    myMessageText: {
-        color:"white",
-    },
-    partnerMessageText: {
-      color:"gray",
+        backgroundColor: 'white', // Bot's messages are white as per image
+        borderBottomLeftRadius: 5,
+        // Optional: remove bottom-left if you want full rounded bubble
     },
     messageText: {
         fontSize: 13,
-        color: '#FFFFFF',
+    },
+    myMessageText: {
+        color: "white",
+    },
+    partnerMessageText: {
+        color: "gray",
     },
     messageTimeSmall: {
         fontSize: 10,
-        color: 'white',
         alignSelf: 'flex-end',
         marginTop: 5,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#2A2A2A', // Input bar background
+        marginBottom: Platform.OS === 'ios' ? 30 : 95, // Adjust for iOS keyboard vs Android fixed padding
         paddingHorizontal: 15,
-        paddingVertical: 10,
-        borderTopWidth: 1,
-        borderTopColor: '#3A3A3A',
+        paddingVertical: 5,
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 0.9,
+        borderColor: theme.borderColor, // Use theme.borderColor
+        borderRadius: 8,
+        marginHorizontal: 20,
     },
     textInput: {
         flex: 1,
-        backgroundColor: '#1E1E1E', // Text input field background
-        borderRadius: 20,
         paddingHorizontal: 15,
-        paddingVertical: 10,
         color: '#E0E0E0',
-        fontSize: 16,
+        fontSize: 13,
         marginRight: 10,
-        maxHeight: 100, // Prevent it from growing too tall
+        maxHeight: 100,
     },
     sendButton: {
-        backgroundColor: '#007AFF', // Blue send button
-        width: 40,
-        height: 40,
         borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
+        padding: 5, // Added padding to make touchable area bigger
     },
-    sendIcon: {
-        fontSize: 18,
-        color: '#FFFFFF',
+    // Styles for typing indicator
+    typingIndicatorContainer: {
+        alignSelf: 'flex-start', // Align to left, like partner messages
+        marginBottom: 13,
     },
-    attachButton: {
-        marginLeft: 10,
-        padding: 5,
+    typingDotsWrapper: {
+        flexDirection: 'row',
+        alignItems: 'flex-end', // Align dots at the bottom
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        // Inherits background and border radius from partnerMessage style
     },
-    attachIcon: {
-        fontSize: 20,
-        color: '#A0A0A0', // Grey attachment icon
+    typingDot: {
+        fontSize: 20, // Larger dot size
+        lineHeight: 18, // Adjust line height to prevent dots from being too spaced vertically
+        color: 'gray', // Color matching partner's text
+        marginHorizontal: -2, // Reduce space between dots
     },
 });
 
 export default AccountabilityPartnerChatScreen;
-

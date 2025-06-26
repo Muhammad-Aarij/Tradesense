@@ -2,17 +2,25 @@ import React from "react";
 import { View, TouchableOpacity, Text, Image, StyleSheet, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 // import { BlurView } from "@react-native-community/blur"; // or "expo-blur"
-import { homeT, pillar, course, affiliate, userT } from "../assets/images";
+import { homeT, pillar, course, affiliate, userT, menu, chatbot } from "../assets/images";
 import theme from "../themes/theme";
+import LinearGradient from "react-native-linear-gradient";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
+
+const guidelineBaseWidth = 375;
+
+const responsiveWidth = (size) => (width / guidelineBaseWidth) * size;
+const responsiveHeight = (size) => (width / guidelineBaseWidth) * size; // same scale as width
+const responsiveFontSize = (size) => (width / guidelineBaseWidth) * size;
 
 const tabItems = [
   { name: "Home", icon: homeT },
   { name: "Pillars", icon: pillar },
   { name: "Courses", icon: course },
-  // { name: "Accountability", icon: affiliate },
   { name: "Affiliate", icon: userT },
+  { name: "Sidebar", icon: menu },
+  { name: "ChatBot", icon: chatbot },
 ];
 
 export default function CustomBottomTab({ state, descriptors, navigation }) {
@@ -45,16 +53,33 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
           }
         };
 
-        return (
+        return focused ? (
+          <LinearGradient
+            key={index}
+            start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
+            colors={['rgba(112, 194, 232, 0.3)', 'rgba(204, 204, 204, 0)']}
+            style={{ borderRadius: 25 }}
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={onPress}
+              style={[styles.tabItem, styles.activeTab]}
+            >
+              <View style={styles.iconLabelWrapper}>
+                <Image source={icon} style={[styles.icon, styles.iconActive]} />
+                <Text style={styles.labelActive}>{route.name}</Text>
+              </View>
+            </TouchableOpacity>
+          </LinearGradient>
+        ) : (
           <TouchableOpacity
             key={index}
             accessibilityRole="button"
             onPress={onPress}
-            style={[styles.tabItem, focused ? styles.activeTab : styles.inactiveTab]}
+            style={[styles.tabItem, styles.inactiveTab]}
           >
             <View style={styles.iconLabelWrapper}>
-              <Image source={icon} style={[styles.icon, focused ? styles.iconActive : styles.iconInactive]} />
-              {focused && <Text style={styles.labelActive}>{route.name}</Text>}
+              <Image source={icon} style={[styles.icon, styles.iconInactive]} />
             </View>
           </TouchableOpacity>
         );
@@ -62,69 +87,63 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   tabBarWrapper: {
     flexDirection: "row",
     position: "absolute",
     bottom: 0,
-    alignSelf: "center",              // ✅ Centers the tab bar horizontally
-    width: width - 40,
-    borderRadius: 50,
-    height: 70,
+    alignSelf: "center",
+    width: width - responsiveWidth(40),
+    borderRadius: responsiveWidth(20),
+    borderColor: theme.borderColor,
+    borderWidth: 0.9,
+    height: responsiveHeight(70),
     alignItems: "center",
     justifyContent: "space-around",
-    paddingHorizontal: 10,
-    marginBottom: 20,
+    paddingHorizontal: responsiveWidth(10),
+    marginBottom: responsiveHeight(10),
+    // marginLeft: responsiveHeight(5),
     overflow: "hidden",
     backgroundColor: "transparent",
   },
 
   tabItem: {
-    borderRadius: 25,
+    borderRadius: responsiveWidth(25),
     alignItems: "center",
     justifyContent: "center",
   },
   activeTab: {
-    backgroundColor: theme.primaryColor,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    height: 40,
-    borderRadius: 20,
-    shadowColor: theme.primaryColor,
-    shadowOffset: {
-      width: 15,
-      height: 15,
-    },
-    shadowOpacity: 0.7,
-    shadowRadius: 20,
-    elevation: 5, // Android glow
+    paddingHorizontal: responsiveWidth(16),
+    paddingVertical: responsiveHeight(6),
+    height: responsiveHeight(40),
   },
 
   inactiveTab: {
-    width: 45,
-    height: 45,
+    width: responsiveWidth(45),
+    height: responsiveHeight(45),
   },
+
   iconLabelWrapper: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
+
   icon: {
-    width: 24,
-    height: 24,
+    width: responsiveWidth(22),
+    height: responsiveWidth(22),
     resizeMode: "contain",
   },
   iconActive: {
-    tintColor: "#FFF",
-    marginRight: 6,
+    tintColor: theme.primaryColor,
+    marginRight: responsiveWidth(6),
   },
   iconInactive: {
     tintColor: "#AAA",
   },
   labelActive: {
-    color: "#FFF",
+    color: theme.primaryColor,
     fontWeight: "600",
-    fontSize: 12,
+    fontSize: responsiveFontSize(12),
   },
 });

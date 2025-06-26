@@ -17,6 +17,8 @@ import PurchasedCourseCard from '../../Courses/purchaseCourse/PurchaseCourseCard
 import { useEnrolledCourses } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useSelector } from 'react-redux';
+import Share from 'react-native-share';
+import { Buffer } from 'buffer'; // Required for Base64 encoding
 
 const { width } = Dimensions.get('window');
 
@@ -75,10 +77,12 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#08131F',
         padding: 25,
-        paddingTop: 20
+        // paddingTop: 20,
     },
     listContainer: {
-        paddingVertical: 10
+        paddingBottom: 120,
+        // paddingVertical: 10,
+        marginBottom: 100,
     }
 });
 

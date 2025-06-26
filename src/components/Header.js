@@ -62,13 +62,13 @@ const getStyles = (theme) => StyleSheet.create({
     backIcon: { width: 17, height: 17, resizeMode: 'contain' },
 
     title: {
-        fontSize: 20,
-        color: theme.textColor,
-        fontFamily: 'Inter-SemiBold',
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        textAlign: 'center',
+            fontSize: 20,
+            color: theme.textColor,
+            fontFamily: 'Inter-SemiBold',
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            textAlign: 'center',
     },
 });
 

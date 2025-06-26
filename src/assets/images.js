@@ -104,11 +104,15 @@ import p8 from './p8.png'
 import p9 from './p9.png'
 import userProfile from './userProfile.jpg'
 import logoWhite from './logoWhite.png'
+import send from './send.png'
+import menu from './menu.png'
+import chatbot from './chatbot.png'
+import send2 from './send2.png'
 
 
 export {
-  age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts,
-  lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser,
+  age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2,
+  lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot,
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,

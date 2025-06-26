@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions, ToastAndroid } from 'react-native';
-import { copy, course, mountain, play, user } from '../../../assets/images';
+import { copy, course, mountain, play, user, send } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import { addToFavorites } from '../../../functions/handleCourses';
 import Clipboard from '@react-native-clipboard/clipboard';
+import Share from 'react-native-share';
 
 const { width } = Dimensions.get('window'); // Get screen width for responsive design
 
@@ -27,7 +28,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
     <TouchableOpacity
         style={{
             ...styles.card,
-            height: course.type === "Affiliate" ? 180 : 150
+            height: course.type === "Affiliate" ? 180 : 130
         }}
         onPress={onPress}
     >
@@ -66,18 +67,44 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                 <Text style={styles.price}>{course.price}</Text>
             </View>
 
-            {showUrl && <View style={styles.urlcontainer}>
-                <Text style={styles.url} numberOfLines={1} ellipsizeMode="tail">
-                    {course.url}
-                </Text>
-                <TouchableOpacity
-                    onPress={() => {
-                        Clipboard.setString(course.url);
-                        ToastAndroid.show('Link copied!', ToastAndroid.SHORT);
-                    }}>
-                    <Image style={{ width: 15, height: 15, resizeMode: "contain" }} source={copy}></Image>
-                </TouchableOpacity>
-            </View>}
+            {showUrl && (
+                <View style={styles.urlcontainer}>
+                    <Text style={styles.url} numberOfLines={1} ellipsizeMode="tail">
+                        {course.url}
+                    </Text>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                        {/* Copy Button */}
+                        <TouchableOpacity
+                            onPress={() => {
+                                Clipboard.setString(course.url);
+                                ToastAndroid.show('Link copied!', ToastAndroid.SHORT);
+                            }}>
+                            <Image style={{ width: 15, height: 15, resizeMode: "contain", marginRight: 5 }} source={copy} />
+                        </TouchableOpacity>
+
+                        {/* Share Button */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                try {
+                                    await Share.open({
+                                        title: 'Share Course',
+                                        message: `Check out this course: ${course.url}`,
+                                        url: course.url,
+                                    });
+                                } catch (error) {
+                                    if (error.message !== 'User did not share') {
+                                        console.log('Share error:', error);
+                                    }
+                                }
+                            }}
+                        >
+                            <Image style={{ width: 15, height: 15, resizeMode: "contain" }} source={send} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
+
         </View>
     </TouchableOpacity>
 );
@@ -148,8 +175,8 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         color: '#FFFFFF',
-        fontSize: 13,
-        fontFamily: "Inter-Medium",
+        fontSize: 12,
+        fontFamily: "Inter-Regular",
         marginBottom: 2,
     },
     starContainer: {
@@ -184,6 +211,7 @@ const styles = StyleSheet.create({
 
 
     instructorInfo: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: "space-between",
