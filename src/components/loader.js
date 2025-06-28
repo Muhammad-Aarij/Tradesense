@@ -1,66 +1,88 @@
-import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Text, Image } from 'react-native';
-import spinner from '../assets/Spinner.gif'
-import FastImage from 'react-native-fast-image';
-
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Animated,
+  Easing,
+  ImageSourcePropType,
+} from 'react-native';
+import spinner from '../assets/Time.png';
 
 export default function Loader() {
   const [loadingText, setLoadingText] = useState('Loading');
+  const rotation = useRef(new Animated.Value(0)).current;
+  const angleRef = useRef(0); // 0 → 90 → 180 → 270 → 0
 
+  // Step-wise rotation every 0.5s
   useEffect(() => {
     const interval = setInterval(() => {
-      setLoadingText(prevText => {
-        const dotCount = (prevText.match(/\./g) || []).length;
-        return dotCount < 3 ? prevText + '.' : 'Loading';
-      });
-    }, 500); // Adjust the interval time as needed
+      angleRef.current = (angleRef.current + 90) % 360;
+      Animated.timing(rotation, {
+        toValue: angleRef.current,
+        duration: 200, // quick rotation
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }).start();
+    }, 500);
 
     return () => clearInterval(interval);
   }, []);
 
+  // Dot animation
+  useEffect(() => {
+    const dotInterval = setInterval(() => {
+      setLoadingText(prev => {
+        const dots = (prev.match(/\./g) || []).length;
+        return dots < 3 ? prev + '.' : 'Loading';
+      });
+    }, 500);
+
+    return () => clearInterval(dotInterval);
+  }, []);
+
+  // Map angle (0-360) to string rotation
+  const rotateInterpolate = rotation.interpolate({
+    inputRange: [0, 90, 180, 270, 360],
+    outputRange: ['0deg', '90deg', '180deg', '270deg', '360deg'],
+  });
+
   return (
     <View style={[StyleSheet.absoluteFillObject, styles.container]}>
       <View style={styles.modalView}>
-        <FastImage style={{ opacity: 0.7, width: 170, height: 190 }} source={spinner} />
+        <Animated.Image
+          source={spinner }
+          style={[
+            {
+              width: 100,
+              height: 110,
+              resizeMode: 'contain',
+              transform: [{ rotate: rotateInterpolate }],
+            },
+          ]}
+        />
         <Text style={styles.modalText}>{loadingText}</Text>
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    // backgroundColor:"red",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     zIndex: 10,
   },
   modalText: {
-    marginBottom: 5,
     textAlign: 'center',
-    fontWeight: "bold",
-    color: "black",
-    marginBottom: "8%",
-    width: 110, // Set a fixed width for the text container
-    // borderWidth:2,
-    // borderColor: "#33cc66",
+    fontWeight: 'bold',
+    color: 'black',
+    marginTop: 10,
+    fontSize: 16,
+    width: 110,
   },
-
   modalView: {
-    margin: 80,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 10,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
-
-})
+});

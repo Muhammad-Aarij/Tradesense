@@ -1,133 +1,252 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ImageBackground, ScrollView, Image } from 'react-native';
-import { check, uncheck, bg } from '../../../assets/images';
+import React, { useEffect, useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    ScrollView,
+    ImageBackground,
+    Image,
+    Alert
+} from 'react-native';
+import { bg, check, uncheck } from '../../../assets/images';
 import theme from '../../../themes/theme';
-import { fetchGoals } from '../../../functions/profiling';
+import axios from 'axios';
+import { API_URL } from '@env';
 import { useDispatch } from 'react-redux';
-import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { ThemeContext } from '../../../context/ThemeProvider';
+import { loginUser,setProfilingDone } from '../../../redux/slice/authSlice';
 
 const GoalsScreen = ({ navigation, route }) => {
-    const dispatch = useDispatch();
-    const { goalImages, areaImages } = useContext(ThemeContext);
-    const [goals, setGoals] = useState([]);
-    const [selectedGoals, setSelectedGoals] = useState([]);
-    const { user, token } = route.params;;
-    const [request, setRequest] = useState(route.params?.request || {
-        gender: null,
-        ageRange: null,
-        goals: [],
-        choosenArea: [],
-    });
+    const { request, user, token, question: allQuestions } = route.params || {};
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [onboarding, setOnboarding] = useState([]);
+    const [selectedGoalTexts, setSelectedGoalTexts] = useState([]);
+    const [selectedOptionText, setSelectedOptionText] = useState(null);
+    const dispatch=useDispatch();
+    // Exclude age and gender questions
+    const questions = allQuestions?.filter(
+        q => q.title.toLowerCase() !== 'age' && q.title.toLowerCase() !== 'gender'
+    ) || [];
 
+    const currentQuestion = questions[currentIndex];
+    const isGoalQuestion = currentQuestion?.title.toLowerCase().includes('goal');
 
-    useEffect(() => {
+    const handleSelect = (text) => {
+        if (isGoalQuestion) {
+            setSelectedGoalTexts(prev =>
+                prev.includes(text) ? prev.filter(t => t !== text) : [...prev, text]
+            );
+        } else {
+            setSelectedOptionText(text);
+        }
+    };
 
-        const MAX_RETRIES = 5;
-        const loadGoals = async (retryCount = 0) => {
-            console.log("get the images staus", goalImages),
-                dispatch(startLoading());
+    const handleNext = async () => {
+        if (isGoalQuestion) {
+            if (selectedGoalTexts.length === 0) return;
+        } else {
+            if (!selectedOptionText) return;
+            setOnboarding(prev => [...prev, selectedOptionText]);
+        }
 
-            try {
-                const data = await fetchGoals();
-                setGoals(data);
-                dispatch(stopLoading());
-            } catch (error) {
-                console.warn(`Fetch failed (attempt ${retryCount + 1}):`, error);
+        if (currentIndex < questions.length - 1) {
+            setCurrentIndex(prev => prev + 1);
+            setSelectedOptionText(null);
+        } else {
+            const payload = {
+                gender: request.gender?.toLowerCase(),
+                ageRange: request.ageRange,
+                goals: selectedGoalTexts,
+                onboarding: [...onboarding, selectedOptionText].filter(Boolean)
+            };
+            console.log('====================================');
+            console.log(payload);
+            console.log('====================================');
 
-                if (retryCount < MAX_RETRIES) {
-                    const delay = Math.pow(2, retryCount) * 500; // exponential backoff
-                    setTimeout(() => {
-                        loadGoals(retryCount + 1);
-                    }, delay);
-                } else {
-                    dispatch(stopLoading());
-                    Alert.alert('Error', 'Failed to fetch goals after multiple attempts.');
-                }
-            }
-        };
-
-        loadGoals();
-    }, []);
-
-
-    const toggleGoal = (goalId) => {
-        setSelectedGoals((prev) => {
-            const updatedGoals = prev.includes(goalId)
-                ? prev.filter((g) => g !== goalId)
-                : [...prev, goalId];
-
-            setRequest((prevRequest) => ({
-                ...prevRequest,
-                goals: updatedGoals,
+            setupProfile(payload, user._id);
+            await dispatch(loginUser({
+                token: token,
+                user: user,
+                themeType: 'dark', // or read from API/config
             }));
 
-            return updatedGoals;
-        });
+            dispatch(setProfilingDone(true));
+        }
     };
+
+    const setupProfile = async (data, userId) => {
+        try {
+            await axios.post(
+                `${API_URL}/api/auth/setup-profile/${userId}`,
+                data,
+                {
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+            Alert.alert('Success', 'Profile setup completed');
+            navigation.navigate('Home');
+        } catch (err) {
+            console.error(err);
+            Alert.alert('Error', 'Failed to complete setup');
+        }
+    };
+
+    if (!currentQuestion) {
+        return (
+            <View style={styles.center}>
+                <Text style={styles.title}>No onboarding questions found.</Text>
+            </View>
+        );
+    }
 
     return (
         <ImageBackground source={bg} style={styles.container}>
-            <Text style={styles.title}>Goals</Text>
-            <Text style={styles.subtitle}>What is your goal?</Text>
-            <ScrollView style={{ width: '100%', flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
-                <View style={styles.tilesContainer}>
-                    {goals.map((goal) => (
-                        <TouchableOpacity
-                            key={goal._id}
-                            style={[
-                                styles.option,
-                                selectedGoals.includes(goal._id) && styles.selectedOption,
-                            ]}
-                            onPress={() => toggleGoal(goal._id)}
-                        >
-                            {goalImages && <Image source={{ uri: goal.image }} style={styles.goalIcon} />}
-                            <Text style={[styles.optionText, selectedGoals.includes(goal._id) && { color: '#70C2E8' }]}>
-                                {goal.text}
-                            </Text>
-                            <Image style={styles.checkbox} source={selectedGoals.includes(goal._id) ? check : uncheck} />
-                        </TouchableOpacity>
-                    ))}
+            <View style={styles.wrapper}>
+                {/* Title + Subtitle */}
+                <View style={styles.header}>
+                    <Text style={styles.title}>{currentQuestion.title}</Text>
+                    <Text style={styles.subtitle}>{currentQuestion.subTitle}</Text>
                 </View>
-                <TouchableOpacity
-                    style={[styles.button, selectedGoals.length === 0 && styles.disabledButton]}
-                    disabled={selectedGoals.length === 0}
-                    onPress={() => navigation.navigate('AreasScreen', { request, user, token })}
-                >
-                    <Text style={styles.buttonText}>Next</Text>
-                </TouchableOpacity>
-            </ScrollView>
+
+                {/* Scrollable Options */}
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    {(currentQuestion.questions || []).map((opt) => {
+                        const isSelected = isGoalQuestion
+                            ? selectedGoalTexts.includes(opt.text)
+                            : selectedOptionText === opt.text;
+
+                        return (
+                            <TouchableOpacity
+                                key={opt._id}
+                                style={[styles.option, isSelected && styles.selectedOption]}
+                                onPress={() => handleSelect(opt.text)}
+                            >
+                                {currentQuestion.images && opt.image ? (
+                                    <Image source={{ uri: opt.image }} style={styles.optionImage} />
+                                ) : null}
+                                <Text style={[styles.optionText, isSelected && { color: '#70C2E8' }]}>
+                                    {opt.text}
+                                </Text>
+                                <Image
+                                    source={isSelected ? check : uncheck}
+                                    style={styles.checkbox}
+                                />
+                            </TouchableOpacity>
+                        );
+                    })}
+                </ScrollView>
+
+                {/* Bottom Button */}
+                <View style={styles.bottomButton}>
+                    <TouchableOpacity
+                        style={[
+                            styles.button,
+                            (isGoalQuestion && selectedGoalTexts.length === 0) ||
+                                (!isGoalQuestion && !selectedOptionText)
+                                ? styles.disabledButton
+                                : null
+                        ]}
+                        disabled={
+                            (isGoalQuestion && selectedGoalTexts.length === 0) ||
+                            (!isGoalQuestion && !selectedOptionText)
+                        }
+                        onPress={handleNext}
+                    >
+                        <Text style={styles.buttonText}>
+                            {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
         </ImageBackground>
     );
 };
 
-
 const styles = StyleSheet.create({
-    container: { flex: 1, alignItems: 'center', backgroundColor: theme.darkBlue, paddingHorizontal: 50, paddingBottom: 10 },
-    title: { fontSize: 28, fontFamily: "Inter-SemiBold", color: "#FFFFFF", marginTop: 50 },
-    subtitle: { fontSize: 13, fontFamily: 'Inter-Medium', color: '#fff', marginBottom: 20 },
-    tilesContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 15, width: '100%' },
-    option: {
-        width: '100%', backgroundColor: "#0d151e", fontFamily: "Inter-Medium",
-        borderRadius: 8, padding: 12, borderWidth: 0.8, borderColor: theme.borderColor,
-        flexDirection: "row", justifyContent: "center",
-        alignItems: "center",
+    container: { flex: 1, backgroundColor: theme.darkBlue },
+    wrapper: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20
     },
-    selectedOption: { backgroundColor: 'rgba(112,194,232,0.3)', borderColor: theme.primaryColor },
-    optionText: { fontSize: 13.5, color: '#fff', fontFamily: 'Inter-Regular' },
+    header: {
+        marginBottom: 20
+    },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'flex-start'
+    },
+    bottomButton: {
+        marginTop: 10
+    },
+    title: {
+        textAlign: 'center',
+        fontSize: 28,
+        color: '#fff',
+        fontFamily: 'Inter-SemiBold',
+        marginBottom: 10
+    },
+    subtitle: {
+        fontSize: 14,
+        color: '#fff',
+        fontFamily: 'Inter-Regular',
+        textAlign: 'center',
+        marginBottom: 20
+    },
+    option: {
+        width: '100%',
+        backgroundColor: '#0d151e',
+        borderRadius: 10,
+        padding: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderColor: theme.borderColor,
+        borderWidth: 0.8,
+        marginBottom: 15
+    },
+    selectedOption: {
+        backgroundColor: 'rgba(112,194,232,0.3)',
+        borderColor: theme.primaryColor
+    },
+    optionImage: {
+        width: 40,
+        height: 40,
+        resizeMode: 'contain',
+        marginRight: 10
+    },
+    optionText: {
+        width: '80%',
+        color: '#fff',
+        fontSize: 13,
+        fontFamily: 'Inter-Light-BETA'
+    },
+    checkbox: {
+        width: 20,
+        height: 25,
+        resizeMode: 'contain',
+        marginLeft: 'auto'
+    },
     button: {
         backgroundColor: theme.primaryColor,
         padding: 15,
         borderRadius: 10,
-        marginTop: 20,
-        marginBottom: 50,
         alignItems: 'center',
+        width: '100%'
     },
-    goalIcon: { width: 40, height: 40, resizeMode: 'contain', marginRight: 10 },
-    checkbox: { width: 20, height: 25, resizeMode: "contain", marginLeft: 'auto' },
-
-    disabledButton: { backgroundColor: 'gray' },
-    buttonText: { color: '#fff', fontSize: 16, fontFamily: 'Inter-SemiBold' },
+    disabledButton: {
+        backgroundColor: 'gray'
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontFamily: 'Inter-SemiBold'
+    },
+    center: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center'
+    }
 });
 
 export default GoalsScreen;

@@ -17,8 +17,7 @@ import PurchasedCourseCard from '../../Courses/purchaseCourse/PurchaseCourseCard
 import { useEnrolledCourses } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useSelector } from 'react-redux';
-import Share from 'react-native-share';
-import { Buffer } from 'buffer'; // Required for Base64 encoding
+import { Buffer } from 'buffer'; 
 
 const { width } = Dimensions.get('window');
 

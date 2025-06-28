@@ -28,7 +28,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
     <TouchableOpacity
         style={{
             ...styles.card,
-            height: course.type === "Affiliate" ? 180 : 130
+            height: course.type === "Affiliate" ? 180 : 140
         }}
         onPress={onPress}
     >
@@ -43,16 +43,11 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                     <Text style={styles.timeText}>{course.time}</Text>
                 </View>
             }
-            {/* {course.type == "Affiliate" &&
-                <View style={{ ...styles.timeOverlay, }}>
-                    <Text style={styles.timeText}>{course.percent}</Text>
-                </View>
-            } */}
-
+           
         </View>
         <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>{course.title || "Untitled Course"}</Text>
-            <Text style={styles.cardDescription} numberOfLines={course.type == "Affiliate" ? 2 : 3}>
+            <Text style={styles.cardTitle}  numberOfLines={1}>{course.title || "Untitled Course"}</Text>
+            <Text style={styles.cardDescription} numberOfLines={course.type == "Affiliate" ? 2 : 2}>
                 {course.description}
             </Text>
             <StarRating rating={course.rating} />
@@ -104,7 +99,6 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                     </View>
                 </View>
             )}
-
         </View>
     </TouchableOpacity>
 );
@@ -112,7 +106,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
 const styles = StyleSheet.create({
     card: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
         borderWidth: 0.9, borderColor: theme.borderColor,
         borderRadius: 12,
         marginBottom: 15,
@@ -192,6 +186,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     cardDescription: {
+        flex: 1,
         fontFamily: "Inter-Light-BETA",
         color: '#AAAAAA',
         fontSize: 10,
@@ -232,8 +227,9 @@ const styles = StyleSheet.create({
         marginRight: 5,
     },
     instructorName: {
+        // maxWidth:"80%",
         color: theme.primaryColor,
-        fontSize: 11,
+        fontSize: 10,
         fontFamily: 'Inter-SemiBold',
     },
     instructorSubtitle: {

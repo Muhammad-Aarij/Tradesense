@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#08131F',
-        paddingBottom: height * 0.1,
+        paddingBottom: height * 0.01,
     },
     listContent: {
         paddingHorizontal: 20,

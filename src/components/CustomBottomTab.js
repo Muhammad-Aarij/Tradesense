@@ -18,7 +18,7 @@ const tabItems = [
   { name: "Home", icon: homeT },
   { name: "Pillars", icon: pillar },
   { name: "Courses", icon: course },
-  { name: "Affiliate", icon: userT },
+  { name: "Accountability", icon: userT },
   { name: "Sidebar", icon: menu },
   { name: "ChatBot", icon: chatbot },
 ];
@@ -67,7 +67,15 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
             >
               <View style={styles.iconLabelWrapper}>
                 <Image source={icon} style={[styles.icon, styles.iconActive]} />
-                <Text style={styles.labelActive}>{route.name}</Text>
+                <Text style={styles.labelActive}>
+                  {route.name === "Pillars"
+                    ? "Discover"
+                    : route.name === "Affiliate"
+                      ? "Trader Hub"
+                      : route.name === "ChatBot"
+                        ? "TraderSense AI"
+                        : route.name}
+                </Text>
               </View>
             </TouchableOpacity>
           </LinearGradient>

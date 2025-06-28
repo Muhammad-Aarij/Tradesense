@@ -10,6 +10,7 @@ import AffiliateNavigator from "./AffiliateNavigator";
 import CustomBottomTab from "../components/CustomBottomTab";
 import AccountabilityPartnerChatScreen from "../screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen";
 import SidebarNavigator from "./SidebarNavigator";
+import UserProfileMenuScreen from "../screens/Settings/UserProfileMenu/Profile";
 
 const Tab = createBottomTabNavigator();
 
@@ -25,29 +26,32 @@ export default function BottomNavigator() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen
         name="Pillars"
-        component={PillarNavigator}
-        options={({ route }) => {
-          const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+        component={PillarNavigator} />
 
-          // List of screens where tab bar should be hidden
-          const hideOnScreens = ['TrackPlayer'];
+      {/* <Tab.Screen name="Courses" component={CoursesNavigator} /> */}
+      {/* <Tab.Screen name="Affiliate" component={AffiliateNavigator} /> */}
+      <Tab.Screen name="Accountability" component={AccountabilityNavigator} />
 
-          return {
-            tabBarStyle: {
-              height: hideOnScreens.includes(routeName) ? 0 : 'auto',
-            },
-          };
-        }}
-      />
-
-      <Tab.Screen
+      {/* <Tab.Screen
         name="Courses"
         component={CoursesNavigator}
-      />
-      {/* <Tab.Screen name="Accountability" component={AccountabilityNavigator} /> */}
-      {/* <Tab.Screen name="Affiliate" component={AffiliateNavigator} /> */}
+        options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
+      /> */}
+
+      {/* <Tab.Screen
+        name="Accountability"
+        component={AccountabilityNavigator}
+        options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
+      /> */}
+
+      {/* <Tab.Screen
+        name="Affiliate"
+        component={AffiliateNavigator}
+        options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
+      /> */}
+
       <Tab.Screen name="ChatBot" component={AccountabilityPartnerChatScreen} />
-      <Tab.Screen name="Sidebar" component={SidebarNavigator} />
+      <Tab.Screen name="Sidebar" component={UserProfileMenuScreen} />
     </Tab.Navigator>
   );
 }

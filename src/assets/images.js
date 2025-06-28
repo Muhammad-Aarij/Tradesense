@@ -108,13 +108,23 @@ import send from './send.png'
 import menu from './menu.png'
 import chatbot from './chatbot.png'
 import send2 from './send2.png'
+import homeSplash from './homeSplash.png'
+import c from './c.png'
+import f from './f.png'
+import d from './d.png'
+import m from './m.png'
+import discover from './discover.png'
+import discover1 from './discover1.png'
+import lockicon from './lockicon.png'
+import play2 from './play2.png'
+import bundle from './bundle.png'
 
 
 export {
-  age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2,
-  lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot,
+  age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
+  lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle,
   check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain,
-  CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next,
+  CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next, d,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite

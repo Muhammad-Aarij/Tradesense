@@ -14,15 +14,15 @@ const CoursesStack = createNativeStackNavigator();
 const CoursesNavigator = () => {
   return (
     <CoursesStack.Navigator
-      initialRouteName="OurCoursesScreen"
+      initialRouteName="PurchasedCoursesScreen"
       screenOptions={{
         headerShown: false
       }}
       detachInactiveScreens={false}
     >
+      <CoursesStack.Screen name="PurchasedCoursesScreen" component={PurchasedCoursesScreen} />
       <CoursesStack.Screen name="OurCoursesScreen" component={OurCoursesScreen} />
       <CoursesStack.Screen name="CourseDetailScreen" component={CourseDetailScreen} />
-      <CoursesStack.Screen name="PurchasedCoursesScreen" component={PurchasedCoursesScreen} />
       <CoursesStack.Screen name="PlansScreen" component={PlansScreen} detachInactiveScreens={false} />
       <CoursesStack.Screen name="CheckoutScreen" component={CheckoutScreen} />
       {/* <CoursesStack.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} /> */}

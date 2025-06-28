@@ -14,12 +14,13 @@ import LoginScreen from '../screens/Auth/loginScreen/LoginScreen';
 import SignUp from '../screens/Auth/SignUp/SignUp';
 import PlansScreenDeepLink from '../screens/Courses/Plans/PlansScreenDeepLink';
 import MenuComponent from '../components/MenuComponent';
-import SplashScreen from '../screens/splashScreen/SplashScreen'; // Ensure this path is correct
+import SplashScreen from '../screens/splashScreen/SplashScreen'; 
 
 const RootStack = createNativeStackNavigator();
 
 const MainFlow = () => {
     const { isSignedIn, userToken, isProfilingDone } = useSelector(state => state.auth);
+    console.log("isProfilingDone",isProfilingDone)
     if (isSignedIn && userToken) {
         return isProfilingDone ? <HomeNavigator /> : <AuthNavigator />;
     }
@@ -38,9 +39,9 @@ const AppNavContainer = () => {
 
     useEffect(() => {
         const initAppAndSplash = async () => {
-         
+
             const tokenPromise = dispatch(retrieveToken());
-         
+
             const splashTimerPromise = new Promise(resolve => setTimeout(resolve, 4000)); // 2 seconds
 
             // Wait for both to complete
@@ -85,7 +86,7 @@ const AppNavContainer = () => {
                         navigationRef.current?.navigate('CourseDeepLink', { courseId, affiliateToken: token });
                     } else if (parsed.hostname === 'plans' && parsed.pathname === '/deeplink') { // Example for PlansScreenDeepLink
                         // Example: tradesense://plans/deeplink?someParam=value
-                         navigationRef.current?.navigate('PlansScreenDeepLink', { /* any plans related params */ });
+                        navigationRef.current?.navigate('PlansScreenDeepLink', { /* any plans related params */ });
                     }
                     // Add other deep link parsing logic here if needed
                 }
@@ -165,7 +166,7 @@ const AppNavContainer = () => {
             <NavigationContainer
                 ref={navigationRef}
                 linking={linking}
-                // onReady is no longer needed for initialUrl handling as it's done in useEffect
+            // onReady is no longer needed for initialUrl handling as it's done in useEffect
             >
                 <RootStack.Navigator screenOptions={{ headerShown: false }}>
                     {/* SplashScreen is handled by conditional rendering outside NavigationContainer */}

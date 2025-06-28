@@ -120,7 +120,7 @@ const AffiliateDashboardScreen = () => {
                                         </TouchableOpacity>
                                     ))}
                                 </View>
-                            )}
+                            )} 
                         </View>
 
                     </View>

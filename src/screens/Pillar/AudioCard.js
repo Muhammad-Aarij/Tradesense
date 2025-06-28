@@ -3,10 +3,11 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { heart, heartOutline, hearts } from "../../assets/images";
 import { ThemeContext } from "../../context/ThemeProvider";
 import Sound from "react-native-sound";
+import theme from "../../themes/theme";
 
 
 const AudioCard = ({ episodeNumber, title, duration, isLiked: initialIsLiked, onPress, audio }) => {
-  const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+  // const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
   const styles = getStyles(theme);
   const [durationSec, setDurationSec] = useState(null);
 

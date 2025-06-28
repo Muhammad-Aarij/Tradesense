@@ -3,17 +3,19 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaVi
 import { back, bg, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
+import { logoutUser } from '../../../redux/slice/authSlice';
+import { useDispatch } from 'react-redux';
 const { width, height } = Dimensions.get('window');
 const scale = size => (width / 375) * size;      // base width: 375
 const verticalScale = size => (height / 812) * size; // base height: 812
 
-const UserProfileMenuScreen = ({ }) => {
+const UserProfileMenuScreen = ({ navigation }) => {
   // const mockNavigation = {
   //   // navigate: (screenName, params) => console.log(`Navigating to: ${screenName}`, params),
   //   goBack: () => console.log('Going back'),
   // };
   // const currentNavigation = navigation || mockNavigation;
-
+  const dispatch = useDispatch();
   const MenuItem = ({ icon, text, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={styles.menuItemContent}>
@@ -44,15 +46,17 @@ const UserProfileMenuScreen = ({ }) => {
 
             {/* Menu Items */}
             <View style={styles.menuItemsContainer}>
-              <MenuItem icon={p1} text="Profile" onPress={() => currentNavigation.navigate('UserProfileDetailsScreen')} />
-              <MenuItem icon={p2} text="Subscriptions Plans" onPress={() => currentNavigation.navigate('SubscriptionPlansScreen')} />
-              <MenuItem icon={p3} text="Account Security" onPress={() => currentNavigation.navigate('AccountSecurityScreen')} />
-              <MenuItem icon={p4} text="Help Center" onPress={() => console.log('Help Center')} />
-              <MenuItem icon={p5} text="Report a Problem" onPress={() => console.log('Report a Problem')} />
-              <MenuItem icon={p6} text="About" onPress={() => console.log('About')} />
-              <MenuItem icon={p7} text="Terms and Conditions" onPress={() => console.log('Terms and Conditions')} />
-              <MenuItem icon={p8} text="Privacy Policy" onPress={() => console.log('Privacy Policy')} />
-              <MenuItem icon={p9} text="Logout" onPress={() => console.log('Logout')} />
+              <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('UserProfileDetailsScreen')} />
+              <MenuItem icon={p2} text="Courses"  onPress={() => navigation.navigate('Courses')} />
+              <MenuItem icon={p2} text="Affiliate"  onPress={() => navigation.navigate('Affiliate')} />
+              <MenuItem icon={p2} text="Subscriptions Plans"  />
+              <MenuItem icon={p3} text="Account Security" onPress={() => navigation.navigate('Menu', { screen: 'AccountSecurity' })} />
+              <MenuItem icon={p4} text="Help Center" onPress={() => navigation.navigate('Menu', { screen: 'HelpCenter' })} />
+              <MenuItem icon={p5} text="Report a Problem" onPress={() => navigation.navigate('Menu', { screen: 'ReportProblem' })} />
+              <MenuItem icon={p6} text="About" onPress={() => navigation.navigate('Menu', { screen: 'About' })} />
+              <MenuItem icon={p7} text="Terms and Conditions" onPress={() => navigation.navigate('Menu', { screen: 'TermsAndConditions' })} />
+              {/* <MenuItem icon={p8} text="Privacy Policy" onPress={() => navigation.navigate('Menu', { screen: 'About' })} /> */}
+              <MenuItem icon={p9} text="Logout" onPress={() => dispatch(logoutUser())} /> 
             </View>
 
           </ScrollView>
@@ -68,6 +72,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    marginBottom: verticalScale(85),
     paddingHorizontal: scale(25),
   },
   scrollContent: {

@@ -15,6 +15,8 @@ import HabitTracking from '../screens/Accountability/habitTracking/HabitTracking
 import AccountabilityPartnerChatScreen from '../screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen';
 import Acc_FormData from '../screens/Accountability/formData/Acc_FormData';
 import CoursesNavigator from './CoursesNavigator';
+import SidebarNavigator from './SidebarNavigator';
+import AffiliateNavigator from './AffiliateNavigator';
 
 const Home = createNativeStackNavigator();
 
@@ -32,6 +34,9 @@ const HomeNavigator = () => {
         <Home.Screen name="AddHabit" component={HabitTracking} />
         <Home.Screen name="Acc_FormData" component={Acc_FormData} />
         <Home.Screen name="ChatScreen" component={AccountabilityPartnerChatScreen} />
+        <Home.Screen name="Menu" component={SidebarNavigator} />
+        <Home.Screen name="Courses" component={CoursesNavigator} />
+        <Home.Screen name="Affiliate" component={AffiliateNavigator} />
       </Home.Navigator>
 
       {/* {isSidebarOpen && <MenuComponent />} */}

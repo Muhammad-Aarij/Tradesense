@@ -1,93 +1,198 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ImageBackground, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    Image,
+    ImageBackground,
+    Dimensions,
+    BackHandler,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchQuestionnaire } from '../../../functions/profiling';
 import theme from '../../../themes/theme';
-import { male, female, third, bg } from '../../../assets/images'; // Ensure correct icons
+import { bg } from '../../../assets/images';
+import { useDispatch } from 'react-redux';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+
 const { height } = Dimensions.get('window');
 
 const GenderScreen = ({ navigation, route }) => {
     const { user, token } = route.params;
+    const dispatch = useDispatch();
     const [selectedGender, setSelectedGender] = useState(null);
+    const [genderQuestions, setGenderQuestions] = useState([]);
+    const [question, setQuestions] = useState([]);
     const [request, setRequest] = useState({
-        "gender": null,
-        "ageRange": null,
-        "goals": [],
-        "choosenArea": []
-    })
-    const genders = [
-        { label: "Male", value: "male", icon: male },
-        { label: "Female", value: "female", icon: female },
-        { label: "Other", value: "other", icon: third }
-    ];
+        gender: null,
+        ageRange: null,
+        goals: [],
+        choosenArea: [],
+    });
 
-    const handleGenderSelection = (gender) => {
-        console.log("Handling Gender: ", gender);
-        setSelectedGender(gender);
-        setRequest(prevRequest => ({
-            ...prevRequest,
-            gender: gender
-        }));
+    const handleGenderSelection = (genderText) => {
+        setSelectedGender(genderText);
+        setRequest((prev) => ({ ...prev, gender: genderText }));
     };
 
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                BackHandler.exitApp();
+                return true;
+            };
 
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }, [])
+    );
 
+    useEffect(() => {
+        const loadGenderQuestions = async () => {
+            dispatch(startLoading);
+            const data = await fetchQuestionnaire();
+            if (data) {
+                setQuestions(data);
+                const genderSection = data.find(
+                    (section) =>
+                        section.title.toLowerCase().includes('gender') &&
+                        section.questions &&
+                        section.questions.length
+                );
+
+                if (genderSection) {
+                    setGenderQuestions(genderSection.questions);
+                }
+                dispatch(stopLoading());
+            }
+            else {
+                dispatch(stopLoading());
+            }
+        };
+
+        loadGenderQuestions();
+    }, []);
 
     return (
         <ImageBackground source={bg} style={styles.container}>
             <Text style={styles.title}>Gender</Text>
             <Text style={styles.subtitle}>Select Your Gender</Text>
-            <View style={styles.optionsContainer}>
-                {genders.map((gender) => (
-                    <TouchableOpacity
-                        key={gender.label}
-                        style={[styles.option, selectedGender === gender.value && styles.selectedOption]}
-                        onPress={() => handleGenderSelection(gender.value)}
-                    >
-                        <Image source={gender.icon} style={styles.icon} />
-                        <Text style={[styles.optionText, selectedGender === gender.label && styles.selectedOptiontext]}
 
-                        >{gender.label}</Text>
+            <View style={styles.optionsContainer}>
+                {genderQuestions.map((question) => (
+                    <TouchableOpacity
+                        key={question._id}
+                        style={[
+                            styles.option,
+                            selectedGender === question.text && styles.selectedOption,
+                        ]}
+                        onPress={() => handleGenderSelection(question.text)}
+                    >
+                        {question.image ? (
+                            <Image source={{ uri: question.image }} style={styles.icon} />
+                        ) : null}
+                        <Text
+                            style={[
+                                styles.optionText,
+                                selectedGender === question.text && styles.selectedOptiontext,
+                            ]}
+                        >
+                            {question.text}
+                        </Text>
                     </TouchableOpacity>
                 ))}
             </View>
+
             <TouchableOpacity
                 style={[styles.button, !selectedGender && styles.disabledButton]}
                 disabled={!selectedGender}
                 onPress={() => {
                     if (selectedGender) {
-                        navigation.navigate('AgeScreen', { request, user, token });
+                        navigation.navigate('AgeScreen', { request, user, token, question });
                     }
                 }}
             >
                 <Text style={styles.buttonText}>Next</Text>
             </TouchableOpacity>
-
         </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.darkBlue, paddingVertical: 40, },
-    title: { fontSize: 28, fontFamily: "Inter-SemiBold", color: "#FFFFFF", },
-    subtitle: { fontSize: 13, fontFamily: "Inter-Medium", color: "#FFFFFF", marginBottom: 20 },
-    optionsContainer: { flex: 1, flexDirection: 'column', justifyContent: 'center', marginBottom: 20, gap: 20 },
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.darkBlue,
+        paddingVertical: 40,
+    },
+    title: {
+        fontSize: 28,
+        fontFamily: 'Inter-SemiBold',
+        color: '#FFFFFF',
+    },
+    subtitle: {
+        fontSize: 13,
+        fontFamily: 'Inter-Medium',
+        color: '#FFFFFF',
+        marginBottom: 20,
+    },
+    optionsContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'center',
+        marginBottom: 20,
+        gap: 20,
+    },
     option: {
         alignItems: 'center',
         padding: 15,
         backgroundColor: theme.inputBackground,
         borderRadius: 10,
         borderWidth: 0.5,
-        borderColor: "#CACACA",
+        borderColor: '#CACACA',
         marginHorizontal: 10,
         height: height / 5.2,
         width: height / 5,
     },
-    selectedOption: { backgroundColor: "rgba(112, 194, 232, 0.38)", borderColor: theme.primaryColor },
-    icon: { width: 110, height: "80%", width: "90%", marginBottom: 10, resolveMode: 'contain' },
-    optionText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter-Medium" },
-    selectedOptiontext: { color: theme.primaryColor, fontSize: 16, fontFamily: "Inter-Medium" },
-    button: { backgroundColor: theme.primaryColor, padding: 15, borderRadius: 10, marginTop: 20, width: '80%', alignItems: 'center' },
-    disabledButton: { backgroundColor: "gray" },
-    buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', fontFamily: "Inter-SemiBold" }
+    selectedOption: {
+        backgroundColor: 'rgba(112, 194, 232, 0.38)',
+        borderColor: theme.primaryColor,
+    },
+    icon: {
+        width: '90%',
+        height: '80%',
+        resizeMode: 'contain',
+        marginBottom: 10,
+    },
+    optionText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontFamily: 'Inter-Medium',
+    },
+    selectedOptiontext: {
+        color: theme.primaryColor,
+        fontSize: 16,
+        fontFamily: 'Inter-Medium',
+    },
+    button: {
+        backgroundColor: theme.primaryColor,
+        padding: 15,
+        borderRadius: 10,
+        marginTop: 20,
+        width: '80%',
+        alignItems: 'center',
+    },
+    disabledButton: {
+        backgroundColor: 'gray',
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        fontFamily: 'Inter-SemiBold',
+    },
 });
 
 export default GenderScreen;

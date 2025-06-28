@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, ImageBackground, ScrollView, Image } from 'react-native';
 import theme from '../../../themes/theme';
 import { resetPassword } from '../../functions/passwordService';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { bg, lock } from '../../../assets/images';
+import { bg,eyeClose } from '../../../assets/images';
+
 
 const { width } = Dimensions.get('window');
 
 const ResetPassword = ({ navigation, route }) => {
 
     const [passwordVisible, setPasswordVisible] = useState(false);
+    const [passwordVisible2, setPasswordVisible2] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const token = route.params?.token || "";
@@ -43,7 +45,7 @@ const ResetPassword = ({ navigation, route }) => {
 
     return (
         <ImageBackground style={styles.container}>
-            {/* <Image source={lock} style={styles.image} /> */}
+            {/* <Image source={bg} style={styles.image} /> */}
             <View style={styles.bottomcontainer}>
                 <Text style={styles.title}>Reset Password</Text>
                 <Text style={styles.subtitle}>Create your new password</Text>
@@ -60,11 +62,11 @@ const ResetPassword = ({ navigation, route }) => {
                 <CustomInput
                     label="Confirm New Password"
                     placeholder="Confirm New Password"
-                    secureTextEntry={!passwordVisible}
+                    secureTextEntry={!passwordVisible2}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    // icon={passwordVisible ? eyeClose : eyeClose}
-                    onIconPress={() => setPasswordVisible(!passwordVisible)}
+                    // icon={passwordVisible2 ? eyeClose : eyeClose}
+                    onIconPress={() => setPasswordVisible2(!passwordVisible2)}
                 />
                 <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
                     <Text style={styles.buttonText}>Continue</Text>

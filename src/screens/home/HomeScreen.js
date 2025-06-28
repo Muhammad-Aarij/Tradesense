@@ -154,6 +154,7 @@ const HomeScreen = ({ navigation }) => {
                   />
                 </TouchableOpacity>
 
+
                 {/* Dropdown options */}
                 {filterDropdownVisible && (
                   <View style={styles.dropdownOptions}>
@@ -297,6 +298,47 @@ const getStyles = (theme) => StyleSheet.create({
     height: 100, // Fixed height for chart area
     marginBottom: 20,
   },
+ dropdownContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 0.9,
+        borderColor: theme.borderColor,
+        borderRadius: 8,
+        paddingVertical: 7,
+        paddingHorizontal: 12,
+        justifyContent: 'space-between',
+    },
+
+    dropdownOptions: {
+        position: "absolute",
+        top: 35,
+        left: 0,
+        width: "100%",
+        backgroundColor: "rgba(255, 255, 255, 0.86)",
+        borderRadius: 8,
+        paddingVertical: 10,
+        zIndex: 10,
+    },
+
+    optionItem: {
+        paddingVertical: 12,
+        paddingHorizontal: 15,
+    },
+
+    optionText: {
+        color: theme.darkBlue,
+        fontSize: 12,
+        fontFamily: "Inter-Regular",
+    },
+
+    dropdownArrow: {
+        width: 10,
+        height: 10,
+        resizeMode: 'contain',
+        tintColor: '#CCCCCC',
+        transform: [{ rotate: '90deg' }], // Adjust for dropdown arrow
+    },
 
 });
 
