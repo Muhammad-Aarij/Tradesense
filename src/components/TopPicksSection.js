@@ -12,10 +12,13 @@ const TopPicksSection = ({ topPicks }) => {
                 {topPicks.map((item) => (
                     <TopPickTile
                         key={item._id}
+                        type={item.type}
                         title={item.title}
                         description={item.description}
-                        imageSource={{ uri: item.thumbnail }}
+                        imageSource={item.thumbnail }
                         locked={item.isPremium}
+                        url={item.url}
+
                     />
                 ))}
             </ScrollView>

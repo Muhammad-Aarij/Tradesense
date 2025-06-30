@@ -37,7 +37,7 @@ const LoginScreen = ({ navigation, route }) => {
 
             const data = await loginApi(username, password);
 
-            if (Array.isArray(data.user?.choosenArea) && data.user.choosenArea.length === 0) {
+            if (Array.isArray(data.user?.onboarding) && data.user.onboarding.length === 0) {
                 // 👣 Navigate to profiling stack
                 navigation.replace("GenderScreen", {
                     user: data.user,
@@ -46,7 +46,6 @@ const LoginScreen = ({ navigation, route }) => {
             } else {
                 // ✅ User already profiled — proceed to Redux + home flow
                 await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
-
                 if (pendingDeepLink) {
                     navigation.replace('CourseDeepLink', {
                         courseId: pendingDeepLink.courseId,

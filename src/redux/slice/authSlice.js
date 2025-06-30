@@ -45,8 +45,10 @@ export const loginUser = createAsyncThunk('auth/loginUser', async ({ token, user
   try {
     thunkAPI.dispatch(startLoading());
 
-    const isProfilingDone = user?.choosenArea?.length > 0;
-
+    const isProfilingDone = user?.onboarding?.length > 0;
+    console.log('====================================');
+    console.log("isProfilingDone", isProfilingDone);
+    console.log('====================================');
     await AsyncStorage.multiSet([
       ['token', token],
       ['user', JSON.stringify(user)],

@@ -1,12 +1,32 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ImageBackground } from 'react-native';
-import { lockicon, audioicon } from '../assets/images'; // Update path as needed
+import { lockicon, audioicon, audio2, videoIcon } from '../assets/images'; // Update path as needed
 import theme from '../themes/theme';
+import { useNavigation } from '@react-navigation/native';
 
-const TopPickTile = ({ imageSource, title, description, locked, onPress }) => {
+const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type }) => {
+    const navigation = useNavigation();
+    const handlePress = () => {
+        if (type === 'audio') {
+            navigation.navigate('TrackPlayer', {
+                AudioTitle: title,
+                AudioDescr: description,
+                Thumbnail: imageSource,
+                AudioUrl: url,
+                shouldFetchTrack: false,
+            });
+        } else if (type === 'video') {
+            navigation.navigate('VideoPlayer', {
+                VideoTitle: title,
+                VideoDescr: description,
+                Thumbnail: imageSource,
+                VideoUrl: url,
+            });
+        }
+    };
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
-            <ImageBackground source={imageSource} style={styles.imageBackground} imageStyle={styles.imageStyle}>
+        <TouchableOpacity style={styles.card} onPress={handlePress}>
+            <ImageBackground source={{ uri: imageSource }} style={styles.imageBackground} imageStyle={styles.imageStyle}>
                 {/* Bottom inset shadow */}
                 <View style={styles.shadowOverlay} />
 
@@ -28,11 +48,19 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress }) => {
 
                 {/* Audio Icon Overlay */}
                 <View style={styles.overlayIcon}>
+                    <Image
+                        source={type === 'audio' ? audio2 : videoIcon} // 👈 switch icon based on type
+                        style={{ width: 15, height: 15, resizeMode: "contain" }}
+                    />
                     <Text style={{
-                        paddingHorizontal: 8, paddingVertical: 1, fontSize: 9, fontFamily: "Inter-Medium", color: 'rgba(255, 255, 255, 0.64)', borderRadius: 10,
-                    }}>Audio</Text>
+                        fontSize: 9,
+                        fontFamily: "Inter-Medium",
+                        color: 'rgba(255, 255, 255, 0.64)',
+                        borderRadius: 10,
+                    }}>
+                        {type}
+                    </Text>
                 </View>
-
                 {/* Lock Icon (only if locked) */}
             </ImageBackground>
         </TouchableOpacity >
@@ -62,7 +90,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         height: "100%",
         width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.27)',
+        backgroundColor: 'rgba(0, 0, 0, 0.69)',
     },
     bottomContent: {
         // borderWidth: 2,
@@ -88,11 +116,16 @@ const styles = StyleSheet.create({
         // marginTop: 2,
     },
     overlayIcon: {
+        flexDirection: "row",
+        gap: 5,
         position: 'absolute',
+        justifyContent: "center",
         top: 6,
+        paddingVertical: 3,
+        paddingHorizontal: 5,
         right: 6,
-        borderWidth: 0.8,
-        borderColor: 'rgba(255, 255, 255, 0.34)',
+        borderWidth: 0,
+        backgroundColor: 'rgba(141, 141, 141, 0.66)',
         borderRadius: 20,
         // padding: 4,
     },

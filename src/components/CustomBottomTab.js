@@ -2,7 +2,7 @@ import React from "react";
 import { View, TouchableOpacity, Text, Image, StyleSheet, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 // import { BlurView } from "@react-native-community/blur"; // or "expo-blur"
-import { homeT, pillar, course, affiliate, userT, menu, chatbot } from "../assets/images";
+import { homeT, pillar, course, affiliate, userT, menu, chatbot, acc } from "../assets/images";
 import theme from "../themes/theme";
 import LinearGradient from "react-native-linear-gradient";
 
@@ -18,7 +18,7 @@ const tabItems = [
   { name: "Home", icon: homeT },
   { name: "Pillars", icon: pillar },
   { name: "Courses", icon: course },
-  { name: "Accountability", icon: userT },
+  { name: "Accountability", icon: acc },
   { name: "Sidebar", icon: menu },
   { name: "ChatBot", icon: chatbot },
 ];
@@ -70,10 +70,10 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
                 <Text style={styles.labelActive}>
                   {route.name === "Pillars"
                     ? "Discover"
-                    : route.name === "Affiliate"
+                    : route.name === "Accountability"
                       ? "Trader Hub"
                       : route.name === "ChatBot"
-                        ? "TraderSense AI"
+                        ? "TraderSense"
                         : route.name}
                 </Text>
               </View>

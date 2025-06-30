@@ -1,63 +1,71 @@
-import axios from 'axios';
+// functions/chatbotApi.js
+
 import { API_URL } from "@env";
-// IMPORTANT: Replace with your actual API base URL
 
-
+// 1. Start a new chatbot session
 export const getChatbotSessionId = async () => {
-    try {
-        const response = await fetch(`${API_URL}/api/session/start`);
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`HTTP error! Status: ${response.status}, Response: ${errorText}`);
-            throw new Error(`Failed to get session ID: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data.session_id) {
-            return data.session_id;
-        } else {
-            console.error('Session ID not found in response data:', data);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error fetching session ID:', error);
-        throw error; // Re-throw to be handled by the calling component
-    }
+  try {
+    const response = await fetch(`${API_URL}/api/session/start`);
+    if (!response.ok) throw new Error("Failed to get session ID");
+
+    const data = await response.json();
+    return data.session_id || null;
+  } catch (error) {
+    console.error("Session fetch error:", error);
+    return null;
+  }
 };
 
+// 2. Send a message to the chatbot
+export const sendChatbotMessage = async (sessionId, message, userId) => {
+  try {
+    const response = await fetch(`${API_URL}/api/bot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, message, userId }),
+    });
 
-export const sendChatbotMessage = async (sessionId, message) => {
-    if (!sessionId) {
-        console.warn('Cannot send message: Session ID is missing.');
-        return null;
-    }
+    if (!response.ok) throw new Error("Bot message send failed");
 
-    try {
-        const response = await fetch(`${API_URL}/api/bot`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                session_id: sessionId,
-                message: message,
-            }),
-        });
+    const data = await response.json();
+    return data.response || null;
+  } catch (error) {
+    console.error("sendChatbotMessage error:", error);
+    throw error;
+  }
+};
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`HTTP error! Status: ${response.status}, Response: ${errorText}`);
-            throw new Error(`Failed to send message to bot: ${response.status}`);
-        }
+export const getChatbotHistory = async (userId) => {
+  try {
+    const response = await fetch(`${API_URL}/api/bot/${userId}`);
+    if (!response.ok) throw new Error("Failed to get history");
 
-        const data = await response.json();
-        if (data.response) {
-            return data.response;
-        } else {
-            console.warn('Bot response field missing from API response:', data);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error sending message to bot:', error);
-        throw error; // Re-throw to be handled by the calling component
-    }
+    const data = await response.json();
+    
+    // --- CORRECTION START ---
+    // The `data` itself is an array, not `data.messages` based on your provided response.
+    const history = Array.isArray(data)
+      ? data.flatMap((entry) => [ // Use 'data' directly here
+          {
+            text: entry.message,
+            sender: 'me',
+            timestamp: entry.createdAt,
+            sessionId: entry.sessionId,
+          },
+          {
+            text: entry.response,
+            sender: 'bot',
+            timestamp: entry.createdAt,
+            sessionId: entry.sessionId,
+          },
+        ])
+      : [];
+    // --- CORRECTION END ---
+    console.log("History  Data:", history); // Log the raw data to confirm its structure
+    
+    return history;
+  } catch (error) {
+    console.error("getChatbotHistory error:", error);
+    return [];
+  }
 };

@@ -4,6 +4,7 @@ import GenderScreen from '../screens/Profile/genderScreen/GenderScreen';
 import GoalsScreen from '../screens/Profile/goalScreen/GoalsScreen';
 import AgeScreen from '../screens/Profile/ageScreen/AgeScreen';
 import AreasScreen from '../screens/Profile/areasScreen/AreasScreen';
+import HomeSplash from '../screens/splashScreen/HomeSplash';
 
 const Stack = createNativeStackNavigator();
 
@@ -14,6 +15,7 @@ const ProfilingNavigator = () => {
             <Stack.Screen name="AgeScreen" component={AgeScreen} />
             <Stack.Screen name="AreasScreen" component={AreasScreen} />
             <Stack.Screen name="GoalScreen" component={GoalsScreen} />
+            <Stack.Screen name="GetStarted" component={HomeSplash} />
         </Stack.Navigator>
     );
 };

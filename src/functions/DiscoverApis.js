@@ -27,8 +27,8 @@ export const useTopPicks = (userId) => {
 
 
 const fetchRecommendations = async (userId) => {
-  const response = await axios.get(`${API_URL}/api/pillars/categories/recommend/${userId}`);
-  console.log('Recommendations Response:', response.data);
+  const response = await axios.get(`${API_URL}/api/resources/recommend/${userId}`);
+  // console.log('Recommendations Response:', response.data);
   return response.data;
 };
 

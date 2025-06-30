@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     wrapper: {
         width: '100%',
         marginBottom: 15,
-    },
+    }, 
     label: {
         fontFamily: "Inter-Medium",
         fontSize: 13,

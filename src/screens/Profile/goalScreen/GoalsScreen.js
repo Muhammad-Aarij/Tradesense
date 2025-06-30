@@ -1,94 +1,89 @@
-import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    ImageBackground,
-    Image,
-    Alert
-} from 'react-native';
-import { bg, check, uncheck } from '../../../assets/images';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground, Image, Alert } from 'react-native';
+import { bg, check, tick, uncheck } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import axios from 'axios';
 import { API_URL } from '@env';
 import { useDispatch } from 'react-redux';
-import { loginUser,setProfilingDone } from '../../../redux/slice/authSlice';
+import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const GoalsScreen = ({ navigation, route }) => {
     const { request, user, token, question: allQuestions } = route.params || {};
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [onboarding, setOnboarding] = useState([]);
-    const [selectedGoalTexts, setSelectedGoalTexts] = useState([]);
-    const [selectedOptionText, setSelectedOptionText] = useState(null);
-    const dispatch=useDispatch();
-    // Exclude age and gender questions
+    const [selectedOptionsMap, setSelectedOptionsMap] = useState({});
+    const [showSuccessModal, setShowSuccessModal] = useState(false); // 🔹 Modal state
+    const dispatch = useDispatch();
+
     const questions = allQuestions?.filter(
         q => q.title.toLowerCase() !== 'age' && q.title.toLowerCase() !== 'gender'
     ) || [];
 
     const currentQuestion = questions[currentIndex];
-    const isGoalQuestion = currentQuestion?.title.toLowerCase().includes('goal');
 
     const handleSelect = (text) => {
-        if (isGoalQuestion) {
-            setSelectedGoalTexts(prev =>
-                prev.includes(text) ? prev.filter(t => t !== text) : [...prev, text]
-            );
-        } else {
-            setSelectedOptionText(text);
-        }
+        const qId = currentQuestion._id;
+        setSelectedOptionsMap(prev => {
+            const selected = prev[qId] || [];
+            const updated = selected.includes(text)
+                ? selected.filter(t => t !== text)
+                : [...selected, text];
+            return { ...prev, [qId]: updated };
+        });
     };
 
     const handleNext = async () => {
-        if (isGoalQuestion) {
-            if (selectedGoalTexts.length === 0) return;
-        } else {
-            if (!selectedOptionText) return;
-            setOnboarding(prev => [...prev, selectedOptionText]);
-        }
+        const qId = currentQuestion._id;
+        const selected = selectedOptionsMap[qId] || [];
+        if (selected.length === 0) return;
 
-        if (currentIndex < questions.length - 1) {
+        const isLast = currentIndex === questions.length - 1;
+
+        if (!isLast) {
             setCurrentIndex(prev => prev + 1);
-            setSelectedOptionText(null);
         } else {
+            const goalQuestion = questions.find(q =>
+                q.title.toLowerCase().includes('goal')
+            );
+
+            const goals = goalQuestion ? selectedOptionsMap[goalQuestion._id] || [] : [];
+
+            const onboarding = questions.map(q => ({
+                question: q.title,
+                selected: selectedOptionsMap[q._id] || []
+            }));
+
             const payload = {
                 gender: request.gender?.toLowerCase(),
                 ageRange: request.ageRange,
-                goals: selectedGoalTexts,
-                onboarding: [...onboarding, selectedOptionText].filter(Boolean)
+                goals,
+                onboarding,
             };
-            console.log('====================================');
-            console.log(payload);
-            console.log('====================================');
 
-            setupProfile(payload, user._id);
-            await dispatch(loginUser({
-                token: token,
-                user: user,
-                themeType: 'dark', // or read from API/config
-            }));
+            try {
+                await axios.post(
+                    `${API_URL}/api/auth/setup-profile/${user._id}`,
+                    payload,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
 
-            dispatch(setProfilingDone(true));
+                await dispatch(loginUser({
+                    token: token,
+                    user: user,
+                    themeType: 'dark',
+                }));
+                // dispatch(setProfilingDone(true));
+                setShowSuccessModal(true); // ✅ Show success modal
+            } catch (err) {
+                console.error(err);
+                Alert.alert('Error', 'Failed to complete setup');
+            }
         }
     };
 
-    const setupProfile = async (data, userId) => {
-        try {
-            await axios.post(
-                `${API_URL}/api/auth/setup-profile/${userId}`,
-                data,
-                {
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
-            Alert.alert('Success', 'Profile setup completed');
-            navigation.navigate('Home');
-        } catch (err) {
-            console.error(err);
-            Alert.alert('Error', 'Failed to complete setup');
-        }
+    const handleCloseModal = () => {
+        setShowSuccessModal(false); // ✅ Hide modal
+        navigation.navigate('GetStarted'); // ✅ Navigate
     };
 
     if (!currentQuestion) {
@@ -99,66 +94,67 @@ const GoalsScreen = ({ navigation, route }) => {
         );
     }
 
+    const selected = selectedOptionsMap[currentQuestion._id] || [];
+
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <View style={styles.wrapper}>
-                {/* Title + Subtitle */}
-                <View style={styles.header}>
-                    <Text style={styles.title}>{currentQuestion.title}</Text>
-                    <Text style={styles.subtitle}>{currentQuestion.subTitle}</Text>
+        <>
+            {showSuccessModal &&
+                <ConfirmationModal
+                    visible={showSuccessModal}
+                    title={"Success!"}
+                    icon={tick}
+                    message={"Profile setup completed successfully"}
+                    onClose={handleCloseModal}
+                />
+            }
+            <ImageBackground source={bg} style={styles.container}>
+                <View style={styles.wrapper}>
+                    <View style={styles.header}>
+                        <Text style={styles.title}>{currentQuestion.title}</Text>
+                        <Text style={styles.subtitle}>{currentQuestion.subTitle}</Text>
+                    </View>
+
+                    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                        {(currentQuestion.questions || []).map((opt) => {
+                            const isSelected = selected.includes(opt.text);
+                            return (
+                                <TouchableOpacity
+                                    key={opt._id}
+                                    style={[styles.option, isSelected && styles.selectedOption]}
+                                    onPress={() => handleSelect(opt.text)}
+                                >
+                                    {currentQuestion.images && opt.image && (
+                                        <Image source={{ uri: opt.image }} style={styles.optionImage} />
+                                    )}
+                                    <Text style={[styles.optionText, isSelected && { color: '#70C2E8' }]}>
+                                        {opt.text}
+                                    </Text>
+                                    <Image
+                                        source={isSelected ? check : uncheck}
+                                        style={styles.checkbox}
+                                    />
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+
+                    <View style={styles.bottomButton}>
+                        <TouchableOpacity
+                            style={[
+                                styles.button,
+                                selected.length === 0 ? styles.disabledButton : null
+                            ]}
+                            disabled={selected.length === 0}
+                            onPress={handleNext}
+                        >
+                            <Text style={styles.buttonText}>
+                                {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-
-                {/* Scrollable Options */}
-                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                    {(currentQuestion.questions || []).map((opt) => {
-                        const isSelected = isGoalQuestion
-                            ? selectedGoalTexts.includes(opt.text)
-                            : selectedOptionText === opt.text;
-
-                        return (
-                            <TouchableOpacity
-                                key={opt._id}
-                                style={[styles.option, isSelected && styles.selectedOption]}
-                                onPress={() => handleSelect(opt.text)}
-                            >
-                                {currentQuestion.images && opt.image ? (
-                                    <Image source={{ uri: opt.image }} style={styles.optionImage} />
-                                ) : null}
-                                <Text style={[styles.optionText, isSelected && { color: '#70C2E8' }]}>
-                                    {opt.text}
-                                </Text>
-                                <Image
-                                    source={isSelected ? check : uncheck}
-                                    style={styles.checkbox}
-                                />
-                            </TouchableOpacity>
-                        );
-                    })}
-                </ScrollView>
-
-                {/* Bottom Button */}
-                <View style={styles.bottomButton}>
-                    <TouchableOpacity
-                        style={[
-                            styles.button,
-                            (isGoalQuestion && selectedGoalTexts.length === 0) ||
-                                (!isGoalQuestion && !selectedOptionText)
-                                ? styles.disabledButton
-                                : null
-                        ]}
-                        disabled={
-                            (isGoalQuestion && selectedGoalTexts.length === 0) ||
-                            (!isGoalQuestion && !selectedOptionText)
-                        }
-                        onPress={handleNext}
-                    >
-                        <Text style={styles.buttonText}>
-                            {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </ImageBackground>
+            </ImageBackground>
+        </>
     );
 };
 
@@ -166,13 +162,11 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: theme.darkBlue },
     wrapper: {
         flex: 1,
-        paddingHorizontal: 20,
+        paddingHorizontal: 25,
         paddingTop: 60,
         paddingBottom: 20
     },
-    header: {
-        marginBottom: 20
-    },
+    header: { marginBottom: 20 },
     scrollContent: {
         flexGrow: 1,
         justifyContent: 'flex-start'
@@ -190,16 +184,16 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 14,
         color: '#fff',
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Inter-Light-BETA',
         textAlign: 'center',
         marginBottom: 20
     },
     option: {
         width: '100%',
-        backgroundColor: '#0d151e',
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
         borderRadius: 10,
         padding: 15,
-        flexDirection: 'row',
+        flexDirection: 'row', 
         alignItems: 'center',
         borderColor: theme.borderColor,
         borderWidth: 0.8,
@@ -227,15 +221,15 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
         marginLeft: 'auto'
     },
+    disabledButton: {
+        backgroundColor: 'gray'
+    },
     button: {
         backgroundColor: theme.primaryColor,
         padding: 15,
         borderRadius: 10,
         alignItems: 'center',
         width: '100%'
-    },
-    disabledButton: {
-        backgroundColor: 'gray'
     },
     buttonText: {
         color: '#fff',

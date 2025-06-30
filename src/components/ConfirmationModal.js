@@ -57,12 +57,12 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     message: {
-        width: "70%",
-        fontSize: 12,
+        width: "80%",
+        fontSize: 14,
         color: "#EFEFEF",
         textAlign: 'center',
         marginBottom: 25,
-        fontFamily: "Inter-Medium",
+        fontFamily: "Inter-Regular",
     },
     button: {
         backgroundColor: theme.primaryColor,

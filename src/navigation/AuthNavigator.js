@@ -11,6 +11,7 @@ import ResetPassword from '../screens/Auth/resetPassword/ResetPassword';
 import AffiliateDashboardScreen from '../screens/Affiliate/Dashboard/AffiliateDashboardScreen';
 import WithdrawScreen from '../screens/Affiliate/winthdraw/WithdrawScreen';
 import AreasScreen from '../screens/Profile/areasScreen/AreasScreen';
+import HomeSplash from '../screens/splashScreen/HomeSplash';
 const Stack = createNativeStackNavigator();
 
 const AuthNavigator = () => {
@@ -27,6 +28,8 @@ const AuthNavigator = () => {
             <Stack.Screen name="ResetPassword" component={ResetPassword} />
             <Stack.Screen name="AffiliateDashboardScreen" component={AffiliateDashboardScreen} />
             <Stack.Screen name="WithdrawScreen" component={WithdrawScreen} />
+            <Stack.Screen name="GetStarted" component={HomeSplash} />
+
         </Stack.Navigator>
     );
 };

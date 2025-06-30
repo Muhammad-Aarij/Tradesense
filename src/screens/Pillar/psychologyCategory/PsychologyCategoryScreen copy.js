@@ -39,7 +39,7 @@ const DiscoverScreen = () => {
                 <View style={{ position: 'relative', height: height / 3 }}>
                     <Image source={discover1} style={styles.topImg} />
                     <View style={styles.centeredOverlay}>
-                        <Text style={styles.titleB}>Mind & Wellness</Text>
+                        <Text style={styles.titleB}>Discover</Text>
                     </View>
                 </View>
 
@@ -54,8 +54,12 @@ const DiscoverScreen = () => {
                         {recommendations?.map((item, index) => (
                             <RecommendationTile
                                 key={item._id}
-                                title={item.name}
-                                description={item.categories.join(', ')}
+                                thumbnail={item.thumbnail}
+                                title={item.title}
+                                type={item.type}
+                                url={item.url}
+                                lock={item.isPremium}
+                                description={item.description}
                                 isCenter={index === selectedCard}
                                 onPress={() => setSelectedCard(index)}
                             />
@@ -84,7 +88,7 @@ const DiscoverScreen = () => {
                 </View>
 
                 {/* Bundles */}
-                {['Bundle 1', 'Bundle 2'].map((bundleName, i) => (
+                {/* {['Bundle 1', 'Bundle 2'].map((bundleName, i) => (
                     <View key={bundleName} style={styles.section}>
                         <Text style={styles.sectionTitle}>{bundleName}</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -99,14 +103,14 @@ const DiscoverScreen = () => {
                             ))}
                         </ScrollView>
                     </View>
-                ))}
+                ))} */}
             </ScrollView>
         </ImageBackground>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#08131F', paddingBottom: 80 },
+    container: { flex: 1, backgroundColor: '#08131F', paddingBottom: 85 },
     contentScroll: { width: '100%' },
     section: { marginBottom: 20 },
     category: {
@@ -124,8 +128,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center', alignItems: 'center', zIndex: 1,
     },
     titleB: {
-        color: theme.textColor,
-        fontSize: 22,
+        color: "rgba(255, 255, 255, 0.7)",
+        fontSize: 30,
         fontFamily: 'Inter-SemiBold',
     },
 });
