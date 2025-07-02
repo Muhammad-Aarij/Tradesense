@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ImageBackground, Animated } from 'react-native';
-import { bg, chatbot, send2, back } from '../../../assets/images';
+import { bg, chatbot, send2, back, circle, cwhite, cblue } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import { getChatbotSessionId, sendChatbotMessage, getChatbotHistory } from '../../../functions/chatbotApi';
 import { useSelector } from 'react-redux';
@@ -31,8 +31,8 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         );
 
         const anim1 = createAnimation(dot1Anim, 0);
-        const anim2 = createAnimation(dot2Anim, 100);
-        const anim3 = createAnimation(dot3Anim, 200);
+        const anim2 = createAnimation(dot2Anim, 300);
+        const anim3 = createAnimation(dot3Anim, 300);
 
         anim1.start();
         anim2.start();
@@ -155,15 +155,18 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                             <Text style={[styles.messageText, msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText]}>
                                 {msg.text}
                             </Text>
+                            {/* <Image style={[msg.sender === 'me' ? styles.shapeleft : styles.shapeRight]} source={msg.sender == "me" ? cblue : cwhite} /> */}
                         </View>
                     ))}
                     {isBotTyping && (
                         <View style={styles.typingIndicatorContainer}>
                             <View style={styles.partnerMessage}>
                                 <View style={styles.typingDotsWrapper}>
-                                    <Animated.Text style={[styles.typingDot, getDotStyle(dot1Anim)]}>.</Animated.Text>
-                                    <Animated.Text style={[styles.typingDot, getDotStyle(dot2Anim)]}>.</Animated.Text>
-                                    <Animated.Text style={[styles.typingDot, getDotStyle(dot3Anim)]}>.</Animated.Text>
+                                    <Animated.Image style={[styles.typingDot, getDotStyle(dot1Anim)]} source={circle} />
+                                    <Animated.Image style={[styles.typingDot, getDotStyle(dot2Anim)]} source={circle} />
+                                    <Animated.Image style={[styles.typingDot, getDotStyle(dot3Anim)]} source={circle} />
+                                    {/* <Animated.Text style={[styles.typingDot, getDotStyle(dot2Anim)]}>.</Animated.Text> */}
+                                    {/* <Animated.Text style={[styles.typingDot, getDotStyle(dot3Anim)]}>.</Animated.Text> */}
                                 </View>
                             </View>
                         </View>
@@ -198,8 +201,8 @@ const styles = StyleSheet.create({
     partnerHeaderInfo: { flexDirection: 'row', alignItems: 'center', flex: 1, marginLeft: 10 },
     partnerAvatar: { width: 30, height: 30, resizeMode: 'contain', marginRight: 10 },
     partnerName: { fontSize: 13, fontFamily: "Inter-Medium", color: '#E0E0E0' },
-    messagesContainer: { flexGrow: 1, paddingTop: 30, paddingHorizontal: 20, paddingVertical: 10 },
-    messageBubble: { maxWidth: '80%', borderRadius: 18, paddingHorizontal: 15, paddingVertical: 8, marginBottom: 13 },
+    messagesContainer: { flexGrow: 1, paddingTop: 30, paddingHorizontal: 25, paddingVertical: 10 },
+    messageBubble: { maxWidth: '80%', borderRadius: 20, paddingHorizontal: 20, paddingVertical: 10, marginBottom: 13 },
     myMessage: { marginRight: 10, alignSelf: 'flex-end', backgroundColor: theme.primaryColor, borderBottomRightRadius: 5 },
     partnerMessage: { alignSelf: 'flex-start', backgroundColor: 'white', borderBottomLeftRadius: 5 },
     messageText: { fontSize: 13 },
@@ -209,8 +212,16 @@ const styles = StyleSheet.create({
     textInput: { flex: 1, paddingHorizontal: 15, color: '#E0E0E0', fontSize: 13, marginRight: 10, maxHeight: 100 },
     sendButton: { borderRadius: 20, justifyContent: 'center', alignItems: 'center', padding: 5 },
     typingIndicatorContainer: { alignSelf: 'flex-start', marginBottom: 13 },
-    typingDotsWrapper: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 15, paddingVertical: 8 },
+    typingDotsWrapper: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 15, paddingVertical: 8, gap: 5, },
     typingDot: { fontSize: 20, lineHeight: 18, color: 'gray', marginHorizontal: -2 },
+    shapeRight: {
+        width: 15,
+        height: 15,
+        resizeMode: "contain",
+        position: "absolute",
+        bottom: 0,
+        left:-15,
+    },
 });
 
 export default AccountabilityPartnerChatScreen;

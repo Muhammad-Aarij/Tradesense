@@ -32,11 +32,11 @@ export default function BottomNavigator() {
       {/* <Tab.Screen name="Affiliate" component={AffiliateNavigator} /> */}
       <Tab.Screen name="Accountability" component={AccountabilityNavigator} />
 
-      {/* <Tab.Screen
+      <Tab.Screen
         name="Courses"
         component={CoursesNavigator}
         options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
-      /> */}
+      />
 
       {/* <Tab.Screen
         name="Accountability"

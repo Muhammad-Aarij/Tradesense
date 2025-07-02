@@ -46,7 +46,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
 
             {/* Menu Items */}
             <View style={styles.menuItemsContainer}>
-              <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('UserProfileDetailsScreen')} />
+              <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('UserProfileDetails')} />
               <MenuItem icon={p2} text="Courses"  onPress={() => navigation.navigate('Courses')} />
               <MenuItem icon={p2} text="Affiliate"  onPress={() => navigation.navigate('Affiliate')} />
               <MenuItem icon={p2} text="Subscriptions Plans"  />
@@ -58,7 +58,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
               {/* <MenuItem icon={p8} text="Privacy Policy" onPress={() => navigation.navigate('Menu', { screen: 'About' })} /> */}
               <MenuItem icon={p9} text="Logout" onPress={() => dispatch(logoutUser())} /> 
             </View>
-
+ 
           </ScrollView>
         </View>
       </SafeAreaView>

@@ -5,7 +5,7 @@ import theme from '../../../themes/theme';
 
 // Get screen width for responsive card sizing
 const { width } = Dimensions.get('window');
-const cardWidth = (width - 20 * 2 - 25) / 2;
+const cardWidth = (width - 20 * 2 - 5) / 2;
 
 // Star rating component
 const StarRating = ({ rating }) => {
@@ -28,7 +28,7 @@ const StarRating = ({ rating }) => {
     }
     return <View style={cardStyles.starContainer}>{stars}</View>;
 };
- 
+
 // Reusable Card Component (now part of this file)
 const CourseCard = ({ imageSource, time, title, rating, description, profileImage, profileName, profileRole, price, onPress }) => {
     return (
@@ -36,8 +36,8 @@ const CourseCard = ({ imageSource, time, title, rating, description, profileImag
             <View style={cardStyles.imageWrapper}>
                 <Image source={imageSource} style={cardStyles.cardImage} />
                 {/* <View style={cardStyles.timeOverlay}> */}
-                    {/* <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} /> */}
-                    {/* <Text style={cardStyles.timeText}>{time}</Text> */}
+                {/* <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} /> */}
+                {/* <Text style={cardStyles.timeText}>{time}</Text> */}
                 {/* </View> */}
             </View>
             <View style={cardStyles.content}>
@@ -66,8 +66,9 @@ const cardStyles = StyleSheet.create({
         borderWidth: 0.9, borderColor: theme.borderColor,
         borderRadius: 8,
         width: cardWidth,
+        height: "auto",
         overflow: 'hidden', // Ensures image corners are rounded
-        marginBottom: 16, // Space between rows
+        marginBottom: 10, // Space between rows
     },
     imageWrapper: {
         width: '100%',
@@ -122,6 +123,7 @@ const cardStyles = StyleSheet.create({
         color: '#AAAAAA',
         fontSize: 11,
         lineHeight: 16,
+        flex: 1,
         marginBottom: 3,
     },
     footer: {
@@ -131,14 +133,16 @@ const cardStyles = StyleSheet.create({
         marginTop: 3, // Add some space from description
     },
     profileInfo: {
+        marginRight: 5,
+        width: "70%",
         flexDirection: 'row',
         alignItems: 'center',
     },
     profileImage: {
-        width: 25,
-        height: 25,
+        width: 20,
+        height: 20,
         borderRadius: 15,
-        marginRight: 8,
+        marginRight: 5,
         backgroundColor: '#666', // Placeholder background
     },
     profileName: {

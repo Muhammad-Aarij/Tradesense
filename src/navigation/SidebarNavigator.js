@@ -26,6 +26,6 @@ const SidebarNavigator = () => {
             <Stack.Screen name="TermsAndConditions" component={TermsAndConditionsScreen} />
         </Stack.Navigator>
     );
-}; 
+};  
 
 export default SidebarNavigator;

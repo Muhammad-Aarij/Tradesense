@@ -2,24 +2,22 @@ import React, { useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { BlurView } from "@react-native-community/blur";
 import { back, hamburger } from '../assets/images';
-// import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../context/ThemeProvider';
 import theme from '../themes/theme';
-
 import { openSidebar } from '../redux/slice/loaderSlice'
 import { useDispatch } from 'react-redux'
 
-const Header = ({ title }) => {
-    // const navigation = useNavigation();
+const Header = ({ title, addpadding }) => {
+    const navigation = useNavigation();
     // const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
     const styles = getStyles(theme);
 
     return (
         <View style={styles.header}>
-            <TouchableOpacity style={styles.blurWrapper} >
+            <TouchableOpacity style={[styles.blurWrapper, addpadding ? "paddingLeft:20" : ""]} >
                 <Image source={back} style={{ width: 12, height: 12, resizeMode: 'contain' }} />
             </TouchableOpacity>
-
 
             {/* <TouchableOpacity style={styles.blurWrapper} >
                 <BlurView blurType="light" blurAmount={20} style={styles.blurView}>
@@ -62,13 +60,13 @@ const getStyles = (theme) => StyleSheet.create({
     backIcon: { width: 17, height: 17, resizeMode: 'contain' },
 
     title: {
-            fontSize: 20,
-            color: theme.textColor,
-            fontFamily: 'Inter-SemiBold',
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            textAlign: 'center',
+        fontSize: 20,
+        color: theme.textColor,
+        fontFamily: 'Inter-SemiBold',
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
     },
 });
 

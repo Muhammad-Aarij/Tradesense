@@ -26,7 +26,7 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
                         <Image source={deletewhite} style={styles.icon} />
                     </TouchableOpacity>
                 </View>
-            </View>
+            </View> 
             <Text style={styles.goalDescription}>{goal.description}</Text>
             <View style={styles.progressSection}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", }}>

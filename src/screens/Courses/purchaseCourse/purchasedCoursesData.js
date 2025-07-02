@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#08131F',
-        paddingBottom: height * 0.01,
+        paddingBottom: height * 0.11,
     },
     listContent: {
         paddingHorizontal: 20,
@@ -182,10 +182,11 @@ const styles = StyleSheet.create({
     gridRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10,
+    gap:5,
+        // marginBottom: 10,
     },
     gridItem: {
-        width: (width - 60) / 2, // Adjust based on padding
+        width: (width - 40) / 2, // Adjust based on padding
     },
 });
 

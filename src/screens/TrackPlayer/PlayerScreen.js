@@ -30,7 +30,10 @@ import {
   stop,
   user,
   shuffleIcon,
-  playb
+  playb,
+  video,
+  video2,
+  noThumbnail
 } from '../../assets/images';
 import theme from '../../themes/theme';
 
@@ -116,11 +119,11 @@ const PlayerScreen = ({ route }) => {
   };
 
   return (
-    <ImageBackground source={{ uri: Thumbnail }} style={styles.container}>
+    <ImageBackground source={{ uri: Thumbnail ?? noThumbnail }} style={styles.container}>
       <View style={styles.blurOverlay} />
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.albumArtContainer}>
-          <ImageBackground source={{ uri: Thumbnail }} style={styles.albumArt}>
+          {Thumbnail && <ImageBackground source={{ uri: Thumbnail }} style={styles.albumArt}>
             <View style={styles.albumArtOverlay}>
               <View style={styles.artistInfo}>
                 <Image source={user} style={styles.artistImage} />
@@ -130,10 +133,17 @@ const PlayerScreen = ({ route }) => {
                 </View>
               </View>
             </View>
-          </ImageBackground>
+          </ImageBackground>}
         </View>
 
         <View style={styles.infoContainer}>
+          {!Thumbnail && <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
+            <Image source={user} style={styles.artistImage} />
+            <View>
+              <Text style={styles.artistName}>Alwin</Text>
+              <Text style={styles.artistRole}>Mentally Relax</Text>
+            </View>
+          </View>}
           <Text style={styles.courseTitle}>{AudioTitle}</Text>
           <Text style={styles.courseDescription}>{AudioDescr}</Text>
         </View>
@@ -155,7 +165,7 @@ const PlayerScreen = ({ route }) => {
 
         <View style={styles.controlsContainer}>
           <TouchableOpacity style={styles.controlButton1}>
-            <Image source={shuffleIcon} style={styles.controlIcon} />
+            <Image source={shuffleIcon} style={{ ...styles.controlIcon, display: "none" }} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToPrevious()}>
             <Image source={skip} style={styles.controlIcon} />
@@ -183,7 +193,7 @@ const styles = StyleSheet.create({
   },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(12, 12, 12, 0.7)',
+    backgroundColor: 'rgba(12, 12, 12, 0.85)',
   },
   scrollContent: {
     alignItems: 'center',
@@ -201,6 +211,7 @@ const styles = StyleSheet.create({
   },
   albumArt: {
     flex: 1,
+    // resizeMode:"contain",
     justifyContent: 'flex-end',
     alignItems: 'flex-start',
   },
@@ -226,8 +237,8 @@ const styles = StyleSheet.create({
   },
   artistName: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
   },
   artistRole: {
     color: '#CCCCCC',
@@ -239,9 +250,9 @@ const styles = StyleSheet.create({
   },
   courseTitle: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 15,
     fontFamily: 'Inter-Medium',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   courseDescription: {
     color: '#FFF',
