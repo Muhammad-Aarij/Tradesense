@@ -43,10 +43,10 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                     <Text style={styles.timeText}>{course.time}</Text>
                 </View>
             }
-           
+
         </View>
         <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}  numberOfLines={1}>{course.title || "Untitled Course"}</Text>
+            <Text style={styles.cardTitle} numberOfLines={1}>{course.title || "Untitled Course"}</Text>
             <Text style={styles.cardDescription} numberOfLines={course.type == "Affiliate" ? 2 : 2}>
                 {course.description}
             </Text>
@@ -85,8 +85,8 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                                     await Share.open({
                                         title: 'Share Course',
                                         message: `Check out this course: ${course.url}`,
-                                        url: course.url,
                                     });
+
                                 } catch (error) {
                                     if (error.message !== 'User did not share') {
                                         console.log('Share error:', error);

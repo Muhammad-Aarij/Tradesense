@@ -11,7 +11,7 @@ export const retrieveToken = createAsyncThunk('auth/retrieveToken', async (_, th
       AsyncStorage.getItem('token'),
       AsyncStorage.getItem('user'),
       AsyncStorage.getItem('themeType'),
-      AsyncStorage.getItem('isProfilingDone'), // ✅ retrieve profiling status
+      AsyncStorage.getItem('isProfilingDone'),
     ]);
 
     const user = userData ? JSON.parse(userData) : null;
@@ -41,37 +41,43 @@ export const retrieveToken = createAsyncThunk('auth/retrieveToken', async (_, th
 });
 
 // Thunk: Login
-export const loginUser = createAsyncThunk('auth/loginUser', async ({ token, user, themeType = 'light' }, thunkAPI) => {
-  try {
-    thunkAPI.dispatch(startLoading());
+export const loginUser = createAsyncThunk(
+  'auth/loginUser',
+  async ({ token, user, themeType = 'light' }, thunkAPI) => {
+    try {
+      thunkAPI.dispatch(startLoading());
 
-    const isProfilingDone = user?.onboarding?.length > 0;
-    console.log('====================================');
-    console.log("isProfilingDone", isProfilingDone);
-    console.log('====================================');
-    await AsyncStorage.multiSet([
-      ['token', token],
-      ['user', JSON.stringify(user)],
-      ['themeType', themeType],
-      ['isProfilingDone', JSON.stringify(isProfilingDone)], // ✅ persist profiling status
-    ]);
+      const isProfilingDone = user?.onboarding?.length > 0;
 
-    return {
-      token,
-      user,
-      isProfilingDone,
-      themeType,
-    };
-  } finally {
-    thunkAPI.dispatch(stopLoading());
+      await AsyncStorage.multiSet([
+        ['token', token],
+        ['user', JSON.stringify(user)],
+        ['themeType', themeType],
+        ['isProfilingDone', JSON.stringify(isProfilingDone)],
+      ]);
+
+      return {
+        token,
+        user,
+        isProfilingDone,
+        themeType,
+      };
+    } finally {
+      thunkAPI.dispatch(stopLoading());
+    }
   }
-});
+);
 
 // Thunk: Logout
 export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, thunkAPI) => {
   try {
     thunkAPI.dispatch(startLoading());
-    await AsyncStorage.multiRemove(['token', 'user', 'themeType', 'isProfilingDone']); // ✅ wipe it clean
+    await AsyncStorage.multiRemove([
+      'token',
+      'user',
+      'themeType',
+      'isProfilingDone',
+    ]);
   } finally {
     thunkAPI.dispatch(stopLoading());
   }
@@ -87,6 +93,8 @@ const authSlice = createSlice({
     userId: null,
     userObject: null,
     themeType: 'light',
+    isAffiliate: false,
+    affiliateCode: null,
   },
   reducers: {
     setTheme: (state, action) => {
@@ -95,7 +103,13 @@ const authSlice = createSlice({
     },
     setProfilingDone: (state, action) => {
       state.isProfilingDone = action.payload;
-      AsyncStorage.setItem('isProfilingDone', JSON.stringify(action.payload)); // ✅ keep in sync
+      AsyncStorage.setItem('isProfilingDone', JSON.stringify(action.payload));
+    },
+    setAffiliateData: (state, action) => {
+      const { isAffiliate, affiliateCode } = action.payload;
+      state.isAffiliate = isAffiliate;
+      state.affiliateCode = affiliateCode;
+      // Optionally save to AsyncStorage if needed later
     },
   },
   extraReducers: (builder) => {
@@ -109,6 +123,8 @@ const authSlice = createSlice({
         state.isSignedIn = !!token && !!user;
         state.isProfilingDone = isProfilingDone;
         state.themeType = themeType;
+        state.isAffiliate = user?.isAffiliate || false;
+        state.affiliateCode = user?.affiliateCode || null;
         state.isLoading = false;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
@@ -120,6 +136,8 @@ const authSlice = createSlice({
         state.isSignedIn = true;
         state.isProfilingDone = isProfilingDone;
         state.themeType = themeType;
+        state.isAffiliate = user?.isAffiliate || false;
+        state.affiliateCode = user?.affiliateCode || null;
         state.isLoading = false;
       })
       .addCase(logoutUser.fulfilled, (state) => {
@@ -129,10 +147,12 @@ const authSlice = createSlice({
         state.isSignedIn = false;
         state.isProfilingDone = false;
         state.themeType = 'light';
+        state.isAffiliate = false;
+        state.affiliateCode = null;
         state.isLoading = false;
       });
   },
 });
 
-export const { setTheme, setProfilingDone } = authSlice.actions;
+export const { setTheme, setProfilingDone, setAffiliateData } = authSlice.actions;
 export default authSlice.reducer;

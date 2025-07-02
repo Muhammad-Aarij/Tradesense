@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Opening App...</title>
+  <style>
+    body {
+      background-color: #08131F;
+      color: #ccc;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding-top: 30vh;
+    }
+    .spinner {
+      margin: 20px auto;
+      width: 30px;
+      height: 30px;
+      border: 4px solid #ccc;
+      border-top: 4px solid #00aced;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    a { color: #00aced; text-decoration: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <p>Redirecting to app…</p>
+  <div class="spinner"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      window.location.href = `tradesense://T-365=${token}`;
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <h2 style="color:white">Couldn’t open the app</h2>
+          <p>Please <a href="https://play.google.com/store/apps/details?id=com.yourapp">install the app</a> or try again later.</p>
+        `;
+      }, 2000);
+    } else {
+      document.body.innerHTML = '<h2>Missing token in link</h2>';
+    }
+  </script>
+</body>
+</html>

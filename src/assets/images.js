@@ -123,12 +123,13 @@ import cblue from './cblue.png'
 import cwhite from './cwhite.png'
 import noThumbnail from './noThumbnail.png'
 import work from './work.png'
+import fail from './fail.png'
 
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
   lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
-  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain, acc,
+  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain, acc, fail,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next, d, cwhite, cblue,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,

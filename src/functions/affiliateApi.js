@@ -34,8 +34,8 @@ export const sendAffiliateRequest = async (userId) => {
 export const getUserDetails = async (userId) => {
     try {
         const response = await axios.get(`${API_URL}/api/auth/users/${userId}`);
-        console.log('User details:', response.data);
-        return response.data;
+        const { affiliateCode, isAffiliate } = response.data.user;
+        return { affiliateCode, isAffiliate };
     } catch (error) {
         console.error('Error fetching user details:', error.response?.data || error.message);
         throw error;

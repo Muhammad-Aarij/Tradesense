@@ -7,20 +7,27 @@ import {
     ImageBackground,
     SafeAreaView,
     Dimensions,
+    TouchableOpacity,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { bg, user } from '../../../assets/images';
+import { bg, fail, tick, user } from '../../../assets/images';
 import Header from '../../../components/Header';
 import PurchasedCourseCard from './PurchaseCourseCard';
 import CourseCard from '../courseList/CourseCard';
 import { useEnrolledCourses, useCourses } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import theme from '../../../themes/theme';
+import { sendAffiliateRequest } from '../../../functions/affiliateApi';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const { height, width } = Dimensions.get('window');
 
 const PurchasedCoursesScreen = () => {
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalSuccess, setModalSuccess] = useState(null); // true = success, false = failure
+    const [modalMessage, setModalMessage] = useState('');
+
     const navigation = useNavigation();
     const { userObject } = useSelector(state => state.auth);
     const studentId = userObject?._id;
@@ -51,6 +58,22 @@ const PurchasedCoursesScreen = () => {
             dispatch(stopLoading());
         }, 1500);
     }, [refetchAll]);
+
+
+    const handleAffiliateRequest = async () => {
+        try {
+            await sendAffiliateRequest(studentId);
+            setModalSuccess(true);
+            setModalMessage('Affiliate request sent successfully!');
+        } catch (error) {
+            setModalSuccess(false);
+            setModalMessage('Failed to send affiliate request. Please try again.');
+        } finally {
+            setModalVisible(true);
+        }
+    };
+
+
 
     // Prepare data for single FlatList
     const flatListData = [];
@@ -134,9 +157,22 @@ const PurchasedCoursesScreen = () => {
 
     return (
         <ImageBackground source={bg} style={styles.container}>
+            {modalVisible &&
+                <ConfirmationModal
+                    visible={modalVisible}
+                    title={modalMessage}
+                    icon={modalSuccess ? tick : fail} // Add your 'cross' icon
+                    onClose={() => setModalVisible(false)}
+                />}
+
             <SafeAreaView style={{ flex: 1 }}>
                 <Header title="My Courses" style={{ marginBottom: 35, marginLeft: 20, }} />
                 <FlatList
+                    ListFooterComponent={() => (
+                        <TouchableOpacity style={styles.joinButton} onPress={handleAffiliateRequest}>
+                            <Text style={styles.joinButtonText}>Become an Affiliate</Text>
+                        </TouchableOpacity>
+                    )}
                     data={flatListData}
                     renderItem={renderItem}
                     keyExtractor={(item, index) => item?.data?._id || item?.text || item?.title || index.toString()}
@@ -187,6 +223,20 @@ const styles = StyleSheet.create({
     },
     gridItem: {
         width: (width - 40) / 2, // Adjust based on padding
+    },
+    joinButton: {
+        backgroundColor: theme.primaryColor,
+        width: '100%',
+        padding: 12,
+        borderRadius: 11,
+        marginTop: 20,
+        alignItems: 'center',
+    },
+    joinButtonText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
+        fontFamily: "Inter-SemiBold",
     },
 });
 
