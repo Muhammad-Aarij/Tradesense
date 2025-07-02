@@ -10,16 +10,16 @@ import {
     StyleSheet,
 } from 'react-native';
 import theme from '../../../../themes/theme';
-import { back } from '../../../../assets/images';
+import { back, work } from '../../../../assets/images';
 
-export default function Accountability() {
+export default function Accountability({ navigation }) {
     const [selectedFilter, setSelectedFilter] = useState('Daily');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
     const filterOptions = ['Daily', 'Monthly', 'Yearly'];
 
     return (
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={theme.primaryColor} />
+            <StatusBar barStyle="light-content" backgroundColor={"#0B1016"} />
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
                 <Text style={styles.sectionTitle}>Your Accountability Details</Text>
@@ -43,19 +43,21 @@ export default function Accountability() {
                 </View>
 
                 {/* My Growth */}
-                <Text style={styles.sectionTitle}>My Growth</Text>
                 <View style={styles.myGrowthCard}>
-                    <View style={styles.progressCircleContainer}>
-                        <View style={styles.progressCircle}>
-                            <Text style={styles.progressText}>80%</Text>
+                    <Text style={styles.sectionTitle}>My Growth</Text>
+                    <View style={{ width: "100%", flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
+                        <View style={styles.progressCircleContainer}>
+                            <View style={styles.progressCircle}>
+                                <Text style={styles.progressText}>80%</Text>
+                            </View>
                         </View>
-                    </View>
-                    <View style={styles.progressTaskContainer}>
-                        <Image
-                            source={{ uri: 'https://placehold.co/30x30/2C2C4A/A0A0B0?text=📄' }}
-                            style={styles.progressTaskIcon}
-                        />
-                        <Text style={styles.progressTaskText}>Progress Task: 80%</Text>
+                        <View style={styles.progressTaskContainer}>
+                            <Image
+                                source={work}
+                                style={styles.progressTaskIcon}
+                            />
+                            <Text style={styles.progressTaskText}>Progress Task: 80%</Text>
+                        </View>
                     </View>
                 </View>
 
@@ -103,7 +105,9 @@ export default function Accountability() {
                 <View style={styles.successTrackerHeader}>
                     <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Success Tracker</Text>
                     <TouchableOpacity style={styles.manageRow}>
-                        <Text style={styles.manageText}>Manage</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate("Goals")}>
+                            <Text style={styles.manageText}>Manage</Text>
+                        </TouchableOpacity>
                         <Image
                             source={back}
                             style={{
@@ -119,7 +123,7 @@ export default function Accountability() {
 
                 <View style={styles.successTrackerList}>
                     {[1, 2, 3].map((_, index) => (
-                        <View key={index} style={styles.successTrackerItem}>
+                        <TouchableOpacity key={index} style={styles.successTrackerItem} onPress={() => navigation.navigate("Goals")}>
                             <TouchableOpacity style={styles.checkbox}>
                                 <Text style={styles.iconPlaceholder}>☐</Text>
                             </TouchableOpacity>
@@ -129,7 +133,7 @@ export default function Accountability() {
                                     Lorem Ipsum is simply dummy text of the printing and typesetting industry.
                                 </Text>
                             </View>
-                        </View>
+                        </TouchableOpacity>
                     ))}
                 </View>
 
@@ -184,8 +188,8 @@ const styles = StyleSheet.create({
         borderColor: theme.borderColor,
         borderRadius: 8,
         padding: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: 'column',
+        // alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 20,
     },
@@ -204,7 +208,7 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         borderWidth: 8,
-        borderColor: '#007bff', // Blue for progress ring
+        borderColor: theme.primaryColor, // Blue for progress ring
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#1A1A2E', // Inner circle background
@@ -213,31 +217,31 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#2C2C4A', // Inner circle background
+        // backgroundColor: '#2C2C4A', // Inner circle background
         justifyContent: 'center',
         alignItems: 'center',
     },
     progressText: {
         color: '#FFF',
-        fontSize: 20,
+        fontSize: 15,
         fontWeight: 'bold',
     },
     progressTaskContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#3A3A5A',
+        backgroundColor: '#ffffff',
         borderRadius: 10,
-        paddingVertical: 10,
+        paddingVertical: 7,
         paddingHorizontal: 15,
     },
     progressTaskIcon: {
-        width: 20,
-        height: 20,
-        marginRight: 10,
+        width: 28,
+        height: 28,
+        marginRight: 5,
     },
     progressTaskText: {
-        color: '#FFF',
-        fontSize: 16,
+        color: '#000',
+        fontSize: 12,
     },
     dailyBreakdownContainer: {
         backgroundColor: '#1C2B3A',
@@ -303,7 +307,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         zIndex: 1000,
     },
-    
+
     optionItem: {
         zIndex: 1000,
         paddingVertical: 12,

@@ -26,7 +26,7 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
                         <Image source={deletewhite} style={styles.icon} />
                     </TouchableOpacity>
                 </View>
-            </View> 
+            </View>
             <Text style={styles.goalDescription}>{goal.description}</Text>
             <View style={styles.progressSection}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", }}>
@@ -34,7 +34,7 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
                         <Image source={calendar} style={styles.icon} />
                         <Text style={styles.goalDescription}>{formatDate(goal.updatedAt)} / {formatDate(goal.targetDate)}</Text>
                     </View>
-                    <Text style={styles.goalProgressText}>{goal.progress}%</Text>
+                    <Text style={styles.goalProgressText}>{goal.progress ?? 0}%</Text>
                 </View>
                 <View style={styles.progressBarBackground}>
                     <View style={[styles.progressBarFill, { width: `${goal.progress || 0}%` }]} />
@@ -83,13 +83,13 @@ const styles = StyleSheet.create({
     goalDescription: {
         fontSize: 12,
         color: '#B0B0B0', // Lighter grey for description
-        marginBottom: 15,
+        marginBottom: 5,
         lineHeight: 20,
     },
     progressSection: {
         width: "100%",
         flexDirection: 'column',
-        marginTop: 5,
+        marginTop: 10,
     },
     goalProgressText: {
         fontSize: 13,

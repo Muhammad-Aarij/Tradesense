@@ -8,14 +8,14 @@ import theme from '../themes/theme';
 import { openSidebar } from '../redux/slice/loaderSlice'
 import { useDispatch } from 'react-redux'
 
-const Header = ({ title, addpadding }) => {
+const Header = ({ title, addpadding, style }) => {
     const navigation = useNavigation();
     // const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
     const styles = getStyles(theme);
 
     return (
-        <View style={styles.header}>
-            <TouchableOpacity style={[styles.blurWrapper, addpadding ? "paddingLeft:20" : ""]} >
+        <View style={[styles.header, style]}>
+            <TouchableOpacity style={[styles.blurWrapper, addpadding ? "paddingLeft:20" : ""]} onPress={() => navigation.goBack()}>
                 <Image source={back} style={{ width: 12, height: 12, resizeMode: 'contain' }} />
             </TouchableOpacity>
 
@@ -43,7 +43,7 @@ const getStyles = (theme) => StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 35,
+        marginTop: 35,
         marginBottom: 45,
         position: 'relative', // Allows absolute positioning inside
     },
@@ -60,7 +60,7 @@ const getStyles = (theme) => StyleSheet.create({
     backIcon: { width: 17, height: 17, resizeMode: 'contain' },
 
     title: {
-        fontSize: 20,
+        fontSize: 18,
         color: theme.textColor,
         fontFamily: 'Inter-SemiBold',
         position: 'absolute',

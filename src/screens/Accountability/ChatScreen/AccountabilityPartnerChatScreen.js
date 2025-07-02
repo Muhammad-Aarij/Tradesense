@@ -138,11 +138,6 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         <ImageBackground source={bg} style={{ flex: 1 }}>
             <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.blurWrapper} onPress={() => navigation.goBack()}>
-                        <View style={styles.blurView}>
-                            <Image source={back} style={styles.backIcon} />
-                        </View>
-                    </TouchableOpacity>
                     <View style={styles.partnerHeaderInfo}>
                         <Image source={chatbot} style={styles.partnerAvatar} />
                         <Text style={styles.partnerName}>{partnerName}</Text>

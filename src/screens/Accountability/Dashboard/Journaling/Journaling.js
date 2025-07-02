@@ -11,7 +11,7 @@ import {
     ImageBackground,
 } from 'react-native';
 import theme from '../../../../themes/theme';
-import { back, bell, bg, user } from '../../../../assets/images';
+import { back } from '../../../../assets/images';
 
 
 const days = [

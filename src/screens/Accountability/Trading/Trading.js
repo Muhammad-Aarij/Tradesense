@@ -8,13 +8,14 @@ import {
     SafeAreaView,
     StatusBar,
     ImageBackground,
+    Touchable,
 } from 'react-native';
 import { bg } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
 
 
-const Trading = () => {
+const Trading = ({ navigation }) => {
     // Dummy data for days, mimicking the image
     const days = [
         { date: '12', day: 'Sat', active: false },
@@ -62,7 +63,7 @@ const Trading = () => {
                 <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
                 <ScrollView contentContainerStyle={styles.scrollViewContent}>
                     {/* Header */}
-                    {/* <Header title={"Trade"} /> */}
+                    <Header title={"Trades"} />
 
                     {/* Month Selector */}
                     <TouchableOpacity style={styles.monthSelector}>
@@ -94,7 +95,7 @@ const Trading = () => {
                     {/* Trades List */}
                     <View style={styles.tradesList}>
                         {trades.map((trade, index) => (
-                            <View key={index} style={styles.tradeItem}>
+                            <TouchableOpacity key={index} style={styles.tradeItem} onPress={() => { navigation.navigate("Watchlist") }}>
                                 <View>
                                     <Text style={styles.tradeCompanyName}>{trade.company}</Text>
                                     <Text style={styles.tradeSymbol}>{trade.symbol}</Text>
@@ -108,7 +109,7 @@ const Trading = () => {
                                         {trade.isPositive ? ' ▲' : ' ▼'} {/* Unicode triangles for up/down */}
                                     </Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         ))}
                     </View>
                 </ScrollView>
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         alignSelf: 'center', // Center the button
         marginBottom: 20,
-        marginTop:10,
+        marginTop: 10,
     },
     monthSelectorText: {
         color: '#A0A0B0',
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#2C2C4A',
         borderRadius: 12,
         padding: 15,
-        paddingHorizontal:18,
+        paddingHorizontal: 18,
         marginBottom: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
         borderWidth: 0.9,
@@ -223,10 +224,10 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     tradeSymbol: {
-        marginTop:3,
+        marginTop: 3,
         color: '#A0A0B0',
         fontSize: 10,
-        fontFamily:"Inter-Light-BETA",
+        fontFamily: "Inter-Light-BETA",
     },
     tradePriceContainer: {
         alignItems: 'flex-end',
@@ -234,17 +235,17 @@ const styles = StyleSheet.create({
     tradePrice: {
         color: '#FFF',
         fontSize: 15,
-        fontFamily:"Inter-Light-BETA",
+        fontFamily: "Inter-Light-BETA",
         // fontWeight: 'bold',
     },
     tradeChangePositive: {
         color: '#4CAF50', // Green for positive change
-        fontFamily:"Inter-Light-BETA",
+        fontFamily: "Inter-Light-BETA",
         fontSize: 11,
     },
     tradeChangeNegative: {
         color: '#FF5252', // Red for negative change
-        fontFamily:"Inter-Light-BETA",
+        fontFamily: "Inter-Light-BETA",
         fontSize: 11,
     },
     bottomNav: {

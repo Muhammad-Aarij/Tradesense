@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     cardImage: {
         width: '100%',
         height: '100%', // Ensures it takes full height
-        resizeMode: 'cover',
+        resizeMode: 'contain',
         position: "relative",
     },
 

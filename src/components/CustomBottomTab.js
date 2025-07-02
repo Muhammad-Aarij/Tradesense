@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     marginBottom: responsiveHeight(10),
     // marginLeft: responsiveHeight(5),
     overflow: "hidden",
-    backgroundColor: "transparent",
+    backgroundColor: 'rgba(11, 16, 22, 0.9)',
   },
 
   tabItem: {

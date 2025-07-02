@@ -135,7 +135,7 @@ const PurchasedCoursesScreen = () => {
     return (
         <ImageBackground source={bg} style={styles.container}>
             <SafeAreaView style={{ flex: 1 }}>
-                <Header title="My Courses" />
+                <Header title="My Courses" style={{ marginBottom: 35, marginLeft: 20, }} />
                 <FlatList
                     data={flatListData}
                     renderItem={renderItem}
@@ -173,16 +173,16 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 17,
         color: theme.textColor,
         fontFamily: 'Inter-SemiBold',
         textAlign: 'center',
-        marginBottom:20,
+        marginBottom: 20,
     },
     gridRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-    gap:5,
+        gap: 5,
         // marginBottom: 10,
     },
     gridItem: {

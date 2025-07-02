@@ -43,9 +43,8 @@ const Watchlist = () => {
                             source={{ uri: 'https://placehold.co/40x40/FFA500/FFFFFF?text=B' }}
                             style={styles.bitcoinIcon}
                         />
-                        <Text style={styles.bitcoinText}>Bitcoin
-                            <Text style={{ color: "#9D9D9D", marginLeft: 5, }}>
-                                BTC</Text>
+                        <Text style={styles.bitcoinText}>Bitcoin <Text style={{ color: "#9D9D9D", marginLeft: 5, }}>
+                            BTC</Text>
                         </Text>
                     </View>
 
@@ -73,7 +72,7 @@ const Watchlist = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        
+
     },
     scrollViewContent: {
         paddingHorizontal: 20,

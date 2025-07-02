@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import theme from '../../../themes/theme';
 import Accountability from './Accountability/Accountability'
 import Journaling from './Journaling/Journaling';
 
-const Dashboard = () => {
+const Dashboard = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
 
   return (
@@ -52,7 +52,7 @@ const Dashboard = () => {
           </View>
 
           {/* Conditional Rendering */}
-          {activeTab === 'Accountability' ? <Accountability /> : <Journaling />}
+          {activeTab === 'Accountability' ? <Accountability navigation={navigation} /> : <Journaling navigation={navigation} />}
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>

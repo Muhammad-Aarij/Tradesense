@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -6,14 +6,17 @@ import {
     FlatList,
     TouchableOpacity,
     Image,
+    ImageBackground,
+    SafeAreaView,
 } from 'react-native';
-import { useSelector,useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { deleteGoal, useGoalsByUser } from '../../functions/Goal';
 import GoalCard from '../../components/GoalCard';
-import { back } from '../../assets/images';
+import { back, bg } from '../../assets/images';
 import theme from '../../themes/theme';
 import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import { useQueryClient } from '@tanstack/react-query';
+import Header from '../../components/Header';
 
 export default function GoalContainer({ navigation }) {
 
@@ -23,8 +26,7 @@ export default function GoalContainer({ navigation }) {
     const [activeGoalFilter, setActiveGoalFilter] = useState("");
     const [selectedFilter, setSelectedFilter] = useState('All');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-    const [localGoals, setLocalGoals] = useState([]);
-    const dispatch=useDispatch();
+    const dispatch = useDispatch();
 
     const filterOptions = ['All', 'Weekly', 'Monthly'];
 
@@ -59,93 +61,75 @@ export default function GoalContainer({ navigation }) {
 
 
     return (
-        <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-                <View style={styles.headerTop}>
-                    <Text style={styles.sectionTitle}>Goal Tracking</Text>
-                    <TouchableOpacity
-                        style={styles.addSmallButton}
-                        onPress={() => navigation.navigate('AddGoal')}
-                    >
-                        <Text style={styles.addSmallButtonText}>+ Add Goal</Text>
-                    </TouchableOpacity>
-                </View>
+        <ImageBackground source={bg} style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1 }}>
+                <Header title={"Success Tracker"} style={{ marginBottom: 0,marginLeft:20, }} />
+                <View style={styles.sectionContainer}>
+                    <View style={styles.sectionHeader}>
 
-                {<View style={styles.sectionActions}>
-                    <View style={styles.filtersRow}>
-                        {['Daily', 'Weekly', 'Monthly'].map(filter => (
+                        {<View style={styles.sectionActions}>
                             <TouchableOpacity
-                                key={filter}
-                                style={[
-                                    styles.smallFilterTab,
-                                    activeGoalFilter === filter && styles.activeSmallFilterTab,
-                                ]}
-                                onPress={() => setActiveGoalFilter(filter)}
+                                style={styles.addSmallButton}
+                                onPress={() => navigation.navigate('AddGoal')}
                             >
-                                <Text
-                                    style={[
-                                        styles.smallFilterTabText,
-                                        activeGoalFilter === filter &&
-                                        styles.activeSmallFilterTabText,
-                                    ]}
-                                >
-                                    {filter}
-                                </Text>
+                                <Text style={styles.addSmallButtonText}>+ Add Goal</Text>
                             </TouchableOpacity>
-                        ))}
-                    </View>
 
-                    <View style={{ position: 'relative' }}>
-                        <TouchableOpacity
-                            style={styles.dropdownContainer}
-                            onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
-                        >
-                            <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
-                            <Image
-                                source={back}
-                                style={{
-                                    ...styles.dropdownArrow,
-                                    transform: [
-                                        { rotate: filterDropdownVisible ? '90deg' : '-90deg' },
-                                    ],
-                                }}
-                            />
-                        </TouchableOpacity>
 
-                        {filterDropdownVisible && (
-                            <View style={styles.dropdownOptions}>
-                                {filterOptions.map(option => (
-                                    <TouchableOpacity
-                                        key={option}
-                                        style={styles.optionItem}
-                                        onPress={() => {
-                                            setSelectedFilter(option);
-                                            setFilterDropdownVisible(false);
+                            <View style={{ position: 'relative' }}>
+                                <TouchableOpacity
+                                    style={styles.dropdownContainer}
+                                    onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
+                                >
+                                    <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
+                                    <Image
+                                        source={back}
+                                        style={{
+                                            ...styles.dropdownArrow,
+                                            transform: [
+                                                { rotate: filterDropdownVisible ? '90deg' : '-90deg' },
+                                            ],
                                         }}
-                                    >
-                                        <Text style={styles.optionText}>{option}</Text>
-                                    </TouchableOpacity>
-                                ))}
+                                    />
+                                </TouchableOpacity>
+
+                                {filterDropdownVisible && (
+                                    <View style={styles.dropdownOptions}>
+                                        {filterOptions.map(option => (
+                                            <TouchableOpacity
+                                                key={option}
+                                                style={styles.optionItem}
+                                                onPress={() => {
+                                                    setSelectedFilter(option);
+                                                    setFilterDropdownVisible(false);
+                                                }}
+                                            >
+                                                <Text style={styles.optionText}>{option}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                )}
                             </View>
-                        )}
+                        </View>}
                     </View>
-                </View>}
-            </View>
 
-            <FlatList
-                data={filteredGoals}
-                keyExtractor={item => item._id.toString()}
-                renderItem={({ item }) => (
-                    <GoalCard
-                        goal={item}
-                        onEdit={id => handleEdit(id)}
-                        onDelete={id => handleDelete(id, 'Goal')}
+                    <FlatList
+                        data={filteredGoals}
+                        keyExtractor={item => item._id.toString()}
+                        renderItem={({ item }) => (
+                            <GoalCard
+                                goal={item}
+                                onEdit={id => handleEdit(id)}
+                                onDelete={id => handleDelete(id, 'Goal')}
+                            />
+                        )}
+                        contentContainerStyle={{ paddingBottom: 30 }}
                     />
-                )}
-                contentContainerStyle={{ paddingBottom: 30 }}
-            />
 
-        </View>
+                </View>
+            </SafeAreaView>
+        </ImageBackground>
+
     );
 }
 
@@ -178,7 +162,7 @@ const styles = StyleSheet.create({
     },
     addSmallButtonText: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 12,
         fontFamily: 'Inter-Medium',
     },
     sectionActions: {
@@ -211,21 +195,25 @@ const styles = StyleSheet.create({
     dropdownContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1c1c1c',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 10,
+        justifyContent: "space-between",
+
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 0.9,
+        borderColor: theme.borderColor,
+        borderRadius: 8, paddingHorizontal: 13,
+        width: 100,
+        paddingVertical: 8,
         marginLeft: 10,
     },
     dropdownArrow: {
-        width: 12,
-        height: 12,
+        width: 10, height: 10,
+        resizeMode: "contain",
         marginLeft: 6,
         tintColor: '#fff',
     },
     dailyBreakdownFilter: {
         color: '#fff',
-        fontSize: 13,
+        fontSize: 12,
         fontFamily: 'Inter-Regular',
     },
     dropdownOptions: {

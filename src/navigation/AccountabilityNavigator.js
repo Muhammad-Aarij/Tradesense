@@ -10,6 +10,7 @@ import AccountabilityPartnerListScreen from '../screens/Accountability/partnerLi
 import Dashboard from '../screens/Accountability/Dashboard/Dashboard';
 import Trading from '../screens/Accountability/Trading/Trading';
 import Watchlist from '../screens/Accountability/Watchlist/Watchlist';
+import GoalContainer from '../screens/Accountability/GoalContainer';
 
 
 const Accountability = createNativeStackNavigator();
@@ -21,6 +22,7 @@ const AccountabilityNavigator = () => {
             <Accountability.Screen name="Trading" component={Trading} />
             <Accountability.Screen name="Watchlist" component={Watchlist} />
             <Accountability.Screen name="Acc_Stocks" component={AccountabilityScreen} />
+            <Accountability.Screen name="Goals" component={GoalContainer} />
             {/* <Accountability.Screen name="AddGoal" component={AddGoal} />
             <Accountability.Screen name="AddHabit" component={HabitTracking} />
             <Accountability.Screen name="Acc_FormData" component={Acc_FormData} /> */}
