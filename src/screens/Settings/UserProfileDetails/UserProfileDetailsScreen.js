@@ -10,11 +10,11 @@ import {
   ImageBackground,
   Dimensions,
 } from 'react-native';
-import { bg, userProfile, userT } from '../../../assets/images';
+import { bg, userProfile, userT, userDefault } from '../../../assets/images';
 import Header from '../../../components/Header';
 import GradientStatCard from './GradientStatCard';
 import theme from '../../../themes/theme';
-
+import { useSelector } from 'react-redux';
 const { width, height } = Dimensions.get('window');
 const scale = (size) => (width / 375) * size; // assuming 375 is the base width
 const verticalScale = (size) => (height / 812) * size; // assuming 812 is the base height
@@ -32,6 +32,14 @@ const UserProfileDetailsScreen = () => {
     weeksLearningStreak: 2,
     weeksLearningStreakTarget: 10,
   };
+  const name = useSelector(state => state.auth.userObject?.name);
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) return 'Good Morning! ☀️';
+    if (hour < 17) return 'Good Afternoon! 🌤️';
+    return 'Good Evening! 🌙';
+  };
 
   return (
     <ImageBackground source={bg} style={styles.background}>
@@ -43,11 +51,11 @@ const UserProfileDetailsScreen = () => {
             {/* Profile Card */}
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
-                <Image source={userProfile} style={styles.avatar} />
+                <Image source={userDefault} style={styles.avatar} />
               </View>
               <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>Julie Coyette</Text>
-                <Text style={styles.profileSubtitle}>Industry and Development</Text>
+                <Text style={styles.profileName}>{name}</Text>
+                <Text style={styles.profileSubtitle}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
 

@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { lockicon, audioicon } from '../assets/images'; // Adjust path as needed
+import { lockicon } from '../assets/images';
 
-const Bundle = ({ imageSource, title, description, locked, onPress }) => {
+const Bundle = ({ imageSource, title, description, locked, onPress, type }) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.thumbnailWrapper}>
         <Image source={imageSource} style={styles.thumbnail} />
 
-        {/* Top Left - Audio Label */}
+        {/* Top Left - Type Label */}
         <View style={styles.audioLabel}>
-          <Text style={styles.audioLabelText}>Meditation</Text>
+          <Text style={styles.audioLabelText}>{type?.toUpperCase() || 'CONTENT'}</Text>
         </View>
 
         {/* Bottom Left - Time */}

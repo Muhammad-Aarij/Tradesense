@@ -24,7 +24,7 @@ export default function Loader() {
           source={loadingAnimation}
           autoPlay
           loop
-          style={{ width: 340, height: 340 }}
+          style={{ width: 200, height: 200 }}
         />
         {/* <Text style={styles.modalText}>{loadingText}</Text> */}
       </View>

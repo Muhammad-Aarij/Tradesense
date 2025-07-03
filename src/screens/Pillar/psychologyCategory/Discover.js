@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { useTopPicks, useRecommendations } from '../../../functions/DiscoverApis';
+import { useTopPicks, useRecommendations, useBundles } from '../../../functions/DiscoverApis';
 import theme from '../../../themes/theme';
 import { bg, discover1, video1, video3 } from '../../../assets/images';
 import RecommendationTile from '../../../components/RecommendationTile';
@@ -21,16 +21,34 @@ const DiscoverScreen = () => {
     // const userId = '6853b8d8db9a55c298462b64'; // replace with dynamic if needed
     const dispatch = useDispatch();
 
+    // Debug userId
+    useEffect(() => {
+        console.log('UserObject:', userObject);
+        console.log('UserId:', userId);
+    }, [userObject, userId]);
+
     const { data: topPicks, isLoading: loadingTop } = useTopPicks(userId);
     const { data: recommendations, isLoading: loadingRec } = useRecommendations(userId);
+    const { data: bundles, isLoading: loadingBundles, error: bundlesError } = useBundles(userId);
 
     useEffect(() => {
         dispatch(startLoading());
 
-        if (!loadingTop && !loadingRec) {
+        if (!loadingTop && !loadingRec && !loadingBundles) {
             dispatch(stopLoading());
         }
-    }, [loadingTop, loadingRec]);
+    }, [loadingTop, loadingRec, loadingBundles]);
+
+    // Debug bundles data
+    useEffect(() => {
+        if (bundles) {
+            console.log('Bundles data:', bundles);
+            console.log('Is bundles an array?', Array.isArray(bundles));
+        }
+        if (bundlesError) {
+            console.log('Bundles error:', bundlesError);
+        }
+    }, [bundles, bundlesError]);
 
     return (
         <ImageBackground source={bg} style={styles.container} resizeMode="cover">
@@ -88,22 +106,24 @@ const DiscoverScreen = () => {
                 </View>
 
                 {/* Bundles */}
-                {/* {['Bundle 1', 'Bundle 2'].map((bundleName, i) => (
-                    <View key={bundleName} style={styles.section}>
-                        <Text style={styles.sectionTitle}>{bundleName}</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                            {topPicks?.slice(0, 3).map((item) => (
+                {bundles && Array.isArray(bundles) && bundles.map((bundle, i) => (
+                    <View key={bundle.goal} style={styles.section}>
+                        <Text style={styles.sectionTitle}>{bundle.goal}</Text>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginLeft: 25 }}>
+                            {bundle.resources && Array.isArray(bundle.resources) && bundle.resources.map((item) => (
                                 <BundleTileSection
-                                    key={`${item._id}-${i}`}
+                                    key={item._id}
                                     title={item.title}
                                     description={item.description}
                                     imageSource={{ uri: item.thumbnail }}
                                     locked={item.isPremium}
+                                    type={item.type}
+                                    url={item.url}
                                 />
                             ))}
                         </ScrollView>
                     </View>
-                ))} */}
+                ))}
             </ScrollView>
         </ImageBackground>
     );

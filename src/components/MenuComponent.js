@@ -71,7 +71,7 @@ const MenuComponent = ({ visible, }) => { // Removed 'onClose' prop as it's hand
                         {/* Ensure menuContainer adapts to content and is correctly positioned */}
                         <View style={styles.menuContainer}>
                             <TouchableOpacity>
-                                <Text style={styles.sectionTitle}>Trader 365</Text>
+                                <Text style={styles.sectionTitle}>Trader365</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity>

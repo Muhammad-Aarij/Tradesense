@@ -10,12 +10,6 @@ const scale = (size) => (width / 375) * size; // assuming 375 is the base width
 const verticalScale = (size) => (height / 812) * size; // assuming 812 is the base height
 
 const AccountSecurityScreen = ({ }) => {
-    // Mock navigation for standalone component
-    // const mockNavigation = {
-    //     navigate: (screenName, params) => console.log(`Navigating to: ${screenName}`, params),
-    //     goBack: () => console.log('Going back'),
-    // };
-    // const currentNavigation = navigation || mockNavigation;
 
     const [isFactorAuthEnabled, setIsFactorAuthEnabled] = useState(true);
     const [isAuthenticatorAppEnabled, setIsAuthenticatorAppEnabled] = useState(false);
@@ -48,7 +42,7 @@ const AccountSecurityScreen = ({ }) => {
             <SafeAreaView style={styles.safeArea}>
                 <View style={styles.container}>
                     {/* Header */}
-                    <Header title={"Account Security "} />
+                    <Header title={"Account Security"} />
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         <View style={styles.securityOptionsContainer}>
@@ -58,28 +52,16 @@ const AccountSecurityScreen = ({ }) => {
                                 isEnabled={isFactorAuthEnabled}
                                 onToggle={() => setIsFactorAuthEnabled(prev => !prev)}
                             />
-                            <ToggleItem
+                            {/* <ToggleItem
                                 text="Authenticator App"
                                 description="SMS-Based" // As per image
                                 isEnabled={isAuthenticatorAppEnabled}
                                 onToggle={() => setIsAuthenticatorAppEnabled(prev => !prev)}
-                            />
+                            /> */}
                             <LinkItem text="Change Password" onPress={() => console.log('Change Password')} />
-                            <LinkItem text="View Trusted Devices" onPress={() => console.log('View Trusted Devices')} />
-                            <ToggleItem
-                                text="Security Alerts"
-                                isEnabled={isSecurityAlertsEnabled}
-                                onToggle={() => setIsSecurityAlertsEnabled(prev => !prev)}
-                            />
-                            <ToggleItem
-                                text="Device Authorization"
-                                isEnabled={isDeviceAuthorizationEnabled}
-                                onToggle={() => setIsDeviceAuthorizationEnabled(prev => !prev)}
-                            />
+                            {/* <LinkItem text="View Trusted Devices" onPress={() => console.log('View Trusted Devices')} /> */}
+                            
                         </View>
-
-
-
                     </ScrollView>
                 </View>
             </SafeAreaView>

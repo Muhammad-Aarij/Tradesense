@@ -50,7 +50,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
 
             {/* Menu Items */}
             <View style={styles.menuItemsContainer}>
-              <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('UserProfileDetails')} />
+              <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('Menu', { screen: 'UserProfileDetails' })} />
               <MenuItem icon={p2} text="Courses" onPress={() => navigation.navigate('Courses')} />
               <MenuItem icon={p2} text="Affiliate" onPress={() => navigation.navigate('Affiliate')} />
               <MenuItem icon={p2} text="Subscriptions Plans" />

@@ -27,12 +27,12 @@ const AboutTrader365Screen = ({ navigation }) => {
                 <View style={styles.container}>
                     {/* Header */}
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        <Header title={"About Trader 365"} />
+                        <Header title={"About Trader365"} />
 
                         <View style={styles.topSection}>
                             <Image source={logoWhite} style={styles.logo} />
                             <Text style={styles.descriptionText}>
-                                Trader 365 is your all-in-one trading assistant — combining intelligent tools, real-time insights, verified learning, and secure account management to help you grow confidently in the financial world.
+                                Trader365 is your all-in-one trading assistant — combining intelligent tools, real-time insights, verified learning, and secure account management to help you grow confidently in the financial world.
                             </Text>
                         </View>
 
@@ -75,7 +75,7 @@ const AboutTrader365Screen = ({ navigation }) => {
             {/* Version Info and Copyright */}
             <View style={styles.footerInfo}>
                 <Text style={styles.versionText}>App Version: 1.0.1.20230520</Text>
-                <Text style={styles.copyrightText}>© 2023 Trader 365. All rights reserved.</Text>
+                <Text style={styles.copyrightText}>© 2023 Trader365. All rights reserved.</Text>
             </View>
         </ImageBackground>
     );
