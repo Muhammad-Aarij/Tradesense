@@ -35,7 +35,7 @@ const PurchasedCoursesScreen = () => {
 
     const { data: enrolledCourses, isLoading: isLoadingEnrolled, error: errorEnrolled } = useEnrolledCourses(studentId);
     const { data: allCourses, isLoading: isLoadingAll, error: errorAll, refetch: refetchAll } = useCourses();
-
+    console.log("Enrolled", allCourses);
     const [refreshing, setRefreshing] = useState(false);
     const overallLoading = isLoadingEnrolled || isLoadingAll;
 
@@ -73,6 +73,18 @@ const PurchasedCoursesScreen = () => {
         }
     };
 
+    function formatDuration(seconds) {
+        if (seconds < 60) return '1 min';
+
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(seconds / 3600);
+
+        if (seconds >= 3600) {
+            return hours === 1 ? '1 hour' : `${hours} hours`;
+        }
+
+        return `${minutes} min`;
+    }
 
 
     // Prepare data for single FlatList
@@ -137,6 +149,7 @@ const PurchasedCoursesScreen = () => {
                                     rating={course.averageRating ?? 0}
                                     description={course.description}
                                     profileImage={user}
+                                    duration={formatDuration(course.duration)}
                                     profileName={course.instructorName}
                                     price={`${course.price} $`}
                                     onPress={() =>
@@ -166,8 +179,10 @@ const PurchasedCoursesScreen = () => {
                 />}
 
             <SafeAreaView style={{ flex: 1 }}>
-                <Header title="My Courses" style={{ marginBottom: 35, marginLeft: 20, }} />
                 <FlatList
+                    ListHeaderComponent={() =>
+                        <Header title="My Courses" style={{ marginBottom: 35,}} />
+                    }
                     ListFooterComponent={() => (
                         <TouchableOpacity style={styles.joinButton} onPress={handleAffiliateRequest}>
                             <Text style={styles.joinButtonText}>Become an Affiliate</Text>

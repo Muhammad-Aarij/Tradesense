@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import {
   user, video, graph, bg, bell,
-  book, scholar, care, circle, wave, back
+  book, userDefault, care, circle, wave, back
 } from '../../assets/images';
 import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
@@ -12,7 +12,7 @@ import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import { useDispatch } from 'react-redux';
 import DailyBreakdownChart from '../../components/DailyBreakdownChart';
 import TopBreakdownChart from '../../components/TopBreakdownChart';
-
+import { useSelector } from 'react-redux';
 const { width, height } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
@@ -23,8 +23,8 @@ const HomeScreen = ({ navigation }) => {
   const [selectedFilter, setSelectedFilter] = useState('Daily');
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const filterOptions = ['Daily', 'Monthly', 'Yearly'];
-
-
+  
+  
   useEffect(() => {
     dispatch(startLoading());
     const timeout = setTimeout(() => {
@@ -32,8 +32,16 @@ const HomeScreen = ({ navigation }) => {
     }, 2000);
     return () => clearTimeout(timeout);
   }, [isLoading]);
+  
+  
+  const name = useSelector(state => state.auth.userObject?.name);
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
 
-
+    if (hour < 12) return 'Good Morning! ☀️';
+    if (hour < 17) return 'Good Afternoon! 🌤️';
+    return 'Good Evening! 🌙';
+  };
 
   return (
     <ImageBackground source={theme.bg} style={styles.container1}>
@@ -44,10 +52,10 @@ const HomeScreen = ({ navigation }) => {
           {/* Header Section */}
           <View style={styles.header}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image source={user} style={styles.avatar} />
+              <Image source={userDefault} style={styles.avatar} />
               <View>
-                <Text style={styles.greeting}>Good Evening! 😊</Text>
-                <Text style={styles.username}>Alwin Smith</Text>
+                <Text style={styles.username}>{name}</Text>
+                <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
             <Image source={bell} style={{ width: 45, height: 45, resizeMode: "contain", alignSelf: 'center' }} />

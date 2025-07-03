@@ -24,8 +24,9 @@ const StarRating = ({ rating }) => {
 
 
 
+{ console.log(course.title) }
 const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = true }) => (
-    <TouchableOpacity
+    < TouchableOpacity
         style={{
             ...styles.card,
             height: course.type === "Affiliate" ? 180 : 140
@@ -37,12 +38,12 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
             <Image source={{ uri: course.thumbnail }} style={styles.cardImage} />
             <View style={styles.imgOverlay} />
 
-            {course.type != "Affiliate" && false &&
-                <View style={styles.timeOverlay}>
-                    <Image source={play} style={styles.playIcon} />
-                    <Text style={styles.timeText}>{course.time}</Text>
-                </View>
-            }
+            {/* {course.type != "Affiliate" && false &&
+                } */}
+            <View style={styles.timeOverlay}>
+                <Image source={play} style={styles.playIcon} />
+                <Text style={styles.timeText}>{course.duration}</Text>
+            </View>
 
         </View>
         <View style={styles.cardContent}>
@@ -100,7 +101,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                 </View>
             )}
         </View>
-    </TouchableOpacity>
+    </TouchableOpacity >
 );
 
 const styles = StyleSheet.create({

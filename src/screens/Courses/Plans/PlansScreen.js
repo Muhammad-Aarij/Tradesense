@@ -129,7 +129,7 @@ const PlansScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 25, paddingTop: 20 },
+    container: { flex: 1, padding: 25, paddingTop: 0 },
     scrollContent: { paddingBottom: height * 0.1 },
     planCard: {
         padding: 16,

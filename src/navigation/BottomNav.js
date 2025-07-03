@@ -24,19 +24,16 @@ export default function BottomNavigator() {
       detachInactiveScreens={false}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen
-        name="Pillars"
-        component={PillarNavigator} />
-
-      {/* <Tab.Screen name="Courses" component={CoursesNavigator} /> */}
-      {/* <Tab.Screen name="Affiliate" component={AffiliateNavigator} /> */}
+      <Tab.Screen name="Pillars" component={PillarNavigator} />
       <Tab.Screen name="Accountability" component={AccountabilityNavigator} />
-
       <Tab.Screen
         name="Courses"
         component={CoursesNavigator}
-        options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
+        options={{
+          tabBarButton: () => null, // ✅ Hides the tab icon/button
+        }}
       />
+
 
       {/* <Tab.Screen
         name="Accountability"

@@ -78,9 +78,9 @@ const CourseDetailScreen = () => {
             {isLoading && <Loader />}
             <ImageBackground source={bg} style={styles.container}>
                 <SafeAreaView>
-                    <Header title={course?.title || courseTitle} />
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                        <Header title={course?.title || courseTitle} />
                         <View style={styles.mainImageContainer}>
                             <Image source={{ uri: course?.thumbnail }} style={styles.mainCourseImage} />
                             <View style={styles.imgOverlay} />
@@ -145,16 +145,17 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        paddingBottom: height * 0.2,
+        paddingTop:0,
         backgroundColor: 'black'
     },
     centered: {
+        // paddingBottom: height * 0.3,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#08131F'
     },
-    scrollContent: { paddingBottom: 20 },
+    scrollContent: { paddingBottom: 150 },
     mainImageContainer: {
         width: '100%',
         height: width * 0.55,
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
     },
     audioTitle: {
         color: '#FFFFFF',
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: 'Inter-Medium'
     },
     audioDuration: {
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
     audioDescription: {
         color: '#FFFFFF',
         fontFamily: 'Inter-Light-BETA',
-        fontSize: 13,
+        fontSize: 11,
         lineHeight: 12
     },
     buyNowButton: {

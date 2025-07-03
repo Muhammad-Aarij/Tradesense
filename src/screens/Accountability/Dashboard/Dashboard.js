@@ -14,9 +14,19 @@ import { back, bell, bg, user } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import Accountability from './Accountability/Accountability'
 import Journaling from './Journaling/Journaling';
+import { useSelector } from 'react-redux';
 
 const Dashboard = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
+
+  const name = useSelector(state => state.auth.userObject?.name);
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) return 'Good Morning! ☀️';
+    if (hour < 17) return 'Good Afternoon! 🌤️';
+    return 'Good Evening! 🌙';
+  };
 
   return (
     <ImageBackground source={bg} style={{ flex: 1 }}>
@@ -28,8 +38,8 @@ const Dashboard = ({ navigation }) => {
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Image source={user} style={styles.avatar} />
               <View>
-                <Text style={styles.greeting}>Good Evening! 😊</Text>
-                <Text style={styles.username}>Alwin Smith</Text>
+                <Text style={styles.username}>{name}</Text>
+                <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
             <Image source={bell} style={{ width: 40, height: 40, resizeMode: "contain", alignSelf: 'center' }} />
@@ -75,7 +85,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   avatar: { width: 45, height: 45, borderRadius: 8, marginRight: 10 },
-  greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Inter-Regular' },
+  greeting: { color: theme.primaryColor, fontSize: 12, fontFamily: 'Inter-Regular' },
   username: { color: theme.textColor, fontSize: 12, fontFamily: 'Inter-Medium' },
   notificationIcon: {
     width: 35,

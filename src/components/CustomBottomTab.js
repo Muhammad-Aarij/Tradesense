@@ -17,7 +17,7 @@ const responsiveFontSize = (size) => (width / guidelineBaseWidth) * size;
 const tabItems = [
   { name: "Home", icon: homeT },
   { name: "Pillars", icon: pillar },
-  { name: "Courses", icon: course },
+  // { name: "Courses", icon: course },
   { name: "Accountability", icon: acc },
   { name: "Sidebar", icon: menu },
   { name: "ChatBot", icon: chatbot },
@@ -40,8 +40,9 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
       // reducedTransparencyFallbackColor="rgba(255,255,255,0.9)"
       />
 
-      {/* ✅ Foreground content unchanged */}
       {state.routes.map((route, index) => {
+        if (route.name === "Courses") return null; // ✨ Skip rendering tab space
+
         const { options } = descriptors[route.key];
         const focused = state.index === index;
         const icon = tabItems.find((item) => item.name === route.name)?.icon;

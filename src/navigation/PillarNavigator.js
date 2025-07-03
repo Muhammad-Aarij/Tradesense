@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import PillarScreen from '../screens/Pillar/audios/PillarScreen';
 import PsychologyCategoryScreen from '../screens/Pillar/psychologyCategory/PsychologyCategoryScreen';
 import PillarsCategoryScreen from '../screens/Pillar/pillarsCategory/PillarsCategoryScreen';
-import DiscoverScreen from '../screens/Pillar/psychologyCategory/PsychologyCategoryScreen copy';
+import DiscoverScreen from '../screens/Pillar/psychologyCategory/Discover';
 // import HomeScreen from '../screens/home/HomeScreen';
 // import PlayerScreen from '../screens/TrackPlayer/PlayerScreen';
 

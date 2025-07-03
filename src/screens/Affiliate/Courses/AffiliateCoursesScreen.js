@@ -20,19 +20,13 @@ import { bg } from '../../../assets/images';
 import { getUserDetails, sendAffiliateRequest } from '../../../functions/affiliateApi';
 import theme from '../../../themes/theme';
 
-const encodeToken = (courseId, userToken) => {
-    const payload = JSON.stringify({ courseId, userToken });
-    return Buffer.from(payload).toString('base64');
-};
-
 const { width } = Dimensions.get('window');
 
 const AffiliateCoursesScreen = () => {
     const navigation = useNavigation();
     const dispatch = useDispatch();
-    const { userToken, userId, isAffiliate } = useSelector(state => state.auth);
+    const { userToken, userId, isAffiliate, userObject } = useSelector(state => state.auth);
     const { data: courses, isLoading } = useEnrolledCourses(userId);
-    console.log("UserId", userId);
 
     const [checkedAffiliate, setCheckedAffiliate] = useState(false);
 
@@ -40,13 +34,10 @@ const AffiliateCoursesScreen = () => {
         const checkAffiliateStatus = async () => {
             try {
                 dispatch(startLoading());
-
-                // Skip API call if already affiliate
                 if (!isAffiliate) {
                     const { affiliateCode, isAffiliate } = await getUserDetails(userId);
                     dispatch(setAffiliateData({ isAffiliate, affiliateCode }));
                 }
-
                 setCheckedAffiliate(true);
             } catch (err) {
                 Alert.alert('Error', 'Could not check affiliate status');
@@ -71,8 +62,8 @@ const AffiliateCoursesScreen = () => {
     };
 
     const renderItem = ({ item }) => {
-        const token = encodeToken(item._id, userToken);
-        const deepLinkUrl = `https://radiant-semifreddo-45674c.netlify.app/?token=${token}`;
+        const { affiliateCode } = userObject || {};
+        const deepLinkUrl = `https://radiant-semifreddo-45674c.netlify.app/T365-${item._id}-${affiliateCode}`;
 
         return (
             <PurchasedCourseCard
@@ -100,9 +91,7 @@ const AffiliateCoursesScreen = () => {
                 />
             ) : checkedAffiliate && !isAffiliate ? (
                 <View style={styles.messageContainer}>
-                    <Text style={styles.messageText}>
-                        You are not an affiliate yet.
-                    </Text>
+                    <Text style={styles.messageText}>You are not an affiliate yet.</Text>
                     <TouchableOpacity style={styles.requestButton} onPress={handleRequestAffiliate}>
                         <Text style={styles.requestButtonText}>Request Affiliate Access</Text>
                     </TouchableOpacity>

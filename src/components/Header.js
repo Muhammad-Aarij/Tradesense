@@ -15,8 +15,8 @@ const Header = ({ title, addpadding, style }) => {
 
     return (
         <View style={[styles.header, style]}>
-            <TouchableOpacity style={[styles.blurWrapper, addpadding ? "paddingLeft:20" : ""]} onPress={() => navigation.goBack()}>
-                <Image source={back} style={{ width: 12, height: 12, resizeMode: 'contain' }} />
+            <TouchableOpacity style={[styles.blurWrapper, addpadding ? "paddingLeft:10" : ""]} onPress={() => navigation.goBack()}>
+                <Image source={back} style={{ width: 10, height: 10, resizeMode: 'contain' }} />
             </TouchableOpacity>
 
             {/* <TouchableOpacity style={styles.blurWrapper} >
@@ -49,7 +49,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
 
     blurWrapper: {
-        width: 35, height: 35, borderRadius: 20, padding: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
+        width: 30, height: 30, borderRadius: 20, padding: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
         backgroundColor: "rgba(42, 75, 138, 0.39)"
     },
 
@@ -57,12 +57,12 @@ const getStyles = (theme) => StyleSheet.create({
         width: "100%", height: "100%", alignItems: 'center', justifyContent: 'center',
     },
 
-    backIcon: { width: 17, height: 17, resizeMode: 'contain' },
+    backIcon: { width: 15, height: 15, resizeMode: 'contain' },
 
     title: {
-        fontSize: 18,
+        fontSize: 15,
         color: theme.textColor,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Inter-Medium',
         position: 'absolute',
         left: 0,
         right: 0,

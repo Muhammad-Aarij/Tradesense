@@ -30,15 +30,15 @@ const StarRating = ({ rating }) => {
 };
 
 // Reusable Card Component (now part of this file)
-const CourseCard = ({ imageSource, time, title, rating, description, profileImage, profileName, profileRole, price, onPress }) => {
+const CourseCard = ({ imageSource, duration, title, rating, description, profileImage, profileName, profileRole, price, onPress }) => {
     return (
         <TouchableOpacity style={cardStyles.card} onPress={onPress}>
             <View style={cardStyles.imageWrapper}>
                 <Image source={imageSource} style={cardStyles.cardImage} />
-                {/* <View style={cardStyles.timeOverlay}> */}
-                {/* <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} /> */}
-                {/* <Text style={cardStyles.timeText}>{time}</Text> */}
-                {/* </View> */}
+                <View style={cardStyles.timeOverlay}>
+                <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
+                <Text style={cardStyles.timeText}>{duration}</Text>
+                </View>
             </View>
             <View style={cardStyles.content}>
                 <Text style={cardStyles.title} numberOfLines={2}>{title}</Text>

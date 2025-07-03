@@ -12,6 +12,17 @@ import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { loginUser } from '../../../redux/slice/authSlice'; // ✅ correct
 import loginApi from '../../../functions/auth';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { GOOGLE_WEB_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from '../../../config/keys';
+import Snackbar from 'react-native-snackbar';
+
+GoogleSignin.configure({
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    // androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    scopes: ['profile', 'email'],
+
+});
 
 const { width, height } = Dimensions.get('window');
 
@@ -62,6 +73,69 @@ const LoginScreen = ({ navigation, route }) => {
         } finally {
             setLoading(false);
             dispatch(stopLoading());
+        }
+    };
+
+    const googleSignIn = async () => {
+        try {
+            await GoogleSignin.hasPlayServices({
+                showPlayServicesUpdateDialog: true,
+            });
+            try {
+                await GoogleSignin.signOut();
+                await new Promise(resolve => setTimeout(resolve, 200));
+            } catch (signOutError) {
+                console.log('Sign out before sign in failed:', signOutError);
+            }
+            const response = await GoogleSignin.signIn();
+            console.log('Google login response:', response);
+            let userInfo = response.data;
+
+            if (response && response.type == 'success') {
+                console.log('User info:', userInfo);
+                // await SocialLogin('google', { data: userInfo.user });
+            }
+        } catch (error) {
+            console.error('Google Sign-In Error:', error);
+            if (error.code) {
+                switch (error.code) {
+                    case statusCodes.SIGN_IN_CANCELLED:
+                        console.log('User cancelled the sign-in flow');
+                        break;
+                    case statusCodes.IN_PROGRESS:
+                        console.warn('Google Sign-In already in progress');
+                        Snackbar.show({
+                            text: 'Sign-in already in progress. Please wait.',
+                            duration: 3000,
+                            backgroundColor: '#010b13',
+                            textColor: '#fff',
+                        });
+                        break;
+                    case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+                        Snackbar.show({
+                            text: 'Google Play Services not available',
+                            duration: 3000,
+                            backgroundColor: '#010b13',
+                            textColor: '#fff',
+                        });
+                        break;
+                    default:
+                        Snackbar.show({
+                            text: 'Google Sign-In failed. Please try again.',
+                            duration: 3000,
+                            backgroundColor: '#010b13',
+                            textColor: '#fff',
+                        });
+                }
+            } else {
+                // Generic error handling
+                Snackbar.show({
+                    text: 'Failed to connect to Google. Please try again.',
+                    duration: 3000,
+                    backgroundColor: '#010b13',
+                    textColor: '#fff',
+                });
+            }
         }
     };
 
@@ -127,7 +201,9 @@ const LoginScreen = ({ navigation, route }) => {
                                 colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
                                 style={styles.googleBtn}
                             >
-                                <TouchableOpacity style={styles.googleBtnInner}>
+                                <TouchableOpacity 
+                                onPress={googleSignIn}
+                                style={styles.googleBtnInner}>
                                     <Image source={G} style={styles.socialIcon} />
                                     <Text style={styles.googleText}>Continue with Google</Text>
                                 </TouchableOpacity>

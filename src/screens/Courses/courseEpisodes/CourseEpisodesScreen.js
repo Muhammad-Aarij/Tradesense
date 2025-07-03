@@ -28,7 +28,7 @@ const CourseEpisodesScreen = ({ route }) => {
     const { courseId, courseTitle, courseImage } = route.params || {};
     const { data: course, isLoading } = useCourseDetail(courseId);
     const [currentEpisode, setCurrentEpisode] = useState(null);
-    const [favoriteIds, setFavoriteIds] = useState([]); // Store _id values of favorite items
+    const [favoriteIds, setFavoriteIds] = useState([]); 
     const playbackState = usePlaybackState();
     const isPlaying = playbackState.state === State.Playing;
     const userId = useSelector(state => state.auth);
@@ -36,12 +36,22 @@ const CourseEpisodesScreen = ({ route }) => {
     const modules = course?.courseModules || [];
 
     useEffect(() => {
+        let isMounted = true;
         dispatch(startLoading());
+
         const timeout = setTimeout(() => {
-            if (!isLoading) dispatch(stopLoading());
+            if (!isLoading && isMounted) {
+                dispatch(stopLoading());
+            }
         }, 2000);
-        return () => clearTimeout(timeout);
+
+        return () => {
+            isMounted = false;   // 🛑 Stop setState or dispatch
+            dispatch(stopLoading()); // Clean up loading state manually
+            clearTimeout(timeout);
+        };
     }, [isLoading]);
+
 
     // useEffect(() => {
     //     TrackPlayer.setupPlayer();
@@ -72,12 +82,24 @@ const CourseEpisodesScreen = ({ route }) => {
 
 
     useEffect(() => {
-        modules.forEach(episode => {
-            if (episode.url && !durations[episode._id]) {
-                getAudioDuration(episode.url, episode._id);
-            }
-        });
-    }, [modules]);
+  let canceled = false;
+
+  modules.forEach((episode) => {
+    if (episode.url && !durations[episode._id]) {
+      const sound = new Sound(episode.url, null, (error) => {
+        if (error || canceled) return;
+        const duration = sound.getDuration();
+        setDurations((prev) => ({ ...prev, [episode._id]: duration }));
+        sound.release();
+      });
+    }
+  });
+
+  return () => {
+    canceled = true;
+  };
+}, [modules]);
+
 
     const formatDuration = (durationInSeconds) => {
         const hrs = Math.floor(durationInSeconds / 3600);
@@ -160,8 +182,8 @@ const CourseEpisodesScreen = ({ route }) => {
     return (
         <ImageBackground source={bg} style={styles.container}>
             <SafeAreaView>
-                <Header title={course?.title || courseTitle} />
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    <Header title={course?.title || courseTitle} style={{ marginBottom: 30, }} />
                     <View style={styles.mainImageContainer}>
                         <Image
                             source={courseImage ? { uri: courseImage } : mountain}
@@ -274,13 +296,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         // padding: 25,
-        paddingTop: 20,
+        // paddingTop: 20,
         // paddingVertical: 0,
-        paddingBottom: height * 0.1,
     },
     scrollContent: {
         paddingHorizontal: 25,
-        paddingBottom: 20,
+        // paddingBottom: 20,
+        paddingBottom: height * 0.15,
     },
     mainImageContainer: {
         width: '100%',
@@ -294,7 +316,7 @@ const styles = StyleSheet.create({
     mainCourseImage: {
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
+        resizeMode: 'contain',
         position: "relative",
     },
     imgOverlay: {

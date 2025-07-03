@@ -1,21 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView, Dimensions, ImageBackground } from 'react-native';
-import { back, bg, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile } from '../../../assets/images';
+import { back, bg, p1, p2, p3, p4, p5, p6, p7, p8, p9, userDefault, userProfile } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
 import { logoutUser } from '../../../redux/slice/authSlice';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 const { width, height } = Dimensions.get('window');
 const scale = size => (width / 375) * size;      // base width: 375
 const verticalScale = size => (height / 812) * size; // base height: 812
 
 const UserProfileMenuScreen = ({ navigation }) => {
-  // const mockNavigation = {
-  //   // navigate: (screenName, params) => console.log(`Navigating to: ${screenName}`, params),
-  //   goBack: () => console.log('Going back'),
-  // };
-  // const currentNavigation = navigation || mockNavigation;
+  const name = useSelector(state => state.auth.userObject?.name);
   const dispatch = useDispatch();
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+
+    if (hour < 12) return 'Good Morning! ☀️';
+    if (hour < 17) return 'Good Afternoon! 🌤️';
+    return 'Good Evening! 🌙';
+  };
+
   const MenuItem = ({ icon, text, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={styles.menuItemContent}>
@@ -27,38 +31,38 @@ const UserProfileMenuScreen = ({ navigation }) => {
   );
 
   return (
-    <ImageBackground source={bg} style={{ flex: 1, }}>
+    <ImageBackground source={bg} style={{ flex: 1, paddingTop: 50, }}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           {/* Header */}
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            <Header />
+            {/* <Header /> */}
             {/* Profile Card */}
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
-                <Image source={userProfile} style={styles.avatar} />
+                <Image source={userDefault} style={styles.avatar} />
               </View>
               <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>Julie Coyette</Text>
-                <Text style={styles.profileSubtitle}>Industry and Development</Text>
+                <Text style={styles.profileName}>{name}</Text>
+                <Text style={styles.profileSubtitle}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
 
             {/* Menu Items */}
             <View style={styles.menuItemsContainer}>
               <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('UserProfileDetails')} />
-              <MenuItem icon={p2} text="Courses"  onPress={() => navigation.navigate('Courses')} />
-              <MenuItem icon={p2} text="Affiliate"  onPress={() => navigation.navigate('Affiliate')} />
-              <MenuItem icon={p2} text="Subscriptions Plans"  />
+              <MenuItem icon={p2} text="Courses" onPress={() => navigation.navigate('Courses')} />
+              <MenuItem icon={p2} text="Affiliate" onPress={() => navigation.navigate('Affiliate')} />
+              <MenuItem icon={p2} text="Subscriptions Plans" />
               <MenuItem icon={p3} text="Account Security" onPress={() => navigation.navigate('Menu', { screen: 'AccountSecurity' })} />
               <MenuItem icon={p4} text="Help Center" onPress={() => navigation.navigate('Menu', { screen: 'HelpCenter' })} />
               <MenuItem icon={p5} text="Report a Problem" onPress={() => navigation.navigate('Menu', { screen: 'ReportProblem' })} />
               <MenuItem icon={p6} text="About" onPress={() => navigation.navigate('Menu', { screen: 'About' })} />
               <MenuItem icon={p7} text="Terms and Conditions" onPress={() => navigation.navigate('Menu', { screen: 'TermsAndConditions' })} />
               {/* <MenuItem icon={p8} text="Privacy Policy" onPress={() => navigation.navigate('Menu', { screen: 'About' })} /> */}
-              <MenuItem icon={p9} text="Logout" onPress={() => dispatch(logoutUser())} /> 
+              <MenuItem icon={p9} text="Logout" onPress={() => dispatch(logoutUser())} />
             </View>
- 
+
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -86,6 +90,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: scale(100),
     height: scale(100),
+    resizeMode: "cover",
     borderRadius: scale(105),
     borderWidth: scale(4),
     borderColor: 'transparent',
