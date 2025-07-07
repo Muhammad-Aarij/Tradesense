@@ -5,14 +5,14 @@ import theme from '../../../themes/theme';
 import axios from 'axios';
 import { API_URL } from '@env';
 import { useDispatch } from 'react-redux';
-import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
+import { loginUser } from '../../../redux/slice/authSlice';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const GoalsScreen = ({ navigation, route }) => {
     const { request, user, token, question: allQuestions } = route.params || {};
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOptionsMap, setSelectedOptionsMap] = useState({});
-    const [showSuccessModal, setShowSuccessModal] = useState(false); // 🔹 Modal state
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const dispatch = useDispatch();
 
     const questions = allQuestions?.filter(
@@ -21,13 +21,13 @@ const GoalsScreen = ({ navigation, route }) => {
 
     const currentQuestion = questions[currentIndex];
 
-    const handleSelect = (text) => {
+    const handleSelect = (optionId) => {
         const qId = currentQuestion._id;
         setSelectedOptionsMap(prev => {
             const selected = prev[qId] || [];
-            const updated = selected.includes(text)
-                ? selected.filter(t => t !== text)
-                : [...selected, text];
+            const updated = selected.includes(optionId)
+                ? selected.filter(id => id !== optionId)
+                : [...selected, optionId];
             return { ...prev, [qId]: updated };
         });
     };
@@ -42,23 +42,22 @@ const GoalsScreen = ({ navigation, route }) => {
         if (!isLast) {
             setCurrentIndex(prev => prev + 1);
         } else {
-            const goalQuestion = questions.find(q =>
-                q.title.toLowerCase().includes('goal')
-            );
-
-            const goals = goalQuestion ? selectedOptionsMap[goalQuestion._id] || [] : [];
-
-            const onboarding = questions.map(q => ({
-                question: q.title,
-                selected: selectedOptionsMap[q._id] || []
-            }));
+            // Build new payload format
+            const questionnaireAnswers = {};
+            questions.forEach(q => {
+                const selectedIds = selectedOptionsMap[q._id] || [];
+                if (selectedIds.length > 0) {
+                    questionnaireAnswers[q._id] = selectedIds;
+                }
+            });
 
             const payload = {
                 gender: request.gender?.toLowerCase(),
                 ageRange: request.ageRange,
-                goals,
-                onboarding,
+                questionnaireAnswers
             };
+
+            console.log('Submitting Payload:', JSON.stringify(payload, null, 2));
 
             try {
                 await axios.post(
@@ -68,12 +67,12 @@ const GoalsScreen = ({ navigation, route }) => {
                 );
 
                 await dispatch(loginUser({
-                    token: token,
-                    user: user,
+                    token,
+                    user,
                     themeType: 'dark',
                 }));
-                // dispatch(setProfilingDone(true));
-                setShowSuccessModal(true); // ✅ Show success modal
+
+                setShowSuccessModal(true);
             } catch (err) {
                 console.error(err);
                 Alert.alert('Error', 'Failed to complete setup');
@@ -82,8 +81,8 @@ const GoalsScreen = ({ navigation, route }) => {
     };
 
     const handleCloseModal = () => {
-        setShowSuccessModal(false); // ✅ Hide modal
-        navigation.navigate('GetStarted'); // ✅ Navigate
+        setShowSuccessModal(false);
+        navigation.navigate('GetStarted');
     };
 
     if (!currentQuestion) {
@@ -116,12 +115,12 @@ const GoalsScreen = ({ navigation, route }) => {
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         {(currentQuestion.questions || []).map((opt) => {
-                            const isSelected = selected.includes(opt.text);
+                            const isSelected = selected.includes(opt._id);
                             return (
                                 <TouchableOpacity
                                     key={opt._id}
                                     style={[styles.option, isSelected && styles.selectedOption]}
-                                    onPress={() => handleSelect(opt.text)}
+                                    onPress={() => handleSelect(opt._id)}
                                 >
                                     {currentQuestion.images && opt.image && (
                                         <Image source={{ uri: opt.image }} style={styles.optionImage} />
@@ -193,7 +192,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.04)',
         borderRadius: 10,
         padding: 15,
-        flexDirection: 'row', 
+        // padddingRight:15,
+        flexDirection: 'row',
         alignItems: 'center',
         borderColor: theme.borderColor,
         borderWidth: 0.8,
@@ -204,8 +204,8 @@ const styles = StyleSheet.create({
         borderColor: theme.primaryColor
     },
     optionImage: {
-        width: 40,
-        height: 40,
+        width: 30,
+        height: 30,
         resizeMode: 'contain',
         marginRight: 10
     },
@@ -219,7 +219,8 @@ const styles = StyleSheet.create({
         width: 20,
         height: 25,
         resizeMode: 'contain',
-        marginLeft: 'auto'
+        marginLeft: 'auto',
+        marginRight:15,
     },
     disabledButton: {
         backgroundColor: 'gray'

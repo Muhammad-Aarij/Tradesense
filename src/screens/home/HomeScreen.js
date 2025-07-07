@@ -9,22 +9,40 @@ import {
 import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
 import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
-import { useDispatch } from 'react-redux';
-import DailyBreakdownChart from '../../components/DailyBreakdownChart';
+import { useDispatch, useSelector } from 'react-redux';
 import TopBreakdownChart from '../../components/TopBreakdownChart';
-import { useSelector } from 'react-redux';
+import { useHome } from '../../functions/homeApi';
+import moment from 'moment';
 const { width, height } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
   const { data: pillars, isLoading, error } = useAllPillars();
   const [selectedFilter, setSelectedFilter] = useState('Daily');
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const filterOptions = ['Daily', 'Monthly', 'Yearly'];
-  
-  
+
+  const userId = useSelector(state => state.auth.userObject?._id);
+  const name = useSelector(state => state.auth.userObject?.name);
+  const { data: homeData } = useHome(userId);
+  const logs = homeData?.logs || [];
+
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning! ☀️';
+    if (hour < 17) return 'Good Afternoon! 🌤️';
+    return 'Good Evening! 🌙';
+  };
+
+  const isDayCompleted = (dayIndex) => {
+    const today = moment();
+    const startOfWeek = today.clone().startOf('week');
+    const dayDate = startOfWeek.clone().add(dayIndex, 'days').format('YYYY-MM-DD');
+    return logs.some(log => moment(log.date).format('YYYY-MM-DD') === dayDate);
+  };
+
   useEffect(() => {
     dispatch(startLoading());
     const timeout = setTimeout(() => {
@@ -32,24 +50,13 @@ const HomeScreen = ({ navigation }) => {
     }, 2000);
     return () => clearTimeout(timeout);
   }, [isLoading]);
-  
-  
-  const name = useSelector(state => state.auth.userObject?.name);
-  const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
 
-    if (hour < 12) return 'Good Morning! ☀️';
-    if (hour < 17) return 'Good Afternoon! 🌤️';
-    return 'Good Evening! 🌙';
-  };
+  if (!homeData) return null;
 
   return (
     <ImageBackground source={theme.bg} style={styles.container1}>
       <SafeAreaView>
-
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
-
-          {/* Header Section */}
           <View style={styles.header}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Image source={userDefault} style={styles.avatar} />
@@ -61,47 +68,81 @@ const HomeScreen = ({ navigation }) => {
             <Image source={bell} style={{ width: 45, height: 45, resizeMode: "contain", alignSelf: 'center' }} />
           </View>
 
-          {/* Main Content Row */}
           <View style={{ flexDirection: "row", width: "100%", gap: 10 }}>
-
-            {/* Left Column */}
             <View style={{ flexDirection: "column", width: "47%", height: "100%" }}>
-              {/* Mindfulness Section */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Mindfulness & Motivation</Text>
-                <View style={styles.card}>
-                  <Image source={video} style={{ ...styles.cardImage, resizeMode: "cover" }} />
-                  <Text style={styles.playButtonText}>Guided Meditation for Traders</Text>
-                </View>
+                {homeData.audio?.thumbnail && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const audio = homeData?.audio;
+                      if (audio) {
+                        navigation.navigate('TrackPlayer', {
+                          AudioTitle: audio.title,
+                          AudioDescr: audio.description,
+                          Thumbnail: audio.thumbnail,
+                          AudioUrl: audio.url,
+                          shouldFetchTrack: false,
+                        });
+                      }
+                    }}
+                    style={styles.card}
+                  >
+                    <Image source={{ uri: homeData?.audio?.thumbnail }} style={{ ...styles.cardImage, resizeMode: "cover" }} />
+                    <Text style={styles.playButtonText}>{homeData?.audio?.title}</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
-              {/* Affirmations */}
               <View style={{ ...styles.section, flex: 1 }}>
                 <Text style={styles.sectionTitle}>Personalized Affirmations</Text>
-                <View style={styles.card}>
-                  <Image source={wave} style={{ height: "80%", width: "100%", resizeMode: "cover" }} />
-                  <TouchableOpacity style={styles.playButton} />
-                </View>
+                {homeData.video?.thumbnail && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      const video = homeData?.video;
+                      if (video) {
+                        navigation.navigate('VideoPlayer', {
+                          VideoTitle: video.title,
+                          VideoDescr: video.description,
+                          Thumbnail: video.thumbnail,
+                          VideoUrl: video.url,
+                        });
+                      }
+                    }}
+                    style={{ flex: 1 }} // Allow TouchableOpacity to fill height
+                  >
+                    <Image
+                      source={{ uri: homeData?.video?.thumbnail }}
+                      style={{
+                        flex: 1, // Fill height of parent
+                        width: "100%",
+                        resizeMode: "cover",
+                        borderRadius: 5,
+                      }}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
+
             </View>
 
-            {/* Right Column */}
             <View style={{ flexDirection: "column", width: "50%" }}>
-              {/* Accountability */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Accountability</Text>
                 <View style={styles.goalProgress}>
                   {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
                     <View key={index} style={styles.dayContainer}>
                       <Text style={styles.weekdays}>{day}</Text>
-                      <Text style={styles.weekDots}>{index < 4 ? "●" : "○"}</Text>
+                      <Text style={{
+                        ...styles.weekDots,
+                        color: isDayCompleted(index) ? '#70C2E8' : '#AAA'
+                      }}>●</Text>
                     </View>
                   ))}
                 </View>
                 <Text style={{ ...styles.playButtonText, textAlign: "center" }}>Daily Goal Progress</Text>
               </View>
 
-              {/* Trading Journal */}
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Trading Journal</Text>
                 <View style={styles.card}>
@@ -110,43 +151,19 @@ const HomeScreen = ({ navigation }) => {
                 </View>
               </View>
 
-              {/* Affirmation Quote */}
               <View style={{ ...styles.section, flexDirection: "row" }}>
                 <Text style={styles.sectionTitle2}>
-                  <Image source={circle} style={{ width: 25, height: 15, resizeMode: "contain" }} />
-                  I execute trades with discipline and confidence.
-                </Text>
+                  <Image source={circle} style={{ width: 20, height: 15, resizeMode: "contain",marginRight:5, }} />
+                  {homeData?.quotation || "I execute trades with discipline and confidence."}</Text>
               </View>
             </View>
           </View>
 
-          {/* Pillars Section */}
-          {/* <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pillars</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-              {pillars?.map((item) => (
-                <Pressable
-                  key={item._id}
-                  style={styles.pillars}
-                  onPress={() => navigation.navigate('Pillars', {
-                    screen: 'PsychologyCategoryScreen',
-                    params: {
-                      name: item.name,
-                      categories: item.categories,
-                    },
-                  })}
-                >
-                  <Image source={{ uri: item.image }} style={styles.pillarIcon} />
-                  <Text style={styles.smallhd}>{item.name}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View> */}
           <View style={styles.dailyBreakdownContainer}>
             <View style={styles.dailyBreakdownHeader}>
               <View>
                 <Text style={styles.dailyBreakdownTitle}>Daily Breakdown</Text>
-                <Text style={styles.dailyBreakdownDate}>January 18, 2020</Text>
+                <Text style={styles.dailyBreakdownDate}>{moment().format('MMMM D, YYYY')}</Text>
               </View>
               <View style={{ position: "relative" }}>
                 <TouchableOpacity
@@ -163,8 +180,6 @@ const HomeScreen = ({ navigation }) => {
                   />
                 </TouchableOpacity>
 
-
-                {/* Dropdown options */}
                 {filterDropdownVisible && (
                   <View style={styles.dropdownOptions}>
                     {filterOptions.map((option) => (
@@ -181,12 +196,13 @@ const HomeScreen = ({ navigation }) => {
             </View>
             <TopBreakdownChart />
           </View>
-
         </ScrollView>
       </SafeAreaView>
-    </ImageBackground >
+    </ImageBackground>
   );
 };
+
+
 
 const getStyles = (theme) => StyleSheet.create({
   container1: { flex: 1, alignItems: 'center', paddingTop: 20, paddingBottom: height * 0.1, },
@@ -211,18 +227,20 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionTitle: {
     color: "#C4C7C9",
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: 'Inter-Light-BETA',
     marginBottom: 5,
   },
   sectionTitle2: {
+    flexDirection:"row",
+    gap:5,
     color: "#C4C7C9",
-    fontSize: 14.5,
+    fontSize: 12,
     fontFamily: 'Inter-Light-BETA',
     marginBottom: 1,
   },
   card: {},
-  cardImage: { width: '100%', height: 50, resizeMode: 'contain' },
+  cardImage: { width: '100%', height: 90, resizeMode: 'contain',borderRadius:5, },
   playButtonText: {
     // textAlign: "center",
     color: "#B3B9BC",

@@ -8,12 +8,13 @@ import CustomInput from "../../../components/CustomInput";
 import { bg, calendar, tick } from "../../../assets/images";
 import Header from "../../../components/Header";
 import theme from "../../../themes/theme";
-import { postGoal, updateGoal } from "../../../functions/Goal";
+
 import { useDispatch, useSelector } from 'react-redux';
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
 import CustomDropdown from "../../../components/CustomSelector";
 import { useQueryClient } from '@tanstack/react-query';
+import { postHabit, updateHabit } from "../../../functions/habbitFunctions";
 
 export default function AddGoal({ route, navigation }) {
   const [goalName, setGoalName] = useState("");
@@ -38,9 +39,9 @@ export default function AddGoal({ route, navigation }) {
   ];
 
   const statusOptions = [
-    { label: "Active", value: "active" },
-    { label: "Completed", value: "completed" },
-    { label: "Dropped", value: "dropped" },
+    // { label: "Active", value: "active" },
+    // { label: "Completed", value: "completed" },
+    { label: "Pending", value: "dropped" },
   ];
 
   // Date picker handlers
@@ -62,17 +63,17 @@ export default function AddGoal({ route, navigation }) {
       title: goalName,
       status: status.toLowerCase(),
       description,
-      frequency: goalType.toLowerCase(),
+      type: goalType.toLowerCase(),
       targetDate: targetDate.toISOString().split('T')[0],
     };
 
     let result;
 
     if (editingGoal) {
-      result = await updateGoal(editingGoal._id, formData);
+      result = await updateHabit(editingGoal._id, formData);
       console.log('Updating goal:', formData);
     } else {
-      result = await postGoal(formData);
+      result = await postHabit(formData);
       console.log('Creating goal:', formData);
     }
 

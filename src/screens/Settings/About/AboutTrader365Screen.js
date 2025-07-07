@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, SafeAreaView, Platform, Dimensions, ImageBackground } from 'react-native';
-import { bg, logoWhite, p1 } from '../../../assets/images';
+import { bg, cf1, cf2, cf3, cf4, logoWhite, p1 } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
 
@@ -22,7 +22,7 @@ const AboutTrader365Screen = ({ navigation }) => {
     const currentNavigation = navigation || mockNavigation;
 
     return (
-        <ImageBackground source={bg} style={{ flex: 1, position: "relative",paddingBottom:20, }}>
+        <ImageBackground source={bg} style={{ flex: 1, position: "relative", paddingBottom: 20, }}>
             <SafeAreaView style={styles.safeArea}>
                 <View style={styles.container}>
                     {/* Header */}
@@ -36,38 +36,61 @@ const AboutTrader365Screen = ({ navigation }) => {
                             </Text>
                         </View>
 
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View style={styles.carouselContainer}>
+                            {currentCard === 0 && (
+                                <View style={styles.sectionCard}>
+                                    <Text style={styles.sectionTitle}>Core Features</Text>
+                                    <View style={styles.line} />
+                                    <View style={styles.featureItem}>
+                                        <Image source={cf1} style={styles.icon} />
+                                        <Text style={styles.featureText}>Smart Trading Plans</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Image source={cf2} style={styles.icon} />
+                                        <Text style={styles.featureText}>Expert Video Courses</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Image source={cf3} style={styles.icon} />
+                                        <Text style={styles.featureText}>AI Chat Assistant</Text>
+                                    </View>
+                                    <View style={styles.featureItem}>
+                                        <Image source={cf4} style={styles.icon} />
+                                        <Text style={styles.featureText}>Affiliate Marketing</Text>
+                                    </View>
+                                </View>
+                            )}
 
-                            <View style={styles.sectionCard}>
-                                <Text style={styles.sectionTitle}>Core Features</Text>
-                                <View style={styles.line} />
-                                <View style={styles.featureItem}>
-                                    <Image source={p1} style={{ width: 18, height: 18, resizeMode: "contain" }} />
-                                    <Text style={styles.featureText}>Smart Trading Plans</Text>
+                            {currentCard === 1 && (
+                                <View style={[styles.sectionCard, { width: responsiveWidth(250) }]}>
+                                    <Text style={styles.sectionTitle}>About Us</Text>
+                                    <View style={styles.line} />
+                                    <Text style={{ ...styles.featureText, textAlign: "center" }}>
+                                        Our mission is to make trading knowledge accessible and profitable for everyone by leveraging financial intelligence with smart tech technology.
+                                    </Text>
                                 </View>
-                                <View style={styles.featureItem}>
-                                    <Image source={p1} style={{ width: 18, height: 18, resizeMode: "contain" }} />
-                                    <Text style={styles.featureText}>Expert Video Courses</Text>
-                                </View>
-                                <View style={styles.featureItem}>
-                                    <Image source={p1} style={{ width: 18, height: 18, resizeMode: "contain" }} />
-                                    <Text style={styles.featureText}>AI Chat Assistant</Text>
-                                </View>
-                                <View style={styles.featureItem}>
-                                    <Image source={p1} style={{ width: 18, height: 18, resizeMode: "contain" }} />
-                                    <Text style={styles.featureText}>Affiliate Marketing</Text>
-                                </View>
-                            </View>
+                            )}
 
-                            {/* About Us Section */}
-                            <View style={[styles.sectionCard, { width: responsiveWidth(250) }]}>
-                                <Text style={styles.sectionTitle}>About Us</Text>
-                                <View style={styles.line} />
-                                <Text style={{ ...styles.featureText, textAlign: "center" }}>
-                                    Our mission is to make trading knowledge accessible and profitable for everyone by leveraging financial intelligence with smart tech technology.
-                                </Text>
-                            </View>
-                        </ScrollView>
+                            {/* Left Arrow */}
+                            {currentCard > 0 && (
+                                <TouchableOpacity
+                                    style={styles.leftArrow}
+                                    onPress={() => setCurrentCard(currentCard - 1)}
+                                >
+                                    <Text style={styles.arrowText}>‹</Text>
+                                </TouchableOpacity>
+                            )}
+
+                            {/* Right Arrow */}
+                            {currentCard < 1 && (
+                                <TouchableOpacity
+                                    style={styles.rightArrow}
+                                    onPress={() => setCurrentCard(currentCard + 1)}
+                                >
+                                    <Text style={styles.arrowText}>›</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+
 
                     </ScrollView>
                 </View>

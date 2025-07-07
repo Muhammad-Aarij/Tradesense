@@ -48,7 +48,7 @@ const LoginScreen = ({ navigation, route }) => {
 
             const data = await loginApi(username, password);
 
-            if (Array.isArray(data.user?.onboarding) && data.user.onboarding.length === 0) {
+            if (Array.isArray(data.user?.onboarding) && data.user.onboarding.length == 0) {
                 // 👣 Navigate to profiling stack
                 navigation.replace("GenderScreen", {
                     user: data.user,

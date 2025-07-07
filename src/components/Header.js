@@ -15,9 +15,19 @@ const Header = ({ title, addpadding, style }) => {
 
     return (
         <View style={[styles.header, style]}>
-            <TouchableOpacity style={[styles.blurWrapper, addpadding ? "paddingLeft:10" : ""]} onPress={() => navigation.goBack()}>
-                <Image source={back} style={{ width: 10, height: 10, resizeMode: 'contain' }} />
+            <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={[
+                    styles.backButtonTouchable,
+                    addpadding ? { paddingLeft: 10 } : null
+                ]}
+                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            >
+                <View style={styles.blurWrapper}>
+                    <Image source={back} style={{ width: 10, height: 10, resizeMode: 'contain' }} />
+                </View>
             </TouchableOpacity>
+
 
             {/* <TouchableOpacity style={styles.blurWrapper} >
                 <BlurView blurType="light" blurAmount={20} style={styles.blurView}>

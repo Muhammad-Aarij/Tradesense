@@ -14,7 +14,7 @@ import LoginScreen from '../screens/Auth/loginScreen/LoginScreen';
 import SignUp from '../screens/Auth/SignUp/SignUp';
 import PlansScreenDeepLink from '../screens/Courses/Plans/PlansScreenDeepLink';
 import MenuComponent from '../components/MenuComponent';
-import SplashScreen from '../screens/splashScreen/SplashScreen'; 
+import SplashScreen from '../screens/splashScreen/SplashScreen';
 
 const RootStack = createNativeStackNavigator();
 
@@ -66,32 +66,23 @@ const AppNavContainer = () => {
         const handleDeepLink = (url) => {
             try {
                 const parsed = new URL(url);
-                const token = parsed.searchParams.get('token');
-                const pathParts = parsed.pathname.split('/');
-                const courseId = pathParts.length >= 3 ? pathParts[2] : null;
+                const courseId = parsed.pathname.split('/').pop(); // e.g., affiliate/course/xyz123
+                const affiliateCode = parsed.searchParams.get('affiliateCode');
 
-                // Check if navigationRef is available before attempting to navigate
                 if (navigationRef.current) {
                     if (!isSignedIn || !userToken) {
-                        // Store pending deep link if user is not signed in
-                        // You'll need a state variable like `pendingDeepLink` in your Redux auth slice or a global state
-                        // For now, navigating to SignInModal. You'd typically store `courseId` and `token` globally
-                        // and then navigate after successful login.
-                        console.log('User not signed in, navigating to SignInModal for deep link handling post-auth.');
-                        navigationRef.current?.navigate('SignInModal', {
-                            // You might pass params to the LoginScreen to re-route after login
-                            // e.g., redirectRoute: 'CourseDeepLink', redirectParams: { courseId, affiliateToken: token }
+                        navigationRef.current.navigate('SignInModal', {
+                            pendingDeepLink: { courseId, affiliateCode }
                         });
-                    } else if (token && courseId) {
-                        navigationRef.current?.navigate('CourseDeepLink', { courseId, affiliateToken: token });
-                    } else if (parsed.hostname === 'plans' && parsed.pathname === '/deeplink') { // Example for PlansScreenDeepLink
-                        // Example: tradesense://plans/deeplink?someParam=value
-                        navigationRef.current?.navigate('PlansScreenDeepLink', { /* any plans related params */ });
+                    } else {
+                        navigationRef.current.navigate('CourseDeepLink', {
+                            courseId,
+                            affiliateCode
+                        });
                     }
-                    // Add other deep link parsing logic here if needed
                 }
             } catch (err) {
-                console.warn('Invalid deep link handled by listener:', err);
+                console.warn('Invalid deep link:', err);
             }
         };
 
@@ -115,46 +106,41 @@ const AppNavContainer = () => {
         prefixes: ['tradesense://'],
         config: {
             screens: {
-                // Ensure these screen names match your RootStack.Navigator screen names
-                CourseDeepLink: 'course/:courseId',
-                PlansScreenDeepLink: 'plans/deeplink', // Example path for Plans deep link
-                SignInModal: 'signin', // Optional: if you want a deep link directly to sign in modal
-                SignUpModal: 'signup', // Optional: if you want a deep link directly to sign up modal
-                // MainFlow's screens are managed by its own navigators, so they are not direct root stack screens for deep linking
-                // You would typically link to a specific screen *within* MainFlow, e.g.,
-                // HomeNavigator: { initialRouteName: 'BottomTabs', screens: { Home: 'home', Courses: 'courses', ... } }
-                // For direct links into deeply nested navigators, you might define nested paths here:
+                CourseDeepLink: 'affiliate/course/:courseId', // ✅ renamed path
+                PlansScreenDeepLink: 'plans/deeplink',
+                SignInModal: 'signin',
+                SignUpModal: 'signup',
                 MainFlow: {
                     screens: {
                         HomeNavigator: {
                             screens: {
                                 BottomTabs: {
                                     screens: {
-                                        Home: 'home', // tradesense://home
+                                        Home: 'home',
                                         Courses: {
                                             screens: {
-                                                OurCoursesScreen: 'courses/list', // tradesense://courses/list
-                                                PurchasedCoursesScreen: 'courses/purchased', // tradesense://courses/purchased
-                                                CourseDetailScreen: 'course/:courseId', // This conflicts with root level, choose one or refine
-                                            }
+                                                OurCoursesScreen: 'courses/list',
+                                                PurchasedCoursesScreen: 'courses/purchased',
+                                                CourseDetailScreen: 'course/:courseId', // ✅ no change here
+                                            },
                                         },
                                         Accountability: {
                                             screens: {
-                                                AccountabilityPartner: 'accountability/partner', // tradesense://accountability/partner
-                                                ChatScreen: 'accountability/chat', // tradesense://accountability/chat
-                                                GamificationRewardsScreen: 'accountability/gamification', // tradesense://accountability/gamification
-                                            }
+                                                AccountabilityPartner: 'accountability/partner',
+                                                ChatScreen: 'accountability/chat',
+                                                GamificationRewardsScreen: 'accountability/gamification',
+                                            },
                                         },
-                                        // ... other tabs
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             },
         },
     };
+
 
 
     if (showSplash) {

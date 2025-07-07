@@ -6,13 +6,14 @@ import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 
 
 
-export const postHabit = async ({ userId, title, description, type, status }) => {
+export const postHabit = async ({ userId, title, description, type, status, targetDate }) => {
   try {
     const response = await axios.post(`${API_URL}/api/habbits`, {
       userId,
       title,
       description,
       type,
+      targetDate,
       status,
     });
     return response.data;
@@ -57,10 +58,29 @@ export const useHabitByUser = (userId) => {
   return useQuery({
     queryKey: ['Habit', userId],
     queryFn: () => fetchHabitByUser(userId),
-    enabled: !!userId, 
+    enabled: !!userId,
     onSuccess: () => dispatch(stopLoading()),
     onError: () => dispatch(stopLoading()),
     retry: 1,
     refetchOnWindowFocus: false,
   });
+}; 
+
+
+
+
+
+export const createHabitLog = async ({ userId, habitId, status }) => {
+  try {
+    const response = await axios.post(`${API_URL}/api/habitlogs`, {
+      userId,
+      habitId,
+      status,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error creating habit log:', error?.response?.data?.message || error.message);
+    return { error: error?.response?.data?.message || 'Something went wrong' };
+  }
 };

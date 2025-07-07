@@ -17,12 +17,12 @@ const App = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Google Sign-In config
-        GoogleSignin.configure({
-          webClientId: GOOGLE_WEB_CLIENT_ID,
-          iosClientId: GOOGLE_IOS_CLIENT_ID,
-          scopes: ["profile", "email"],
-        });
+        // // Google Sign-In config
+        // GoogleSignin.configure({
+        //   webClientId: GOOGLE_WEB_CLIENT_ID,
+        //   iosClientId: GOOGLE_IOS_CLIENT_ID,
+        //   scopes: ["profile", "email"],
+        // });
 
         // Request push notification permission
         const authStatus = await messaging().requestPermission();

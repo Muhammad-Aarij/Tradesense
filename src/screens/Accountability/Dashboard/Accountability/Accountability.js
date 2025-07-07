@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,14 +8,30 @@ import {
     TouchableOpacity,
     Image,
     StyleSheet,
+    Alert,
 } from 'react-native';
 import theme from '../../../../themes/theme';
-import { back, work } from '../../../../assets/images';
+import { back, work, checkboxChecked, checkboxUnchecked } from '../../../../assets/images';
+import { useGoalsByUser } from '../../../../functions/Goal';
+import { useDispatch, useSelector } from 'react-redux';
+import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
+import { createHabitLog } from '../../../../functions/habbitFunctions';
 
 export default function Accountability({ navigation }) {
     const [selectedFilter, setSelectedFilter] = useState('Daily');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
     const filterOptions = ['Daily', 'Monthly', 'Yearly'];
+    const userId = useSelector(state => state.auth.userId);
+    const { data: goalsData = [], isLoading } = useGoalsByUser(userId);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (isLoading) {
+            dispatch(startLoading());
+        } else {
+            dispatch(stopLoading());
+        }
+    }, [isLoading]);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -52,10 +68,7 @@ export default function Accountability({ navigation }) {
                             </View>
                         </View>
                         <View style={styles.progressTaskContainer}>
-                            <Image
-                                source={work}
-                                style={styles.progressTaskIcon}
-                            />
+                            <Image source={work} style={styles.progressTaskIcon} />
                             <Text style={styles.progressTaskText}>Progress Task: 80%</Text>
                         </View>
                     </View>
@@ -83,8 +96,6 @@ export default function Accountability({ navigation }) {
                                 />
                             </TouchableOpacity>
 
-
-                            {/* Dropdown options */}
                             {filterDropdownVisible && (
                                 <View style={styles.dropdownOptions}>
                                     {filterOptions.map((option) => (
@@ -104,10 +115,11 @@ export default function Accountability({ navigation }) {
                 {/* Success Tracker */}
                 <View style={styles.successTrackerHeader}>
                     <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Success Tracker</Text>
-                    <TouchableOpacity style={styles.manageRow}>
-                        <TouchableOpacity onPress={() => navigation.navigate("Goals")}>
-                            <Text style={styles.manageText}>Manage</Text>
-                        </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate("Goals")}
+                        style={styles.manageRow}
+                    >
+                        <Text style={styles.manageText}>Manage</Text>
                         <Image
                             source={back}
                             style={{
@@ -122,19 +134,46 @@ export default function Accountability({ navigation }) {
                 </View>
 
                 <View style={styles.successTrackerList}>
-                    {[1, 2, 3].map((_, index) => (
-                        <TouchableOpacity key={index} style={styles.successTrackerItem} onPress={() => navigation.navigate("Goals")}>
-                            <TouchableOpacity style={styles.checkbox}>
-                                <Text style={styles.iconPlaceholder}>☐</Text>
-                            </TouchableOpacity>
-                            <View style={styles.successTrackerTextContent}>
-                                <Text style={styles.successTrackerTitle}>Morning Walk</Text>
-                                <Text style={styles.successTrackerDescription}>
-                                    Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                                </Text>
+                    {goalsData.length === 0 ? (
+                        <Text style={{ color: '#AAA', fontSize: 12 }}>No goals found</Text>
+                    ) : (
+                        goalsData.map((goal) => (
+                            <View key={goal._id} style={styles.successTrackerItem}>
+                                <View style={styles.successTrackerTextContent}>
+                                    <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
+                                        <TouchableOpacity
+                                            onPress={async () => {
+                                                // const newStatus = goal.status === 'active' ? 'completed' : 'active';
+                                                const result = await createHabitLog({
+                                                    userId,
+                                                    habitId: goal._id,
+                                                    status: "completed",
+                                                });
+
+                                                if (result.error) {
+                                                    Alert.alert("Error", result.error);
+                                                } else {
+                                                    goal.status = "completed";
+                                                }
+                                            }}
+                                            style={styles.checkbox}
+                                        >
+                                            <Image
+                                                source={goal.status === 'completed' ? checkboxChecked : checkboxUnchecked}
+                                                style={{ width: 16, height: 16, resizeMode: 'contain' }}
+                                            />
+                                        </TouchableOpacity>
+                                        <Text style={styles.successTrackerTitle}>
+                                            {goal.title || "Untitled Goal"}
+                                        </Text>
+                                    </View>
+                                    <Text style={styles.successTrackerDescription}>
+                                        {goal.description || "No description"}
+                                    </Text>
+                                </View>
                             </View>
-                        </TouchableOpacity>
-                    ))}
+                        ))
+                    )}
                 </View>
 
             </ScrollView>

@@ -111,6 +111,7 @@ import send2 from './send2.png'
 import homeSplash from './homeSplash.png'
 import c from './c.png'
 import f from './f.png'
+import affiliate1 from './affiliate1.png'
 import d from './d.png'
 import m from './m.png'
 import discover from './discover.png'
@@ -125,14 +126,25 @@ import noThumbnail from './noThumbnail.png'
 import work from './work.png'
 import fail from './fail.png'
 import userDefault from './userDefault.jpg'
+import camera from './camera.png'
+import cf1 from './cf1.png'
+import cf2 from './cf2.png'
+import cf3 from './cf3.png'
+import cf4 from './cf4.png'
+import pic from './pic.webp'
+import gallery from './gallery.png'
+import click from './click.png'
+import checkboxChecked from './checkboxChecked.png'
+import checkboxUnchecked from './checkboxUnchecked.png'
 
 
 export {
-  age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
+  age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2, affiliate1,
   lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
-  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain, acc, fail,
+  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain, acc, fail, f,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next, d, cwhite, cblue,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
-  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
-  editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault
+  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger, camera,
+  editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
+  cf1, cf2, cf3, cf4, pic, gallery, click, checkboxChecked, checkboxUnchecked
 };

@@ -2,16 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>TRADER365</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Opening App...</title>
+    <link rel="icon" type="image/png" href="./ic_launcher.png" />
     <style>
       body {
-        background-color: #08131f;
-        color: #ccc;
+        margin: 0;
+        padding: 0;
         font-family: 'Segoe UI', sans-serif;
+        background: url('./bg.png') no-repeat center center fixed;
+        background-size: cover;
+        background-position: right;
+        color: #ccc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
         text-align: center;
-        padding-top: 30vh;
       }
+
+      .logo {
+        width: 300px;
+        height: auto;
+        margin-bottom: 20px;
+      }
+
       .spinner {
         margin: 20px auto;
         width: 30px;
@@ -21,10 +37,12 @@
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
+
       a {
         color: #00aced;
         text-decoration: none;
       }
+
       @keyframes spin {
         to {
           transform: rotate(360deg);
@@ -33,8 +51,10 @@
     </style>
   </head>
   <body>
+    <img src="./logoWhite.png" alt="App Logo" class="logo" />
     <p>Redirecting to app…</p>
     <div class="spinner"></div>
+
     <script>
       const path = window.location.pathname;
       const match = path.match(/T365-(.+)-(.+)/);
@@ -42,27 +62,21 @@
       if (match) {
         const courseId = match[1];
         const affiliateCode = match[2];
+        const deepLink = `tradesense://affiliate/course/${courseId}?affiliateCode=${affiliateCode}`;
+        window.location.href = deepLink;
 
-        const payload = {
-          courseId,
-          affiliateCode,
-        };
-
-        const token = btoa(JSON.stringify(payload)); // base64 encode
-        const deeplink = `tradesense://T-365=${token}`;
-
-        // Attempt redirect
-        window.location.href = deeplink;
-
-        // Fallback after 2 seconds
         setTimeout(() => {
           document.body.innerHTML = `
-        <h2 style="color:white">Couldn’t open the app</h2>
-        <p>Please <a href="https://play.google.com/store/apps/details?id=com.yourapp">install the app</a> or try again later.</p>
-      `;
+            <img src="./logoWhite.png" alt="App Logo" class="logo" />
+            <h2 style="color:white">Couldn’t open the app</h2>
+            <p>Please <a href="https://play.google.com/store/apps/details?id=com.yourapp">install the app</a> or try again later.</p>
+          `;
         }, 2000);
       } else {
-        document.body.innerHTML = '<h2>Invalid or missing course link</h2>';
+        document.body.innerHTML = `
+          <img src="./logoWhite.png" alt="App Logo" class="logo" />
+          <h2 style="color:white">Invalid or missing course link</h2>
+        `;
       }
     </script>
   </body>

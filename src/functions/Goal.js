@@ -6,7 +6,7 @@ import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 
 export const postGoal = async ({ userId, title, status, description, frequency, targetDate }) => {
   try {
-    const response = await axios.post(`${API_URL}/api/goals`, {
+    const response = await axios.post(`${API_URL}/api/habbits`, {
       userId,
       title,
       status,
@@ -26,7 +26,7 @@ export const postGoal = async ({ userId, title, status, description, frequency, 
 
 export const updateGoal = async (goalId, updatedData) => {
   try {
-    const response = await axios.put(`${API_URL}/api/goals/${goalId}`, updatedData);
+    const response = await axios.put(`${API_URL}/api/habbits/${goalId}`, updatedData);
     return response.data;
   } catch (error) {
     console.error('Error updating goal:', error?.response?.data?.message || error.message);
@@ -36,7 +36,7 @@ export const updateGoal = async (goalId, updatedData) => {
 
 export const deleteGoal = async (goalId) => {
   try {
-    const response = await axios.delete(`${API_URL}/api/goals/${goalId}`);
+    const response = await axios.delete(`${API_URL}/api/habbits/${goalId}`);
     return response.data;
   } catch (error) {
     console.error('Error deleting goal:', error?.response?.data?.message || error.message);
@@ -46,11 +46,11 @@ export const deleteGoal = async (goalId) => {
 
 
 const fetchGoalsByUser = async (userId) => {
-  const response = await axios.get(`${API_URL}/api/goals/${userId}`);
+  const response = await axios.get(`${API_URL}/api/habbits/${userId}`);
   console.log('Response from fetch goals by user:', response.data);
   return response.data;
 };
-
+ 
 export const useGoalsByUser = (userId) => {
   const dispatch = useDispatch();
 

@@ -29,7 +29,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
     < TouchableOpacity
         style={{
             ...styles.card,
-            height: course.type === "Affiliate" ? 180 : 140
+            height: course.type === "Affiliate" ? 170 : 140
         }}
         onPress={onPress}
     >
@@ -69,14 +69,14 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                         {course.url}
                     </Text>
 
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                    <View style={{ flexDirection: 'row', alignItems: "flex-end", }}>
                         {/* Copy Button */}
                         <TouchableOpacity
                             onPress={() => {
                                 Clipboard.setString(course.url);
                                 ToastAndroid.show('Link copied!', ToastAndroid.SHORT);
                             }}>
-                            <Image style={{ width: 15, height: 15, resizeMode: "contain", marginRight: 5 }} source={copy} />
+                            <Image style={{ width: 13, height: 13, resizeMode: "contain", marginRight: 5 }} source={copy} />
                         </TouchableOpacity>
 
                         {/* Share Button */}
@@ -95,7 +95,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                                 }
                             }}
                         >
-                            <Image style={{ width: 15, height: 15, resizeMode: "contain" }} source={send} />
+                            <Image style={{ width: 12, height: 12, resizeMode: "contain", marginRight: 5, }} source={send} />
                         </TouchableOpacity>
                     </View>
                 </View>
