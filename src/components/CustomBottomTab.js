@@ -1,23 +1,22 @@
-import React from "react";
-import { View, TouchableOpacity, Text, Image, StyleSheet, Dimensions } from "react-native";
+import React, { useContext } from "react";
+import {
+  View, TouchableOpacity, Text, Image, StyleSheet, Dimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-// import { BlurView } from "@react-native-community/blur"; // or "expo-blur"
-import { homeT, pillar, course, affiliate, userT, menu, chatbot, acc } from "../assets/images";
-import theme from "../themes/theme";
+import { homeT, pillar, acc, menu, chatbot } from "../assets/images";
 import LinearGradient from "react-native-linear-gradient";
+import { ThemeContext } from "../context/ThemeProvider";
 
-const { width, height } = Dimensions.get("window");
-
+const { width } = Dimensions.get("window");
 const guidelineBaseWidth = 375;
 
 const responsiveWidth = (size) => (width / guidelineBaseWidth) * size;
-const responsiveHeight = (size) => (width / guidelineBaseWidth) * size; // same scale as width
+const responsiveHeight = (size) => (width / guidelineBaseWidth) * size;
 const responsiveFontSize = (size) => (width / guidelineBaseWidth) * size;
 
 const tabItems = [
   { name: "Home", icon: homeT },
   { name: "Pillars", icon: pillar },
-  // { name: "Courses", icon: course },
   { name: "Accountability", icon: acc },
   { name: "Sidebar", icon: menu },
   { name: "ChatBot", icon: chatbot },
@@ -25,23 +24,14 @@ const tabItems = [
 
 export default function CustomBottomTab({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets();
+  const { theme, isDarkMode } = useContext(ThemeContext); // ✅ Moved inside
+  const styles = getStyles(theme, isDarkMode);
 
   return (
     <View style={[styles.tabBarWrapper, { paddingBottom: insets.bottom }]}>
-      {/* ✅ Blur only the background */}
-      <View
-        style={[StyleSheet.absoluteFill, {
-          backgroundColor: 'rgba(255, 255, 255, 0.09)',
-          borderWidth: 0.9, borderColor: theme.borderColor,
-          borderRadius: 8,
-        }]}
-      // blurType="light"
-      // blurAmount={25}
-      // reducedTransparencyFallbackColor="rgba(255,255,255,0.9)"
-      />
-
+      <View style={styles.blurBackground} />
       {state.routes.map((route, index) => {
-        if (route.name === "Courses") return null; // ✨ Skip rendering tab space
+        if (route.name === "Courses") return null;
 
         const { options } = descriptors[route.key];
         const focused = state.index === index;
@@ -54,12 +44,19 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
           }
         };
 
+        const label =
+          route.name === "Pillars" ? "Discover"
+            : route.name === "Accountability" ? "Trader Hub"
+              : route.name === "ChatBot" ? "TraderSense"
+                : route.name;
+
         return focused ? (
           <LinearGradient
             key={index}
-            start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
+            start={{ x: 0.0, y: 0.95 }}
+            end={{ x: 1.0, y: 1.0 }}
             colors={['rgba(112, 194, 232, 0.3)', 'rgba(204, 204, 204, 0)']}
-            style={{ borderRadius: 25 }}
+            style={styles.gradientWrapper}
           >
             <TouchableOpacity
               accessibilityRole="button"
@@ -67,16 +64,8 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
               style={[styles.tabItem, styles.activeTab]}
             >
               <View style={styles.iconLabelWrapper}>
-                <Image source={icon} style={[styles.icon, styles.iconActive]} />
-                <Text style={styles.labelActive}>
-                  {route.name === "Pillars"
-                    ? "Discover"
-                    : route.name === "Accountability"
-                      ? "Trader Hub"
-                      : route.name === "ChatBot"
-                        ? "TraderSense"
-                        : route.name}
-                </Text>
+                <Image source={icon} style={[styles.icon, { tintColor: theme.primaryColor, marginRight: 6 }]} />
+                <Text style={[styles.label, { color: theme.primaryColor }]}>{label}</Text>
               </View>
             </TouchableOpacity>
           </LinearGradient>
@@ -88,7 +77,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
             style={[styles.tabItem, styles.inactiveTab]}
           >
             <View style={styles.iconLabelWrapper}>
-              <Image source={icon} style={[styles.icon, styles.iconInactive]} />
+              <Image source={icon} style={[styles.icon, { tintColor: theme.inactiveTint || "#AAA" }]} />
             </View>
           </TouchableOpacity>
         );
@@ -96,7 +85,8 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
     </View>
   );
 }
-const styles = StyleSheet.create({
+
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
   tabBarWrapper: {
     flexDirection: "row",
     position: "absolute",
@@ -104,18 +94,23 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: width - responsiveWidth(40),
     borderRadius: responsiveWidth(20),
-    borderColor: theme.borderColor,
-    borderWidth: 0.9,
+    borderColor: isDarkMode ? theme.borderColor : "rgba(129,129,129,0.5)",
+    borderWidth: 1.3,
     height: responsiveHeight(70),
     alignItems: "center",
     justifyContent: "space-around",
     paddingHorizontal: responsiveWidth(10),
     marginBottom: responsiveHeight(10),
-    // marginLeft: responsiveHeight(5),
     overflow: "hidden",
-    backgroundColor: 'rgba(11, 16, 22, 0.9)',
+    backgroundColor: theme.tabBg || 'rgba(11, 16, 22, 0.9)',
   },
-
+  blurBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: theme.tabBlurOverlay || 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 0.9,
+    borderColor: theme.borderColor,
+    borderRadius: 8,
+  },
   tabItem: {
     borderRadius: responsiveWidth(25),
     alignItems: "center",
@@ -126,33 +121,25 @@ const styles = StyleSheet.create({
     paddingVertical: responsiveHeight(6),
     height: responsiveHeight(40),
   },
-
   inactiveTab: {
     width: responsiveWidth(45),
     height: responsiveHeight(45),
   },
-
   iconLabelWrapper: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
   },
-
   icon: {
     width: responsiveWidth(22),
     height: responsiveWidth(22),
     resizeMode: "contain",
   },
-  iconActive: {
-    tintColor: theme.primaryColor,
-    marginRight: responsiveWidth(6),
-  },
-  iconInactive: {
-    tintColor: "#AAA",
-  },
-  labelActive: {
-    color: theme.primaryColor,
+  label: {
     fontWeight: "600",
     fontSize: responsiveFontSize(12),
+  },
+  gradientWrapper: {
+    borderRadius: responsiveWidth(25),
   },
 });

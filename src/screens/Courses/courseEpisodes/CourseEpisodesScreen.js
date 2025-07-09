@@ -28,7 +28,7 @@ const CourseEpisodesScreen = ({ route }) => {
     const { courseId, courseTitle, courseImage } = route.params || {};
     const { data: course, isLoading } = useCourseDetail(courseId);
     const [currentEpisode, setCurrentEpisode] = useState(null);
-    const [favoriteIds, setFavoriteIds] = useState([]); 
+    const [favoriteIds, setFavoriteIds] = useState([]);
     const playbackState = usePlaybackState();
     const isPlaying = playbackState.state === State.Playing;
     const userId = useSelector(state => state.auth);
@@ -82,23 +82,23 @@ const CourseEpisodesScreen = ({ route }) => {
 
 
     useEffect(() => {
-  let canceled = false;
+        let canceled = false;
 
-  modules.forEach((episode) => {
-    if (episode.url && !durations[episode._id]) {
-      const sound = new Sound(episode.url, null, (error) => {
-        if (error || canceled) return;
-        const duration = sound.getDuration();
-        setDurations((prev) => ({ ...prev, [episode._id]: duration }));
-        sound.release();
-      });
-    }
-  });
+        modules.forEach((episode) => {
+            if (episode.url && !durations[episode._id]) {
+                const sound = new Sound(episode.url, null, (error) => {
+                    if (error || canceled) return;
+                    const duration = sound.getDuration();
+                    setDurations((prev) => ({ ...prev, [episode._id]: duration }));
+                    sound.release();
+                });
+            }
+        });
 
-  return () => {
-    canceled = true;
-  };
-}, [modules]);
+        return () => {
+            canceled = true;
+        };
+    }, [modules]);
 
 
     const formatDuration = (durationInSeconds) => {
@@ -224,9 +224,9 @@ const CourseEpisodesScreen = ({ route }) => {
                                 <View style={styles.episodeInfo}>
                                     <Text style={styles.episodeTitle}>{episode.title}</Text>
                                     <Text style={styles.episodeDuration}>
-                                        {durations[episode._id]
-                                            ? formatDuration(durations[episode._id])
-                                            : 'Loading...'}
+                                        {
+                                            formatDuration(durations[episode.duration])
+                                        }
                                     </Text>
 
                                 </View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import {
     View,
     Text,
@@ -10,56 +10,62 @@ import {
     StyleSheet,
     Alert,
 } from 'react-native';
-import theme from '../../../../themes/theme';
+import LinearGradient from 'react-native-linear-gradient';
 import { back, work, checkboxChecked, checkboxUnchecked } from '../../../../assets/images';
 import { useGoalsByUser } from '../../../../functions/Goal';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
 import { createHabitLog } from '../../../../functions/habbitFunctions';
+import { ThemeContext } from '../../../../context/ThemeProvider';
 
 export default function Accountability({ navigation }) {
     const [selectedFilter, setSelectedFilter] = useState('Daily');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
     const filterOptions = ['Daily', 'Monthly', 'Yearly'];
     const userId = useSelector(state => state.auth.userId);
-    const { data: goalsData = [], isLoading } = useGoalsByUser(userId);
+    const { data: apiGoals = [], isLoading } = useGoalsByUser(userId);
+    const [goalsData, setGoalsData] = useState([]);
     const dispatch = useDispatch();
+    const { theme } = useContext(ThemeContext);
+    const styles = useMemo(() => getStyles(theme), [theme]);
 
     useEffect(() => {
-        if (isLoading) {
-            dispatch(startLoading());
-        } else {
-            dispatch(stopLoading());
-        }
+        isLoading ? dispatch(startLoading()) : dispatch(stopLoading());
     }, [isLoading]);
+
+    useEffect(() => {
+        if (apiGoals.length > 0) setGoalsData(apiGoals);
+    }, [apiGoals]);
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={"#0B1016"} />
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
-
                 <Text style={styles.sectionTitle}>Your Accountability Details</Text>
+
+                {/* Stats Grid */}
                 <View style={styles.gridContainer}>
-                    <View style={styles.gridItem}>
-                        <Text style={styles.gridItemValue}>15</Text>
-                        <Text style={styles.gridItemLabel}>Total Goals on time</Text>
-                    </View>
-                    <View style={styles.gridItem}>
-                        <Text style={styles.gridItemValue}>10</Text>
-                        <Text style={styles.gridItemLabel}>Streak</Text>
-                    </View>
-                    <View style={styles.gridItem}>
-                        <Text style={styles.gridItemValue}>03</Text>
-                        <Text style={styles.gridItemLabel}>Pending Goals</Text>
-                    </View>
-                    <View style={styles.gridItem}>
-                        <Text style={styles.gridItemValue}>03</Text>
-                        <Text style={styles.gridItemLabel}>Completed Habits</Text>
-                    </View>
+                    {[
+                        { label: 'Total Goals on time', value: '15' },
+                        { label: 'Streak', value: '10' },
+                        { label: 'Pending Goals', value: '03' },
+                        { label: 'Completed Habits', value: '03' },
+                    ].map((item, idx) => (
+                        <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                            key={idx}
+                            style={styles.gridItem}
+                        >
+                            <Text style={styles.gridItemValue}>{item.value}</Text>
+                            <Text style={styles.gridItemLabel}>{item.label}</Text>
+                        </LinearGradient>
+                    ))}
                 </View>
 
                 {/* My Growth */}
-                <View style={styles.myGrowthCard}>
+                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                    style={styles.myGrowthCard}>
                     <Text style={styles.sectionTitle}>My Growth</Text>
                     <View style={{ width: "100%", flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
                         <View style={styles.progressCircleContainer}>
@@ -72,10 +78,12 @@ export default function Accountability({ navigation }) {
                             <Text style={styles.progressTaskText}>Progress Task: 80%</Text>
                         </View>
                     </View>
-                </View>
+                </LinearGradient>
 
                 {/* Daily Breakdown */}
-                <View style={styles.dailyBreakdownContainer}>
+                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                    style={styles.dailyBreakdownContainer}>
                     <View style={styles.dailyBreakdownHeader}>
                         <View>
                             <Text style={styles.dailyBreakdownTitle}>Daily Breakdown</Text>
@@ -110,7 +118,7 @@ export default function Accountability({ navigation }) {
                             )}
                         </View>
                     </View>
-                </View>
+                </LinearGradient>
 
                 {/* Success Tracker */}
                 <View style={styles.successTrackerHeader}>
@@ -138,12 +146,15 @@ export default function Accountability({ navigation }) {
                         <Text style={{ color: '#AAA', fontSize: 12 }}>No goals found</Text>
                     ) : (
                         goalsData.map((goal) => (
-                            <View key={goal._id} style={styles.successTrackerItem}>
+                            <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                key={goal._id}
+                                style={styles.successTrackerItem}
+                            >
                                 <View style={styles.successTrackerTextContent}>
                                     <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
                                         <TouchableOpacity
                                             onPress={async () => {
-                                                // const newStatus = goal.status === 'active' ? 'completed' : 'active';
                                                 const result = await createHabitLog({
                                                     userId,
                                                     habitId: goal._id,
@@ -153,7 +164,10 @@ export default function Accountability({ navigation }) {
                                                 if (result.error) {
                                                     Alert.alert("Error", result.error);
                                                 } else {
-                                                    goal.status = "completed";
+                                                    const updatedGoals = goalsData.map(item =>
+                                                        item._id === goal._id ? { ...item, status: "completed" } : item
+                                                    );
+                                                    setGoalsData(updatedGoals);
                                                 }
                                             }}
                                             style={styles.checkbox}
@@ -171,18 +185,18 @@ export default function Accountability({ navigation }) {
                                         {goal.description || "No description"}
                                     </Text>
                                 </View>
-                            </View>
+                            </LinearGradient>
                         ))
                     )}
                 </View>
-
             </ScrollView>
         </SafeAreaView>
     );
 }
 
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
+
     container: {
         flex: 1,
     },
@@ -191,7 +205,7 @@ const styles = StyleSheet.create({
         // paddingBottom: 100, // To make space for bottom nav
     },
     sectionTitle: {
-        color: '#FFF',
+        color: theme.textColor,
         fontSize: 14,
         fontFamily: 'Inter-Regular',
         marginBottom: 15,
@@ -212,13 +226,13 @@ const styles = StyleSheet.create({
         marginBottom: "2.5%",
     },
     gridItemValue: {
-        color: '#FFF',
+        color: theme.textColor,
         fontSize: 20,
         fontFamily: 'Inter-Medium',
         // marginBottom: 5,
     },
     gridItemLabel: {
-        color: '#FFFFFF',
+        color: theme.subTextColor,
         fontSize: 12,
     },
     myGrowthCard: {
@@ -298,12 +312,12 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     dailyBreakdownTitle: {
-        color: '#FFFFFF',
+        color: theme.subTextColor,
         fontSize: 16,
         fontFamily: "Inter-SemiBold",
     },
     dailyBreakdownDate: {
-        color: '#AAAAAA',
+        color: theme.subTextColor,
         fontSize: 12,
         fontFamily: "Inter-Light-BETA",
     },
@@ -327,7 +341,7 @@ const styles = StyleSheet.create({
     dropdownContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: theme.primaryColor,
         borderWidth: 0.9,
         borderColor: theme.borderColor,
         borderRadius: 8,
@@ -341,7 +355,7 @@ const styles = StyleSheet.create({
         top: 35,
         left: 0,
         width: "100%",
-        backgroundColor: "rgba(255, 255, 255)",
+        backgroundColor: theme.primaryColor,
         borderRadius: 8,
         paddingVertical: 10,
         zIndex: 1000,
@@ -354,7 +368,7 @@ const styles = StyleSheet.create({
     },
 
     optionText: {
-        color: theme.darkBlue,
+        color: "white",
         fontSize: 12,
         fontFamily: "Inter-Regular",
     },
@@ -400,6 +414,7 @@ const styles = StyleSheet.create({
         borderColor: theme.borderColor,
         borderRadius: 8,
         padding: 15,
+        paddingVertical: 20,
         marginBottom: 10,
     },
     checkbox: {
@@ -418,12 +433,12 @@ const styles = StyleSheet.create({
     successTrackerTitle: {
         fontSize: 14,
         fontFamily: "Inter-Regular",
-        color: '#FFFFFF',
+        color: theme.textColor,
         flex: 1,
     },
     successTrackerDescription: {
         fontSize: 11,
-        color: '#B0B0B0', // Lighter grey for description
+        color: theme.subTextColor,
         // marginBottom: 10,
         lineHeight: 15,
     },

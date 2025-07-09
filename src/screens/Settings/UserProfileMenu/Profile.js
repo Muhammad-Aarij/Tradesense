@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
   SafeAreaView, Dimensions, ImageBackground
@@ -8,12 +8,13 @@ import {
   back, bg, camera, p1, p2, p3, p4, p5, p6, p7, f, p9, userDefault,
   affiliate1, tick, fail
 } from '../../../assets/images';
-import theme from '../../../themes/theme';
+import { ThemeContext } from '../../../context/ThemeProvider';
 import { logoutUser } from '../../../redux/slice/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import UploadModal from '../../../components/ConfirmationModal copy';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { API_URL } from "@env";
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 const scale = size => (width / 375) * size;
@@ -23,7 +24,8 @@ const UserProfileMenuScreen = ({ navigation }) => {
   const name = useSelector(state => state.auth.userObject?.name);
   const userId = useSelector(state => state.auth.userObject?._id);
   const dispatch = useDispatch();
-
+  const { theme } = useContext(ThemeContext);
+  const styles = getStyles(theme);
   const [profileImage, setProfileImage] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [confirmation, setConfirmation] = useState({ visible: false, success: true, message: '' });
@@ -65,16 +67,22 @@ const UserProfileMenuScreen = ({ navigation }) => {
 
   const MenuItem = ({ icon, text, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
-      <View style={styles.menuItemContent}>
+      <LinearGradient
+        start={{ x: 0.0, y: 0.95 }}
+        end={{ x: 1.0, y: 1.0 }}
+        colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+        style={styles.menuItemContent}
+      >
         <Image source={icon} style={styles.menuIcon} />
         <Text style={styles.menuText}>{text}</Text>
-      </View>
+      </LinearGradient>
       <Image source={back} style={styles.chevronIcon} />
     </TouchableOpacity>
   );
 
+
   return (
-    <ImageBackground source={bg} style={{ flex: 1, paddingTop: 50 }}>
+    <ImageBackground source={theme.bg} style={styles.background}>
       <SafeAreaView style={styles.safeArea}>
         <UploadModal
           isVisible={showUploadModal}
@@ -127,7 +135,11 @@ const UserProfileMenuScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
+  background: {
+    flex: 1,
+    paddingTop: 50,
+  },
   safeArea: { flex: 1 },
   container: {
     flex: 1,
@@ -147,11 +159,11 @@ const styles = StyleSheet.create({
     borderColor: theme.primaryColor,
     backgroundColor: 'transparent',
     position: 'relative',
-    shadowColor: theme.primaryColor,
-    shadowOffset: { width: 10, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 15, 
+    // shadowColor: theme.primaryColor,
+    // shadowOffset: { width: 10, height: 10 },
+    // shadowOpacity: 0.2,
+    // shadowRadius: 15,
+    // elevation: 15,
   },
   avatar: {
     width: scale(100),
@@ -180,12 +192,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: scale(16),
     fontFamily: "Inter-Medium",
-    color: "#FFFFFF",
+    color: theme.textColor,
   },
   profileSubtitle: {
     fontSize: scale(14),
-    fontFamily: "Inter-Thin-BETA",
-    color: "#C4C7C9",
+    fontFamily: "Inter-Regular",
+    color: theme.subTextColor,
     marginTop: verticalScale(1),
     marginBottom: verticalScale(10),
   },
@@ -197,14 +209,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: verticalScale(15),
-    paddingHorizontal: scale(15),
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
     borderColor: theme.borderColor,
     borderRadius: scale(8),
   },
   menuItemContent: {
+    paddingVertical: verticalScale(15),
+    paddingHorizontal: scale(15),
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -213,16 +226,18 @@ const styles = StyleSheet.create({
     height: scale(25),
     tintColor: theme.primaryColor,
     resizeMode: 'contain',
-    marginRight: scale(10),
+    marginRight: scale(20),
   },
   menuText: {
-    fontSize: scale(13.6),
+    fontSize: scale(13),
     fontFamily: "Inter-Regular",
-    color: "#FFFFFF",
+    color: theme.textColor,
   },
   chevronIcon: {
+    marginRight:scale(15),
     width: scale(15),
     height: scale(15),
+    tintColor: theme.bw,
     resizeMode: 'contain',
     transform: [{ rotate: '180deg' }],
   },

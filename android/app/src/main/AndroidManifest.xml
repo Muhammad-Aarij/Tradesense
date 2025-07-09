@@ -1,5 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.Tradesense"> <!-- Confirmed package name: com.Tradesense -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" 
+xmlns:tools="http://schemas.android.com/tools">   
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -11,8 +11,9 @@
         android:allowBackup="false"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true"
+        tools:replace="android:appComponentFactory"
+    android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:supportsRtl="true">
-
 
         <service
             android:name="com.doublesymmetry.trackplayer.service.MusicService"

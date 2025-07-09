@@ -8,7 +8,6 @@ const AudioMediaTile = ({ imageSource, title, title2, duration, locked }) => {
       <ImageBackground source={m} style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 25, }}>
         <View style={styles.content}>
           <Text style={styles.title} numberOfLines={1}>{title}</Text>
-
           <Text style={styles.description} numberOfLines={2}>{title2} . {duration}</Text>
         </View>
         <Image source={play2} style={styles.audioIcon} />
@@ -26,8 +25,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#1B1B1B',
     overflow: 'hidden',
-    borderWidth: 0.6,
-    borderColor: '#555',
+    // borderWidth: 0.6,
+    // borderColor: '#555',
   },
   thumbnail: {
     width: '100%',
@@ -52,7 +51,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 17,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Inter-Medium',
     color: '#fff',
   },
   description: {

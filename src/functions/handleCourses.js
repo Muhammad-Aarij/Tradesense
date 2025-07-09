@@ -70,8 +70,8 @@ export const useCourseDetail = (courseId) => {
 
 export const enrollInCourse = async ({ studentId, courseId, plan }) => {
     try {
-        console.log('Enrolling with:', studentId, courseId, plan); // ✅ Debug log
-        console.log('====================================');
+        // console.log('Enrolling with:', studentId, courseId, plan); // ✅ Debug log
+        // console.log('====================================');
         const response = await axios.post(`${API_URL}/api/enrollments`, {
             studentId,
             courseId,

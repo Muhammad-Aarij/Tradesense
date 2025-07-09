@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     },
     modalContainer: {
         backgroundColor: "#080E17",
-        paddingVertical: 40,
+        paddingVertical: 30,
         paddingHorizontal: 30,
         borderRadius: 15,
         alignItems: 'center',
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     },
     icon: {
         width: 110,
-        height: 110,
+        height: 100,
         resizeMode: "contain",
         marginBottom: 20,
     },

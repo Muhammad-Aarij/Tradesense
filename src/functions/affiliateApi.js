@@ -1,9 +1,12 @@
 import axios from 'axios';
 import { API_URL } from "@env";
-
+import { useDispatch } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
+import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 
 export const trackAffiliateVisit = async ({ referrerUserId, courseId, type = "visited" }) => {
     try {
+        console.log(`referrerUserId: ${referrerUserId}\ncourseId: ${courseId}\ntype: ${type}`);
         const response = await axios.post(`${API_URL}/api/affiliate`, {
             referrerUserId,
             courseId,
@@ -19,6 +22,7 @@ export const trackAffiliateVisit = async ({ referrerUserId, courseId, type = "vi
 
 export const sendAffiliateRequest = async (userId) => {
     try {
+        console.log(userId);
         const response = await axios.post(`${API_URL}/api/affiliate/requests`, {
             userId: userId,
         });
@@ -40,4 +44,28 @@ export const getUserDetails = async (userId) => {
         console.error('Error fetching user details:', error.response?.data || error.message);
         throw error;
     }
+};
+
+
+
+
+const fetchAffiliateStats = async (userId) => {
+    console.log(userId);
+    const response = await axios.get(`${API_URL}/api/affiliate/${userId}`);
+    console.log('Response from fetchAffiliateStats:', response.data);
+    return response.data;
+};
+
+export const useAffiliateStats = (userId) => {
+    const dispatch = useDispatch();
+
+    return useQuery({
+        queryKey: ['affiliateStats', userId],
+        queryFn: () => fetchAffiliateStats(userId),
+        enabled: !!userId,
+        onSuccess: () => dispatch(stopLoading()),
+        onError: () => dispatch(stopLoading()),
+        retry: 1,
+        refetchOnWindowFocus: false,
+    });
 };

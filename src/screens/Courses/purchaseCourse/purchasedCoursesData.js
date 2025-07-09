@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext } from 'react';
 import {
     View,
     Text,
@@ -17,15 +17,16 @@ import PurchasedCourseCard from './PurchaseCourseCard';
 import CourseCard from '../courseList/CourseCard';
 import { useEnrolledCourses, useCourses } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import theme from '../../../themes/theme';
 import { sendAffiliateRequest } from '../../../functions/affiliateApi';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import { ThemeContext } from '../../../context/ThemeProvider';
 
 const { height, width } = Dimensions.get('window');
 
 const PurchasedCoursesScreen = () => {
+    const { theme } = useContext(ThemeContext); // ✅ Get dynamic theme
     const [modalVisible, setModalVisible] = useState(false);
-    const [modalSuccess, setModalSuccess] = useState(null); // true = success, false = failure
+    const [modalSuccess, setModalSuccess] = useState(null);
     const [modalMessage, setModalMessage] = useState('');
 
     const navigation = useNavigation();
@@ -35,7 +36,9 @@ const PurchasedCoursesScreen = () => {
 
     const { data: enrolledCourses, isLoading: isLoadingEnrolled, error: errorEnrolled } = useEnrolledCourses(studentId);
     const { data: allCourses, isLoading: isLoadingAll, error: errorAll, refetch: refetchAll } = useCourses();
-    console.log("Enrolled", allCourses);
+
+    // console.log(studentId);
+    console.log(enrolledCourses);
     const [refreshing, setRefreshing] = useState(false);
     const overallLoading = isLoadingEnrolled || isLoadingAll;
 
@@ -59,7 +62,6 @@ const PurchasedCoursesScreen = () => {
         }, 1500);
     }, [refetchAll]);
 
-
     const handleAffiliateRequest = async () => {
         try {
             await sendAffiliateRequest(studentId);
@@ -73,22 +75,17 @@ const PurchasedCoursesScreen = () => {
         }
     };
 
-    function formatDuration(seconds) {
+    const formatDuration = (seconds) => {
         if (seconds < 60) return '1 min';
-
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(seconds / 3600);
+        return seconds >= 3600 ? `${hours} hour${hours > 1 ? 's' : ''}` : `${minutes} min`;
+    };
 
-        if (seconds >= 3600) {
-            return hours === 1 ? '1 hour' : `${hours} hours`;
-        }
-
-        return `${minutes} min`;
-    }
-
-
-    // Prepare data for single FlatList
+    // Prepare flatList data
     const flatListData = [];
+    const enrolledIds = new Set(enrolledCourses?.map(course => course._id));
+    const nonEnrolledCourses = allCourses?.filter(course => !enrolledIds.has(course._id)) || [];
 
     if (enrolledCourses?.length > 0) {
         enrolledCourses.forEach(item => {
@@ -98,11 +95,10 @@ const PurchasedCoursesScreen = () => {
         flatListData.push({ type: 'message', text: 'You have not purchased any courses yet.' });
     }
 
-    if (allCourses?.length > 0) {
+    if (nonEnrolledCourses.length > 0) {
         flatListData.push({ type: 'header', title: 'More Courses' });
-
-        for (let i = 0; i < allCourses.length; i += 2) {
-            const rowItems = allCourses.slice(i, i + 2);
+        for (let i = 0; i < nonEnrolledCourses.length; i += 2) {
+            const rowItems = nonEnrolledCourses.slice(i, i + 2);
             flatListData.push({ type: 'gridRow', items: rowItems });
         }
     }
@@ -127,13 +123,13 @@ const PurchasedCoursesScreen = () => {
             case 'message':
                 return (
                     <View style={styles.centered}>
-                        <Text style={styles.messageText}>{item.text}</Text>
+                        <Text style={[styles.messageText, { color: theme.textSecondaryColor }]}>{item.text}</Text>
                     </View>
                 );
             case 'header':
                 return (
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>{item.title}</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.textColor }]}>{item.title}</Text>
                     </View>
                 );
             case 'gridRow':
@@ -169,22 +165,22 @@ const PurchasedCoursesScreen = () => {
     };
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
+        <ImageBackground source={theme.bg} style={styles.container}>
             {modalVisible &&
                 <ConfirmationModal
                     visible={modalVisible}
                     title={modalMessage}
-                    icon={modalSuccess ? tick : fail} // Add your 'cross' icon
+                    icon={modalSuccess ? tick : fail}
                     onClose={() => setModalVisible(false)}
                 />}
 
             <SafeAreaView style={{ flex: 1 }}>
                 <FlatList
-                    ListHeaderComponent={() =>
-                        <Header title="My Courses" style={{ marginBottom: 35,}} />
-                    }
+                    ListHeaderComponent={() => (
+                        <Header title="My Courses" style={{ marginBottom: 35 }} />
+                    )}
                     ListFooterComponent={() => (
-                        <TouchableOpacity style={styles.joinButton} onPress={handleAffiliateRequest}>
+                        <TouchableOpacity style={[styles.joinButton, { backgroundColor: theme.primaryColor }]} onPress={handleAffiliateRequest}>
                             <Text style={styles.joinButtonText}>Become an Affiliate</Text>
                         </TouchableOpacity>
                     )}
@@ -204,7 +200,6 @@ const PurchasedCoursesScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#08131F',
         paddingBottom: height * 0.11,
     },
     listContent: {
@@ -216,7 +211,6 @@ const styles = StyleSheet.create({
         marginVertical: 20,
     },
     messageText: {
-        color: '#ccc',
         fontSize: 14,
     },
     sectionHeader: {
@@ -225,7 +219,6 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 17,
-        color: theme.textColor,
         fontFamily: 'Inter-SemiBold',
         textAlign: 'center',
         marginBottom: 20,
@@ -234,13 +227,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         gap: 5,
-        // marginBottom: 10,
     },
     gridItem: {
-        width: (width - 40) / 2, // Adjust based on padding
+        width: (width - 40) / 2,
     },
     joinButton: {
-        backgroundColor: theme.primaryColor,
         width: '100%',
         padding: 12,
         borderRadius: 11,
@@ -251,7 +242,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 15,
         fontWeight: '600',
-        fontFamily: "Inter-SemiBold",
+        fontFamily: 'Inter-SemiBold',
     },
 });
 

@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, Image, ImageBackground, Dimensions,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useTopPicks, useRecommendations, useBundles } from '../../../functions/DiscoverApis';
-import theme from '../../../themes/theme';
-import { bg, discover1, video1, video3 } from '../../../assets/images';
+import { ThemeContext } from '../../../context/ThemeProvider';
+import { bg, discover1, discoverLight, video1 } from '../../../assets/images';
 import RecommendationTile from '../../../components/RecommendationTile';
 import TopPicksSection from '../../../components/TopPicksSection';
 import BundleTileSection from '../../../components/BundleTileSection';
@@ -15,17 +15,12 @@ import AudioMediaTile from '../../../components/AudioMediaTile';
 const { height } = Dimensions.get('window');
 
 const DiscoverScreen = () => {
+    const { theme, isDarkMode } = useContext(ThemeContext);
     const [selectedCard, setSelectedCard] = useState(0);
     const { userObject } = useSelector(state => state.auth);
     const userId = userObject?._id;
-    // const userId = '6853b8d8db9a55c298462b64'; // replace with dynamic if needed
-    const dispatch = useDispatch();
 
-    // Debug userId
-    useEffect(() => {
-        console.log('UserObject:', userObject);
-        console.log('UserId:', userId);
-    }, [userObject, userId]);
+    const dispatch = useDispatch();
 
     const { data: topPicks, isLoading: loadingTop } = useTopPicks(userId);
     const { data: recommendations, isLoading: loadingRec } = useRecommendations(userId);
@@ -33,13 +28,11 @@ const DiscoverScreen = () => {
 
     useEffect(() => {
         dispatch(startLoading());
-
         if (!loadingTop && !loadingRec && !loadingBundles) {
             dispatch(stopLoading());
         }
     }, [loadingTop, loadingRec, loadingBundles]);
 
-    // Debug bundles data
     useEffect(() => {
         if (bundles) {
             console.log('Bundles data:', bundles);
@@ -50,12 +43,15 @@ const DiscoverScreen = () => {
         }
     }, [bundles, bundlesError]);
 
+    const styles = getStyles(theme);
+    const topImage = !isDarkMode  ? discoverLight : discover1;
+
     return (
-        <ImageBackground source={bg} style={styles.container} resizeMode="cover">
+        <ImageBackground source={theme.bg} style={styles.container} resizeMode="cover">
             <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
                 {/* Header Image */}
-                <View style={{ position: 'relative', height: height / 3 }}>
-                    <Image source={discover1} style={styles.topImg} />
+                <View style={{ position: 'relative', height: height / 2.8 }}>
+                    <Image source={topImage} style={styles.topImg} />
                     <View style={styles.centeredOverlay}>
                         <Text style={styles.titleB}>Discover</Text>
                     </View>
@@ -85,7 +81,6 @@ const DiscoverScreen = () => {
                     </ScrollView>
                 </View>
 
-
                 {/* Top Picks Section */}
                 <View style={styles.section}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -106,7 +101,7 @@ const DiscoverScreen = () => {
                 </View>
 
                 {/* Bundles */}
-                {bundles && Array.isArray(bundles) && bundles.map((bundle, i) => (
+                {bundles && Array.isArray(bundles) && bundles.map((bundle) => (
                     <View key={bundle.goal} style={styles.section}>
                         <Text style={styles.sectionTitle}>{bundle.goal}</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginLeft: 25 }}>
@@ -129,26 +124,47 @@ const DiscoverScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#08131F', paddingBottom: 85 },
-    contentScroll: { width: '100%' },
-    section: { marginBottom: 20 },
+const getStyles = (theme) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.bg,
+        paddingBottom: 85,
+    },
+    contentScroll: {
+        width: '100%',
+    },
+    section: {
+        marginBottom: 20,
+    },
     category: {
-        flexDirection: "row",
+        flexDirection: 'row',
         gap: 12,
-        alignItems: "center",
+        alignItems: 'center',
         paddingRight: 45,
     },
     sectionTitle: {
-        color: '#fff', fontSize: 14, fontWeight: '600', marginBottom: 12, paddingHorizontal: 25,
+        color: theme.textColor,
+        fontSize: 13,
+        fontFamily:"Inter-Medium",
+        marginBottom: 12,
+        paddingHorizontal: 25,
     },
-    topImg: { width: '100%', height: height / 3 },
+    topImg: {
+        width: '100%',
+        height: height / 3,
+    },
     centeredOverlay: {
-        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        justifyContent: 'center', alignItems: 'center', zIndex: 1,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
     },
     titleB: {
-        color: "rgba(255, 255, 255, 0.7)",
+        color: theme.textColor + 'B3', // 70% opacity
         fontSize: 30,
         fontFamily: 'Inter-SemiBold',
     },

@@ -64,7 +64,7 @@ export const useHabitByUser = (userId) => {
     retry: 1,
     refetchOnWindowFocus: false,
   });
-}; 
+};
 
 
 
@@ -72,12 +72,16 @@ export const useHabitByUser = (userId) => {
 
 export const createHabitLog = async ({ userId, habitId, status }) => {
   try {
+    console.log('====================================');
+    console.log("Log called", userId, habitId, status);
+    console.log('====================================');
     const response = await axios.post(`${API_URL}/api/habitlogs`, {
       userId,
       habitId,
       status,
     });
 
+    console.log("Log Response", response.data);
     return response.data;
   } catch (error) {
     console.error('Error creating habit log:', error?.response?.data?.message || error.message);

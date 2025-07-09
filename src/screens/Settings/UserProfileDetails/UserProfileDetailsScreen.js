@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,28 @@ import {
   ImageBackground,
   Dimensions,
 } from 'react-native';
-import { bg, userProfile, userT, userDefault } from '../../../assets/images';
+import { userProfile, userT, userDefault } from '../../../assets/images';
 import Header from '../../../components/Header';
 import GradientStatCard from './GradientStatCard';
-import theme from '../../../themes/theme';
 import { useSelector } from 'react-redux';
+import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ Correct theme context
+
 const { width, height } = Dimensions.get('window');
-const scale = (size) => (width / 375) * size; // assuming 375 is the base width
-const verticalScale = (size) => (height / 812) * size; // assuming 812 is the base height
+const scale = (size) => (width / 375) * size;
+const verticalScale = (size) => (height / 812) * size;
 
 const UserProfileDetailsScreen = () => {
+  const { theme } = useContext(ThemeContext); // ✅ use dynamic theme
+  const styles = getStyles(theme);
+
+  const name = useSelector(state => state.auth.userObject?.name);
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning! ☀️';
+    if (hour < 17) return 'Good Afternoon! 🌤️';
+    return 'Good Evening! 🌙';
+  };
+
   const userData = {
     name: 'SAM SMITH',
     title: 'Good Day',
@@ -32,17 +44,9 @@ const UserProfileDetailsScreen = () => {
     weeksLearningStreak: 2,
     weeksLearningStreakTarget: 10,
   };
-  const name = useSelector(state => state.auth.userObject?.name);
-  const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
-
-    if (hour < 12) return 'Good Morning! ☀️';
-    if (hour < 17) return 'Good Afternoon! 🌤️';
-    return 'Good Evening! 🌙';
-  };
 
   return (
-    <ImageBackground source={bg} style={styles.background}>
+    <ImageBackground source={theme.bg} style={styles.background}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -61,9 +65,9 @@ const UserProfileDetailsScreen = () => {
 
             {/* Stats */}
             <View style={styles.statsContainer}>
-              <GradientStatCard value={userData.totalSessions} label="Total Points" />
-              <GradientStatCard value={userData.totalTime} label="Total Time" />
-              <GradientStatCard value={userData.totalCourses} label="Total Courses" />
+              <GradientStatCard value={userData.totalSessions} label="Total Streaks" />
+              <GradientStatCard value={userData.totalTime} label="Total Time Spend" />
+              {/* <GradientStatCard value={userData.totalCourses} label="Total Courses" /> */}
             </View>
 
             {/* Streaks */}
@@ -99,7 +103,7 @@ const UserProfileDetailsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   background: {
     flex: 1,
     position: 'relative',
@@ -123,14 +127,14 @@ const styles = StyleSheet.create({
     width: scale(100),
     height: scale(100),
     borderRadius: scale(105),
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: 'transparent',
     backgroundColor: 'white',
   },
   avatarWrapper: {
     padding: scale(4),
     borderRadius: scale(110),
-    borderWidth: 2.5,
+    borderWidth: 1.5,
     borderColor: theme.primaryColor,
     backgroundColor: 'transparent',
   },
@@ -142,12 +146,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: scale(16),
     fontFamily: 'Inter-Medium',
-    color: '#FFFFFF',
+    color: theme.textColor, // ✅ dynamic
   },
   profileSubtitle: {
     fontSize: scale(14),
     fontFamily: 'Inter-Thin-BETA',
-    color: '#C4C7C9',
+    color: theme.subTextColor ?? '#C4C7C9',
     marginTop: verticalScale(1),
     marginBottom: verticalScale(10),
   },
@@ -162,7 +166,7 @@ const styles = StyleSheet.create({
   },
   progressTitle: {
     fontSize: scale(14),
-    color: 'white',
+    color: theme.textColor,
     fontFamily: 'Inter-Medium',
     marginBottom: verticalScale(15),
   },
@@ -179,10 +183,11 @@ const styles = StyleSheet.create({
   },
   footerWrapper: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderColor: theme.borderColor, borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderWidth: 1,
     borderRadius: scale(102),
-    padding: scale(14),
-    paddingHorizontal: scale(26),
+    padding: scale(12),
+    paddingHorizontal: scale(20),
     justifyContent: 'center',
     flexDirection: 'row',
   },
@@ -208,6 +213,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
   },
 });
-
 
 export default UserProfileDetailsScreen;

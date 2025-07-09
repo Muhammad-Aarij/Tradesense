@@ -1,28 +1,38 @@
-// src/screens/HelpCenterScreen.js
-// This screen provides a help center interface with a search bar and FAQs.
-
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, SafeAreaView, Platform, Dimensions, ImageBackground, ActivityIndicator } from 'react-native';
-import { bg, searchMf, back, p2 } from '../../../assets/images'; // Ensure p2 is the correct icon for the footer
-import theme from '../../../themes/theme'; // Assuming 'theme' is correctly imported and available
-import Header from '../../../components/Header'; // Re-using your Header component
+import React, { useState, useEffect, useContext } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Image,
+  SafeAreaView,
+  Dimensions,
+  ImageBackground,
+  ActivityIndicator,
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { bg, searchMf, back, p2 } from '../../../assets/images';
+import Header from '../../../components/Header';
 import { fetchFAQs } from '../../../functions/Helpcenter';
+import { ThemeContext } from '../../../context/ThemeProvider';
 
 const { width, height } = Dimensions.get('window');
 
-// Responsive helper functions
 const responsiveWidth = (size) => (width / 375) * size;
-const responsiveHeight = (size) => (width / 375) * size; // Using width for height scaling for consistency
+const responsiveHeight = (size) => (width / 375) * size;
 const responsiveFontSize = (size) => (width / 375) * size;
-const verticalScale = (size) => (height / 812) * size; // Use verticalScale for absolute positioning from bottom
+const verticalScale = (size) => (height / 812) * size;
 
 const HelpCenterScreen = ({ navigation }) => {
-  // Mock navigation for standalone component
-  const mockNavigation = {
+  const { theme } = useContext(ThemeContext);
+  const styles = getStyles(theme);
+
+  const currentNavigation = navigation || {
     navigate: (screenName, params) => console.log(`Navigating to: ${screenName}`, params),
     goBack: () => console.log('Going back'),
   };
-  const currentNavigation = navigation || mockNavigation;
 
   const [searchText, setSearchText] = useState('');
   const [expandedFAQ, setExpandedFAQ] = useState(null);
@@ -49,74 +59,90 @@ const HelpCenterScreen = ({ navigation }) => {
     setExpandedFAQ(expandedFAQ === id ? null : id);
   };
 
-  const filteredFAQs = faqs.filter(faq =>
+  const filteredFAQs = faqs.filter((faq) =>
     faq.question.toLowerCase().includes(searchText.toLowerCase()) ||
     faq.answer.toLowerCase().includes(searchText.toLowerCase())
   );
 
   return (
-    <ImageBackground source={bg} style={{ flex: 1 }}>
+    <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Header */}
-          {/* Using your custom Header component */}
           <Header title="Help Center" navigation={currentNavigation} />
 
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* Search Bar */}
-            <View style={styles.searchBarContainer}>
+            <LinearGradient
+              start={{ x: 0.0, y: 0.95 }}
+              end={{ x: 1.0, y: 1.0 }}
+              colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+              style={styles.searchBarContainer}
+            >
               <Image source={searchMf} style={styles.searchIcon} />
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { color: theme.textColor }]}
                 placeholder="Search..."
-                placeholderTextColor="#B0B0B0"
+                placeholderTextColor={theme.textColor}
                 value={searchText}
                 onChangeText={setSearchText}
               />
-            </View>
+            </LinearGradient>
 
+            {/* FAQ List */}
             {isLoading ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
-                <Text style={styles.loadingText}>Loading FAQs...</Text>
+                <ActivityIndicator size="large" color={theme.primaryColor} />
+                <Text style={[styles.loadingText, { color: theme.textColor }]}>Loading FAQs...</Text>
               </View>
             ) : error ? (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>Failed to load FAQs: {error.message}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={() => { setIsLoading(true); setError(null); fetchFAQs().then(setFaqs).catch(setError).finally(() => setIsLoading(false)); }}>
+                <TouchableOpacity
+                  style={[styles.retryButton, { backgroundColor: theme.primaryColor }]}
+                  onPress={() => {
+                    setIsLoading(true);
+                    setError(null);
+                    fetchFAQs().then(setFaqs).catch(setError).finally(() => setIsLoading(false));
+                  }}
+                >
                   <Text style={styles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View style={styles.faqListContainer}>
                 {filteredFAQs.map((faq, index) => (
-                  <View
-                    key={faq._id || index} // Use _id from API, fallback to index
-                    style={[
-                      styles.faqItem,
-                      index === filteredFAQs.length - 1 ? styles.lastFaqItem : {}, // Apply last item style
-                    ]}
+                  <LinearGradient
+                    key={faq._id || index}
+                    start={{ x: 0.0, y: 0.95 }}
+                    end={{ x: 1.0, y: 1.0 }}
+                    colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+                    style={styles.faqItem}
                   >
-                    <TouchableOpacity style={styles.faqQuestionButton} onPress={() => toggleFAQ(faq._id || index)}>
-                      <Text style={styles.faqQuestion}>{faq.question}</Text>
+                    <TouchableOpacity
+                      style={styles.faqQuestionButton}
+                      onPress={() => toggleFAQ(faq._id || index)}
+                    >
+                      <Text style={[styles.faqQuestion, { color: theme.textColor }]}>{faq.question}</Text>
                       <Image
-                        source={back} // Assuming 'back' asset is a right-pointing arrow
+                        source={back}
                         style={[
                           styles.faqArrow,
-                          expandedFAQ === (faq._id || index) && { transform: [{ rotate: '270deg' }] }, // Rotate up when expanded
+                          expandedFAQ === (faq._id || index) && { transform: [{ rotate: '270deg' }] },
                         ]}
                       />
                     </TouchableOpacity>
                     {expandedFAQ === (faq._id || index) && (
                       <View style={styles.faqAnswerContainer}>
-                        <Text style={styles.faqAnswer}>{faq.answer}</Text>
+                        <Text style={[styles.faqAnswer, { color: theme.textColor }]}>{faq.answer}</Text>
                       </View>
                     )}
-                  </View>
+                  </LinearGradient>
                 ))}
                 {filteredFAQs.length === 0 && !isLoading && !error && (
                   <View style={styles.emptyResultsContainer}>
-                    <Text style={styles.emptyResultsText}>No FAQs found for your search.</Text>
+                    <Text style={[styles.emptyResultsText, { color: theme.placeholderTextColor }]}>
+                      No FAQs found for your search.
+                    </Text>
                   </View>
                 )}
               </View>
@@ -125,20 +151,30 @@ const HelpCenterScreen = ({ navigation }) => {
         </View>
       </SafeAreaView>
 
-      {/* Absolute Footer Button */}
+      {/* Footer Button */}
       <View style={styles.absoluteFooter}>
         <View style={styles.footerWrapper}>
-          <TouchableOpacity style={styles.problemButton} onPress={() => currentNavigation.navigate('ReportProblemScreen')}>
-            <Text style={styles.problemButtonText}>Still have a problem?</Text>
-          </TouchableOpacity>
+          <LinearGradient
+            start={{ x: 0.0, y: 0.95 }}
+            end={{ x: 1.0, y: 1.0 }}
+            colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+            style={[styles.problemButton, { backgroundColor: theme.primaryColor }]}
+          >
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+              onPress={() => currentNavigation.navigate('ReportProblemScreen')}
+            >
+              <Image source={p2} style={styles.profileButtonIcon} />
+              <Text style={styles.problemButtonText}>Still have a problem?</Text>
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
       </View>
-
     </ImageBackground>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   safeArea: {
     flex: 1,
   },
@@ -146,23 +182,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: responsiveWidth(20),
   },
-  // Header styles are now largely handled by the imported Header component
-  // If you need custom header, remove the Header component and uncomment/add these:
-  // header: { /* ... */ },
-  // backButton: { /* ... */ },
-  // backIcon: { /* ... */ },
-  // headerTitle: { /* ... */ },
-
   scrollContent: {
-    paddingBottom: verticalScale(100), // Adjust padding to make space for the absolute footer
+    paddingBottom: verticalScale(100),
   },
   searchBarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)', // Matched image background
     borderWidth: 0.9,
-    borderColor: theme.borderColor, // Closer to the image's border color
-    borderRadius: responsiveWidth(8), // Matched image border radius
+    borderColor: theme.borderColor,
+    borderRadius: responsiveWidth(8),
     paddingHorizontal: responsiveWidth(15),
     height: responsiveHeight(55),
     marginVertical: responsiveHeight(20),
@@ -172,28 +200,24 @@ const styles = StyleSheet.create({
     height: responsiveHeight(20),
     resizeMode: 'contain',
     marginRight: responsiveWidth(10),
-    tintColor: '#B0B0B0', // Grey tint for search icon
+    tintColor: '#B0B0B0',
   },
   searchInput: {
     flex: 1,
-    color: '#E0E0E0',
-    fontSize: responsiveFontSize(14),
+    fontSize: responsiveFontSize(11),
     height: '100%',
-    fontFamily: "Inter-Regular", // Consistent font
+    fontFamily: 'Inter-Regular',
   },
   faqListContainer: {
-    gap: responsiveHeight(15), // Spacing between FAQ cards
+    gap: responsiveHeight(15),
     marginBottom: responsiveHeight(20),
   },
   faqItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)', // Matched image background
     borderWidth: 0.9,
-    borderColor: theme.borderColor, // Matched image border color
-    borderRadius: responsiveWidth(8), // Matched image border radius
-    overflow: 'hidden', // Ensure content respects border radius
-  },
-  lastFaqItem: {
-    // No specific style needed if gap handles spacing; otherwise add borderBottomWidth: 0
+    // borderTopWidth:0,
+    borderColor: theme.borderColor,
+    borderRadius: responsiveWidth(8),
+    overflow: 'hidden',
   },
   faqQuestionButton: {
     paddingHorizontal: responsiveWidth(15),
@@ -201,15 +225,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: responsiveHeight(15),
-    borderRadius: responsiveWidth(8), 
+    borderRadius: responsiveWidth(8),
     borderWidth: 0.9,
-    borderTopWidth:0,
+    borderTopWidth: 0,
     borderColor: theme.borderColor,
   },
   faqQuestion: {
     fontSize: responsiveFontSize(13),
-    color: '#ffffff',
-    fontFamily: "Inter-Light-BETA", // Ensure this font is loaded
+    fontFamily: 'Inter-Light-BETA',
     flex: 1,
     marginRight: responsiveWidth(10),
   },
@@ -218,35 +241,30 @@ const styles = StyleSheet.create({
     height: responsiveHeight(13),
     resizeMode: 'contain',
     tintColor: '#B0B0B0',
-    transform: [{ rotate: `90deg` }], // Right arrow by default
+    transform: [{ rotate: '90deg' }],
   },
   faqAnswerContainer: {
     paddingHorizontal: responsiveWidth(15),
     paddingBottom: responsiveHeight(15),
-    // backgroundColor: 'rgba(255, 255, 255, 0.03)', // Slightly different background for answer part
-    borderTopWidth: StyleSheet.hairlineWidth, // Thin separator
+    // borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#303030',
   },
   faqAnswer: {
     fontSize: responsiveFontSize(13),
-    color: '#FFFFFF',
-    paddingTop:responsiveWidth(10),
-    fontFamily: "Inter-Thin-BETA", // Ensure this font is loaded
+    paddingTop: responsiveWidth(10),
+    fontFamily: 'Inter-Thin-BETA',
     lineHeight: responsiveFontSize(20),
   },
   loadingContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: responsiveHeight(50),
   },
   loadingText: {
-    color: '#E0E0E0',
     marginTop: responsiveHeight(10),
     fontSize: responsiveFontSize(14),
   },
   errorContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: responsiveHeight(50),
@@ -258,7 +276,6 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(14),
   },
   retryButton: {
-    backgroundColor: '#007AFF',
     borderRadius: responsiveWidth(8),
     paddingVertical: responsiveHeight(10),
     paddingHorizontal: responsiveWidth(20),
@@ -273,51 +290,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyResultsText: {
-    color: '#B0B0B0',
     fontSize: responsiveFontSize(14),
     textAlign: 'center',
   },
-
-  // Footer styles (fixed at bottom)
   absoluteFooter: {
     position: 'absolute',
-    bottom: verticalScale(25), // Adjusted bottom spacing
+    bottom: verticalScale(25),
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 10, // Ensure it's above other content
+    zIndex: 10,
   },
   footerWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)', // Matches design
-    borderColor: '#303030', // Matches design
+    borderColor: theme.borderColor,
     borderWidth: 0.9,
-    borderRadius: responsiveWidth(102), // Large border radius for capsule shape
-    padding: responsiveWidth(14), // Internal padding
-    paddingHorizontal: responsiveWidth(26), // More horizontal padding
+    borderRadius: responsiveWidth(102),
+    padding: responsiveWidth(14),
+    paddingHorizontal: responsiveWidth(26),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  problemButton: { // This button takes the place of your original 'profileButton' in the footer
+  problemButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#007AFF', // Blue button
-    borderRadius: responsiveWidth(120), // Highly rounded for capsule
-    padding: responsiveWidth(7), // Smaller padding inside
-    paddingHorizontal: responsiveWidth(25), // More horizontal padding inside
+    borderRadius: responsiveWidth(120),
+    padding: responsiveWidth(11),
+    paddingHorizontal: responsiveWidth(25),
     justifyContent: 'center',
   },
-  profileButtonIcon: { // Renamed from p2 to problemButtonIcon for clarity
-    width: responsiveWidth(20), // Smaller icon
+  profileButtonIcon: {
+    width: responsiveWidth(20),
     height: responsiveHeight(20),
     resizeMode: 'contain',
     marginRight: responsiveWidth(10),
     tintColor: 'white',
   },
-  problemButtonText: { // Renamed from profileButtonText for clarity
+  problemButtonText: {
     fontSize: responsiveFontSize(13),
     color: 'white',
-    fontFamily: 'Inter-Medium', // Ensure font is loaded
+    fontFamily: 'Inter-Medium',
   },
 });
 

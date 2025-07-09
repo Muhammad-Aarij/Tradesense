@@ -116,6 +116,7 @@ import d from './d.png'
 import m from './m.png'
 import discover from './discover.png'
 import discover1 from './discover1.png'
+import discoverLight from './discoverLight.png'
 import lockicon from './lockicon.png'
 import play2 from './play2.png'
 import bundle from './bundle.png'
@@ -146,5 +147,5 @@ export {
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger, camera,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
-  cf1, cf2, cf3, cf4, pic, gallery, click, checkboxChecked, checkboxUnchecked
+  cf1, cf2, cf3, cf4, pic, gallery, click, checkboxChecked, checkboxUnchecked, discoverLight
 };

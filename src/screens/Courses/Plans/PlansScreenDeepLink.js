@@ -6,12 +6,14 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { bg, CheckMark, tick } from '../../../assets/images';
+import { bg, CheckMark, fail, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
 import theme from '../../../themes/theme';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { enrollInCourse } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { trackAffiliateVisit } from '../../../functions/affiliateApi';
+
 const { width, height } = Dimensions.get('window');
 
 const PlanCard = ({
@@ -59,46 +61,90 @@ const PlansScreenDeepLink = () => {
     const route = useRoute();
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    const { plans = [], Courseid: courseId } = route.params || {};
+    const { plans = [], Courseid: courseId, affiliateCode } = route.params || {};
     const userData = useSelector(state => state.auth);
-    console.log("UserData", userData);
     const studentId = userData.userObject?._id;
 
     const [selectedPlanId, setSelectedPlanId] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalMessage, setModalMessage] = useState('');
+    const [modalIcon, setModalIcon] = useState(null);
 
     const handleEnroll = async ({ studentId, courseId, planId }) => {
+        console.log("Enrolling with:", studentId, courseId, planId);
+
         try {
-            dispatch(startLoading);
-            await enrollInCourse({ studentId, courseId, plan: planId });
-            dispatch(stopLoading);
-            setModalVisible(true);
+            dispatch(startLoading());
+
+            const result = await enrollInCourse({
+                studentId,
+                courseId,
+                plan: planId, // fixed key name
+            });
+
+            if (result && result._id) {
+                await logVisit();
+                setModalTitle('Course Purchased Successfully');
+                setModalMessage('You have been successfully enrolled in this course.');
+                setModalIcon(tick);
+                setModalVisible(true);
+            } else if (result?.message === 'Enrollment already exists') {
+                setModalTitle('Already Enrolled');
+                setModalMessage('You are already enrolled in this course.');
+                setModalIcon(fail);
+                setModalVisible(true);
+            } else {
+                console.warn("Enrollment failed: ", result);
+                setModalIcon(fail);
+                setModalTitle('Error');
+                setModalMessage('Something went wrong. Please try again.');
+                setModalVisible(true);
+            }
+
         } catch (error) {
-            dispatch(stopLoading);
             console.error('Enrollment error:', error);
-            // You can add a toast here if you want
+            if (error?.response?.data?.message === 'Enrollment already exists') {
+                setModalTitle('Already Enrolled');
+                setModalMessage('You are already enrolled in this course.');
+                setModalIcon(fail);
+            } else {
+                setModalTitle('Error');
+                setModalMessage('Something went wrong. Please try again.');
+                setModalIcon(fail);
+            }
+            setModalVisible(true);
+        } finally {
+            dispatch(stopLoading());
+        }
+    };
+
+    const logVisit = async () => {
+        const result = await trackAffiliateVisit({
+            referrerUserId: affiliateCode,
+            courseId,
+            type: 'enrolled',
+        });
+
+        if (result.error) {
+            console.warn("Affiliate enrolled tracking failed:", result.details || result.error);
+        } else {
+            console.log("Affiliate enrolled successfully");
         }
     };
 
     const handleCloseModal = () => {
         setModalVisible(false);
-        navigation.navigate('PurchasedCoursesScreen');
+        navigation.navigate('MainFlow');
     };
-
-    // useEffect(()=>{
-    //     dispatch(startLoading);    
-    //     setTimeout(() => {
-
-    //         dispatch(stopLoading);    
-    //     }, 1000);
-    // })
 
     return (
         <>
             {modalVisible && (
                 <ConfirmationModal
-                    title={'Course Purchased Successfully'}
-                    icon={tick}
+                    title={modalTitle}
+                    description={modalMessage}
+                    icon={modalIcon}
                     onClose={handleCloseModal}
                 />
             )}
@@ -118,7 +164,13 @@ const PlansScreenDeepLink = () => {
                                 studentId={studentId}
                                 onPress={() => setSelectedPlanId(plan._id)}
                                 isSelected={selectedPlanId === plan._id}
-                                onEnroll={handleEnroll}
+                                onEnroll={() =>
+                                    handleEnroll({
+                                        studentId,
+                                        courseId,
+                                        planId: plan._id,
+                                    })
+                                }
                             />
                         ))}
                     </ScrollView>
@@ -129,7 +181,7 @@ const PlansScreenDeepLink = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 25, paddingTop: 20 },
+    container: { flex: 1, padding: 25, paddingTop: 0 },
     scrollContent: { paddingBottom: height * 0.1 },
     planCard: {
         padding: 16,

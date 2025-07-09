@@ -1,83 +1,75 @@
 import React, { useContext } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { BlurView } from "@react-native-community/blur";
+import LinearGradient from 'react-native-linear-gradient';
 import { back, hamburger } from '../assets/images';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../context/ThemeProvider';
-import theme from '../themes/theme';
-import { openSidebar } from '../redux/slice/loaderSlice'
-import { useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux';
+import { openSidebar } from '../redux/slice/loaderSlice';
 
 const Header = ({ title, addpadding, style }) => {
-    const navigation = useNavigation();
-    // const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
-    const styles = getStyles(theme);
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const { theme } = useContext(ThemeContext); // ✅ Use theme from context
+  const styles = getStyles(theme);
 
-    return (
-        <View style={[styles.header, style]}>
-            <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={[
-                    styles.backButtonTouchable,
-                    addpadding ? { paddingLeft: 10 } : null
-                ]}
-                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-            >
-                <View style={styles.blurWrapper}>
-                    <Image source={back} style={{ width: 10, height: 10, resizeMode: 'contain' }} />
-                </View>
-            </TouchableOpacity>
+  return (
+    <View style={[styles.header, style]}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={[styles.backButtonTouchable, addpadding ? { paddingLeft: 10 } : null]}
+        hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+      >
+        <LinearGradient
+          colors={['rgba(0, 0, 0, 0.14)', 'rgba(255, 255, 255, 0.1)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.blurWrapper}
+        >
+          <Image source={back} style={styles.backIcon} />
+        </LinearGradient>
+      </TouchableOpacity>
 
-
-            {/* <TouchableOpacity style={styles.blurWrapper} >
-                <BlurView blurType="light" blurAmount={20} style={styles.blurView}>
-                    <Image source={back} style={{ width: 15, height: 15, resizeMode: 'contain', padding: 10 }} />
-                </BlurView>
-            </TouchableOpacity> */}
-
-            {/* <TouchableOpacity onPress={() => dispatch(openSidebar())}
-                style={{
-                    position: "absolute", top: 35, left: 30,
-                    zIndex: 1000, backgroundColor: "#rgba(252, 254, 255, 0.69)", padding: 10, borderRadius: 100
-                }}>
-                <Image source={hamburger} style={{ width: 20, height: 20, resizeMode: "contain", tintColor: "black" }} />
-            </TouchableOpacity> */}
-
-            {/* Centered Title using absolute positioning */}
-            <Text style={styles.title}>{title}</Text>
-        </View>
-    );
+      {/* Centered Title */}
+      <Text style={styles.title}>{title}</Text>
+    </View>
+  );
 };
 
 const getStyles = (theme) => StyleSheet.create({
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 35,
-        marginBottom: 45,
-        position: 'relative', // Allows absolute positioning inside
-    },
-
-    blurWrapper: {
-        width: 30, height: 30, borderRadius: 20, padding: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: "rgba(42, 75, 138, 0.39)"
-    },
-
-    blurView: {
-        width: "100%", height: "100%", alignItems: 'center', justifyContent: 'center',
-    },
-
-    backIcon: { width: 15, height: 15, resizeMode: 'contain' },
-
-    title: {
-        fontSize: 15,
-        color: theme.textColor,
-        fontFamily: 'Inter-Medium',
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        textAlign: 'center',
-    },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 35,
+    marginBottom: 45,
+    position: 'relative',
+  },
+  backButtonTouchable: {
+    zIndex: 10,
+  },
+  blurWrapper: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  backIcon: {
+    width: 12,
+    height: 12,
+    resizeMode: 'contain',
+    tintColor: theme.bw || 'white',
+  },
+  title: {
+    fontSize: 15,
+    color: theme.textColor,
+    fontFamily: 'Inter-Medium',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+  },
 });
 
 export default Header;

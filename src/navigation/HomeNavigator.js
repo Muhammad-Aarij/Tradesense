@@ -17,6 +17,7 @@ import Acc_FormData from '../screens/Accountability/formData/Acc_FormData';
 import CoursesNavigator from './CoursesNavigator';
 import SidebarNavigator from './SidebarNavigator';
 import AffiliateNavigator from './AffiliateNavigator';
+import Mode from '../components/Mode';
 
 const Home = createNativeStackNavigator();
 
@@ -38,7 +39,7 @@ const HomeNavigator = () => {
         <Home.Screen name="Courses" component={CoursesNavigator} />
         <Home.Screen name="Affiliate" component={AffiliateNavigator} />
       </Home.Navigator>
-
+      <Mode />
       {/* {isSidebarOpen && <MenuComponent />} */}
       <Hamburger />
     </>

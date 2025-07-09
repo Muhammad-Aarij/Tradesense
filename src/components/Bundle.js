@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { lockicon } from '../assets/images';
+import { ThemeContext } from '../context/ThemeProvider';
 
 const Bundle = ({ imageSource, title, description, locked, onPress, type }) => {
+  const { theme } = useContext(ThemeContext);
+  const styles = getStyles(theme);
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.thumbnailWrapper}>
@@ -18,7 +22,7 @@ const Bundle = ({ imageSource, title, description, locked, onPress, type }) => {
           <Text style={styles.durationText}>15 min</Text>
         </View>
 
-        {/* Optional Lock Icon */}
+        {/* Lock Icon */}
         {locked && (
           <View style={styles.lock}>
             <Image source={lockicon} style={styles.lockIcon} />
@@ -35,7 +39,7 @@ const Bundle = ({ imageSource, title, description, locked, onPress, type }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   card: {
     width: 160,
     marginRight: 12,
@@ -54,7 +58,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor:'rgba(84, 175, 211, 0.8)',
+    backgroundColor: 'rgba(84, 175, 211, 0.8)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -87,8 +91,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   lockIcon: {
-    width: 10,
-    height: 10,
+    width: 15,
+    height: 15,
+    resizeMode:"contain",
     tintColor: '#fff',
   },
   content: {
@@ -98,11 +103,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#fff',
+    color: theme.textColor,
   },
   description: {
     fontSize: 9,
-    color: '#aaa',
+    color: theme.subTextColor || '#aaa',
     marginTop: 2,
   },
 });

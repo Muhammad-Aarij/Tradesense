@@ -116,6 +116,7 @@ const EmailVerification = ({ navigation, route }) => {
                     {code.map((digit, index) => (
                         <TextInput
                             key={index}
+                            keyboardType="numeric"
                             ref={ref => inputs.current[index] = ref}
                             value={digit}
                             onChangeText={text => handleChange(text, index)}

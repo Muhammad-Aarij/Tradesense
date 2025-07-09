@@ -1,25 +1,29 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
     View, Text, Image, StyleSheet, ScrollView, TouchableOpacity,
     Dimensions, ImageBackground, SafeAreaView
 } from 'react-native';
-import { bg, user } from '../../../assets/images';
-import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
+import Sound from 'react-native-sound';
+import LinearGradient from 'react-native-linear-gradient';
+
+import { bg, user } from '../../../assets/images';
+import Header from '../../../components/Header';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useCourseDetail } from '../../../functions/handleCourses';
 import Loader from '../../../components/loader';
-import Sound from 'react-native-sound';
+import { ThemeContext } from '../../../context/ThemeProvider';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const CourseDetailScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const dispatch = useDispatch();
 
+    const { theme } = useContext(ThemeContext);
+    const styles = getStyles(theme);
     const [durations, setDurations] = useState({});
     const { courseId, courseTitle, affiliateToken } = route.params || {};
 
@@ -76,20 +80,25 @@ const CourseDetailScreen = () => {
     return (
         <>
             {isLoading && <Loader />}
-            <ImageBackground source={bg} style={styles.container}>
+            <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.background }]}>
                 <SafeAreaView>
-
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        <Header title={course?.title || courseTitle} />
+                        <Header title={course?.title || courseTitle} style={{ marginBottom: 25 }} />
                         <View style={styles.mainImageContainer}>
                             <Image source={{ uri: course?.thumbnail }} style={styles.mainCourseImage} />
-                            <View style={styles.imgOverlay} />
+                            {/* Gradient overlay */}
+                            <LinearGradient
+                                colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.9)']}
+                                style={styles.gradientOverlay}
+                            />
                             <View style={styles.imageOverlay}>
                                 <View style={styles.overlayTop}>
                                     <View style={styles.instructorInfo}>
                                         <Image source={user} style={styles.instructorImage} />
                                         <View>
-                                            <Text style={styles.instructorName}>{course?.instructorName}</Text>
+                                            <Text style={[styles.instructorName, { color: theme.primaryColor }]}>
+                                                {course?.instructorName}
+                                            </Text>
                                             <Text style={styles.instructorSubtitle}>Guided Audio</Text>
                                         </View>
                                     </View>
@@ -98,31 +107,31 @@ const CourseDetailScreen = () => {
                         </View>
 
                         <View style={styles.courseInfoSection}>
-                            <Text style={styles.courseDescription}>
+                            <Text style={[styles.courseDescription, { color: theme.textColor }]}>
                                 {course?.description}
                             </Text>
                         </View>
 
-                        <View style={{ width: '100%', marginBottom: 20, borderTopWidth: 1, borderColor: 'rgba(119, 119, 119, 0.23)' }} />
+                        <View style={styles.divider} />
 
                         <View style={styles.audiosSection}>
                             {modules.map((module) => (
-                                <View key={module._id} style={styles.audioItem}>
+                                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                    key={module._id} style={styles.audioItem}>
                                     <View style={styles.audioLeft}>
                                         <Text style={styles.audioTitle}>{module.title}</Text>
                                     </View>
                                     <Text style={styles.audioDuration}>
-                                        {durations[module._id]
-                                            ? formatDuration(durations[module._id])
-                                            : 'Loading...'}
+                                        {formatDuration(module.duration)}
                                     </Text>
                                     <Text style={styles.audioDescription}>{module.description}</Text>
-                                </View>
+                                </LinearGradient>
                             ))}
                         </View>
 
                         <TouchableOpacity
-                            style={styles.buyNowButton}
+                            style={[styles.buyNowButton, { backgroundColor: theme.primaryColor }]}
                             onPress={() =>
                                 navigation.navigate('PlansScreen', {
                                     plans: course?.plans || [],
@@ -133,7 +142,6 @@ const CourseDetailScreen = () => {
                         >
                             <Text style={styles.buyNowButtonText}>Buy Now</Text>
                         </TouchableOpacity>
-
                     </ScrollView>
                 </SafeAreaView>
             </ImageBackground>
@@ -141,48 +149,50 @@ const CourseDetailScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        paddingTop:0,
-        backgroundColor: 'black'
+        paddingTop: 0,
     },
     centered: {
-        // paddingBottom: height * 0.3,
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#08131F'
     },
-    scrollContent: { paddingBottom: 150 },
+    scrollContent: {
+        paddingBottom: 150
+    },
     mainImageContainer: {
         width: '100%',
         height: width * 0.55,
-        justifyContent: 'center',
-        alignItems: 'center',
         borderRadius: 12,
         overflow: 'hidden',
+        position: 'relative',
+        marginBottom: 20
     },
     mainCourseImage: {
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
-        position: 'relative'
+        resizeMode: 'cover'
     },
-    imgOverlay: {
+    gradientOverlay: {
         position: 'absolute',
         width: '100%',
         height: '100%',
-        backgroundColor: 'rgba(31, 30, 30, 0.4)',
-        zIndex: 10
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 5
     },
     imageOverlay: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 15
+        padding: 15,
+        zIndex: 10
     },
     overlayTop: {
         flexDirection: 'row',
@@ -192,10 +202,9 @@ const styles = StyleSheet.create({
     instructorInfo: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderRadius: 20,
         paddingHorizontal: 10,
         paddingVertical: 5,
-        zIndex: 100
+        borderRadius: 20,
     },
     instructorImage: {
         width: 40,
@@ -204,7 +213,6 @@ const styles = StyleSheet.create({
         marginRight: 5
     },
     instructorName: {
-        color: theme.primaryColor,
         fontSize: 13,
         fontFamily: 'Inter-SemiBold'
     },
@@ -214,14 +222,20 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Light-BETA'
     },
     courseInfoSection: {
-        marginTop: 20,
+        marginTop: 10,
         paddingBottom: 10
     },
     courseDescription: {
-        color: '#FFFFFF',
+        color: theme.textColor,
         fontSize: 13,
         lineHeight: 20,
         fontFamily: 'Inter-Light-BETA'
+    },
+    divider: {
+        width: '100%',
+        marginVertical: 20,
+        borderTopWidth: 1,
+        borderColor: 'rgba(119, 119, 119, 0.23)'
     },
     audiosSection: {
         paddingVertical: 10,
@@ -241,24 +255,23 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     audioTitle: {
-        color: '#FFFFFF',
+        color: theme.textColor,
         fontSize: 14,
         fontFamily: 'Inter-Medium'
     },
     audioDuration: {
-        color: '#AAAAAA',
+        color: theme.subTextColor,
         fontFamily: 'Inter-Light-BETA',
         fontSize: 12,
         marginBottom: 10
     },
     audioDescription: {
-        color: '#FFFFFF',
+        color: theme.subTextColor,
         fontFamily: 'Inter-Light-BETA',
         fontSize: 11,
-        lineHeight: 12
+        lineHeight: 13
     },
     buyNowButton: {
-        backgroundColor: theme.primaryColor,
         width: '100%',
         padding: 15,
         borderRadius: 14,

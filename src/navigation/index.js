@@ -3,8 +3,6 @@ import { NavigationContainer, useNavigationContainerRef } from '@react-navigatio
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import jwtDecode from 'jwt-decode';
-
 import AuthNavigator from './AuthNavigator';
 import HomeNavigator from './HomeNavigator';
 import Loader from '../components/loader';
@@ -74,7 +72,7 @@ const AppNavContainer = () => {
                         navigationRef.current.navigate('SignInModal', {
                             pendingDeepLink: { courseId, affiliateCode }
                         });
-                    } else {
+                    } else { 
                         navigationRef.current.navigate('CourseDeepLink', {
                             courseId,
                             affiliateCode

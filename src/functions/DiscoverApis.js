@@ -6,7 +6,7 @@ import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 
 const fetchTopPicks = async (userId) => {
   const response = await axios.get(`${API_URL}/api/resources/recommend/${userId}`);
-  console.log('Top Picks Response:', response.data);
+  // console.log('Top Picks Response:', response.data);
   return response.data;
 };
 
@@ -48,7 +48,7 @@ const fetchBundles = async (userId) => {
   console.log('Fetching bundles for user:', userId);
   console.log('complete url', `${API_URL}/api/resources/bundle/${userId}`);
   const response = await axios.get(`${API_URL}/api/resources/bundle/${userId}`);
-  console.log('Bundles Response (JSON):', JSON.stringify(response.data, null, 2));
+  // console.log('Bundles Response (JSON):', JSON.stringify(response.data, null, 2));
   return response.data;
 };
 

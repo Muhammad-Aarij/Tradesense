@@ -47,7 +47,7 @@ export const deleteGoal = async (goalId) => {
 
 const fetchGoalsByUser = async (userId) => {
   const response = await axios.get(`${API_URL}/api/habbits/${userId}`);
-  console.log('Response from fetch goals by user:', response.data);
+  // console.log('Response from fetch goals by user:', response.data);
   return response.data;
 };
  
