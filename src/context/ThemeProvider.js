@@ -62,7 +62,7 @@ export const ThemeProvider = ({ children }) => {
     bw: isDarkMode ? "#FFFFFF" : "#000000",
     tabBg: isDarkMode ? "rgba(11, 16, 22, 0.9)" : "#FFFFFF",
     subTextColor: isDarkMode ? "#C4C7C9" : "#5a5a5a",
-    borderColor: isDarkMode ? "#272e36" : "#eaeaea",
+    borderColor: isDarkMode ? "#272e36" : "#d4d4d4",
     transparentBg: isDarkMode ? "rgba(255, 255, 255, 0.06)" : "#e3e3e3",
   };
 

@@ -25,7 +25,7 @@ const HomeNavigator = () => {
 
   return (
     <>
-      <Home.Navigator screenOptions={{ headerShown: false }}>
+      <Home.Navigator screenOptions={{ headerShown: false }} >
         <Home.Screen name="BottomTabs" component={BottomNavigator} />
         <Home.Screen name="CoursesStack" component={CoursesNavigator} />
         <Home.Screen name="TrackPlayer" component={PlayerScreen} />

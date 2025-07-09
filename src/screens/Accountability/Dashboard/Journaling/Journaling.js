@@ -62,14 +62,16 @@ const Journaling = ({ navigation }) => {
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
                 {/* Gradient Card */}
-                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                    style={styles.card}>
-                    <Text style={styles.cardTitle}>Trading Improve today</Text>
-                    <Text style={styles.cardDescription}>
-                        Emotional Control and Risk Management are up to 15%, while timebox trading decreased by 20%.
-                    </Text>
-                </LinearGradient>
+                <TouchableOpacity onPress={()=>navigation.navigate("Acc_FormData")}>
+                    <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                        colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                        style={styles.card}>
+                        <Text style={styles.cardTitle}>Trading Improve today</Text>
+                        <Text style={styles.cardDescription}>
+                            Emotional Control and Risk Management are up to 15%, while timebox trading decreased by 20%.
+                        </Text>
+                    </LinearGradient>
+                </TouchableOpacity>
 
                 {/* Metrics */}
                 <View style={styles.metricsContainer}>

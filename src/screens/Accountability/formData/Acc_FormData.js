@@ -1,36 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ImageBackground,
+  Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomInput from '../../../components/CustomInput';
 import { bg } from '../../../assets/images';
 import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
-// CustomPicker Component for consistent styling
-const CustomPicker = ({ label, selectedValue, onValueChange, items }) => (
+import { useDispatch, useSelector } from 'react-redux';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { submitTradeForm } from '../../../functions/Trades';
+import { useNavigation } from '@react-navigation/native';
+import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ import theme context
+
+const CustomPicker = ({ label, selectedValue, onValueChange, items, styles, theme }) => (
   <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <View style={styles.pickerContainer}>
+    <Text style={[styles.inputLabel, { color: theme.textColor }]}>{label}</Text>
+    <View style={[styles.pickerContainer,{borderColor:theme.borderColor}]}>
       <Picker
         selectedValue={selectedValue}
         onValueChange={onValueChange}
-        style={styles.picker}
-        itemStyle={styles.pickerItem} // Apply style to picker items
-        dropdownIconColor="#FFF" // Set dropdown arrow color
+        style={[{fontSize:13,},{color:theme.textColor}]}
+        itemStyle={styles.pickerItem}
+        dropdownIconColor={theme.textColor}
       >
         {items.map((item, index) => (
-          <Picker.Item style={styles.picker} key={index} label={item.label} value={item.value} />
+          <Picker.Item key={index} label={item.label} value={item.value} />
         ))}
       </Picker>
     </View>
@@ -38,45 +42,58 @@ const CustomPicker = ({ label, selectedValue, onValueChange, items }) => (
 );
 
 export default function Acc_FormData() {
-  // State variables for form fields
+  const { theme, isDarkMode } = useContext(ThemeContext); // ✅ use theme
+  const styles = useMemo(() => getStyles(theme), [theme]);
+
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  // State
   const [tradeDate, setTradeDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tradeType, setTradeType] = useState('Intraday');
   const [setupName, setSetupName] = useState('Reversal');
   const [direction, setDirection] = useState('Short');
   const [entryPrice, setEntryPrice] = useState('');
   const [exitPrice, setExitPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [stopLoss, setStopLoss] = useState('');
-  const [takeProfitTarget, setTakeProfitTarget] = useState('2x');
+  const [takeProfitTarget, setTakeProfitTarget] = useState(2);
   const [actualExitPrice, setActualExitPrice] = useState('');
   const [result, setResult] = useState('Profit');
   const [emotionalState, setEmotionalState] = useState('Calm');
   const [reflectionNotes, setReflectionNotes] = useState('');
 
-  // Dummy data for pickers
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+
+  const userData = useSelector(state => state.auth);
+  const studentId = userData.userObject?._id;
+
+  const tradeTypeOptions = [
+    { label: 'Intraday', value: 'Intraday' },
+    { label: 'Swing', value: 'Swing' },
+    { label: 'Scalp', value: 'Scalp' },
+  ];
   const setupNameOptions = [
     { label: 'Reversal', value: 'Reversal' },
     { label: 'Breakout', value: 'Breakout' },
     { label: 'Continuation', value: 'Continuation' },
   ];
-
   const directionOptions = [
     { label: 'Short', value: 'Short' },
     { label: 'Long', value: 'Long' },
   ];
-
   const takeProfitTargetOptions = [
-    { label: '1x', value: '1x' },
-    { label: '2x', value: '2x' },
-    { label: '3x', value: '3x' },
+    { label: '1x', value: 1 },
+    { label: '2x', value: 2 },
+    { label: '3x', value: 3 },
   ];
-
   const resultOptions = [
     { label: 'Profit', value: 'Profit' },
     { label: 'Loss', value: 'Loss' },
     { label: 'Breakeven', value: 'Breakeven' },
   ];
-
   const emotionalStateOptions = [
     { label: 'Calm', value: 'Calm' },
     { label: 'Excited', value: 'Excited' },
@@ -84,55 +101,58 @@ export default function Acc_FormData() {
     { label: 'Frustrated', value: 'Frustrated' },
   ];
 
-  // Date picker handlers
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || tradeDate;
-    setShowDatePicker(Platform.OS === 'ios'); // On iOS, keep showing until done button is pressed if you had one.
+    setShowDatePicker(Platform.OS === 'ios');
     setTradeDate(currentDate);
   };
 
-  const handleDatePress = () => {
-    setShowDatePicker(true);
-  };
-
-  // Submit handler
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const formData = {
-      tradeDate: tradeDate.toISOString().split('T')[0], // Format date as YYYY-MM-DD
+      tradeDate: tradeDate.toISOString().split('T')[0],
+      userId: studentId,
+      tradeType,
       setupName,
       direction,
       entryPrice: parseFloat(entryPrice),
       exitPrice: parseFloat(exitPrice),
       quantity: parseInt(quantity),
       stopLoss: parseFloat(stopLoss),
-      takeProfitTarget,
+      takeProfitTarget: Number(takeProfitTarget),
       actualExitPrice: parseFloat(actualExitPrice),
       result,
       emotionalState,
-      reflectionNotes,
+      notes: reflectionNotes,
     };
+
     console.log('Form Submitted:', formData);
-    // Here you would typically send this data to a server or save it locally.
+    try {
+      dispatch(startLoading());
+      const response = await submitTradeForm(formData);
+      console.log('Trade submitted successfully:', response);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to submit trade:', error);
+      setShowErrorModal(true);
+    } finally {
+      dispatch(stopLoading());
+    }
   };
 
   return (
-    <ImageBackground source={bg} style={styles.container}>
+    <ImageBackground source={isDarkMode ? bg : null} style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {/* Header */}
-          <Header title={"Form Data"} />
-
+          <Header title="Form Data" />
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
-            {/* Trade Date */}
+            {/* All Inputs */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Trade Date</Text>
-              <TouchableOpacity onPress={handleDatePress} style={styles.datePickerInput}>
+              <Text style={[styles.inputLabel, { color: theme.textColor }]}>Trade Date</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerInput}>
                 <Text style={styles.textInputContent}>{tradeDate.toLocaleDateString()}</Text>
-                {/* Dropdown arrow placeholder */}
-                {/* <Text style={styles.dropdownArrow}>V</Text> */}
               </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
@@ -145,232 +165,166 @@ export default function Acc_FormData() {
               )}
             </View>
 
-            {/* Setup Name Picker */}
-            <CustomPicker
-              label="Setup Name"
-              selectedValue={setupName}
-              onValueChange={(itemValue) => setSetupName(itemValue)}
-              items={setupNameOptions}
-            />
+            <CustomPicker label="Trade Type" selectedValue={tradeType} onValueChange={setTradeType} items={tradeTypeOptions} styles={styles} theme={theme} />
+            <CustomPicker label="Setup Name" selectedValue={setupName} onValueChange={setSetupName} items={setupNameOptions} styles={styles} theme={theme} />
+            <CustomPicker label="Direction" selectedValue={direction} onValueChange={setDirection} items={directionOptions} styles={styles} theme={theme} />
 
-            {/* Direction Picker */}
-            <CustomPicker
-              label="Direction"
-              selectedValue={direction}
-              onValueChange={(itemValue) => setDirection(itemValue)}
-              items={directionOptions}
-            />
+            <CustomInput label="Entry Price" value={entryPrice} onChangeText={setEntryPrice} keyboardType="numeric" />
+            <CustomInput label="Exit Price" value={exitPrice} onChangeText={setExitPrice} keyboardType="numeric" />
+            <CustomInput label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
+            <CustomInput label="Stop Loss" value={stopLoss} onChangeText={setStopLoss} keyboardType="numeric" />
+            <CustomPicker label="Take Profit Target" selectedValue={takeProfitTarget} onValueChange={setTakeProfitTarget} items={takeProfitTargetOptions} styles={styles} theme={theme} />
+            <CustomInput label="Actual Exit Price" value={actualExitPrice} onChangeText={setActualExitPrice} keyboardType="numeric" />
+            <CustomPicker label="Result" selectedValue={result} onValueChange={setResult} items={resultOptions} styles={styles} theme={theme} />
+            <CustomPicker label="Emotional State" selectedValue={emotionalState} onValueChange={setEmotionalState} items={emotionalStateOptions} styles={styles} theme={theme} />
+            <CustomInput label="Reflection Notes" value={reflectionNotes} onChangeText={setReflectionNotes} placeholder="What happened..." isMultiline={true} />
 
-            {/* Entry Price */}
-            <CustomInput
-              label="Entry Price"
-              value={entryPrice}
-              onChangeText={setEntryPrice}
-              keyboardType="numeric"
-            />
+            <TouchableOpacity style={styles.uploadButton} onPress={() => console.log('Upload chart pressed')}>
+              <Text style={styles.uploadButtonIcon}>☁️</Text>
+              <Text style={styles.uploadButtonText}>Upload chart image or screenshot</Text>
+            </TouchableOpacity>
 
-            {/* Exit Price */}
-            <CustomInput
-              label="Exit Price"
-              value={exitPrice}
-              onChangeText={setExitPrice}
-              keyboardType="numeric"
-            />
-
-            {/* Quantity */}
-            <CustomInput
-              label="Quantity"
-              value={quantity}
-              onChangeText={setQuantity}
-              keyboardType="numeric"
-            />
-
-            {/* Stop Loss */}
-            <CustomInput
-              label="Stop Loss"
-              value={stopLoss}
-              onChangeText={setStopLoss}
-              keyboardType="numeric"
-            />
-
-            {/* Take Profit Target Picker */}
-            <CustomPicker
-              label="Take Profit Target"
-              selectedValue={takeProfitTarget}
-              onValueChange={(itemValue) => setTakeProfitTarget(itemValue)}
-              items={takeProfitTargetOptions}
-            />
-
-            {/* Actual Exit Price */}
-            <CustomInput
-              label="Actual Exit Price"
-              value={actualExitPrice}
-              onChangeText={setActualExitPrice}
-              keyboardType="numeric"
-            />
-
-            {/* Result Picker */}
-            <CustomPicker
-              label="Result"
-              selectedValue={result}
-              onValueChange={(itemValue) => setResult(itemValue)}
-              items={resultOptions}
-            />
-
-            {/* Emotional State Picker */}
-            <CustomPicker
-              label="Emotional State"
-              selectedValue={emotionalState}
-              onValueChange={(itemValue) => setEmotionalState(itemValue)}
-              items={emotionalStateOptions}
-            />
-
-            {/* Reflection Notes */}
-            <CustomInput
-              label="Reflection Notes"
-              value={reflectionNotes}
-              onChangeText={setReflectionNotes}
-              placeholder="What happened..."
-              isMultiline={true}
-            />
-
-            {/* Attach Charts */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Attach Charts</Text>
-              <TouchableOpacity style={styles.uploadButton} onPress={() => console.log('Upload chart pressed')}>
-                <Text style={styles.uploadButtonIcon}>☁️</Text>
-                <Text style={styles.uploadButtonText}>Upload chart image or screenshot</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Submit Button */}
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
               <Text style={styles.submitButtonText}>Submit</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </ImageBackground>
 
+      {/* ✅ Success Modal */}
+      <Modal transparent={true} visible={showSuccessModal} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>✅ Trade submitted successfully!</Text>
+            <TouchableOpacity onPress={() => {
+              setShowSuccessModal(false);
+              navigation.navigate('Trading'); // 👈 change this if needed
+            }} style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>Go to Trades</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ❌ Error Modal */}
+      <Modal transparent={true} visible={showErrorModal} animationType="fade">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>❌ Failed to submit trade.</Text>
+            <TouchableOpacity onPress={() => setShowErrorModal(false)} style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ImageBackground>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 25,
-    paddingVertical: 0
-  },
-  formContainer: {
-    // paddingHorizontal: 20,
-    paddingBottom: 40, // Add padding at the bottom for scrolling
-  },
-  inputGroup: {
-    marginBottom: 15,
-  },
-  inputLabel: {
-    fontFamily: "Inter-Medium",
-    fontSize: 13,
-    color: "#fff",
-    marginBottom: 5,
-  },
-  textInput: {
-    backgroundColor: '#1C1C1C', // Darker background for input fields
-    borderRadius: 10,
-    color: '#FFF',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    color: '#fff',
-    fontFamily: "Inter-Regular",
-    paddingVertical: 15,
-    fontSize: 13,
-  },
-  multilineInput: {
-    height: 100, // Fixed height for multiline input
-    textAlignVertical: 'top', // Align text to the top
-  },
-  datePickerInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9, borderColor: theme.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    // paddingVertical: 4,
-    height: 60,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  textInputContent: {
-    color: '#fff',
-    fontFamily: "Inter-Regular",
-    paddingVertical: 15,
-    fontSize: 13,
-  },
-  pickerTxt: {
-    fontFamily: "Inter-Medium",
-    fontSize: 13,
-    color: "#fff",
-    marginBottom: 5,
-  },
-  dropdownArrow: {
-    color: '#FFF',
-    fontSize: 16,
-  },
-  pickerContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9, borderColor: theme.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-
-    overflow: 'hidden', // Ensures picker content stays within bounds
-  },
-  picker: {
-    height: 55,
-    color: '#fff',
-    fontFamily: "Inter-Regular",
-    paddingVertical: 15,
-    fontSize: 10,
-
-  },
-  pickerItem: {
-    color: '#FFF', // Ensure picker items are white on iOS
-  },
-  uploadButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9, borderColor: theme.borderColor,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 35,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#333', // Slightly lighter border
-  },
-  uploadButtonIcon: {
-    fontSize: 20,
-    color: '#FFF',
-    marginRight: 10,
-  },
-  uploadButtonText: {
-    color: '#FFF',
-    fontSize: 13,
-    fontWeight: '500',
-    fontFamily: "Inter-Regular",
-
-  },
-  submitButton: {
-    backgroundColor: theme.primaryColor,
-    width: '100%',
-    padding: 15,
-    borderRadius: 14,
-    marginTop: 20,
-    alignItems: 'center'
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-    fontFamily: "Inter-SemiBold",
-  },
-});
+const getStyles = (theme) =>
+  StyleSheet.create({
+    container: { flex: 1, padding: 25, paddingVertical: 0 },
+    formContainer: { paddingBottom: 40 },
+    inputGroup: { marginBottom: 15 },
+    inputLabel: {
+      fontFamily: 'Inter-Medium',
+      fontSize: 13,
+      color: '#fff',
+      marginBottom: 5,
+    },
+    datePickerInput: {
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      borderWidth: 0.9,
+      borderColor: theme.borderColor,
+      borderRadius: 8,
+      paddingHorizontal: 15,
+      height: 60,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    textInputContent: {
+      color: '#fff',
+      fontFamily: 'Inter-Regular',
+      fontSize: 13,
+      paddingVertical: 15,
+    },
+    pickerContainer: {
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      borderWidth: 0.9,
+      borderColor: theme.borderColor,
+      borderRadius: 8,
+      paddingHorizontal: 15,
+      overflow: 'hidden',
+    },
+    picker: {
+      height: 55,
+      color: '#fff',
+      fontFamily: 'Inter-Regular',
+      fontSize: 10,
+    },
+    pickerItem: { color: '#fff' },
+    uploadButton: {
+      backgroundColor: 'rgba(255,255,255,0.06)',
+      borderWidth: 1,
+      borderColor: '#333',
+      borderRadius: 8,
+      paddingHorizontal: 15,
+      paddingVertical: 35,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    uploadButtonIcon: { fontSize: 20, color: '#FFF', marginRight: 10 },
+    uploadButtonText: {
+      color: '#FFF',
+      fontSize: 13,
+      fontWeight: '500',
+      fontFamily: 'Inter-Regular',
+    },
+    submitButton: {
+      backgroundColor: theme.primaryColor,
+      width: '100%',
+      padding: 15,
+      borderRadius: 14,
+      marginTop: 20,
+      alignItems: 'center',
+    },
+    submitButtonText: {
+      color: '#fff',
+      fontSize: 17,
+      fontWeight: '600',
+      fontFamily: 'Inter-SemiBold',
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContent: {
+      backgroundColor: '#222',
+      padding: 25,
+      borderRadius: 15,
+      width: '80%',
+      alignItems: 'center',
+    },
+    modalText: {
+      color: '#fff',
+      fontSize: 16,
+      fontFamily: 'Inter-Medium',
+      marginBottom: 15,
+      textAlign: 'center',
+    },
+    modalButton: {
+      backgroundColor: theme.primaryColor,
+      paddingVertical: 10,
+      paddingHorizontal: 25,
+      borderRadius: 8,
+    },
+    modalButtonText: {
+      color: '#fff',
+      fontSize: 15,
+      fontFamily: 'Inter-SemiBold',
+    },
+  });

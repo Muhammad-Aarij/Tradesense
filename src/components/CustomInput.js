@@ -2,18 +2,19 @@ import React, { useContext } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { ThemeContext } from '../context/ThemeProvider';
 
-const CustomInput = ({ label, placeholder, secureTextEntry, value, onChangeText, icon, onIconPress, style }) => {
+const CustomInput = ({ label, placeholder, secureTextEntry, value, onChangeText, icon, onIconPress, style, ...props }) => {
     const { theme } = useContext(ThemeContext);
 
     return (
         <View style={styles.wrapper}>
             <Text style={[styles.label, { color: theme.textColor }]}>{label}</Text>
-            <View style={[styles.container, style,{borderColor:theme.borderColor}]}>
+            <View style={[styles.container, style, { borderColor: theme.borderColor }]}>
                 <TextInput
+                    {...props}
                     placeholder={placeholder}
-                    placeholderTextColor="#aaa"
+                    placeholderTextColor={theme.textColor}
                     secureTextEntry={secureTextEntry}
-                    style={[styles.input,{color:theme.textColor}]}
+                    style={[styles.input, { color: theme.textColor }]}
                     value={value}
                     onChangeText={onChangeText}
                 />

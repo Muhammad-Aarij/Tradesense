@@ -118,7 +118,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
 
             <View style={styles.menuItemsContainer}>
               <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('Menu', { screen: 'UserProfileDetails' })} />
-              <MenuItem icon={p2} text="Subscriptions Plans" />
+              <MenuItem icon={p2} text="Subscriptions Plans" onPress={() => navigation.navigate('Menu', { screen: 'AppSubscription' })} />
               <MenuItem icon={f} text="Courses" onPress={() => navigation.navigate('Courses')} />
               <MenuItem icon={affiliate1} text="Affiliate" onPress={() => navigation.navigate('Affiliate')} />
               <MenuItem icon={p3} text="Account Security" onPress={() => navigation.navigate('Menu', { screen: 'AccountSecurity' })} />
@@ -234,7 +234,7 @@ const getStyles = (theme) => StyleSheet.create({
     color: theme.textColor,
   },
   chevronIcon: {
-    marginRight:scale(15),
+    marginRight: scale(15),
     width: scale(15),
     height: scale(15),
     tintColor: theme.bw,
