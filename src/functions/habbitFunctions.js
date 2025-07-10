@@ -159,57 +159,33 @@ export const useHabitStats = (userId) => {
   });
 };
 
-export const fetchHabitsChartData = async (userId) => {
-  console.log('📊 [fetchHabitsChartData] Fetching logs for user:', userId);
-  if (!userId) {
-    console.warn('📊 [fetchHabitsChartData] userId is null or undefined. Skipping fetch.');
-    return [];
-  }
 
-  try {
-    const { data } = await axios.get(`${API_URL}/api/habitlogs/${userId}`);
-    console.log('✅ [fetchHabitsChartData] Raw logs:', data);
 
-    const logsByDate = data.reduce((acc, log) => {
-      if (!log.date) return acc;
-      const date = new Date(log.date).toISOString().split('T')[0];
-      if (!acc[date]) acc[date] = 0;
-      acc[date]++;
-      return acc;
-    }, {});
 
-    const chartData = Object.entries(logsByDate).map(([date, count]) => ({
-      label: date,
-      value: count,
-      fullDate: date,
-      frontColor: '#3B82F6',
-    }));
+export const fetchHabitLogs = async (userId) => {
+  const { data } = await axios.get(`${API_URL}/api/habitlogs/${userId}`);
+  // console.log('Fetched Habit Logs:', data); // For debugging
 
-    chartData.sort((a, b) => new Date(a.label) - new Date(b.label));
+  // Optionally transform logs (e.g., sort by date or group by habit)
+  const sortedLogs = data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    console.log('📊 [Chart Data] Ready to render:', chartData);
-    return chartData;
-  } catch (error) {
-    console.error('❌ [fetchHabitsChartData] Error:', error.message || error);
-    return [];
-  }
+  return sortedLogs;
 };
-export const useHabitsChartData = (userId) => {
+
+
+export const useHabitLogs = (userId) => {
   const dispatch = useDispatch();
 
   return useQuery({
-    queryKey: ['habitsChartData', userId],
-    queryFn: () => fetchHabitsChartData(userId),
+    queryKey: ['habitLogs', userId],
+    queryFn: () => fetchHabitLogs(userId),
     enabled: !!userId,
-    refetchOnWindowFocus: true,
+    onSuccess: () => dispatch(stopLoading()),
+    onError: () => dispatch(stopLoading()),
     retry: 1,
-    onSuccess: (data) => {
-      console.log('✅ [useHabitsChartData] Success - Data fetched:', data);
-      dispatch(stopLoading());
-    },
-    onError: (error) => {
-      console.error('❌ [useHabitsChartData] Error:', error.message || error);
-      dispatch(stopLoading());
-    },
+    refetchOnWindowFocus: false,
   });
 };
+
+
+

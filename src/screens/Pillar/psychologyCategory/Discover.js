@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { useTopPicks, useRecommendations, useBundles } from '../../../functions/DiscoverApis';
+import { useTopPicks, useRecommendations, useBundles, useDailyThought } from '../../../functions/DiscoverApis';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { bg, discover1, discoverLight, video1 } from '../../../assets/images';
 import RecommendationTile from '../../../components/RecommendationTile';
@@ -25,17 +25,18 @@ const DiscoverScreen = () => {
     const { data: topPicks, isLoading: loadingTop } = useTopPicks(userId);
     const { data: recommendations, isLoading: loadingRec } = useRecommendations(userId);
     const { data: bundles, isLoading: loadingBundles, error: bundlesError } = useBundles(userId);
+    const { data: dailyThought, isLoading: loadingThought } = useDailyThought();
 
     useEffect(() => {
         dispatch(startLoading());
-        if (!loadingTop && !loadingRec && !loadingBundles) {
+        if (!loadingTop && !loadingRec && !loadingBundles && !loadingThought) {
             dispatch(stopLoading());
         }
     }, [loadingTop, loadingRec, loadingBundles]);
 
 
     const styles = getStyles(theme);
-    const topImage = !isDarkMode  ? discoverLight : discover1;
+    const topImage = !isDarkMode ? discoverLight : discover1;
 
     return (
         <ImageBackground source={theme.bg} style={styles.container} resizeMode="cover">
@@ -79,17 +80,22 @@ const DiscoverScreen = () => {
                     </ScrollView>
                 </View>
 
-                {/* Daily Thought */}
-                <View style={styles.section}>
+                {loadingThought ? (
+                    <Text style={{ color: theme.subTextColor, paddingHorizontal: 25 }}>Loading Daily Thought...</Text>
+                ) : dailyThought ? (
                     <AudioMediaTile
-                        title="Daily Thought"
-                        title2="MEDITATION"
+                        title={dailyThought.title}
+                        title2={dailyThought.category?.toUpperCase() || 'DAILY'}
                         duration="3-10 MIN"
-                        imageSource={video1}
-                        description="Daily reflective guidance"
-                        onPress={() => { }}
+                        imageSource={{ uri: dailyThought.thumbnail }}
+                        description={dailyThought.description}
+                        locked={dailyThought.isPremium}
+                        onPress={() => {
+                            console.log('Play:', dailyThought.url);
+                        }}
                     />
-                </View>
+                ) : null}
+
 
                 {/* Bundles */}
                 {bundles && Array.isArray(bundles) && bundles.map((bundle) => (
@@ -136,7 +142,7 @@ const getStyles = (theme) => StyleSheet.create({
     sectionTitle: {
         color: theme.textColor,
         fontSize: 13,
-        fontFamily:"Inter-Medium",
+        fontFamily: "Inter-Medium",
         marginBottom: 12,
         paddingHorizontal: 25,
     },

@@ -130,3 +130,34 @@ export const useCreatePayment = () => {
         },
     });
 };
+
+
+
+
+
+
+export const fetchAffiliateRecords = async (userId) => {
+    try {
+        const { data } = await axios.get(`${API_URL}/api/affiliate/records/${userId}`);
+        return data || [];
+    } catch (error) {
+        const message = error?.response?.data?.message || error.message;
+        console.error('Error fetching affiliate records:', message);
+        throw new Error(message);
+    }
+};
+
+export const useAffiliateRecords = (userId) => {
+    const dispatch = useDispatch();
+
+    return useQuery({
+        queryKey: ['affiliateRecords', userId],
+        queryFn: () => fetchAffiliateRecords(userId),
+        enabled: !!userId, // run only if userId is available
+        staleTime: 5 * 60 * 1000, // cache for 5 minutes
+        retry: 2,
+        refetchOnWindowFocus: false,
+        onSuccess: () => dispatch(stopLoading()),
+        onError: () => dispatch(stopLoading()),
+    });
+};

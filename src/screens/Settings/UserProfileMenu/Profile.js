@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
-  SafeAreaView, Dimensions, ImageBackground
+  SafeAreaView, Dimensions, ImageBackground, Alert
 } from 'react-native';
 import axios from 'axios';
 import {
@@ -10,12 +10,12 @@ import {
   affiliate1, tick, fail
 } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { logoutUser } from '../../../redux/slice/authSlice';
+import { loginUser, logoutUser, setProfilePic } from '../../../redux/slice/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import UploadModal from '../../../components/ConfirmationModal copy';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { API_URL } from '@env';
 import LinearGradient from 'react-native-linear-gradient';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const { width, height } = Dimensions.get('window');
 const scale = size => (width / 375) * size;
@@ -23,20 +23,46 @@ const verticalScale = size => (height / 812) * size;
 
 const UserProfileMenuScreen = ({ navigation }) => {
   const name = useSelector(state => state.auth.userObject?.name);
-  const userId = useSelector(state => state.auth.userObject?._id);
   const dispatch = useDispatch();
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
 
   const [profileImage, setProfileImage] = useState(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [confirmation, setConfirmation] = useState({ visible: false, success: true, message: '' });
+  const userId = useSelector(state => state.auth.userObject?._id); // or pass it as a parameter
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning! ☀️';
     if (hour < 17) return 'Good Afternoon! 🌤️';
     return 'Good Evening! 🌙';
+  };
+
+  const openGallery = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 0.8,
+      },
+      async (response) => {
+        if (response.didCancel) return;
+        if (response.errorCode) {
+          console.error('ImagePicker Error:', response.errorMessage);
+          Alert.alert('Error', 'Could not open image picker');
+          return;
+        }
+
+        if (response.assets && response.assets.length > 0) {
+          const image = response.assets[0];
+          const file = {
+            uri: image.uri,
+            type: image.type,
+            name: image.fileName || 'profile.jpg',
+          };
+          uploadProfileImage(file);
+        }
+      }
+    );
   };
 
   const uploadProfileImage = async (image) => {
@@ -54,21 +80,39 @@ const UserProfileMenuScreen = ({ navigation }) => {
         },
       });
 
-      if (res.status === 200 && res.data?.path) {
-        const uploadedPath = res.data.path;
-        const fullUrl = `${uploadedPath}`;
-        console.log(fullUrl)
-        setProfileImage(fullUrl);
+      console.log('📦 Upload response:', res.data);
 
+      if (res.status === 200 && res.data?.file?.path) {
+        const uploadedPath = res.data.file.path;
+
+        // ✅ Send the uploaded path to update the profile
+        const updateRes = await axios.post(`${API_URL}/api/auth/profile-pic`, {
+          userId,
+          profilePic: uploadedPath,
+        });
+
+        console.log('✅ Profile picture updated:', updateRes.data);
+
+        // ✅ Dispatch loginUser to refresh Redux state
+        dispatch(setProfilePic(uploadedPath));
+
+        // ✅ Set image for UI
+        const fullUrl = uploadedPath.startsWith('http')
+          ? uploadedPath
+          : `${API_URL}/${uploadedPath.replace(/\\/g, '/')}`;
+
+        setProfileImage(fullUrl);
         setConfirmation({
           visible: true,
           success: true,
-          message: 'Profile picture uploaded successfully!',
+          message: 'Profile picture uploaded and saved successfully!',
         });
       } else {
-        throw new Error('Invalid upload response');
+        console.warn('⚠️ Unexpected upload response:', res.data);
+        throw new Error('Upload failed: Invalid response');
       }
     } catch (err) {
+      console.log('Full error:', err.response?.data || err.message);
       setConfirmation({
         visible: true,
         success: false,
@@ -76,6 +120,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
       });
     }
   };
+
 
   const MenuItem = ({ icon, text, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
@@ -95,14 +140,6 @@ const UserProfileMenuScreen = ({ navigation }) => {
   return (
     <ImageBackground source={theme.bg} style={styles.background}>
       <SafeAreaView style={styles.safeArea}>
-        <UploadModal
-          isVisible={showUploadModal}
-          onClose={() => setShowUploadModal(false)}
-          onImagePicked={(image) => {
-            if (image) uploadProfileImage(image);
-          }}
-        />
-
         <ConfirmationModal
           isVisible={confirmation.visible}
           icon={confirmation.success ? tick : fail}
@@ -119,7 +156,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
                   source={profileImage ? { uri: profileImage } : userDefault}
                   style={styles.avatar}
                 />
-                <TouchableOpacity onPress={() => setShowUploadModal(true)} style={styles.cameraIconWrapper}>
+                <TouchableOpacity onPress={openGallery} style={styles.cameraIconWrapper}>
                   <Image source={camera} style={styles.cameraIcon} />
                 </TouchableOpacity>
               </View>
@@ -132,7 +169,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
               <MenuItem icon={p2} text="Subscriptions Plans" onPress={() => navigation.navigate('Menu', { screen: 'AppSubscription' })} />
               <MenuItem icon={f} text="Courses" onPress={() => navigation.navigate('Courses')} />
               <MenuItem icon={affiliate1} text="Affiliate" onPress={() => navigation.navigate('Affiliate')} />
-              <MenuItem icon={p3} text="Account Security" onPress={() => navigation.navigate('Menu', { screen: 'AccountSecurity' })} />
+              <MenuItem icon={p3} text="Account Settings" onPress={() => navigation.navigate('Menu', { screen: 'AccountSecurity' })} />
               <MenuItem icon={p4} text="Help Center" onPress={() => navigation.navigate('Menu', { screen: 'HelpCenter' })} />
               <MenuItem icon={p5} text="Report a Problem" onPress={() => navigation.navigate('Menu', { screen: 'ReportProblem' })} />
               <MenuItem icon={p6} text="About" onPress={() => navigation.navigate('Menu', { screen: 'About' })} />
@@ -147,10 +184,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
 };
 
 const getStyles = (theme) => StyleSheet.create({
-  background: {
-    flex: 1,
-    paddingTop: 50,
-  },
+  background: { flex: 1, paddingTop: 50 },
   safeArea: { flex: 1 },
   container: {
     flex: 1,
@@ -170,11 +204,6 @@ const getStyles = (theme) => StyleSheet.create({
     borderColor: theme.primaryColor,
     backgroundColor: 'transparent',
     position: 'relative',
-    // shadowColor: theme.primaryColor,
-    // shadowOffset: { width: 10, height: 10 },
-    // shadowOpacity: 0.2,
-    // shadowRadius: 15,
-    // elevation: 15,
   },
   avatar: {
     width: scale(100),

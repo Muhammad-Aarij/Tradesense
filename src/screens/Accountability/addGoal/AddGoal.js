@@ -113,7 +113,7 @@ export default function AddGoal({ route, navigation }) {
         // behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           {/* Header */}
-          <Header title={editingGoal ? "Edit Goal" : "Set Goal"} />
+          <Header title={editingGoal ? "Edit Goal" : "Set Goal"} style={{ marginBottom: 35 }} />
 
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
             {/* Goal Name */}
@@ -132,7 +132,8 @@ export default function AddGoal({ route, navigation }) {
                 <Image style={{ width: 20, height: 20 }} source={calendar} />
               </TouchableOpacity>
               {showDatePicker && (
-                <DateTimePicker testID="datePicker" value={targetDate} mode="date" display="default" onChange={onDateChange} />
+                <DateTimePicker testID="datePicker" minimumDate={new Date()}
+                  value={targetDate} mode="date" display="default" onChange={onDateChange} />
               )}
             </View>
 
@@ -157,7 +158,6 @@ export default function AddGoal({ route, navigation }) {
               onChangeText={setDescription}
               placeholder="Add more details..."
               isMultiline={true}
-              style={{ height: 100 }}
             />
 
             {/* Submit Button */}
@@ -190,11 +190,12 @@ export default function AddGoal({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 0,
     padding: 25,
 
   },
   formContainer: {
-    paddingBottom: 40,
+    // paddingBottom: 40,
   },
   inputGroup: {
     marginBottom: 15,
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 15,
     borderRadius: 14,
-    marginTop: 20,
+    marginTop: 50,
     alignItems: "center",
   },
   submitButtonText: {

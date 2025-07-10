@@ -282,7 +282,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                         <TextInput
                             style={styles.textInput}
                             placeholder="Type your message"
-                            placeholderTextColor={theme.textSecondaryColor}
+                            placeholderTextColor={theme.subTextColor}
                             value={newMessage}
                             onChangeText={setNewMessage}
                             onSubmitEditing={handleUserSendMessage}

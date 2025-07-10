@@ -12,7 +12,7 @@ import {
   Dimensions, // Import Dimensions for responsive spacing
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { BarChart } from 'react-native-gifted-charts'; // Import BarChart
+import { PieChart } from 'react-native-gifted-charts';
 import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg'; // Import Svg components
 import { back, work, checkboxChecked, checkboxUnchecked } from '../../../../assets/images';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +20,7 @@ import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
 import { createHabitLog } from '../../../../functions/habbitFunctions';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useTodaysHabits, useHabitStats } from '../../../../functions/habbitFunctions';
+import DailyBreakdownChart from '../../../../components/DailyBreakdownChart';
 
 // Get screen width for responsive design for the chart spacing
 const screenWidth = Dimensions.get('window').width;
@@ -31,7 +32,7 @@ export default function Accountability({ navigation }) {
   const filterOptions = ['Daily', 'Monthly', 'Yearly'];
   const userId = useSelector(state => state.auth.userId);
   const dispatch = useDispatch();
-  const { theme } = useContext(ThemeContext);
+  const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
   const {
     data: habitStats = {},
@@ -50,79 +51,8 @@ export default function Accountability({ navigation }) {
 
   // Calculate percentage
   const growthPercentage = habitStats.total > 0
-    ? Math.round((habitStats.completed / habitStats.total) * 100)
+    ? Math.round((2 / habitStats.total) * 100)
     : 0;
-
-  // Function to generate dummy data based on view type for the bar chart
-  const generateChartData = (type) => {
-    const today = new Date();
-    const data = [];
-
-    if (type === 'Daily') { // Changed from 'daily' to 'Daily' to match filterOptions
-      for (let i = 6; i >= 0; i--) { // Last 7 days
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        data.push({
-          value: Math.floor(Math.random() * 100) + 20, // Random value between 20 and 120
-          label: date.toLocaleDateString('en-US', { weekday: 'short',  }),
-          frontColor: i % 2 === 0 ? theme.subTextColor : theme.primaryColor, // Alternating colors
-          fullDate: date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        });
-      }
-    } else if (type === 'Monthly') { // Changed from 'monthly' to 'Monthly'
-      for (let i = 5; i >= 0; i--) { // Last 6 months
-        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-        data.push({
-          value: Math.floor(Math.random() * 500) + 100,
-          label: date.toLocaleDateString('en-US', { month: 'short' }),
-          frontColor: i % 2 === 0 ? '#F9FAFB' : '#3B82F6',
-          fullDate: date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }),
-        });
-      }
-    } else if (type === 'Yearly') { // Changed from 'yearly' to 'Yearly'
-      for (let i = 4; i >= 0; i--) { // Last 5 years
-        const year = today.getFullYear() - i;
-        data.push({
-          value: Math.floor(Math.random() * 2000) + 500,
-          label: String(year),
-          frontColor: i % 2 === 0 ? '#F9FAFB' : '#3B82F6',
-          fullDate: String(year),
-        });
-      }
-    }
-    return data;
-  };
-
-  // Update chart data whenever the selected filter changes
-  useEffect(() => {
-    setChartData(generateChartData(selectedFilter));
-  }, [selectedFilter]);
-
-  const handleHabitComplete = async (habitId) => {
-    const result = await createHabitLog({
-      userId,
-      habitId,
-      status: 'completed',
-    });
-
-    if (result.error) {
-      Alert.alert('Error', result.error);
-    } else {
-      refetch(); // Refresh the habit list after logging
-    }
-  };
-
-  // Determine the date text for the Daily Breakdown section
-  const getDailyBreakdownDateText = () => {
-    if (selectedFilter === 'Daily') {
-      return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    } else if (selectedFilter === 'Monthly') {
-      return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-    } else if (selectedFilter === 'Yearly') {
-      return new Date().toLocaleDateString('en-US', { year: 'numeric' });
-    }
-    return '';
-  };
 
 
   return (
@@ -136,8 +66,8 @@ export default function Accountability({ navigation }) {
           {[
             { label: 'Total Goals on time', value: habitStats.total ?? '--' },
             { label: 'Streak', value: habitStats.streak ?? '--' },
-            { label: 'Pending Goals', value: habitStats.pending ?? '--' },
-            { label: 'Completed Goals', value: habitStats.completed ?? '--' },
+            // { label: 'Pending Goals', value: habitStats.pending ?? '--' },
+            // { label: 'Completed Goals', value: habitStats.completed ?? '--' },
           ].map((item, idx) => (
             <LinearGradient key={idx}
               start={{ x: 0, y: 0.95 }}
@@ -156,123 +86,66 @@ export default function Accountability({ navigation }) {
           style={styles.myGrowthCard}>
           <Text style={styles.sectionTitle}>My Growth</Text>
           <View style={styles.myGrowthContent}>
-            {/* Progress Circle - Integrated with react-native-svg */}
-            <View style={styles.progressCircleOuterContainer}>
-              <Svg height="100%" width="100%" viewBox="0 0 100 100">
-                {/* Background circle */}
-                <Circle
-                  cx="50"
-                  cy="50"
-                  r="50"
-                  stroke={theme.borderColor} // Use theme border color for background
-                  strokeWidth="10"
-                  fill="transparent"
-                />
-                {/* Progress circle */}
-                <Circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke={theme.primaryColor} // Use theme primary color for progress
-                  strokeWidth="10"
-                  strokeDasharray={`${2 * Math.PI * 40}`}
-                  strokeDashoffset={(2 * Math.PI * 40) - (2 * Math.PI * 40 * (growthPercentage / 100))}
-                  strokeLinecap="round"
-                  fill="transparent"
-                  rotation="-90"
-                  origin="50,50"
-                />
-                <SvgText
-                  x="50"
-                  y="50"
-                  textAnchor="middle"
-                  alignmentBaseline="middle"
-                  fontSize="24"
-                  fontWeight="bold"
-                  fill={theme.textColor}
-                >
-                  {growthPercentage}%
-                </SvgText>
-              </Svg>
-            </View>
-            <View style={styles.progressTaskContainer}>
-              <Image source={work} style={styles.progressTaskIcon} />
-              <Text style={styles.progressTaskText}>
-                Progress Task: {growthPercentage}%
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
-
-        {/* Daily Breakdown */}
-        <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-          colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-          style={styles.dailyBreakdownContainer}>
-          <View style={styles.dailyBreakdownHeader}>
-            <View>
-              <Text style={styles.dailyBreakdownTitle}>Daily Breakdown</Text>
-              <Text style={styles.dailyBreakdownDate}>{getDailyBreakdownDateText()}</Text>
-            </View>
-            <View style={{ position: "relative" }}>
-              <TouchableOpacity
-                style={styles.dropdownContainer}
-                onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
-              >
-                <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
-                <Image
-                  source={back}
-                  style={{
-                    ...styles.dropdownArrow,
-                    transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
-                  }}
-                />
-              </TouchableOpacity>
-
-              {filterDropdownVisible && (
-                <View style={styles.dropdownOptions}>
-                  {filterOptions.map((option) => (
-                    <TouchableOpacity key={option} style={styles.optionItem} onPress={() => {
-                      setSelectedFilter(option);
-                      setFilterDropdownVisible(false);
+            <View style={styles.pieChartWrapper}>
+              <PieChart
+                data={[
+                  {
+                    value: growthPercentage,
+                    color: theme.primaryColor,
+                  },
+                  {
+                    value: 100 - growthPercentage,
+                    color: theme.borderColor,
+                  },
+                ]}
+                radius={50}
+                donut
+                strokeCap={'round'}
+                innerRadius={35}
+                innerCircleColor="transparent"
+                centerLabelComponent={() => (
+                  <View style={{
+                    backgroundColor: !isDarkMode ? "white" : "#080E17",
+                    width: 70,
+                    height: 70,
+                    flexDirection: "row",
+                    borderRadius: 100,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}>
+                    <Text style={{
+                      color: theme.textColor, fontSize: 14, fontFamily: "Inter-Bold"
                     }}>
-                      <Text style={styles.optionText}>{option}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
+                      {growthPercentage}%
+                    </Text>
+                  </View>
+                )}
+              />
+
+            </View>
+            <View style={{flexDirection:"column",justifyContent:"space-between",height:"auto"}}>
+              <View
+                style={styles.gridItem2}>
+                <Text style={styles.gridItemLabel}>Completed Goals</Text>
+                <Text style={styles.gridItemValue}>{habitStats.completed}</Text>
+              </View>
+              <View
+                style={styles.gridItem2}>
+                <Text style={styles.gridItemLabel}>Pending Goals</Text>
+                <Text style={styles.gridItemValue}>{habitStats.pending}</Text>
+              </View>
+
+              <View style={styles.progressTaskContainer}>
+                <Image source={work} style={styles.progressTaskIcon} />
+                <Text style={styles.progressTaskText}>
+                  Progress Task: {growthPercentage}%
+                </Text>
+              </View>
             </View>
           </View>
-
-          {/* Bar Chart - Integrated with react-native-gifted-charts */}
-          <View style={styles.barChartWrapper}>
-            <BarChart
-              data={chartData}
-              barWidth={40}
-              barBorderRadius={8}
-              spacing={10}
-              height={200}
-              initialSpacing={10}
-              noOfSections={4}
-              yAxisThickness={0}
-              xAxisThickness={0}
-              hideYAxisText
-              hideAxesAndRules
-              showXAxisIndices={false}
-              xAxisLabelTextStyle={{
-                color: theme.subTextColor,
-                fontSize: 12,
-                fontFamily: 'Inter-Regular',
-              }}
-              renderTooltip={(item) => (
-                <View style={styles.tooltip}>
-                  <Text style={styles.tooltipText}>Value: {item.value}</Text>
-                  <Text style={styles.tooltipText}>Date: {item.fullDate}</Text>
-                </View>
-              )}
-            />
-
-          </View>
         </LinearGradient>
+
+        <DailyBreakdownChart />
 
         {/* Success Tracker */}
         <View style={styles.successTrackerHeader}>
@@ -325,7 +198,7 @@ export default function Accountability({ navigation }) {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 }
 
@@ -358,6 +231,19 @@ const getStyles = (theme) => StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     width: '49%', // Roughly half width with spacing
+    marginBottom: "2.5%",
+  },
+  gridItem2: {
+    flexDirection: "row",
+    justifyContent:"space-between",
+    alignItems:"center",
+    // backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 0.9,
+    borderColor: theme.borderColor,
+    borderRadius: 8,
+    padding: 15,
+    paddingVertical:4,
+    width: 'auto', // Roughly half width with spacing
     marginBottom: "2.5%",
   },
   gridItemValue: {
@@ -402,6 +288,13 @@ const getStyles = (theme) => StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  pieChartWrapper: {
+    width: 100,
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   progressTaskContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -409,6 +302,7 @@ const getStyles = (theme) => StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 7,
     paddingHorizontal: 15,
+    marginTop:2,
   },
   progressTaskIcon: {
     width: 28,

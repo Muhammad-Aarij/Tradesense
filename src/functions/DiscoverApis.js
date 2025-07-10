@@ -64,3 +64,23 @@ export const useBundles = (userId) => {
     refetchOnWindowFocus: false,
   });
 };
+
+
+
+
+
+export const fetchDailyThought = async () => {
+  const { data } = await axios.get(`${API_URL}/api/resources/dailyThought`);
+  return data;
+};
+
+
+
+export const useDailyThought = () => {
+  return useQuery({
+    queryKey: ['dailyThought'],
+    queryFn: fetchDailyThought,
+    staleTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
+  });
+};

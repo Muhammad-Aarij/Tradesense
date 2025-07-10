@@ -4,8 +4,8 @@ import {
   Dimensions, ImageBackground, ActivityIndicator
 } from 'react-native';
 import { useDispatch } from 'react-redux';
+import RenderHtml from 'react-native-render-html';
 import Header from '../../../components/Header';
-import { bg } from '../../../assets/images';
 import { fetchTerms } from '../../../functions/termsApi';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { ThemeContext } from '../../../context/ThemeProvider';
@@ -19,7 +19,6 @@ const verticalScale = size => (height / 812) * size;
 const TermsAndConditionsScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { theme } = useContext(ThemeContext);
-
   const [termsData, setTermsData] = useState(null);
   const [error, setError] = useState(null);
 
@@ -39,38 +38,6 @@ const TermsAndConditionsScreen = ({ navigation }) => {
   useEffect(() => {
     loadTerms();
   }, []);
-
-  const parseHtmlContent = (htmlString) => {
-    if (!htmlString) return null;
-
-    const elements = [];
-    const paragraphs = htmlString.split(/<\/?p>/).filter(Boolean);
-
-    paragraphs.forEach((p, index) => {
-      if (p.includes('<h1>')) {
-        const h1 = p.match(/<h1>(.*?)<\/h1>/)?.[1];
-        if (h1) elements.push(<Text key={`h1-${index}`} style={[styles.sectionHeading, { color: theme.textColor }]}>{h1}</Text>);
-        const rest = p.replace(/<h1>.*?<\/h1>/, '').trim();
-        if (rest) elements.push(<Text key={`h1-rest-${index}`} style={[styles.paragraph, { color: theme.textColor }]}>{rest}</Text>);
-      } else if (p.includes('<h2>')) {
-        const h2 = p.match(/<h2>(.*?)<\/h2>/)?.[1];
-        if (h2) elements.push(<Text key={`h2-${index}`} style={[styles.sectionHeading, { color: theme.textColor }]}>{h2}</Text>);
-        const rest = p.replace(/<h2>.*?<\/h2>/, '').trim();
-        if (rest) elements.push(<Text key={`h2-rest-${index}`} style={[styles.paragraph, { color: theme.textColor }]}>{rest}</Text>);
-      } else if (p.includes('<ul>') || p.includes('<li>')) {
-        const items = p.split(/<\/?li>/).filter(Boolean).map((item, liIdx) => {
-          const clean = item.replace(/<\/?ul>/g, '').trim();
-          return clean ? <Text key={`li-${index}-${liIdx}`} style={[styles.listItem, { color: theme.textColor }]}>• {clean}</Text> : null;
-        });
-        elements.push(...items);
-      } else {
-        const clean = p.replace(/<\/?(strong|em|a|br|div)>/g, '').replace(/&nbsp;/g, ' ').trim();
-        if (clean) elements.push(<Text key={`p-${index}`} style={[styles.paragraph, { color: theme.textColor }]}>{clean}</Text>);
-      }
-    });
-
-    return elements;
-  };
 
   return (
     <ImageBackground source={theme.bg} style={{ flex: 1 }}>
@@ -101,12 +68,46 @@ const TermsAndConditionsScreen = ({ navigation }) => {
                 <Text style={[styles.cardTitle, { color: theme.textColor }]}>
                   {termsData?.title || 'Terms and Conditions'}
                 </Text>
-                {parseHtmlContent(termsData?.content)}
+
+                {termsData?.content && (
+                  <RenderHtml
+                    contentWidth={width - 2 * responsiveWidth(20)}
+                    source={{ html: termsData.content }}
+                    baseStyle={{
+                      color: theme.textColor,
+                      fontSize: responsiveFontSize(12),
+                      fontFamily: 'Inter-Regular',
+                    }}
+                    tagsStyles={{
+                      h1: { fontSize: responsiveFontSize(14), fontFamily: 'Inter-SemiBold', marginBottom: 10 },
+                      h2: { fontSize: responsiveFontSize(12), fontFamily: 'Inter-SemiBold', marginBottom: 0 },
+                      p: { marginBottom: 5, lineHeight: 20, fontFamily: 'Inter-Regular' },
+                      ul: { paddingLeft: 0, marginBottom: 10 },
+                      li: { marginBottom: 5 },
+                    }}
+                    renderers={{
+                      li: ({ TDefaultRenderer, ...props }) => (
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 0 }}>
+                          {/* <Text style={{
+                            fontSize: responsiveFontSize(12),
+                            // lineHeight: responsiveFontSize(18),
+                            marginRight: 6,
+                            color: theme.textColor,
+                          }}>•</Text> */}
+                          <View >
+                            <TDefaultRenderer {...props} />
+                          </View>
+                        </View>
+                      )
+                    }}
+                  />
+
+                )}
 
                 {!termsData?.content?.includes('I confirm that I have read and accept') && (
                   <>
-                    <Text style={[styles.sectionHeading, { color: theme.textColor }]}>
-                      5. DISCLAIMER OF WARRANTIES AND LIMITATION OF LIABILITY
+                    <Text style={[styles.sectionHeading, { color: theme.textColor, textAlign: "center" }]}>
+                      DISCLAIMER OF WARRANTIES AND LIMITATION OF LIABILITY
                     </Text>
                     <Text style={[styles.paragraph, { color: theme.textColor }]}>
                       I confirm that I have read and accept the terms and conditions and privacy policy.
@@ -143,13 +144,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     lineHeight: responsiveFontSize(20),
     marginBottom: responsiveHeight(10),
-  },
-  listItem: {
-    fontSize: responsiveFontSize(12),
-    fontFamily: 'Inter-Thin-BETA',
-    lineHeight: responsiveFontSize(20),
-    marginLeft: responsiveWidth(10),
-    marginBottom: responsiveHeight(5),
   },
   loadingContainer: {
     justifyContent: 'center',

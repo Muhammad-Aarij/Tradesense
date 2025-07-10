@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState, useEffect } from 'react';
+import React, { useContext, useMemo, useState, useEffect, useRef, useLayoutEffect } from 'react';
 import {
     View,
     Text,
@@ -8,40 +8,74 @@ import {
     StatusBar,
     ImageBackground,
     StyleSheet,
+    Modal,
+    FlatList,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import moment from 'moment';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { bg } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { useSelector } from 'react-redux';
 import { useTradeRecords } from '../../../functions/Trades';
-import moment from 'moment';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
 const Trading = ({ navigation }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
+    const scrollRef = useRef(null);
 
     const userData = useSelector((state) => state.auth);
     const userId = userData?.userObject?._id;
 
     const { data: tradesData = [] } = useTradeRecords(userId);
 
-    const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
-
-    // Get current and previous 5 dates
-    const days = [...Array(6)].map((_, i) => {
-        const date = moment().subtract(5 - i, 'days');
-        return {
-            dateString: date.format('YYYY-MM-DD'),
-            date: date.format('D'),
-            day: date.format('ddd'),
-            active: date.format('YYYY-MM-DD') === selectedDate,
-        };
-    });
-
-    const filteredTrades = tradesData.filter(trade =>
-        moment(trade.tradeDate).format('YYYY-MM-DD') === selectedDate
+    const currentDate = moment();
+    const [selectedMonth, setSelectedMonth] = useState(moment().startOf('month'));
+    const [selectedDate, setSelectedDate] = useState(currentDate.format('YYYY-MM-DD'));
+    const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+    const dispatch = useDispatch();
+    const monthList = Array.from({ length: currentDate.month() + 1 }, (_, i) =>
+        moment().month(i).startOf('month')
     );
+
+    const daysInSelectedMonth = () => {
+        const days = [];
+        const daysCount = selectedMonth.isSame(currentDate, 'month')
+            ? currentDate.date()
+            : selectedMonth.daysInMonth();
+
+        for (let i = 1; i <= daysCount; i++) {
+            const date = moment(selectedMonth).date(i);
+            days.push({
+                dateString: date.format('YYYY-MM-DD'),
+                date: date.format('D'),
+                day: date.format('ddd'),
+                active: date.format('YYYY-MM-DD') === selectedDate,
+            });
+        }
+
+        return days;
+    };
+
+    const days = daysInSelectedMonth();
+
+    const filteredTrades = tradesData.filter(
+        (trade) => moment(trade.tradeDate).format('YYYY-MM-DD') === selectedDate
+    );
+
+    useLayoutEffect(() => {
+        dispatch(startLoading())
+        const timeout = setTimeout(() => {
+            if (scrollRef.current) {
+                scrollRef.current.scrollToEnd({ animated: true });
+            }
+            dispatch(stopLoading());
+        }, 500); // small delay to wait for layout
+
+        return () => clearTimeout(timeout);
+    }, [selectedMonth]);
 
 
     return (
@@ -49,19 +83,21 @@ const Trading = ({ navigation }) => {
             <SafeAreaView style={{ flex: 1 }}>
                 <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
                 <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
-                    <Header title="Trades" style={{ marginBottom: 20, }} />
+                    <Header title="Trades" style={{ marginBottom: 20 }} />
 
                     {/* Month Selector */}
                     <TouchableOpacity
+                        onPress={() => setMonthPickerVisible(true)}
                         style={{
                             flexDirection: 'row',
                             alignItems: 'center',
-                            justifyContent: 'center',
+                            justifyContent: 'space-between',
                             backgroundColor: 'rgba(255, 255, 255, 0.06)',
                             borderWidth: 0.9,
                             borderColor: theme.borderColor,
                             borderRadius: 10,
                             paddingVertical: 8,
+                            width: 150,
                             paddingHorizontal: 15,
                             alignSelf: 'center',
                             marginBottom: 20,
@@ -69,14 +105,61 @@ const Trading = ({ navigation }) => {
                         }}
                     >
                         <Text style={{ color: '#A0A0B0', fontSize: 14, marginRight: 5 }}>
-                            <Text style={{ color: theme.primaryColor }}>{moment().format('MMMM')}</Text>{' '}
-                            {moment().format('YYYY')}
+                            <Text style={{ color: theme.primaryColor }}>{selectedMonth.format('MMMM')}</Text>{' '}
+                            {selectedMonth.format('YYYY')}
                         </Text>
-                        <Text style={{ fontSize: 14, color: '#A0A0B0' }}>{'v'}</Text>
+                        <Text style={{ fontSize: 14, color: '#A0A0B0', }}>{'▼'}</Text>
                     </TouchableOpacity>
 
+                    {/* Month Picker Modal */}
+                    <Modal transparent={true} visible={monthPickerVisible} animationType="fade">
+                        <TouchableOpacity
+                            style={{
+                                flex: 1,
+                                justifyContent: 'center',
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                            }}
+                            onPress={() => setMonthPickerVisible(false)}
+                            activeOpacity={1}
+                        >
+                            <View
+                                style={{
+                                    marginHorizontal: 40,
+                                    backgroundColor: theme.darkBlue || '#fff',
+                                    borderRadius: 12,
+                                    paddingVertical: 20,
+                                }}
+                            >
+                                <FlatList
+                                    data={monthList}
+                                    ItemSeparatorComponent={() => (
+                                        <View style={{ height: 1, backgroundColor: theme.borderColor, marginHorizontal: 16 }} />
+                                    )}
+                                    keyExtractor={(item) => item.format('YYYY-MM')}
+
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            style={{ paddingVertical: 12, paddingHorizontal: 26 }}
+                                            onPress={() => {
+                                                setSelectedMonth(item);
+                                                const fallback = moment(item).date(1);
+                                                setSelectedDate(fallback.format('YYYY-MM-DD'));
+                                                setMonthPickerVisible(false);
+                                            }}
+                                        >
+                                            <Text style={{ color: theme.textColor, fontSize: 14, textAlign: "center", }}>
+                                                {item.format('MMMM YYYY')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+
                     {/* Day Selector */}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }} ref={scrollRef} // 👈 attach ref
+                    >
                         {days.map((item, index) => (
                             <LinearGradient
                                 colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
@@ -112,7 +195,7 @@ const Trading = ({ navigation }) => {
                                     >
                                         <Text
                                             style={{
-                                                color: isDarkMode ? '#000' : "white",
+                                                color: isDarkMode ? '#000' : 'white',
                                                 fontSize: 15,
                                                 fontFamily: 'Inter-SemiBold',
                                             }}
@@ -124,7 +207,7 @@ const Trading = ({ navigation }) => {
                                         style={{
                                             color: theme.textColor,
                                             fontSize: 12,
-                                            fontFamily: "Inter-Medium"
+                                            fontFamily: 'Inter-Medium',
                                         }}
                                     >
                                         {item.day}
@@ -144,11 +227,16 @@ const Trading = ({ navigation }) => {
                             filteredTrades.map((trade, index) => {
                                 const price = trade.actualExitPrice?.toString();
                                 const priceDiff = trade.exitPrice - trade.entryPrice;
-                                const change = `${trade.result === 'Profit' ? '+' : '-'}${Math.abs(priceDiff).toFixed(2)} (${((priceDiff / trade.entryPrice) * 100).toFixed(2)}%)`;
+                                const change = `${trade.result === 'Profit' ? '+' : '-'}${Math.abs(
+                                    priceDiff
+                                ).toFixed(2)} (${((priceDiff / trade.entryPrice) * 100).toFixed(2)}%)`;
                                 const isPositive = trade.result === 'Profit';
 
                                 return (
-                                    <TouchableOpacity key={index} onPress={() => navigation.navigate('Watchlist', { trade })}>
+                                    <TouchableOpacity
+                                        key={index}
+                                        onPress={() => navigation.navigate('Watchlist', { trade })}
+                                    >
                                         <LinearGradient
                                             start={{ x: 0, y: 0.95 }}
                                             end={{ x: 1, y: 1 }}
@@ -206,7 +294,6 @@ const Trading = ({ navigation }) => {
                             })
                         )}
                     </View>
-
                 </ScrollView>
             </SafeAreaView>
         </ImageBackground>
@@ -217,65 +304,6 @@ const getStyles = (theme) =>
     StyleSheet.create({
         container: { flex: 1 },
         scrollViewContent: { paddingHorizontal: 20, paddingBottom: 100 },
-        bitcoinHeader: {
-            paddingTop: 40,
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 20,
-        },
-        bitcoinIcon: {
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            marginRight: 10,
-            backgroundColor: '#FFA500',
-        },
-        bitcoinText: {
-            flexDirection: 'row',
-            color: theme.textColor,
-            fontSize: 19,
-            fontWeight: 'bold',
-        },
-        tradingViewButton: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderRadius: 15,
-            paddingVertical: 17,
-            paddingHorizontal: 20,
-            marginBottom: 20,
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-            borderWidth: 0.9,
-            borderColor: theme.borderColor,
-        },
-        tradingViewButtonText: {
-            color: theme.textColor,
-            fontSize: 14,
-        },
-        detailsCard: {
-            borderRadius: 15,
-            padding: 20,
-            marginBottom: 20,
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-            borderWidth: 0.9,
-            borderColor: theme.borderColor,
-        },
-        detailRow: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            paddingVertical: 15,
-            borderBottomWidth: 1,
-            borderBottomColor: 'rgba(255, 255, 255, 0.06)',
-        },
-        detailLabel: {
-            color: theme.textColor,
-            fontSize: 14,
-        },
-        detailValue: {
-            color: theme.textColor,
-            fontSize: 14,
-            fontFamily: 'Inter-Regular',
-        },
     });
 
 export default Trading;

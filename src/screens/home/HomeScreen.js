@@ -11,7 +11,6 @@ import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
 import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import TopBreakdownChart from '../../components/TopBreakdownChart';
 import { useHome } from '../../functions/homeApi';
 import moment from 'moment';
 import DailyBreakdownChart from '../../components/DailyBreakdownChart';
@@ -22,16 +21,17 @@ const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
-
   const { data: pillars, isLoading } = useAllPillars();
-  const [selectedFilter, setSelectedFilter] = useState('Daily');
-  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
+  // const [selectedFilter, setSelectedFilter] = useState('Daily');
+  // const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const filterOptions = ['Daily', 'Monthly', 'Yearly'];
-
+  const profilePic = useSelector(state => state.auth.userObject?.profilePic);
+  console.log("progfiule" + profilePic);
   const userId = useSelector(state => state.auth.userObject?._id);
   const name = useSelector(state => state.auth.userObject?.name);
   const { data: homeData } = useHome(userId);
   const logs = homeData?.logs || [];
+
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -63,7 +63,10 @@ const HomeScreen = ({ navigation }) => {
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
           <View style={styles.header}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image source={userDefault} style={styles.avatar} />
+              <Image
+                source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
+                style={styles.avatar}
+              />
               <View>
                 <Text style={styles.username}>{name}</Text>
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
@@ -144,14 +147,14 @@ const HomeScreen = ({ navigation }) => {
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                   style={styles.section}>
                   <Text style={styles.sectionTitle}>Trading Journal</Text>
-                  <Image source={graph} style={[styles.cardImage,{height:67,resizeMode:"contain",borderBottomWidth:2,borderColor:theme.borderColor}]} />
+                  <Image source={graph} style={[styles.cardImage, { height: 67, resizeMode: "contain", borderBottomWidth: 2, borderColor: theme.borderColor }]} />
                   <Text style={styles.playButtonText}>Track Your Trades</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                 colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                style={{ ...styles.section, flexDirection: "row",alignItems:"center" }}>
+                style={{ ...styles.section, flexDirection: "row", alignItems: "center" }}>
                 <Text style={styles.sectionTitle2}>
                   <Image source={circle} style={{ width: 30, height: 20, resizeMode: "contain", marginRight: 5 }} />
                   {homeData?.quotation || "I execute trades with discipline and confidence."}
@@ -160,7 +163,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* <DailyBreakdownChart type='goal'/> */}
+          <DailyBreakdownChart />
 
         </ScrollView>
       </SafeAreaView>
@@ -198,7 +201,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionTitle2: {
     flexDirection: "row",
-    gap:10,
+    gap: 10,
     // lineHeight:5,
     color: theme.subTextColor,
     fontSize: 13,

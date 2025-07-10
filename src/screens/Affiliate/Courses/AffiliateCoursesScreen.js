@@ -22,6 +22,7 @@ import { setAffiliateData } from '../../../redux/slice/authSlice';
 import { bg, back } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
+import DailyBreakdownChart from '../../../components/DailyBreakdownChart';
 
 const { width } = Dimensions.get('window');
 
@@ -124,59 +125,7 @@ const AffiliateCoursesScreen = () => {
                                 </LinearGradient>
                             </View>
 
-                            <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-                                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={styles.dailyBreakdownContainer}>
-                                <View style={styles.dailyBreakdownHeader}>
-                                    <View>
-                                        <Text style={styles.dailyBreakdownTitle}>Daily Breakdown</Text>
-                                        <Text style={styles.dailyBreakdownDate}>January 18, 2020</Text>
-                                    </View>
-                                    <View style={{ position: "relative" }}>
-                                        <TouchableOpacity
-                                            style={styles.dropdownContainer}
-                                            onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
-                                        >
-                                            <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
-                                            <Image
-                                                source={back}
-                                                style={{
-                                                    ...styles.dropdownArrow,
-                                                    transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
-                                                }}
-                                            />
-                                        </TouchableOpacity>
-
-                                        {filterDropdownVisible && (
-                                            <View style={styles.dropdownOptions}>
-                                                {filterOptions.map((option) => (
-                                                    <TouchableOpacity key={option} style={styles.optionItem} onPress={() => {
-                                                        setSelectedFilter(option);
-                                                        setFilterDropdownVisible(false);
-                                                    }}>
-                                                        <Text style={styles.optionText}>{option}</Text>
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </View>
-                                        )}
-                                    </View>
-                                </View>
-
-                                <View style={styles.chartFooter}>
-                                    {[
-                                        { label: 'Earnings', value: `$${affiliateStats?.earnings?.toFixed(2) || '0.00'}` },
-                                        { label: 'Conversion', value: `${affiliateStats?.conversionRate?.toFixed(1) || '0'}%` },
-                                        { label: 'New Sub', value: `${affiliateStats?.newSubscribers || 0}` },
-                                        { label: 'Sales', value: `${affiliateStats?.sales || 0}` }
-                                    ].map((item, index) => (
-                                        <View
-                                            style={styles.chartFooterItem}
-                                        >
-                                            <Text style={styles.chartFooterValue}>{item.value}</Text>
-                                            <Text style={styles.chartFooterLabel}>{item.label}</Text>
-                                        </View>
-                                    ))}
-                                </View>
-                            </LinearGradient>
+                            <DailyBreakdownChart type='affiliate'/>
                         </>
                     )}
                     renderItem={renderItem}
@@ -195,6 +144,24 @@ const AffiliateCoursesScreen = () => {
         </ImageBackground>
     );
 };
+
+
+
+//  <View style={styles.chartFooter}>
+//                                     {[
+//                                         { label: 'Earnings', value: `$${affiliateStats?.earnings?.toFixed(2) || '0.00'}` },
+//                                         { label: 'Conversion', value: `${affiliateStats?.conversionRate?.toFixed(1) || '0'}%` },
+//                                         { label: 'New Sub', value: `${affiliateStats?.newSubscribers || 0}` },
+//                                         { label: 'Sales', value: `${affiliateStats?.sales || 0}` }
+//                                     ].map((item, index) => (
+//                                         <View
+//                                             style={styles.chartFooterItem}
+//                                         >
+//                                             <Text style={styles.chartFooterValue}>{item.value}</Text>
+//                                             <Text style={styles.chartFooterLabel}>{item.label}</Text>
+//                                         </View>
+//                                     ))}
+//                                 </View>
 
 const getStyles = (theme) =>
     StyleSheet.create({

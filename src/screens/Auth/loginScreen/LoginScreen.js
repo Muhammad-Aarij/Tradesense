@@ -73,7 +73,7 @@ const LoginScreen = ({ navigation, route }) => {
             }
 
             // ❌ THEN: Check onboarding
-            else if (Array.isArray(data.user?.onboarding) && data.user.onboarding.length === 0) {
+            else if (Array.isArray(data.user?.onboarding) && data.user.questionnaireAnswers.length === 0) {
                 navigation.replace("GenderScreen", {
                     user: data.user,
                     token: data.token,

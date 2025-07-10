@@ -105,6 +105,12 @@ const authSlice = createSlice({
       state.isProfilingDone = action.payload;
       AsyncStorage.setItem('isProfilingDone', JSON.stringify(action.payload));
     },
+    setProfilePic: (state, action) => {
+      if (state.userObject) {
+        state.userObject.profilePic = action.payload;
+        AsyncStorage.setItem('user', JSON.stringify(state.userObject));
+      }
+    },
     setAffiliateData: (state, action) => {
       const { isAffiliate, affiliateCode } = action.payload;
       state.isAffiliate = isAffiliate;
@@ -154,5 +160,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setTheme, setProfilingDone, setAffiliateData } = authSlice.actions;
+export const { setTheme, setProfilingDone, setAffiliateData, setProfilePic } = authSlice.actions;
 export default authSlice.reducer;
