@@ -7,7 +7,7 @@ const TopPicksSection = ({ topPicks }) => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.heading}>Top Picks for you</Text>
+            {/* <Text style={styles.heading}>Top Picks for you</Text> */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {topPicks.map((item) => (
                     <TopPickTile

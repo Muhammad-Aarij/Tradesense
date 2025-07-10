@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ImageBackground } from 'react-native';
-import { lockicon, audioicon, audio2, videoIcon } from '../assets/images'; // Update path as needed
+import { lockicon, audioicon, audio2, videoIcon, audioNew, videoNew } from '../assets/images'; // Update path as needed
 import theme from '../themes/theme';
 import { useNavigation } from '@react-navigation/native';
 
@@ -26,7 +26,18 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
     };
     return (
         <TouchableOpacity style={styles.card} onPress={handlePress}>
-            <ImageBackground source={{ uri: imageSource }} style={styles.imageBackground} imageStyle={styles.imageStyle}>
+            {/** Ensure HTTPS to avoid App Transport Security blocking (iOS) */}
+            {(() => {
+                const secureImageSource = imageSource?.startsWith('http://') ? imageSource.replace('http://', 'https://') : imageSource;
+                console.log('TopPickTile image URL:', secureImageSource);
+                return (
+                    <ImageBackground 
+                        source={{ uri: secureImageSource }} 
+                        style={styles.imageBackground} 
+                        imageStyle={styles.imageStyle}
+                        onError={(error) => console.log('TopPickTile image loading error:', error?.nativeEvent?.error, secureImageSource)}
+                        onLoad={() => console.log('TopPickTile image loaded successfully:', secureImageSource)}
+                    >
                 {/* Bottom inset shadow */}
                 <View style={styles.shadowOverlay} />
 
@@ -40,7 +51,7 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                         <Text style={styles.description} numberOfLines={2}>{description}</Text>
                     </View>
                     {locked && (
-                        <View style={styles.lock}>
+                        <View style={styles.lockWrapper}>
                             <Image source={lockicon} style={styles.lockIcon} />
                         </View>
                     )}
@@ -49,7 +60,7 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                 {/* Audio Icon Overlay */}
                 <View style={styles.overlayIcon}>
                     <Image
-                        source={type === 'audio' ? audio2 : videoIcon} // 👈 switch icon based on type
+                        source={type === 'audio' ? audioNew : videoNew} // 👈 switch icon based on type
                         style={{ width: 15, height: 15, resizeMode: "contain" }}
                     />
                     <Text style={{
@@ -58,11 +69,13 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                         color: 'rgba(255, 255, 255, 0.64)',
                         borderRadius: 10,
                     }}>
-                        {type}
+                        {type === 'audio' ? 'Audio' : 'Video'}
                     </Text>
                 </View>
                 {/* Lock Icon (only if locked) */}
-            </ImageBackground>
+                    </ImageBackground>
+                );
+            })()}
         </TouchableOpacity >
     );
 };
@@ -117,15 +130,16 @@ const styles = StyleSheet.create({
     },
     overlayIcon: {
         flexDirection: "row",
+        alignItems: "center",
         gap: 5,
         position: 'absolute',
         justifyContent: "center",
         top: 6,
         paddingVertical: 3,
-        paddingHorizontal: 5,
+        paddingHorizontal: 7,
         right: 6,
         borderWidth: 0,
-        backgroundColor: 'rgba(141, 141, 141, 0.66)',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
         borderRadius: 20,
         // padding: 4,
     },
@@ -134,23 +148,17 @@ const styles = StyleSheet.create({
         height: 14,
         tintColor: '#000',
     },
-    lock: {
-        // position: 'absolute',
-        top: 8,
-        left: 8,
-        padding: 4,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderColor: 'rgba(255, 255, 255, 0.34)',
-        borderWidth: 0.9,
-        marginRight: 12, borderRadius: 4,
-    },
-
-
-    lockIcon: {
-        width: 18,
-        height: 18,
+    lockWrapper: {
+        borderWidth: 0.7,
+        borderRadius: 2,
+        padding: 5,
+        borderColor: theme.borderColor,
+      },
+      lockIcon: {
+        width: 15,
+        height: 15,
         resizeMode: 'contain',
-    }
+      },
 
 
 });

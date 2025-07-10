@@ -19,11 +19,15 @@ export const initializeTrackPlayer = async () => {
         TrackPlayer.CAPABILITY_STOP,
         TrackPlayer.CAPABILITY_SKIP_TO_NEXT,
         TrackPlayer.CAPABILITY_SKIP_TO_PREVIOUS,
+        TrackPlayer.CAPABILITY_SEEK_TO,
       ],
       compactCapabilities: [
         TrackPlayer.CAPABILITY_PLAY,
         TrackPlayer.CAPABILITY_PAUSE,
+        TrackPlayer.CAPABILITY_SKIP_TO_NEXT,
+        TrackPlayer.CAPABILITY_SKIP_TO_PREVIOUS,
       ],
+      progressUpdateEventInterval: 1, // Update progress every second
     });
   } catch (error) {
     console.error('❌ Failed to initialize TrackPlayer:', error);

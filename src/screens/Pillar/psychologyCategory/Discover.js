@@ -85,7 +85,7 @@ const DiscoverScreen = () => {
                     </ScrollView>
                 </View>
 
-
+                <Text style={styles.sectionTitle}>Top Picks for you</Text>   
                 {/* Top Picks Section */}
                 <View style={styles.section}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>

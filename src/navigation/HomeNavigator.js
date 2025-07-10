@@ -1,11 +1,13 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
+import { useNavigationState } from '@react-navigation/native';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import BottomNavigator from './BottomNav';
 import MenuComponent from '../components/MenuComponent';
 import Hamburger from '../components/Hamburger';
+import MiniPlayer from '../components/MiniPlayer';
 import PlansScreen from '../screens/Courses/Plans/PlansScreen';
 import PlayerScreen from '../screens/TrackPlayer/PlayerScreen';
 import CourseEpisodesScreen from '../screens/Courses/courseEpisodes/CourseEpisodesScreen';
@@ -21,6 +23,13 @@ import AffiliateNavigator from './AffiliateNavigator';
 const Home = createNativeStackNavigator();
 
 const HomeNavigator = () => {
+  // Get current route name to hide mini player on TrackPlayer screen
+  const routeName = useNavigationState(state => {
+    const route = state?.routes[state?.index];
+    return route?.name;
+  });
+
+  const showMiniPlayer = routeName !== 'TrackPlayer' && routeName !== 'VideoPlayer';
 
   return (
     <>
@@ -39,6 +48,9 @@ const HomeNavigator = () => {
         <Home.Screen name="Affiliate" component={AffiliateNavigator} />
       </Home.Navigator>
 
+      {/* Show MiniPlayer only when not on TrackPlayer or VideoPlayer screen */}
+      {showMiniPlayer && <MiniPlayer />}
+      
       {/* {isSidebarOpen && <MenuComponent />} */}
       <Hamburger />
     </>

@@ -8,10 +8,13 @@ import {
   ScrollView,
   ImageBackground,
   Dimensions,
-  StyleSheet
+  StyleSheet,
+  SafeAreaView
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useDispatch } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   startLoading,
   stopLoading
@@ -33,7 +36,8 @@ import {
   playb,
   video,
   video2,
-  noThumbnail
+  noThumbnail,
+  back
 } from '../../assets/images';
 import theme from '../../themes/theme';
 
@@ -42,6 +46,8 @@ const { height } = Dimensions.get('window');
 const PlayerScreen = ({ route }) => {
   const { AudioTitle, AudioDescr, Thumbnail, AudioUrl, shouldFetchTrack } = route.params;
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const playbackState = usePlaybackState();
   const progress = useProgress();
   const isPlaying = playbackState.state === PlaybackState.Playing;
@@ -59,11 +65,13 @@ const PlayerScreen = ({ route }) => {
     description: AudioDescr,
   };
 
-  useTrackPlayerEvents([Event.PlaybackBuffering, Event.PlaybackReady], (event) => {
-    if (event.type === Event.PlaybackBuffering) {
-      dispatch(startLoading());
-    } else if (event.type === Event.PlaybackReady) {
-      dispatch(stopLoading());
+  useTrackPlayerEvents([Event.PlaybackState], (event) => {
+    if (event.type === Event.PlaybackState) {
+      if (event.state === PlaybackState.Buffering || event.state === PlaybackState.Loading) {
+        dispatch(startLoading());
+      } else if (event.state === PlaybackState.Ready || event.state === PlaybackState.Playing) {
+        dispatch(stopLoading());
+      }
     }
   });
 
@@ -72,6 +80,7 @@ const PlayerScreen = ({ route }) => {
       dispatch(startLoading());
       setAudioLoading(true);
 
+      // Ensure the player is initialised (only once per app lifecycle)
       if (!isPlayerSetup.current) {
         await TrackPlayer.setupPlayer({ waitForBuffer: false });
         isPlayerSetup.current = true;
@@ -79,16 +88,34 @@ const PlayerScreen = ({ route }) => {
 
       const currentTrackId = await TrackPlayer.getCurrentTrack();
       const currentTrack = currentTrackId ? await TrackPlayer.getTrack(currentTrackId) : null;
+
       const isSameTrack = currentTrack && currentTrack.url === track.url;
 
-      if (!isSameTrack || !shouldFetchTrack) {
+      let needToLoad = false;
+
+      // Decide whether we need to load a new track into the queue
+      if (!currentTrack) {
+        // No track in queue – need to load
+        needToLoad = true;
+      } else if (!isSameTrack) {
+        // Different track
+        needToLoad = true;
+      } else if (shouldFetchTrack) {
+        // Caller explicitly requests a fresh fetch
+        needToLoad = true;
+      }
+
+      if (needToLoad) {
         await TrackPlayer.reset();
         await TrackPlayer.add(track);
-        await TrackPlayer.play();
       }
+
+      // Start / resume playback
+      await TrackPlayer.play();
     } catch (error) {
-      if (!error.message?.includes('already been initialized')) {
-        Alert.alert('Track Error', error.message || 'Playback failed');
+      if (!error?.message?.includes('already been initialized')) {
+        Alert.alert('Track Error', error?.message || 'Playback failed');
+        console.error('TrackPlayer setup error:', error);
       }
     } finally {
       dispatch(stopLoading());
@@ -102,7 +129,7 @@ const PlayerScreen = ({ route }) => {
     return () => {
       dispatch(stopLoading());
     };
-  }, [AudioUrl]);
+  }, [AudioUrl, shouldFetchTrack]);
 
   const togglePlayback = async () => {
     if (isPlaying) {
@@ -118,69 +145,98 @@ const PlayerScreen = ({ route }) => {
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
+  // Ensure HTTPS for secure image loading
+  const secureThumbnail = Thumbnail?.startsWith('http://') ? Thumbnail.replace('http://', 'https://') : Thumbnail;
+  const fallbackThumbnail = secureThumbnail ?? noThumbnail;
+  console.log('PlayerScreen thumbnail URL:', secureThumbnail);
+
   return (
-    <ImageBackground source={{ uri: Thumbnail ?? noThumbnail }} style={styles.container}>
+    <ImageBackground
+      source={{ uri: fallbackThumbnail }}
+      // source={require('../../assets/thumbnail2.jpg')}
+      style={styles.container}
+      onError={(error) => console.log('PlayerScreen background image error:', error?.nativeEvent?.error, fallbackThumbnail)}
+      onLoad={() => console.log('PlayerScreen background image loaded:', fallbackThumbnail)}
+    >
       <View style={styles.blurOverlay} />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.albumArtContainer}>
-          {Thumbnail && <ImageBackground source={{ uri: Thumbnail }} style={styles.albumArt}>
-            <View style={styles.albumArtOverlay}>
-              <View style={styles.artistInfo}>
-                <Image source={user} style={styles.artistImage} />
-                <View>
-                  <Text style={styles.artistName}>Alwin</Text>
-                  <Text style={styles.artistRole}>Mentally Relax</Text>
+
+      {/* Back Button */}
+      <TouchableOpacity
+        style={[styles.backButton, { top: insets.top + 10 }]}
+        onPress={() => navigation.goBack()}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Image source={back} style={styles.backIcon} />
+      </TouchableOpacity>
+
+      <SafeAreaView style={styles.safeAreaContent}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.albumArtContainer}>
+            {secureThumbnail && <ImageBackground
+              source={{ uri: secureThumbnail }}
+              // source={require('../../assets/thumbnail2.jpg')}
+              style={styles.albumArt}
+              onError={(error) => console.log('PlayerScreen album art error:', error?.nativeEvent?.error, secureThumbnail)}
+              onLoad={() => console.log('PlayerScreen album art loaded:', secureThumbnail)}
+            >
+              <View style={styles.albumArtOverlay}>
+                <View style={styles.artistInfo}>
+                  <Image source={user} style={styles.artistImage} />
+                  <View>
+                    <Text style={styles.artistName}>Alwin</Text>
+                    <Text style={styles.artistRole}>Mentally Relax</Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </ImageBackground>}
-        </View>
+            </ImageBackground>}
+          </View>
 
-        <View style={styles.infoContainer}>
-          {!Thumbnail && <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
-            <Image source={user} style={styles.artistImage} />
-            <View>
-              <Text style={styles.artistName}>Alwin</Text>
-              <Text style={styles.artistRole}>Mentally Relax</Text>
-            </View>
-          </View>}
-          <Text style={styles.courseTitle}>{AudioTitle}</Text>
-          <Text style={styles.courseDescription}>{AudioDescr}</Text>
-        </View>
+          <View style={styles.infoContainer}>
+            {!Thumbnail && <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
+              <Image source={user} style={styles.artistImage} />
+              <View>
+                <Text style={styles.artistName}>Alwin</Text>
+                <Text style={styles.artistRole}>Mentally Relax</Text>
+              </View>
+            </View>}
+            <Text style={styles.courseTitle}>{AudioTitle}</Text>
+            <Text style={styles.courseDescription}>{AudioDescr}</Text>
+          </View>
 
-        <View style={styles.progressBarContainer}>
-          <Text style={styles.progressTime}>{formatTime(progress.position)}</Text>
-          <Slider
-            style={styles.progressBar}
-            minimumValue={0}
-            maximumValue={progress.duration}
-            value={progress.position}
-            onSlidingComplete={async (value) => await TrackPlayer.seekTo(value)}
-            minimumTrackTintColor={theme.primaryColor}
-            maximumTrackTintColor="#898989"
-            thumbTintColor={theme.primaryColor}
-          />
-          <Text style={styles.progressTime}>{formatTime(progress.duration)}</Text>
-        </View>
+          <View style={styles.progressBarContainer}>
+            <Text style={styles.progressTime}>{formatTime(progress.position)}</Text>
+            <Slider
+              style={styles.progressBar}
+              minimumValue={0}
+              maximumValue={progress.duration}
+              value={progress.position}
+              onSlidingComplete={async (value) => await TrackPlayer.seekTo(value)}
+              minimumTrackTintColor={theme.primaryColor}
+              maximumTrackTintColor="#898989"
+              thumbTintColor={theme.primaryColor}
+            />
+            <Text style={styles.progressTime}>{formatTime(progress.duration)}</Text>
+          </View>
 
-        <View style={styles.controlsContainer}>
-          <TouchableOpacity style={styles.controlButton1}>
-            <Image source={shuffleIcon} style={{ ...styles.controlIcon, display: "none" }} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToPrevious()}>
-            <Image source={skip} style={styles.controlIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.playPauseButton} onPress={togglePlayback}>
-            <Image source={isPlaying ? stop : playb} style={styles.playPauseIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
-            <Image source={next} style={styles.controlIcon} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton1}>
-            <Image source={repeat} style={styles.controlIcon} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          <View style={styles.controlsContainer}>
+            <TouchableOpacity style={styles.controlButton1}>
+              <Image source={shuffleIcon} style={{ ...styles.controlIcon, display: "none" }} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToPrevious()}>
+              <Image source={skip} style={styles.controlIcon} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.playPauseButton} onPress={togglePlayback}>
+              <Image source={isPlaying ? stop : playb} style={styles.playPauseIcon} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
+              <Image source={next} style={styles.controlIcon} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.controlButton1}>
+              <Image source={repeat} style={styles.controlIcon} />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </ImageBackground>
   );
 };
@@ -188,20 +244,23 @@ const PlayerScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 30,
-    paddingBottom: 0,
   },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(12, 12, 12, 0.85)',
   },
+  safeAreaContent: {
+    flex: 1,
+    paddingHorizontal: 30,
+  },
   scrollContent: {
     alignItems: 'center',
     paddingBottom: 80,
+    paddingHorizontal: 30,
   },
   albumArtContainer: {
     width: '100%',
-    height: height * 0.55,
+    height: height * 0.47,
     borderRadius: 20,
     overflow: 'hidden',
     marginTop: 20,
@@ -316,6 +375,25 @@ const styles = StyleSheet.create({
   playPauseIcon: {
     width: 20,
     height: 20,
+    tintColor: '#FFFFFF',
+    resizeMode: 'contain',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 30,
+    zIndex: 1000,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  backIcon: {
+    width: 15,
+    height: 15,
     tintColor: '#FFFFFF',
     resizeMode: 'contain',
   },

@@ -6,7 +6,26 @@ const Bundle = ({ imageSource, title, description, locked, onPress, type }) => {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.thumbnailWrapper}>
-        <Image source={imageSource} style={styles.thumbnail} />
+        {/** Ensure HTTPS to avoid App Transport Security blocking (iOS) */}
+        {(() => {
+          const secureImageSource = typeof imageSource === 'string' 
+            ? (imageSource?.startsWith('http://') ? imageSource.replace('http://', 'https://') : imageSource)
+            : imageSource?.uri?.startsWith('http://') 
+              ? { ...imageSource, uri: imageSource.uri.replace('http://', 'https://') }
+              : imageSource;
+          
+          const imageUri = typeof secureImageSource === 'string' ? secureImageSource : secureImageSource?.uri;
+          console.log('Bundle image URL:', imageUri);
+          
+          return (
+            <Image 
+              source={typeof secureImageSource === 'string' ? { uri: secureImageSource } : secureImageSource} 
+              style={styles.thumbnail}
+              onError={(error) => console.log('Bundle image loading error:', error?.nativeEvent?.error, imageUri)}
+              onLoad={() => console.log('Bundle image loaded successfully:', imageUri)}
+            />
+          );
+        })()}
 
         {/* Top Left - Type Label */}
         <View style={styles.audioLabel}>

@@ -1,10 +1,44 @@
 // utils/trackPlayerService.js
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { Event } from 'react-native-track-player';
 
 module.exports = async function () {
-  TrackPlayer.addEventListener('remote-play', () => TrackPlayer.play());
-  TrackPlayer.addEventListener('remote-pause', () => TrackPlayer.pause());
-  TrackPlayer.addEventListener('remote-stop', () => TrackPlayer.stop());
+  // Basic playback controls
+  TrackPlayer.addEventListener(Event.RemotePlay, () => {
+    TrackPlayer.play();
+  });
 
-  // Optional: Add more handlers like skip, seek, etc.
+  TrackPlayer.addEventListener(Event.RemotePause, () => {
+    TrackPlayer.pause();
+  });
+
+  TrackPlayer.addEventListener(Event.RemoteStop, () => {
+    TrackPlayer.stop();
+  });
+
+  // Skip controls
+  TrackPlayer.addEventListener(Event.RemoteNext, () => {
+    TrackPlayer.skipToNext();
+  });
+
+  TrackPlayer.addEventListener(Event.RemotePrevious, () => {
+    TrackPlayer.skipToPrevious();
+  });
+
+  // Seek controls
+  TrackPlayer.addEventListener(Event.RemoteSeek, (event) => {
+    TrackPlayer.seekTo(event.position);
+  });
+
+  // Audio focus handling (for iOS/Android interruptions)
+  TrackPlayer.addEventListener(Event.RemoteDuck, async (event) => {
+    if (event.permanent) {
+      TrackPlayer.pause();
+    } else {
+      if (event.paused) {
+        TrackPlayer.pause();
+      } else {
+        TrackPlayer.play();
+      }
+    }
+  });
 };

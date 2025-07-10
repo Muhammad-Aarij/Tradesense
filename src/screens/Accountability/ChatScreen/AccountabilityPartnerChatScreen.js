@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ImageBackground, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ImageBackground, Animated, SafeAreaView } from 'react-native';
 import { bg, chatbot, send2, back, circle, cwhite, cblue } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import { getChatbotSessionId, sendChatbotMessage, getChatbotHistory } from '../../../functions/chatbotApi';
@@ -136,54 +136,56 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 
     return (
         <ImageBackground source={bg} style={{ flex: 1 }}>
-            <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                <View style={styles.header}>
-                    <View style={styles.partnerHeaderInfo}>
-                        <Image source={chatbot} style={styles.partnerAvatar} />
-                        <Text style={styles.partnerName}>{partnerName}</Text>
-                    </View>
-                </View>
-
-                <ScrollView ref={scrollViewRef} contentContainerStyle={styles.messagesContainer} showsVerticalScrollIndicator={false}>
-                    {messages.map((msg) => (
-                        <View key={msg.id} style={[styles.messageBubble, msg.sender === 'me' ? styles.myMessage : styles.partnerMessage]}>
-                            <Text style={[styles.messageText, msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText]}>
-                                {msg.text}
-                            </Text>
-                            {/* <Image style={[msg.sender === 'me' ? styles.shapeleft : styles.shapeRight]} source={msg.sender == "me" ? cblue : cwhite} /> */}
+            <SafeAreaView style={{ flex: 1 }}>
+                <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                    <View style={styles.header}>
+                        <View style={styles.partnerHeaderInfo}>
+                            <Image source={chatbot} style={styles.partnerAvatar} />
+                            <Text style={styles.partnerName}>{partnerName}</Text>
                         </View>
-                    ))}
-                    {isBotTyping && (
-                        <View style={styles.typingIndicatorContainer}>
-                            <View style={styles.partnerMessage}>
-                                <View style={styles.typingDotsWrapper}>
-                                    <Animated.Image style={[styles.typingDot, getDotStyle(dot1Anim)]} source={circle} />
-                                    <Animated.Image style={[styles.typingDot, getDotStyle(dot2Anim)]} source={circle} />
-                                    <Animated.Image style={[styles.typingDot, getDotStyle(dot3Anim)]} source={circle} />
-                                    {/* <Animated.Text style={[styles.typingDot, getDotStyle(dot2Anim)]}>.</Animated.Text> */}
-                                    {/* <Animated.Text style={[styles.typingDot, getDotStyle(dot3Anim)]}>.</Animated.Text> */}
+                    </View>
+
+                    <ScrollView ref={scrollViewRef} contentContainerStyle={styles.messagesContainer} showsVerticalScrollIndicator={false}>
+                        {messages.map((msg) => (
+                            <View key={msg.id} style={[styles.messageBubble, msg.sender === 'me' ? styles.myMessage : styles.partnerMessage]}>
+                                <Text style={[styles.messageText, msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText]}>
+                                    {msg.text}
+                                </Text>
+                                {/* <Image style={[msg.sender === 'me' ? styles.shapeleft : styles.shapeRight]} source={msg.sender == "me" ? cblue : cwhite} /> */}
+                            </View>
+                        ))}
+                        {isBotTyping && (
+                            <View style={styles.typingIndicatorContainer}>
+                                <View style={styles.partnerMessage}>
+                                    <View style={styles.typingDotsWrapper}>
+                                        <Animated.Image style={[styles.typingDot, getDotStyle(dot1Anim)]} source={circle} />
+                                        <Animated.Image style={[styles.typingDot, getDotStyle(dot2Anim)]} source={circle} />
+                                        <Animated.Image style={[styles.typingDot, getDotStyle(dot3Anim)]} source={circle} />
+                                        {/* <Animated.Text style={[styles.typingDot, getDotStyle(dot2Anim)]}>.</Animated.Text> */}
+                                        {/* <Animated.Text style={[styles.typingDot, getDotStyle(dot3Anim)]}>.</Animated.Text> */}
+                                    </View>
                                 </View>
                             </View>
-                        </View>
-                    )}
-                </ScrollView>
+                        )}
+                    </ScrollView>
 
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Type your message"
-                        placeholderTextColor="#A0A0A0"
-                        value={newMessage}
-                        onChangeText={setNewMessage}
-                        onSubmitEditing={handleUserSendMessage}
-                        multiline={false}
-                        editable={!isBotTyping}
-                    />
-                    <TouchableOpacity onPress={handleUserSendMessage} style={styles.sendButton} disabled={isBotTyping}>
-                        <Image source={send2} style={{ width: 25, height: 25, resizeMode: "contain" }} />
-                    </TouchableOpacity>
-                </View>
-            </KeyboardAvoidingView>
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Type your message"
+                            placeholderTextColor="#A0A0A0"
+                            value={newMessage}
+                            onChangeText={setNewMessage}
+                            onSubmitEditing={handleUserSendMessage}
+                            multiline={false}
+                            editable={!isBotTyping}
+                        />
+                        <TouchableOpacity onPress={handleUserSendMessage} style={styles.sendButton} disabled={isBotTyping}>
+                            <Image source={send2} style={{ width: 25, height: 25, resizeMode: "contain" }} />
+                        </TouchableOpacity>
+                    </View>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
         </ImageBackground>
     );
 };
@@ -203,7 +205,7 @@ const styles = StyleSheet.create({
     messageText: { fontSize: 13 },
     myMessageText: { color: "white" },
     partnerMessageText: { color: "gray" },
-    inputContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: Platform.OS === 'ios' ? 30 : 95, paddingHorizontal: 15, paddingVertical: 5, backgroundColor: 'rgba(255, 255, 255, 0.06)', borderWidth: 0.9, borderColor: theme.borderColor, borderRadius: 8, marginHorizontal: 20 },
+    inputContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: Platform.OS === 'ios' ? 60 : 95, paddingHorizontal: 15, paddingVertical: 5, backgroundColor: 'rgba(255, 255, 255, 0.06)', borderWidth: 0.9, borderColor: theme.borderColor, borderRadius: 8, marginHorizontal: 20 },
     textInput: { flex: 1, paddingHorizontal: 15, color: '#E0E0E0', fontSize: 13, marginRight: 10, maxHeight: 100 },
     sendButton: { borderRadius: 20, justifyContent: 'center', alignItems: 'center', padding: 5 },
     typingIndicatorContainer: { alignSelf: 'flex-start', marginBottom: 13 },
@@ -215,7 +217,7 @@ const styles = StyleSheet.create({
         resizeMode: "contain",
         position: "absolute",
         bottom: 0,
-        left:-15,
+        left: -15,
     },
 });
 

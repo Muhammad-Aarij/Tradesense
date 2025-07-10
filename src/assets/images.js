@@ -68,6 +68,8 @@ import afirm from './afirm.png'
 import calm from './calm.png'
 import meditation from './meditation.png'
 import audio from './audio.png'
+import audioNew from './audioNew.png'
+import videoNew from './videoNew.png'
 
 import audio2 from './audio2.png'
 import graphical from './graphical.png'
@@ -134,5 +136,6 @@ export {
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next, d, cwhite, cblue,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
-  editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault
+  editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
+  audioNew, videoNew
 };

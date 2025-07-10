@@ -14,7 +14,8 @@ import LoginScreen from '../screens/Auth/loginScreen/LoginScreen';
 import SignUp from '../screens/Auth/SignUp/SignUp';
 import PlansScreenDeepLink from '../screens/Courses/Plans/PlansScreenDeepLink';
 import MenuComponent from '../components/MenuComponent';
-import SplashScreen from '../screens/splashScreen/SplashScreen'; 
+import SplashScreen from '../screens/splashScreen/SplashScreen';
+import PlayerScreen from '../screens/TrackPlayer/PlayerScreen';
 
 const RootStack = createNativeStackNavigator();
 
@@ -171,6 +172,7 @@ const AppNavContainer = () => {
                 <RootStack.Navigator screenOptions={{ headerShown: false }}>
                     {/* SplashScreen is handled by conditional rendering outside NavigationContainer */}
                     <RootStack.Screen name="MainFlow" component={MainFlow} />
+                    <RootStack.Screen name="TrackPlayer" component={PlayerScreen} />
                     <RootStack.Screen name="CourseDeepLink" component={CourseDeepLink} />
                     <RootStack.Screen name="SignInModal" component={LoginScreen} options={{ presentation: 'modal' }} />
                     <RootStack.Screen name="SignUpModal" component={SignUp} options={{ presentation: 'modal' }} />

@@ -22,13 +22,16 @@ import {
   user,
   shuffleIcon,
   playb,
-  noThumbnail
+  noThumbnail,
+  back
 } from '../../assets/images';
 import theme from '../../themes/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 
 const { height } = Dimensions.get('window');
 
-const VideoPlayerScreen = ({ route }) => {
+const VideoPlayerScreen = ({navigation, route }) => {
   const { VideoUrl, Thumbnail, VideoTitle, VideoDescr } = route.params;
   const playerRef = useRef(null);
   const [paused, setPaused] = useState(true);
@@ -37,13 +40,15 @@ const VideoPlayerScreen = ({ route }) => {
   const [progress, setProgress] = useState({ currentTime: 0, duration: 0 });
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const insets = useSafeAreaInsets();
+
 
   useEffect(() => {
     console.log('VideoUrl', VideoUrl);
     const timer = setTimeout(() => {
       setPaused(false);
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -107,6 +112,14 @@ const VideoPlayerScreen = ({ route }) => {
   return (
     <ImageBackground source={{ uri: Thumbnail ?? noThumbnail }} style={styles.container}>
       <View style={styles.blurOverlay} />
+
+      <TouchableOpacity
+        style={[styles.backButton, { top: insets.top + 10 }]}
+        onPress={() => navigation.goBack()}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Image source={back} style={styles.backIcon} />
+      </TouchableOpacity>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         <View style={styles.albumArtContainer}>
@@ -175,13 +188,13 @@ const VideoPlayerScreen = ({ route }) => {
         </View>
 
         <View style={styles.controlsContainer}>
-          <TouchableOpacity 
-            style={styles.controlButton1} 
+          <TouchableOpacity
+            style={styles.controlButton1}
             onPress={() => setMuted(!muted)}
           >
-            <Image 
-              source={shuffleIcon} 
-              style={[styles.controlIcon, { opacity: muted ? 0.5 : 1 }]} 
+            <Image
+              source={shuffleIcon}
+              style={[styles.controlIcon, { opacity: muted ? 0.5 : 1 }]}
             />
           </TouchableOpacity>
 
@@ -189,14 +202,14 @@ const VideoPlayerScreen = ({ route }) => {
             <Image source={skip} style={styles.controlIcon} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.playPauseButton, { opacity: videoLoaded ? 1 : 0.5 }]} 
+          <TouchableOpacity
+            style={[styles.playPauseButton, { opacity: videoLoaded ? 1 : 0.5 }]}
             onPress={togglePlayback}
             disabled={!videoLoaded}
           >
-            <Image 
-              source={paused ? playb : stop} 
-              style={styles.playPauseIcon} 
+            <Image
+              source={paused ? playb : stop}
+              style={styles.playPauseIcon}
             />
           </TouchableOpacity>
 
@@ -361,6 +374,25 @@ const styles = StyleSheet.create({
   playPauseIcon: {
     width: 20,
     height: 20,
+    tintColor: '#FFFFFF',
+    resizeMode: 'contain',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 30,
+    zIndex: 1000,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  backIcon: {
+    width: 15,
+    height: 15,
     tintColor: '#FFFFFF',
     resizeMode: 'contain',
   },

@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, Text, Image, StyleSheet, Dimensions } from "react-native";
+import { View, TouchableOpacity, Text, Image, StyleSheet, Dimensions, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 // import { BlurView } from "@react-native-community/blur"; // or "expo-blur"
 import { homeT, pillar, course, affiliate, userT, menu, chatbot, acc } from "../assets/images";
@@ -27,7 +27,11 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.tabBarWrapper, { paddingBottom: insets.bottom }]}>
+    <View style={[
+      styles.tabBarWrapper, 
+      Platform.OS === 'ios' && styles.tabBarWrapperIOS,
+      { paddingBottom: Platform.OS === 'ios' ? insets.bottom + responsiveHeight(0) : insets.bottom }
+    ]}>
       {/* ✅ Blur only the background */}
       <View
         style={[StyleSheet.absoluteFill, {
@@ -59,7 +63,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
             key={index}
             start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
             colors={['rgba(112, 194, 232, 0.3)', 'rgba(204, 204, 204, 0)']}
-            style={{ borderRadius: 25 }}
+            style={{ borderRadius: 25, top: responsiveHeight(10) }}
           >
             <TouchableOpacity
               accessibilityRole="button"
@@ -85,7 +89,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
             key={index}
             accessibilityRole="button"
             onPress={onPress}
-            style={[styles.tabItem, styles.inactiveTab]}
+            style={[styles.tabItem, styles.inactiveTab, { top: responsiveHeight(10) }]}
           >
             <View style={styles.iconLabelWrapper}>
               <Image source={icon} style={[styles.icon, styles.iconInactive]} />
@@ -96,6 +100,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   tabBarWrapper: {
     flexDirection: "row",
@@ -111,9 +116,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     paddingHorizontal: responsiveWidth(10),
     marginBottom: responsiveHeight(10),
-    // marginLeft: responsiveHeight(5),
     overflow: "hidden",
     backgroundColor: 'rgba(11, 16, 22, 0.9)',
+  },
+
+  // iOS-specific styling
+  tabBarWrapperIOS: {
+    height: responsiveHeight(60), // Slightly increased height for iOS
+    marginBottom: responsiveHeight(12), // More bottom margin for iOS
+    paddingHorizontal: responsiveWidth(8), // Slightly less horizontal padding
+    width: width - responsiveWidth(32), // Slightly wider for iOS
   },
 
   tabItem: {
@@ -123,13 +135,13 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     paddingHorizontal: responsiveWidth(16),
-    paddingVertical: responsiveHeight(6),
-    height: responsiveHeight(40),
+    paddingVertical: responsiveHeight(4),
+    height: responsiveHeight(35),
   },
 
   inactiveTab: {
-    width: responsiveWidth(45),
-    height: responsiveHeight(45),
+    width: responsiveWidth(40),
+    height: responsiveHeight(40),
   },
 
   iconLabelWrapper: {
@@ -139,8 +151,8 @@ const styles = StyleSheet.create({
   },
 
   icon: {
-    width: responsiveWidth(22),
-    height: responsiveWidth(22),
+    width: responsiveWidth(20),
+    height: responsiveWidth(20),
     resizeMode: "contain",
   },
   iconActive: {

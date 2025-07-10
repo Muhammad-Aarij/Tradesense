@@ -23,6 +23,11 @@ target 'MyApp' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  # Fix Firebase modular headers issue
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+
   target 'MyAppTests' do
     inherit! :complete
     # Pods for testing
@@ -36,5 +41,14 @@ target 'MyApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+    
+    # Fix React Native module conflicts
+    installer.pods_project.targets.each do |target|
+      if target.name.start_with?('React')
+        target.build_configurations.each do |config|
+          config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        end
+      end
+    end
   end
 end
