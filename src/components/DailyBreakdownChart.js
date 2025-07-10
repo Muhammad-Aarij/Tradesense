@@ -1,174 +1,248 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, Dimensions, Image
+  View, Text, StyleSheet, TouchableOpacity, Dimensions, Image,
 } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-gifted-charts';
 import { ThemeContext } from '../context/ThemeProvider';
 import { back } from '../assets/images';
+import LinearGradient from 'react-native-linear-gradient';
+import { useSelector } from 'react-redux';
+import { useHabitsChartData } from '../functions/habbitFunctions';
 
 const { width } = Dimensions.get('window');
 
-const DailyBreakdownChart = () => {
-    const { theme } = useContext(ThemeContext);
-    const [selectedFilter, setSelectedFilter] = useState('Daily');
-    const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-    const filterOptions = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
+const DailyBreakdownChart = ({ title = "Top Breakdown", type = "goal" }) => {
+  const { primaryColor, secondaryColor, subTextColor, borderColor } = useContext(ThemeContext);
+  const userId = useSelector(state => state?.auth?.userId);
+  const [selectedFilter, setSelectedFilter] = useState('Daily');
+  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
+  const [filteredData, setFilteredData] = useState([]);
+  const { data: habitData = [], isLoading } = useHabitsChartData(userId);
 
-    const chartData = {
-        labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'],
-        datasets: [
-            {
-                data: [250, 450, 400, 100, 200, 150],
-                color: (opacity = 1) => theme.primaryColorWithOpacity(opacity),
-                strokeWidth: 2,
-            },
-        ],
+  const filterOptions = ['Daily', 'Monthly', 'Yearly'];
+  const styles = getStyles({ primaryColor, subTextColor, borderColor });
+
+  useEffect(() => {
+    const now = new Date();
+
+    const isSameDay = (date) =>
+      new Date(date).toDateString() === now.toDateString();
+
+    const isSameMonth = (date) =>
+      new Date(date).getMonth() === now.getMonth() &&
+      new Date(date).getFullYear() === now.getFullYear();
+
+    const isSameYear = (date) =>
+      new Date(date).getFullYear() === now.getFullYear();
+
+    const filterByDate = (dataToFilter) => {
+      return dataToFilter.filter(item => {
+        const itemDate = new Date(item.fullDate);
+        if (selectedFilter === 'Daily') return isSameDay(itemDate);
+        if (selectedFilter === 'Monthly') return isSameMonth(itemDate);
+        if (selectedFilter === 'Yearly') return isSameYear(itemDate);
+        return true;
+      });
     };
 
-    const chartConfig = {
-        backgroundGradientFrom: theme.chartBg,
-        backgroundGradientTo: theme.chartBg,
-        decimalPlaces: 0,
-        color: (opacity = 1) => theme.textColorWithOpacity(opacity * 0.7),
-        labelColor: (opacity = 1) => theme.subTextColorWithOpacity(opacity * 0.7),
-        strokeWidth: 2,
-        propsForDots: {
-            r: '6',
-            strokeWidth: '2',
-            stroke: theme.primaryColor,
-        },
-        fillShadowGradient: 'transparent',
-        fillShadowGradientOpacity: 0,
-    };
+    const filtered = filterByDate(habitData);
+    const colored = filtered.map((item, index) => ({
+      ...item,
+      frontColor: index % 2 === 0 ? primaryColor : secondaryColor || '#F9FAFB',
+    }));
 
-    const styles = getStyles(theme);
+    // Only update if data actually changed
+    if (JSON.stringify(colored) !== JSON.stringify(filteredData)) {
+      setFilteredData(colored);
+    }
+  }, [habitData, selectedFilter, primaryColor, secondaryColor]);
 
-    return (
-        <View style={styles.dailyBreakdownContainer}>
-            <View style={styles.dailyBreakdownHeader}>
-                <View>
-                    <Text style={styles.dailyBreakdownTitle}>Top Breakdown</Text>
-                    <Text style={styles.dailyBreakdownDate}>January 05, 2025</Text>
-                </View>
-                <View style={{ position: 'relative' }}>
-                    <TouchableOpacity
-                        style={styles.dropdownContainer}
-                        onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
-                    >
-                        <Image
-                            source={back}
-                            style={{
-                                ...styles.dropdownArrow,
-                                transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }],
-                            }}
-                        />
-                    </TouchableOpacity>
+  const getDateLabel = () => {
+    const today = new Date();
+    const format = { year: 'numeric', month: 'long', day: 'numeric' };
+    const monthFormat = { year: 'numeric', month: 'long' };
+    const yearFormat = { year: 'numeric' };
 
-                    {filterDropdownVisible && (
-                        <View style={styles.dropdownOptions}>
-                            {filterOptions.map((option) => (
-                                <TouchableOpacity
-                                    key={option}
-                                    style={styles.optionItem}
-                                    onPress={() => {
-                                        setSelectedFilter(option);
-                                        setFilterDropdownVisible(false);
-                                    }}
-                                >
-                                    <Text style={styles.optionText}>{option}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-                </View>
-            </View>
+    if (selectedFilter === 'Daily') return `Log - ${today.toLocaleDateString('en-US', format)}`;
+    if (selectedFilter === 'Monthly') return `Log - ${today.toLocaleDateString('en-US', monthFormat)}`;
+    if (selectedFilter === 'Yearly') return `Log - ${today.toLocaleDateString('en-US', yearFormat)}`;
+    return '';
+  };
 
-            <View style={styles.chartWrapper}>
-                <LineChart
-                    data={chartData}
-                    width={width - 40}
-                    height={220}
-                    chartConfig={chartConfig}
-                    bezier
-                    style={styles.chart}
-                    withVerticalLabels
-                    withHorizontalLabels
-                    withInnerLines={false}
-                    withOuterLines={false}
-                />
-            </View>
+  return (
+    <LinearGradient
+      start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+      colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+      style={styles.dailyBreakdownContainer}
+    >
+      <View style={styles.dailyBreakdownHeader}>
+        <View>
+          <Text style={styles.dailyBreakdownTitle}>{title}</Text>
+          <Text style={styles.dailyBreakdownDate}>{getDateLabel()}</Text>
         </View>
-    );
+        <View style={{ position: "relative", zIndex: 999 }}>
+          <TouchableOpacity
+            style={styles.dropdownContainer}
+            onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
+          >
+            <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
+            <Image
+              source={back}
+              style={{
+                ...styles.dropdownArrow,
+                transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
+              }}
+            />
+          </TouchableOpacity>
+
+          {filterDropdownVisible && (
+            <View style={styles.dropdownOptions}>
+              {filterOptions.map((option) => (
+                <TouchableOpacity key={option} style={styles.optionItem} onPress={() => {
+                  setSelectedFilter(option);
+                  setFilterDropdownVisible(false);
+                }}>
+                  <Text style={styles.optionText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+
+      <View style={styles.barChartWrapper}>
+        {filteredData.length > 0 ? (
+          <BarChart
+            data={filteredData}
+            barWidth={40}
+            barBorderRadius={15}
+            spacing={18}
+            height={220}
+            initialSpacing={10}
+            noOfSections={4}
+            yAxisThickness={0}
+            xAxisThickness={0}
+            hideYAxisText
+            hideAxesAndRules
+            showXAxisIndices={false}
+            xAxisLabelTextStyle={{
+              color: subTextColor,
+              fontSize: 12,
+              fontFamily: 'Inter-Regular',
+            }}
+            renderTooltip={(item) => (
+              <View style={styles.tooltip}>
+                <Text style={styles.tooltipText}>Completed: {item.value}</Text>
+                <Text style={styles.tooltipText}>Date: {item.fullDate}</Text>
+              </View>
+            )}
+          />
+        ) : (
+          <View style={styles.noDataContainer}>
+            <Text style={styles.noDataText}>No data available for this period.</Text>
+          </View>
+        )}
+      </View>
+    </LinearGradient>
+  );
 };
+
+
+
 
 const getStyles = (theme) =>
     StyleSheet.create({
         dailyBreakdownContainer: {
-            backgroundColor: theme.cardBg,
-            borderRadius: 12,
-            marginHorizontal: 20,
-            marginTop: 20,
-            padding: 15,
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            borderWidth: 0.9, borderColor: theme.borderColor,
+            borderRadius: 8,
+            padding: 20,
+            marginBottom: 30,
         },
         dailyBreakdownHeader: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: 10,
+            marginBottom: 20,
         },
         dailyBreakdownTitle: {
-            fontSize: 18,
-            fontWeight: 'bold',
-            color: theme.textColor,
+            color: theme.subTextColor,
+            fontSize: 16,
+            fontFamily: "Inter-SemiBold",
         },
         dailyBreakdownDate: {
-            fontSize: 12,
             color: theme.subTextColor,
-            marginTop: 2,
+            fontSize: 12,
+            fontFamily: "Inter-Light-BETA",
+        },
+        dailyBreakdownFilter: {
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            color: '#FFF',
+            fontSize: 12,
+            fontFamily: "Inter-Medium",
         },
         dropdownContainer: {
             flexDirection: 'row',
             alignItems: 'center',
-            backgroundColor: theme.inputBg,
+            backgroundColor: theme.primaryColor,
+            borderWidth: 0.9,
+            borderColor: theme.borderColor,
             borderRadius: 8,
-            paddingVertical: 5,
-            paddingHorizontal: 10,
-        },
-        dropdownArrow: {
-            width: 12,
-            height: 12,
-            resizeMode: 'contain',
-            tintColor: theme.subTextColor,
+            paddingVertical: 7,
+            paddingHorizontal: 12,
+            justifyContent: 'space-between',
         },
         dropdownOptions: {
-            position: 'absolute',
+            position: "absolute",
             top: 40,
-            right: 0,
-            backgroundColor: theme.inputBg,
+            left: 0,
+            width: "100%",
+            backgroundColor: theme.primaryColor,
             borderRadius: 8,
-            zIndex: 1000,
-            width: 100,
+            paddingVertical: 10,
+            zIndex: 9999,
         },
         optionItem: {
-            paddingVertical: 10,
+            paddingVertical: 12,
             paddingHorizontal: 15,
-            borderBottomWidth: 1,
-            borderBottomColor: theme.borderColor,
         },
         optionText: {
-            fontSize: 14,
-            color: theme.textColor,
+            color: "white",
+            fontSize: 12,
+            fontFamily: "Inter-Regular",
         },
-        chartWrapper: {
-            backgroundColor: theme.chartBg,
-            borderRadius: 10,
-            overflow: 'hidden',
-            paddingVertical: 10,
+        dropdownArrow: {
+            width: 10,
+            height: 10,
+            resizeMode: 'contain',
+            tintColor: '#CCCCCC',
+            transform: [{ rotate: '90deg' }],
+        },
+        barChartWrapper: {
+            width: '100%',
+            // height is handled by gifted-charts, but you can set minHeight if needed
+        },
+        tooltip: {
+            backgroundColor: theme.primaryColor,
+            borderRadius: 8,
+            padding: 10,
+            zIndex: 10000,
+        },
+        tooltipText: {
+            color: '#F9FAFB',
+            fontSize: 11,
+        },
+        noDataContainer: {
+            height: 220, // Match chart height
+            justifyContent: 'center',
             alignItems: 'center',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: 8,
         },
-        chart: {
-            marginVertical: 8,
-            borderRadius: 10,
+        noDataText: {
+            color: theme.subTextColor,
+            fontSize: 14,
+            fontFamily: 'Inter-Regular',
         },
     });
 

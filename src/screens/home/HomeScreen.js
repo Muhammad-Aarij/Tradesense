@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import TopBreakdownChart from '../../components/TopBreakdownChart';
 import { useHome } from '../../functions/homeApi';
 import moment from 'moment';
+import DailyBreakdownChart from '../../components/DailyBreakdownChart';
 
 const { width, height } = Dimensions.get("window");
 
@@ -133,7 +134,7 @@ const HomeScreen = ({ navigation }) => {
                       </View>
                     ))}
                   </View>
-                  <Text style={styles.playButtonText}>Daily Goal Progress</Text>
+                  <Text style={[styles.playButtonText, { marginTop: 0 }]}>Daily Goal Progress</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
@@ -143,51 +144,24 @@ const HomeScreen = ({ navigation }) => {
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                   style={styles.section}>
                   <Text style={styles.sectionTitle}>Trading Journal</Text>
-                  <Image source={graph} style={styles.cardImage} />
+                  <Image source={graph} style={[styles.cardImage,{height:67,resizeMode:"contain",borderBottomWidth:2,borderColor:theme.borderColor}]} />
                   <Text style={styles.playButtonText}>Track Your Trades</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
               <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                 colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                style={{ ...styles.section, flexDirection: "row" }}>
+                style={{ ...styles.section, flexDirection: "row",alignItems:"center" }}>
                 <Text style={styles.sectionTitle2}>
-                  <Image source={circle} style={{ width: 20, height: 15, resizeMode: "contain", marginRight: 5 }} />
+                  <Image source={circle} style={{ width: 30, height: 20, resizeMode: "contain", marginRight: 5 }} />
                   {homeData?.quotation || "I execute trades with discipline and confidence."}
                 </Text>
               </LinearGradient>
             </View>
           </View>
 
-          <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-            style={styles.dailyBreakdownContainer}>
-            <View style={styles.dailyBreakdownHeader}>
-              <View>
-                <Text style={styles.dailyBreakdownTitle}>Daily Breakdown</Text>
-                <Text style={styles.dailyBreakdownDate}>{moment().format('MMMM D, YYYY')}</Text>
-              </View>
-              <View style={{ position: "relative" }}>
-                <TouchableOpacity style={styles.dropdownContainer} onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}>
-                  <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
-                  <Image source={back} style={{ ...styles.dropdownArrow, transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }] }} />
-                </TouchableOpacity>
-                {filterDropdownVisible && (
-                  <View style={styles.dropdownOptions}>
-                    {filterOptions.map(option => (
-                      <TouchableOpacity key={option} style={styles.optionItem} onPress={() => {
-                        setSelectedFilter(option);
-                        setFilterDropdownVisible(false);
-                      }}>
-                        <Text style={styles.optionText}>{option}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            </View>
-            <TopBreakdownChart />
-          </LinearGradient>
+          {/* <DailyBreakdownChart type='goal'/> */}
+
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>
@@ -224,8 +198,10 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionTitle2: {
     flexDirection: "row",
+    gap:10,
+    // lineHeight:5,
     color: theme.subTextColor,
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-Regular',
   },
   cardImage: { width: '100%', height: 90, resizeMode: 'cover', borderRadius: 5 },
@@ -236,13 +212,14 @@ const getStyles = (theme) => StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   goalProgress: {
+    fontSize: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: "space-between",
     marginVertical: 10,
   },
-  weekdays: { color: theme.textColor, fontSize: 14, fontFamily: 'Inter-Regular' },
-  weekDots: { color: '#70C2E8', fontSize: 18 },
+  weekdays: { color: theme.textColor, fontSize: 12, textAlign: "center", fontFamily: 'Inter-Regular' },
+  weekDots: { color: '#70C2E8', fontSize: 16 },
   dailyBreakdownContainer: {
     borderWidth: 0.9,
     borderColor: theme.borderColor,

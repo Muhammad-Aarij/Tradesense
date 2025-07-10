@@ -5,7 +5,8 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import {
-  back, bg, camera, p1, p2, p3, p4, p5, p6, p7, f, p9, userDefault,
+  back, bg, camera, userDefault,
+  p1, p2, p3, p4, p5, p6, p7, f, p9,
   affiliate1, tick, fail
 } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
@@ -13,7 +14,7 @@ import { logoutUser } from '../../../redux/slice/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import UploadModal from '../../../components/ConfirmationModal copy';
 import ConfirmationModal from '../../../components/ConfirmationModal';
-import { API_URL } from "@env";
+import { API_URL } from '@env';
 import LinearGradient from 'react-native-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
@@ -26,6 +27,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
+
   const [profileImage, setProfileImage] = useState(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [confirmation, setConfirmation] = useState({ visible: false, success: true, message: '' });
@@ -39,28 +41,38 @@ const UserProfileMenuScreen = ({ navigation }) => {
 
   const uploadProfileImage = async (image) => {
     try {
-      setProfileImage(image.uri);
-      const formData = {
-        userId,
-        profilePic: image.uri
-      };
+      const formData = new FormData();
+      formData.append('file', {
+        uri: image.uri,
+        type: image.type || 'image/jpeg',
+        name: image.name || 'profile.jpg',
+      });
 
-      const res = await axios.post(`${API_URL}/api/auth/profile-pic`, formData);
+      const res = await axios.post(`${API_URL}/api/file/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-      if (res.status === 200) {
+      if (res.status === 200 && res.data?.path) {
+        const uploadedPath = res.data.path;
+        const fullUrl = `${uploadedPath}`;
+        console.log(fullUrl)
+        setProfileImage(fullUrl);
+
         setConfirmation({
           visible: true,
           success: true,
-          message: 'Profile picture uploaded successfully!'
+          message: 'Profile picture uploaded successfully!',
         });
       } else {
-        throw new Error('Upload failed');
+        throw new Error('Invalid upload response');
       }
     } catch (err) {
       setConfirmation({
         visible: true,
         success: false,
-        message: 'Failed to upload profile picture. Please try again.'
+        message: 'Failed to upload profile picture. Please try again.',
       });
     }
   };
@@ -80,7 +92,6 @@ const UserProfileMenuScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-
   return (
     <ImageBackground source={theme.bg} style={styles.background}>
       <SafeAreaView style={styles.safeArea}>
@@ -95,7 +106,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
         <ConfirmationModal
           isVisible={confirmation.visible}
           icon={confirmation.success ? tick : fail}
-          title={confirmation.success ? "Success" : "Failed"}
+          title={confirmation.success ? 'Success' : 'Failed'}
           message={confirmation.message}
           onClose={() => setConfirmation({ ...confirmation, visible: false })}
         />

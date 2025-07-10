@@ -33,15 +33,6 @@ const DiscoverScreen = () => {
         }
     }, [loadingTop, loadingRec, loadingBundles]);
 
-    useEffect(() => {
-        if (bundles) {
-            console.log('Bundles data:', bundles);
-            console.log('Is bundles an array?', Array.isArray(bundles));
-        }
-        if (bundlesError) {
-            console.log('Bundles error:', bundlesError);
-        }
-    }, [bundles, bundlesError]);
 
     const styles = getStyles(theme);
     const topImage = !isDarkMode  ? discoverLight : discover1;

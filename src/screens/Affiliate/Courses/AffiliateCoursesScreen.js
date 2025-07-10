@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     Alert,
     Image,
+    Pressable,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -93,11 +94,15 @@ const AffiliateCoursesScreen = () => {
                         <>
                             <Header title="Affiliated Courses" style={{ marginBottom: 35 }} />
                             <View style={styles.statsContainer}>
-                                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-                                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={styles.statCard} onPress={() => navigation.navigate("WithdrawScreen")}>
-                                    <Text style={styles.statLabel}>${affiliateStats?.money?.toFixed(2) || '0.00'}</Text>
-                                    <Text style={styles.statValue}>Available Balance</Text>
-                                </LinearGradient>
+                                <Pressable onPress={() => {
+                                    navigation.navigate("WithdrawScreen", { totalAmount: affiliateStats?.money })
+                                }}>
+                                    <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                                        colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={styles.statCard} onPress={() => navigation.navigate("WithdrawScreen")}>
+                                        <Text style={styles.statLabel}>${affiliateStats?.money?.toFixed(2) || '0.00'}</Text>
+                                        <Text style={styles.statValue}>Available Balance</Text>
+                                    </LinearGradient>
+                                </Pressable>
                                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                                     colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={styles.statCard}>
                                     <Text style={styles.statLabel}>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { API_URL } from "@env";
 import { useDispatch } from 'react-redux';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 
 export const trackAffiliateVisit = async ({ referrerUserId, courseId, type = "visited" }) => {
@@ -67,5 +67,66 @@ export const useAffiliateStats = (userId) => {
         onError: () => dispatch(stopLoading()),
         retry: 1,
         refetchOnWindowFocus: false,
+    });
+};
+
+
+
+
+
+// POST: Create a new payment
+export const createPayment = async ({ userId, type, amount, accountNumber }) => {
+    const payload = { userId, type, amount, accountNumber };
+
+    try {
+        const { data } = await axios.post(`${API_URL}/api/payment`, payload);
+        return data;
+    } catch (error) {
+        const message = error?.response?.data?.message || error.message;
+        console.error('Error creating payment:', message);
+        throw new Error(message);
+    }
+};
+
+// GET: Fetch all payments
+export const fetchPayments = async () => {
+    try {
+        const { data } = await axios.get(`${API_URL}/api/payment`);
+        return data?.payments || [];
+    } catch (error) {
+        const message = error?.response?.data?.message || error.message;
+        console.error('Error fetching payments:', message);
+        throw new Error(message);
+    }
+};
+
+
+
+export const usePayments = () => {
+    const dispatch = useDispatch();
+
+    return useQuery({
+        queryKey: ['payments'],
+        queryFn: fetchPayments,
+        staleTime: 5 * 60 * 1000, // cache for 5 minutes
+        retry: 2,
+        refetchOnWindowFocus: false,
+        onSuccess: () => dispatch(stopLoading()),
+        onError: () => dispatch(stopLoading()),
+    });
+};
+
+
+export const useCreatePayment = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: createPayment,
+        onSuccess: () => {
+            // 🚀 Automatically refetch payments list
+            queryClient.invalidateQueries({ queryKey: ['payments'] });
+        },
+        onError: (error) => {
+            console.error('Payment creation failed:', error.message);
+        },
     });
 };
