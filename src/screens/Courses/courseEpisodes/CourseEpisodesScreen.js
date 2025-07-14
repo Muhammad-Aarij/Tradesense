@@ -107,7 +107,20 @@ const CourseEpisodesScreen = ({ route }) => {
         const secs = Math.floor(durationInSeconds % 60);
 
         const padded = (val) => val.toString().padStart(2, '0');
-        return `${hrs}:${padded(mins)}:${padded(secs)}`;
+
+        let formatted = '';
+
+        if (hrs > 0) {
+            formatted += `${hrs}:`;
+        }
+
+        if (mins > 0 || hrs > 0) { // show minutes if they're non-zero OR if hours are shown
+            formatted += `${padded(mins)}:`;
+        }
+
+        formatted += padded(secs);
+
+        return formatted;
     };
 
 
@@ -225,7 +238,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                     <Text style={styles.episodeTitle}>{episode.title}</Text>
                                     <Text style={styles.episodeDuration}>
                                         {
-                                            formatDuration(durations[episode.duration])
+                                            formatDuration(episode.duration)
                                         }
                                     </Text>
 

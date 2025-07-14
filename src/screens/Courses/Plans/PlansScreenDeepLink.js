@@ -36,16 +36,21 @@ const PlanCard = ({
             <Text style={styles.planPrice}>${price}</Text>
         </View>
         <View style={styles.divider} />
-        <Text style={styles.description}>{description}</Text>
         <View style={styles.featuresContainer}>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={styles.checkIcon} />
-                <Text style={styles.featureText}>Full Access to Modules</Text>
-            </View>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={styles.checkIcon} />
-                <Text style={styles.featureText}>No Time Limit</Text>
-            </View>
+            {description
+                .replace('Plan includes :', '') // remove leading label
+                .split('\n') // split by newlines
+                .map((line, index) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return null; // skip empty lines
+
+                    return (
+                        <View key={index} style={styles.featureItem}>
+                            <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
+                            <Text style={styles.featureText}>{trimmed}</Text>
+                        </View>
+                    );
+                })}
         </View>
 
         <TouchableOpacity
@@ -70,6 +75,7 @@ const PlansScreenDeepLink = () => {
     const [modalTitle, setModalTitle] = useState('');
     const [modalMessage, setModalMessage] = useState('');
     const [modalIcon, setModalIcon] = useState(null);
+    const { isSignedIn, userToken, isProfilingDone } = useSelector(state => state.auth);
 
     const handleEnroll = async ({ studentId, courseId, planId }) => {
         console.log("Enrolling with:", studentId, courseId, planId);
@@ -134,9 +140,17 @@ const PlansScreenDeepLink = () => {
     };
 
     const handleCloseModal = () => {
+        console.log('🔐 isSignedIn:', isSignedIn);
+        console.log('🪪 userToken:', userToken);
+        console.log('📌 isProfilingDone:', isProfilingDone);
+
         setModalVisible(false);
-        navigation.navigate('MainFlow');
+
+        navigation.replace('MainFlow');
+
     };
+
+
 
     return (
         <>

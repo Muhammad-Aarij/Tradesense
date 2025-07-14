@@ -11,7 +11,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { loginUser,setProfilingDone } from '../../../redux/slice/authSlice';
+import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
 import loginApi from '../../../functions/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Snackbar from 'react-native-snackbar';
@@ -73,6 +73,9 @@ const LoginScreen = ({ navigation, route }) => {
             // ✅ FIRST: Check if pending deep link
             if (pendingDeepLink) {
                 await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
+                if (!isProfilingPending) {
+                    dispatch(setProfilingDone(true));
+                }
                 navigation.replace('CourseDeepLink', {
                     courseId: pendingDeepLink.courseId,
                     affiliateToken: pendingDeepLink.token,

@@ -15,6 +15,7 @@ import theme from '../../../themes/theme';
 import { bg } from '../../../assets/images';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { useSelector } from 'react-redux';
 
 const { height } = Dimensions.get('window');
 

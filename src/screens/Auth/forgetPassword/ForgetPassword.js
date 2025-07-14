@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { sendOTP } from '../../../functions/otpService';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import { sendResetEmail } from '../../../functions/passwordService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,21 +34,34 @@ const ForgetPassword = ({ navigation }) => {
 
     try {
       dispatch(startLoading());
-      const response = await sendOTP(email, false);
-      console.log("Reset email sent:", response);
-      dispatch(stopLoading());
-      // alert("Password reset email sent successfully");
-      navigation.navigate("EmailVerification", {
-        email: email,
-        status: "forget",
-        token: response.token
-      });
+
+      // Send reset email
+      const resetResponse = await sendResetEmail(email);
+
+      // Check for success (adjust this based on your API response structure)
+      if (resetResponse) {
+        const otpResponse = await sendOTP(email, false);
+        console.log("Reset email sent:", resetResponse);
+        console.log("OTP Response:", otpResponse);
+
+        dispatch(stopLoading());
+
+        navigation.navigate("EmailVerification", {
+          email: email,
+          status: "forget",
+          token: resetResponse.token,
+        });
+      } else {
+        dispatch(stopLoading());
+        alert("Failed to send password reset email. Please try again.");
+      }
     } catch (error) {
       dispatch(stopLoading());
-      console.error("Error sending reset email:", error);
-      alert("Failed to send password reset email. Please try again.");
+      console.error("Error during verification:", error);
+      alert("Something went wrong. Please try again later.");
     }
   };
+
 
   return (
     <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.darkBlue }]}>

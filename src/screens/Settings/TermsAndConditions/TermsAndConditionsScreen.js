@@ -46,12 +46,7 @@ const TermsAndConditionsScreen = ({ navigation }) => {
           <Header title="Terms and Conditions" navigation={navigation} />
 
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {!termsData && !error ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.primaryColor} />
-                <Text style={[styles.loadingText, { color: theme.textColor }]}>Loading Terms...</Text>
-              </View>
-            ) : error ? (
+            { error ? (
               <View style={styles.errorContainer}>
                 <Text style={[styles.errorText, { color: theme.errorColor || 'red' }]}>
                   Error loading terms: {error.message}

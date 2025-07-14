@@ -167,7 +167,6 @@ const AppNavContainer = () => {
                     <RootStack.Screen name="PlansScreenDeepLink" component={PlansScreenDeepLink} />
                 </RootStack.Navigator>
 
-                {isSidebarOpen && <MenuComponent />}
             </NavigationContainer>
             {isLoading && <Loader />}
         </>

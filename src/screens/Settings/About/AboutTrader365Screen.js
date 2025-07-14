@@ -14,7 +14,6 @@ const responsiveHeight = (size) => (width / 812) * size;
 const responsiveFontSize = (size) => (width / 375) * size;
 
 const AboutTrader365Screen = ({ navigation }) => {
-    const [currentCard, setCurrentCard] = useState(0);
     const { theme } = useContext(ThemeContext);
     const styles = getStyles(theme);
 
@@ -31,58 +30,43 @@ const AboutTrader365Screen = ({ navigation }) => {
                                 Trader365 is your all-in-one trading assistant — combining intelligent tools, real-time insights, verified learning, and secure account management to help you grow confidently in the financial world.
                             </Text>
                         </View>
-
-                        <View style={styles.carouselContainer}>
-                            {currentCard === 0 && (
-                                <View style={styles.sectionCard}>
-                                    <Text style={styles.sectionTitle}>Core Features</Text>
-                                    <View style={styles.line} />
-                                    <View style={styles.featureItem}>
-                                        <Image source={cf1} style={styles.icon} />
-                                        <Text style={styles.featureText}>Smart Trading Plans</Text>
-                                    </View>
-                                    <View style={styles.featureItem}>
-                                        <Image source={cf2} style={styles.icon} />
-                                        <Text style={styles.featureText}>Expert Video Courses</Text>
-                                    </View>
-                                    <View style={styles.featureItem}>
-                                        <Image source={cf3} style={styles.icon} />
-                                        <Text style={styles.featureText}>AI Chat Assistant</Text>
-                                    </View>
-                                    <View style={styles.featureItem}>
-                                        <Image source={cf4} style={styles.icon} />
-                                        <Text style={styles.featureText}>Affiliate Marketing</Text>
-                                    </View>
+                        <ScrollView style={{ flexDirection: "row", gap: 20, }}>
+                            {/* 🔓 Core Features Card */}
+                            <View style={styles.sectionCard}>
+                                <Text style={styles.sectionTitle}>Core Features</Text>
+                                <View style={styles.line} />
+                                <View style={styles.featureItem}>
+                                    <Image source={cf1} style={styles.icon} />
+                                    <Text style={styles.featureText}>Smart Trading Plans</Text>
                                 </View>
-                            )}
-
-                            {currentCard === 1 && (
-                                <View style={[styles.sectionCard, { width: responsiveWidth(250) }]}>
-                                    <Text style={styles.sectionTitle}>About Us</Text>
-                                    <View style={styles.line} />
-                                    <Text style={[styles.featureText, { textAlign: 'center' }]}>
-                                        Our mission is to make trading knowledge accessible and profitable for everyone by leveraging financial intelligence with smart tech technology.
-                                    </Text>
+                                <View style={styles.featureItem}>
+                                    <Image source={cf2} style={styles.icon} />
+                                    <Text style={styles.featureText}>Expert Video Courses</Text>
                                 </View>
-                            )}
+                                <View style={styles.featureItem}>
+                                    <Image source={cf3} style={styles.icon} />
+                                    <Text style={styles.featureText}>AI Chat Assistant</Text>
+                                </View>
+                                <View style={styles.featureItem}>
+                                    <Image source={cf4} style={styles.icon} />
+                                    <Text style={styles.featureText}>Affiliate Marketing</Text>
+                                </View>
+                            </View>
 
-                            {/* Arrows */}
-                            {currentCard > 0 && (
-                                <TouchableOpacity style={styles.leftArrow} onPress={() => setCurrentCard(currentCard - 1)}>
-                                    <Text style={styles.arrowText}>‹</Text>
-                                </TouchableOpacity>
-                            )}
-                            {currentCard < 1 && (
-                                <TouchableOpacity style={styles.rightArrow} onPress={() => setCurrentCard(currentCard + 1)}>
-                                    <Text style={styles.arrowText}>›</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
+                            {/* 👥 About Us Card */}
+                            <View style={styles.sectionCard}>
+                                <Text style={styles.sectionTitle}>About Us</Text>
+                                <View style={styles.line} />
+                                <Text style={[styles.featureText, { textAlign: 'center' }]}>
+                                    Our mission is to make trading knowledge accessible and profitable for everyone by leveraging financial intelligence with smart tech technology.
+                                </Text>
+                            </View>
+                        </ScrollView>
                     </ScrollView>
                 </View>
             </SafeAreaView>
 
-            {/* Footer Info */}
+            {/* 📎 Footer Info */}
             <View style={styles.footerInfo}>
                 <Text style={styles.versionText}>App Version: 1.0.1.20230520</Text>
                 <Text style={styles.copyrightText}>© 2023 Trader365. All rights reserved.</Text>
@@ -90,6 +74,7 @@ const AboutTrader365Screen = ({ navigation }) => {
         </ImageBackground>
     );
 };
+
 
 const getStyles = (theme) => StyleSheet.create({
     safeArea: {

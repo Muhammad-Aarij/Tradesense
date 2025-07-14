@@ -42,6 +42,11 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         alignItems: 'center',
         width: "80%",
+        shadowColor: theme.primaryColor, // 👈 shadow with primary color
+        shadowOffset: { width: 20, height: 16 },
+        shadowOpacity: 0.45,
+        shadowRadius: 10,
+        elevation: 20, // for Android shadow
     },
     icon: {
         width: 110,

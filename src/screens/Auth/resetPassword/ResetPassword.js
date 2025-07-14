@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, ImageBackground, ScrollView, Image } from 'react-native';
 import theme from '../../../themes/theme';
-import { resetPassword } from '../../functions/passwordService';
+import { resetPassword } from '../../../functions/passwordService';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { bg,eyeClose } from '../../../assets/images';
+import { bg, eyeClose } from '../../../assets/images';
 
 
 const { width } = Dimensions.get('window');
@@ -17,6 +17,9 @@ const ResetPassword = ({ navigation, route }) => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const token = route.params?.token || "";
+    console.log('====================================');
+    console.log("Token in reset Password", token);
+    console.log('====================================');
     const dispatch = useDispatch();
 
     const handleResetPassword = async () => {
@@ -34,7 +37,7 @@ const ResetPassword = ({ navigation, route }) => {
             console.log("Password reset successful:", response);
             dispatch(stopLoading());
             alert("Your password has been reset successfully!");
-            navigation.navigate("Login"); 
+            navigation.navigate("Login");
         } catch (error) {
             dispatch(stopLoading());
             console.error("Error resetting password:", error);

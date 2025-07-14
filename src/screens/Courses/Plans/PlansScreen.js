@@ -38,16 +38,25 @@ const PlanCard = ({
             <Text style={styles.planPrice}>${price}</Text>
         </View>
         <View style={styles.divider} />
-        <Text style={styles.description}>{description}</Text>
+        {/* <Text style={styles.description}>{description}</Text> */}
         <View style={styles.featuresContainer}>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
-                <Text style={styles.featureText}>Full Access to Modules</Text>
+            <View style={styles.featuresContainer}>
+                {description
+                    .replace('Plan includes :', '') // remove leading label
+                    .split('\n') // split by newlines
+                    .map((line, index) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return null; // skip empty lines
+
+                        return (
+                            <View key={index} style={styles.featureItem}>
+                                <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
+                                <Text style={styles.featureText}>{trimmed}</Text>
+                            </View>
+                        );
+                    })}
             </View>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
-                <Text style={styles.featureText}>No Time Limit</Text>
-            </View>
+
         </View>
 
         <TouchableOpacity
@@ -76,6 +85,7 @@ const PlansScreen = () => {
 
     const handleEnroll = async ({ studentId, courseId, planId }) => {
         try {
+            console.log(planId);
             dispatch(startLoading());
             await enrollInCourse({ studentId, courseId, plan: planId });
             dispatch(stopLoading());
@@ -114,7 +124,10 @@ const PlansScreen = () => {
                                 planId={plan._id}
                                 courseId={courseId}
                                 studentId={studentId}
-                                onPress={() => setSelectedPlanId(plan._id)}
+                                onPress={() => {
+                                    setSelectedPlanId(plan._id);
+                                    console.log(plan._id);
+                                }}
                                 isSelected={selectedPlanId === plan._id}
                                 onEnroll={handleEnroll}
                                 styles={styles}
