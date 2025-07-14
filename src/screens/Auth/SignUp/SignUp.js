@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image, ImageBackground, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useContext } from 'react';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    Dimensions,
+    Image,
+    ImageBackground,
+    ScrollView,
+    Alert,
+    KeyboardAvoidingView,
+    Platform
+} from 'react-native';
 import { bg, G, eyeClose, secureUser, applePay } from '../../../assets/images';
-import theme from '../../../themes/theme'
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
-import registerUser from '../../../functions/registerUser';
 import { sendOTP } from '../../../functions/otpService';
-import handleGoogleLogin from '../../../functions/handleGoogleLogin';
+import validateUser from '../../../functions/validateUser';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { ThemeContext } from '../../../context/ThemeProvider';
 
 const { width, height } = Dimensions.get('window');
 
 const SignUp = ({ navigation }) => {
+    const dispatch = useDispatch();
+    const { theme, isDarkMode } = useContext(ThemeContext);
 
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [passwordVisible2, setPasswordVisible2] = useState(false);
@@ -21,11 +35,16 @@ const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const dispatch = useDispatch();
 
     const handleSignUp = async () => {
         if (password !== confirmPassword) {
             Alert.alert("Passwords do not match!");
+            return;
+        }
+
+        // Basic validation
+        if (!name || !phone || !email || !password) {
+            Alert.alert("Error", "Please fill in all fields");
             return;
         }
 
@@ -34,42 +53,55 @@ const SignUp = ({ navigation }) => {
         try {
             dispatch(startLoading());
 
-            const response = await sendOTP(email, true);
-            console.log("OTP sent successfully");
+            // First, validate if user already exists
+            try {
+                await validateUser(email, phone);
+            } catch (validationError) {
+                dispatch(stopLoading());
+                const errorMessage = validationError?.response?.data?.message || "User validation failed";
+                
+                if (errorMessage.includes("email") && errorMessage.includes("phone")) {
+                    Alert.alert("User Already Exists", "An account with this email and phone number already exists. Please use different credentials or try logging in.");
+                } else if (errorMessage.includes("email")) {
+                    Alert.alert("Email Already Exists", "An account with this email already exists. Please use a different email or try logging in.");
+                } else if (errorMessage.includes("phone")) {
+                    Alert.alert("Phone Already Exists", "An account with this phone number already exists. Please use a different phone number or try logging in.");
+                } else {
+                    Alert.alert("Error", errorMessage);
+                }
+                return;
+            }
 
+            // If validation passes, send OTP
+            const response = await sendOTP(email, true);
             if (response) {
                 dispatch(stopLoading());
                 navigation.navigate("EmailVerification", {
-                    email: email,
-                    userData: userData,
+                    email,
+                    userData,
                     status: "register",
                 });
             } else {
                 dispatch(stopLoading());
                 Alert.alert("OTP confirmation failed", "Please try again");
-                console.error("OTP failed");
             }
         } catch (error) {
             dispatch(stopLoading());
-
             const serverMessage =
                 error?.response?.data?.message || "Something went wrong. Please try again.";
             Alert.alert("Error", serverMessage);
-            console.error("Error signing up:", error);
         }
     };
+
     return (
-        <ImageBackground source={bg} style={styles.container}>
+        <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.bg }]}>
             <KeyboardAvoidingView style={styles.keyboardAvoiding} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-                <ScrollView
-                    style={styles.scrollView}
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
+                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     <Image source={secureUser} style={styles.image} />
-                    <View style={styles.bottomcontainer}>
-                        <Text style={styles.title}>Register Now</Text>
-                        <Text style={styles.subtitle}>Create a new account</Text>
+
+                    <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.isDarkMode : "white" }]}>
+                        <Text style={[styles.title, { color: theme.textColor }]}>Register Now</Text>
+                        <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Create a new account</Text>
 
                         <CustomInput label="Full Name" placeholder="Enter Full Name" value={name} onChangeText={setFullName} />
                         <CustomInput label="Phone" placeholder="Enter Phone Number" value={phone} onChangeText={setPhone} />
@@ -95,18 +127,20 @@ const SignUp = ({ navigation }) => {
                             onIconPress={() => setPasswordVisible2(!passwordVisible2)}
                         />
 
-                        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+                        <TouchableOpacity
+                            style={[styles.button, { backgroundColor: theme.primaryColor }]}
+                            onPress={handleSignUp}
+                        >
                             <Text style={styles.buttonText}>Sign Up</Text>
                         </TouchableOpacity>
 
                         <View style={styles.orContainer}>
                             <LinearGradient
-                                start={{ x: 0.0, y: 0.95 }}
-                                end={{ x: 1.0, y: 1.0 }}
+                                start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
                                 colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
                                 style={styles.Line}
                             />
-                            <Text style={styles.or}>Or continue with</Text>
+                            <Text style={[styles.or, { color: theme.subTextColor }]}>Or continue with</Text>
                             <LinearGradient
                                 colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
                                 style={styles.Line}
@@ -122,7 +156,7 @@ const SignUp = ({ navigation }) => {
                             >
                                 <TouchableOpacity style={styles.googleBtnInner}>
                                     <Image source={G} style={styles.socialIcon} />
-                                    <Text style={styles.googleText}>Continue with Google</Text>
+                                    <Text style={[styles.googleText, { color: theme.textColor }]}>Continue with Google</Text>
                                 </TouchableOpacity>
                             </LinearGradient>
 
@@ -132,8 +166,8 @@ const SignUp = ({ navigation }) => {
                         </View>
 
                         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                            <Text style={styles.footer}>
-                                Already have an account? <Text style={styles.link}>Sign In</Text>
+                            <Text style={[styles.footer, { color: theme.subTextColor }]}>
+                                Already have an account? <Text style={[styles.link, { color: theme.primaryColor }]}>Sign In</Text>
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -146,7 +180,6 @@ const SignUp = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#010b13',
         alignItems: 'center',
     },
     keyboardAvoiding: {
@@ -162,7 +195,6 @@ const styles = StyleSheet.create({
     },
     bottomcontainer: {
         flex: 1,
-        backgroundColor: theme.darkBlue,
         width: width,
         paddingHorizontal: width * 0.1,
         borderTopLeftRadius: width * 0.07,
@@ -179,13 +211,11 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: width * 0.07,
-        color: '#EFEFEF',
         fontFamily: 'Inter-SemiBold',
         marginTop: height * 0.03,
         marginBottom: height * 0.01,
     },
     subtitle: {
-        color: '#FFFFFF',
         fontSize: width * 0.032,
         fontFamily: 'Inter-Medium',
         width: width * 0.5,
@@ -193,7 +223,6 @@ const styles = StyleSheet.create({
         marginBottom: height * 0.025,
     },
     button: {
-        backgroundColor: theme.primaryColor,
         width: '100%',
         paddingVertical: height * 0.02,
         borderRadius: width * 0.035,
@@ -219,7 +248,6 @@ const styles = StyleSheet.create({
     },
     or: {
         fontFamily: 'Inter-Medium',
-        color: '#ccc',
         fontSize: width * 0.03,
         marginHorizontal: width * 0.025,
     },
@@ -240,7 +268,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     googleText: {
-        color: '#fff',
         marginLeft: width * 0.025,
         fontSize: width * 0.032,
         fontFamily: 'Inter-Medium',
@@ -262,14 +289,13 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
     },
     footer: {
-        color: '#ccc',
         marginTop: height * 0.04,
         marginBottom: height * 0.05,
         fontFamily: 'Inter-Medium',
         fontSize: width * 0.03,
     },
     link: {
-        color: theme.primaryColor,
+        fontFamily: 'Inter-Medium',
     },
 });
 

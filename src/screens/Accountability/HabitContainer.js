@@ -6,10 +6,11 @@ import {
     FlatList,
     TouchableOpacity,
     Image,
+    ImageBackground,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { deleteHabit, useHabitByUser, updateHabit } from '../../functions/habbitFunctions';
-import { back } from '../../assets/images';
+import { back, bg } from '../../assets/images';
 import theme from '../../themes/theme';
 import HabitCard from '../../components/HabbitCard';
 import { useQueryClient } from '@tanstack/react-query';
@@ -50,96 +51,99 @@ export default function HabitContainer({ navigation }) {
         const frequency = habit.frequency || '';
         return selectedFilter === 'All' || frequency === selectedFilter;
     });
-    
+
 
     return (
-        <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-                <View style={styles.headerTop}>
-                    <Text style={styles.sectionTitle}>Habit Tracking</Text>
-                    <TouchableOpacity
-                        style={styles.addSmallButton}
-                        onPress={() => navigation.navigate('AddHabit')}
-                    >
-                        <Text style={styles.addSmallButtonText}>+ Add Habit</Text>
-                    </TouchableOpacity>
+        <ImageBackground source={bg} style={{ flex: 1 }}>
+
+            <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeader}>
+                    <View style={styles.headerTop}>
+                        <Text style={styles.sectionTitle}>Habit Tracking</Text>
+                        <TouchableOpacity
+                            style={styles.addSmallButton}
+                            onPress={() => navigation.navigate('AddHabit')}
+                        >
+                            <Text style={styles.addSmallButtonText}>+ Add Habit</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {<View style={styles.sectionActions}>
+                        <View style={styles.filtersRow}>
+                            {['Daily', 'Weekly', 'Monthly'].map(filter => (
+                                <TouchableOpacity
+                                    key={filter}
+                                    style={[
+                                        styles.smallFilterTab,
+                                        activeGoalFilter === filter && styles.activeSmallFilterTab,
+                                    ]}
+                                    onPress={() => setActiveGoalFilter(filter)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.smallFilterTabText,
+                                            activeGoalFilter === filter &&
+                                            styles.activeSmallFilterTabText,
+                                        ]}
+                                    >
+                                        {filter}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <View style={{ position: 'relative' }}>
+                            <TouchableOpacity
+                                style={styles.dropdownContainer}
+                                onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
+                            >
+                                <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
+                                <Image
+                                    source={back}
+                                    style={{
+                                        ...styles.dropdownArrow,
+                                        transform: [
+                                            { rotate: filterDropdownVisible ? '90deg' : '-90deg' },
+                                        ],
+                                    }}
+                                />
+                            </TouchableOpacity>
+
+                            {filterDropdownVisible && (
+                                <View style={styles.dropdownOptions}>
+                                    {filterOptions.map(option => (
+                                        <TouchableOpacity
+                                            key={option}
+                                            style={styles.optionItem}
+                                            onPress={() => {
+                                                setSelectedFilter(option);
+                                                setFilterDropdownVisible(false);
+                                            }}
+                                        >
+                                            <Text style={styles.optionText}>{option}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
+                    </View>}
                 </View>
 
-                {<View style={styles.sectionActions}>
-                    <View style={styles.filtersRow}>
-                        {['Daily', 'Weekly', 'Monthly'].map(filter => (
-                            <TouchableOpacity
-                                key={filter}
-                                style={[
-                                    styles.smallFilterTab,
-                                    activeGoalFilter === filter && styles.activeSmallFilterTab,
-                                ]}
-                                onPress={() => setActiveGoalFilter(filter)}
-                            >
-                                <Text
-                                    style={[
-                                        styles.smallFilterTabText,
-                                        activeGoalFilter === filter &&
-                                        styles.activeSmallFilterTabText,
-                                    ]}
-                                >
-                                    {filter}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
+                <FlatList
+                    data={filteredHabits}
+                    keyExtractor={item => item._id.toString()}
+                    renderItem={({ item }) => (
+                        <HabitCard
+                            habit={item}
+                            onEdit={id => handleEdit(item, 'Habit')}
+                            onDelete={id => handleDelete(item._id, 'Habit')}
+                        />
+                    )}
+                    contentContainerStyle={{ paddingBottom: 30 }}
+                />
 
-                    <View style={{ position: 'relative' }}>
-                        <TouchableOpacity
-                            style={styles.dropdownContainer}
-                            onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
-                        >
-                            <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
-                            <Image
-                                source={back}
-                                style={{
-                                    ...styles.dropdownArrow,
-                                    transform: [
-                                        { rotate: filterDropdownVisible ? '90deg' : '-90deg' },
-                                    ],
-                                }}
-                            />
-                        </TouchableOpacity>
-
-                        {filterDropdownVisible && (
-                            <View style={styles.dropdownOptions}>
-                                {filterOptions.map(option => (
-                                    <TouchableOpacity
-                                        key={option}
-                                        style={styles.optionItem}
-                                        onPress={() => {
-                                            setSelectedFilter(option);
-                                            setFilterDropdownVisible(false);
-                                        }}
-                                    >
-                                        <Text style={styles.optionText}>{option}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        )}
-                    </View>
-                </View>}
             </View>
-
-            <FlatList
-                data={filteredHabits}
-                keyExtractor={item => item._id.toString()}
-                renderItem={({ item }) => (
-                    <HabitCard
-                        habit={item}
-                        onEdit={id => handleEdit(item, 'Habit')}
-                        onDelete={id => handleDelete(item._id, 'Habit')}
-                    />
-                )}
-                contentContainerStyle={{ paddingBottom: 30 }}
-            />
-
-        </View>
+        </ImageBackground>
     );
 }
 

@@ -1372,11 +1372,34 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-image-picker (8.2.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-orientation-locker (1.7.0):
     - React-Core
   - react-native-pure-jwt (3.0.3):
     - JWT (= 3.0.0-beta.12)
     - React
+  - react-native-render-html (6.3.4):
+    - React-Core
   - react-native-safe-area-context (5.4.1):
     - DoubleConversion
     - glog
@@ -1926,6 +1949,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNDeviceInfo (14.0.4):
+    - React-Core
   - RNFastImage (8.6.3):
     - React-Core
     - SDWebImage (~> 5.11.1)
@@ -2150,8 +2175,10 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-orientation-locker (from `../node_modules/react-native-orientation-locker`)
   - react-native-pure-jwt (from `../node_modules/react-native-pure-jwt`)
+  - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-track-player (from `../node_modules/react-native-track-player`)
@@ -2188,6 +2215,7 @@ DEPENDENCIES:
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
+  - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
   - "RNFBMessaging (from `../node_modules/@react-native-firebase/messaging`)"
@@ -2301,10 +2329,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-image-picker:
+    :path: "../node_modules/react-native-image-picker"
   react-native-orientation-locker:
     :path: "../node_modules/react-native-orientation-locker"
   react-native-pure-jwt:
     :path: "../node_modules/react-native-pure-jwt"
+  react-native-render-html:
+    :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
@@ -2377,6 +2409,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-picker/picker"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
+  RNDeviceInfo:
+    :path: "../node_modules/react-native-device-info"
   RNFastImage:
     :path: "../node_modules/react-native-fast-image"
   RNFBApp:
@@ -2456,8 +2490,10 @@ SPEC CHECKSUMS:
   React-logger: 5cad0c76d056809523289e589309012215a393b5
   React-Mapbuffer: a381120aea722d2244d4e4b663a10d4c3b2d4e51
   React-microtasksnativemodule: d9b946675010659cddd1c7611c074216579c8ad3
+  react-native-image-picker: 602c0ae73967fbd9db64aff0f76ee33bb6f51e75
   react-native-orientation-locker: cc6f357b289a2e0dd2210fea0c52cb8e0727fdaa
   react-native-pure-jwt: ddc75cb6ec8fe40c8efa6b5ca2cd41eadc914056
+  react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 7a5117e136d420abd269140626dcb7cb56b94e83
   react-native-slider: 407a980ef4ad3b8fef72e0be57a48c60d0fadf6e
   react-native-track-player: 6dc2e2633265704b8ab6d8124b80239d4ed1f911
@@ -2494,6 +2530,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: 8542667cb39fff458c1a1a3f9e70205042636129
   RNCPicker: c657bd58a82b164a957812f82a0b4bab4245de2e
   RNDateTimePicker: 95f718541ae3e4578b2c469383d2789e2d6b1f12
+  RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
   RNFastImage: 462a183c4b0b6b26fdfd639e1ed6ba37536c3b87
   RNFBApp: 557f15b87d602ed5879a1cbd6dc574481bccb278
   RNFBMessaging: e6480aaf434826565d5a40b01c422fb0f58fc8a9

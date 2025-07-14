@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
-    Dimensions,
-    SafeAreaView
+    Dimensions, SafeAreaView
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { bg, CheckMark, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
+import { ThemeContext } from '../../../context/ThemeProvider';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { enrollInCourse } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-const { width, height } = Dimensions.get('window');
+
+const { height } = Dimensions.get('window');
 
 const PlanCard = ({
     title,
@@ -23,27 +23,40 @@ const PlanCard = ({
     studentId,
     onPress,
     isSelected,
-    onEnroll
+    onEnroll,
+    styles,
+    theme // ✅ receive theme here
+
 }) => (
     <TouchableOpacity
         style={[styles.planCard, isSelected && styles.planCardSelected]}
         onPress={onPress}
+        activeOpacity={0.9}
     >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={styles.planTitle}>{title}</Text>
             <Text style={styles.planPrice}>${price}</Text>
         </View>
         <View style={styles.divider} />
-        <Text style={styles.description}>{description}</Text>
+        {/* <Text style={styles.description}>{description}</Text> */}
         <View style={styles.featuresContainer}>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={styles.checkIcon} />
-                <Text style={styles.featureText}>Full Access to Modules</Text>
+            <View style={styles.featuresContainer}>
+                {description
+                    .replace('Plan includes :', '') // remove leading label
+                    .split('\n') // split by newlines
+                    .map((line, index) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return null; // skip empty lines
+
+                        return (
+                            <View key={index} style={styles.featureItem}>
+                                <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
+                                <Text style={styles.featureText}>{trimmed}</Text>
+                            </View>
+                        );
+                    })}
             </View>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={styles.checkIcon} />
-                <Text style={styles.featureText}>No Time Limit</Text>
-            </View>
+
         </View>
 
         <TouchableOpacity
@@ -56,12 +69,15 @@ const PlanCard = ({
 );
 
 const PlansScreen = () => {
+    const { theme } = useContext(ThemeContext);
+    const styles = useMemo(() => getStyles(theme), [theme]);
+
     const route = useRoute();
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const { plans = [], Courseid: courseId } = route.params || {};
+    console.log(plans);
     const userData = useSelector(state => state.auth);
-    console.log("UserData", userData);
     const studentId = userData.userObject?._id;
 
     const [selectedPlanId, setSelectedPlanId] = useState(null);
@@ -69,14 +85,14 @@ const PlansScreen = () => {
 
     const handleEnroll = async ({ studentId, courseId, planId }) => {
         try {
-            dispatch(startLoading);
+            console.log(planId);
+            dispatch(startLoading());
             await enrollInCourse({ studentId, courseId, plan: planId });
-            dispatch(stopLoading);
+            dispatch(stopLoading());
             setModalVisible(true);
         } catch (error) {
-            dispatch(stopLoading);
+            dispatch(stopLoading());
             console.error('Enrollment error:', error);
-            // You can add a toast here if you want
         }
     };
 
@@ -84,14 +100,6 @@ const PlansScreen = () => {
         setModalVisible(false);
         navigation.navigate('PurchasedCoursesScreen');
     };
-
-    // useEffect(()=>{
-    //     dispatch(startLoading);    
-    //     setTimeout(() => {
-
-    //         dispatch(stopLoading);    
-    //     }, 1000);
-    // })
 
     return (
         <>
@@ -103,7 +111,7 @@ const PlansScreen = () => {
                 />
             )}
 
-            <ImageBackground source={bg} style={styles.container}>
+            <ImageBackground source={theme.bg || bg} style={styles.container}>
                 <Header title={'Memberships'} />
                 <SafeAreaView>
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -116,9 +124,15 @@ const PlansScreen = () => {
                                 planId={plan._id}
                                 courseId={courseId}
                                 studentId={studentId}
-                                onPress={() => setSelectedPlanId(plan._id)}
+                                onPress={() => {
+                                    setSelectedPlanId(plan._id);
+                                    console.log(plan._id);
+                                }}
                                 isSelected={selectedPlanId === plan._id}
                                 onEnroll={handleEnroll}
+                                styles={styles}
+                                theme={theme} // ✅ pass theme to fix tintColor
+
                             />
                         ))}
                     </ScrollView>
@@ -128,7 +142,7 @@ const PlansScreen = () => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     container: { flex: 1, padding: 25, paddingTop: 0 },
     scrollContent: { paddingBottom: height * 0.1 },
     planCard: {
@@ -140,7 +154,7 @@ const styles = StyleSheet.create({
         marginBottom: 25,
     },
     planCardSelected: { borderColor: theme.primaryColor },
-    planTitle: { color: '#FFFFFF', fontSize: 20, fontFamily: 'Inter-Bold', marginBottom: 10 },
+    planTitle: { color: theme.textColor, fontSize: 20, fontFamily: 'Inter-Bold', marginBottom: 10 },
     planPrice: { color: theme.primaryColor, fontSize: 19, fontFamily: 'Inter-Bold', marginBottom: 15 },
     divider: {
         width: '100%',
@@ -149,15 +163,14 @@ const styles = StyleSheet.create({
         borderColor: theme.borderColor,
     },
     description: {
-        color: '#FFFFFF',
+        color: theme.textColor,
         fontSize: 14,
-        marginLeft: 0,
         marginBottom: 15,
     },
     featuresContainer: { marginBottom: 20 },
     featureItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
     checkIcon: { width: 20, height: 20, resizeMode: 'contain' },
-    featureText: { color: '#FFFFFF', fontSize: 14, marginLeft: 10 },
+    featureText: { color: theme.textColor, fontSize: 14, marginLeft: 10 },
     checkoutButton: {
         backgroundColor: theme.primaryColor,
         width: '100%',

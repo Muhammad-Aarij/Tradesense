@@ -1,288 +1,317 @@
-import React from 'react';
+import React, { useContext, useMemo, useState, useEffect, useRef, useLayoutEffect } from 'react';
 import {
     View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
     SafeAreaView,
     StatusBar,
     ImageBackground,
-    Touchable,
+    StyleSheet,
+    Modal,
+    FlatList,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import moment from 'moment';
+import { useDispatch, useSelector } from 'react-redux';
+import RBSheet from 'react-native-raw-bottom-sheet';
+import TradeBottomSheet from '../../../components/TradeBottomSheet';
 import { bg } from '../../../assets/images';
 import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
-
+import { ThemeContext } from '../../../context/ThemeProvider';
+import { useTradeRecords } from '../../../functions/Trades';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
 const Trading = ({ navigation }) => {
-    // Dummy data for days, mimicking the image
-    const days = [
-        { date: '12', day: 'Sat', active: false },
-        { date: '13', day: 'Sun', active: false },
-        { date: '14', day: 'Mon', active: true }, // Active day
-        { date: '15', day: 'Tue', active: false },
-        { date: '16', day: 'Wed', active: false },
-    ];
+    const { theme, isDarkMode } = useContext(ThemeContext);
+    const styles = useMemo(() => getStyles(theme), [theme]);
+    const scrollRef = useRef(null);
 
-    // Dummy data for trades
-    const trades = [
-        {
-            company: 'Tesla',
-            symbol: 'Tesal, Inc.',
-            price: '244.40',
-            change: '+9.54 (+4.06%)',
-            isPositive: true,
-        },
-        {
-            company: 'DHDI',
-            symbol: 'PT. Duatiga Pertama',
-            price: '8600.00',
-            change: '+50 (+3.23%)',
-            isPositive: true,
-        },
-        {
-            company: 'USD/JPY',
-            symbol: 'Euro / U.S. Dollar',
-            price: '139.3550',
-            change: '-0.80 (-0.37%)',
-            isPositive: false,
-        },
-        {
-            company: 'AMRI',
-            symbol: 'PT. Atma Merapi',
-            price: '3.867',
-            change: '-71 (-41.1%)',
-            isPositive: false,
-        },
-    ];
+    const userData = useSelector((state) => state.auth);
+    const userId = userData?.userObject?._id;
+    const bottomSheetRef = useRef();
+    const [selectedTrade, setSelectedTrade] = useState(null);
+
+    const { data: tradesData = [] } = useTradeRecords(userId);
+
+    const currentDate = moment();
+    const [selectedMonth, setSelectedMonth] = useState(moment().startOf('month'));
+    const [selectedDate, setSelectedDate] = useState(currentDate.format('YYYY-MM-DD'));
+    const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+    const dispatch = useDispatch();
+    const monthList = Array.from({ length: currentDate.month() + 1 }, (_, i) =>
+        moment().month(i).startOf('month')
+    );
+
+    const daysInSelectedMonth = () => {
+        const days = [];
+        const daysCount = selectedMonth.isSame(currentDate, 'month')
+            ? currentDate.date()
+            : selectedMonth.daysInMonth();
+
+        for (let i = 1; i <= daysCount; i++) {
+            const date = moment(selectedMonth).date(i);
+            days.push({
+                dateString: date.format('YYYY-MM-DD'),
+                date: date.format('D'),
+                day: date.format('ddd'),
+                active: date.format('YYYY-MM-DD') === selectedDate,
+            });
+        }
+
+        return days;
+    };
+
+    const days = daysInSelectedMonth();
+
+    const filteredTrades = tradesData.filter(
+        (trade) => moment(trade.tradeDate).format('YYYY-MM-DD') === selectedDate
+    );
+
+    useLayoutEffect(() => {
+        dispatch(startLoading())
+        const timeout = setTimeout(() => {
+            if (scrollRef.current) {
+                scrollRef.current.scrollToEnd({ animated: true });
+            }
+            dispatch(stopLoading());
+        }, 500); // small delay to wait for layout
+
+        return () => clearTimeout(timeout);
+    }, [selectedMonth]);
+
 
     return (
-        <ImageBackground source={bg} style={{ flex: 1, }}>
-            <SafeAreaView style={styles.container}>
+        <ImageBackground source={theme.bg} style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1 }}>
                 <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
-                <ScrollView contentContainerStyle={styles.scrollViewContent}>
-                    {/* Header */}
-                    <Header title={"Trades"} />
+                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
+                    <Header title="Trades" style={{ marginBottom: 20 }} />
 
                     {/* Month Selector */}
-                    <TouchableOpacity style={styles.monthSelector}>
-                        <Text style={styles.monthSelectorText}>
-                            <Text style={{ color: theme.primaryColor }}>October</Text> 2024</Text>
-                        {/* <Icon name="chevron-down-outline" size={16} color="#A0A0B0" /> */}
-                        <Text style={styles.iconPlaceholderSmall}>{'v'}</Text>
+                    <TouchableOpacity
+                        onPress={() => setMonthPickerVisible(true)}
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                            borderWidth: 0.9,
+                            borderColor: theme.borderColor,
+                            borderRadius: 10,
+                            paddingVertical: 8,
+                            width: 150,
+                            paddingHorizontal: 15,
+                            alignSelf: 'center',
+                            marginBottom: 20,
+                            marginTop: 10,
+                        }}
+                    >
+                        <Text style={{ color: '#A0A0B0', fontSize: 14, marginRight: 5 }}>
+                            <Text style={{ color: theme.primaryColor }}>{selectedMonth.format('MMMM')}</Text>{' '}
+                            {selectedMonth.format('YYYY')}
+                        </Text>
+                        <Text style={{ fontSize: 14, color: '#A0A0B0', }}>{'▼'}</Text>
                     </TouchableOpacity>
 
-                    {/* Day Selector */}
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.daySelectorScroll}>
-                        {days.map((item, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={[styles.dayButton, item.active && styles.dayButtonActive]}
+                    {/* Month Picker Modal */}
+                    <Modal transparent={true} visible={monthPickerVisible} animationType="fade">
+                        <TouchableOpacity
+                            style={{
+                                flex: 1,
+                                justifyContent: 'center',
+                                backgroundColor: 'rgba(0,0,0,0.5)',
+                            }}
+                            onPress={() => setMonthPickerVisible(false)}
+                            activeOpacity={1}
+                        >
+                            <View
+                                style={{
+                                    marginHorizontal: 40,
+                                    backgroundColor: theme.primaryColor || '#fff',
+                                    borderRadius: 12,
+                                    paddingVertical: 20,
+                                }}
                             >
-                                <View style={styles.circle}>
-                                    <Text style={[styles.dayButtonDate, item.active && styles.dayButtonDateActive]}>
-                                        {item.date}
+                                <FlatList
+                                    data={monthList}
+                                    ItemSeparatorComponent={() => (
+                                        <View style={{ height: 0.4, backgroundColor: theme.borderColor, marginHorizontal: 16, opacity: 0.5 }} />
+                                    )}
+                                    keyExtractor={(item) => item.format('YYYY-MM')}
+
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            style={{ paddingVertical: 12, paddingHorizontal: 26 }}
+                                            onPress={() => {
+                                                setSelectedMonth(item);
+                                                const fallback = moment(item).date(1);
+                                                setSelectedDate(fallback.format('YYYY-MM-DD'));
+                                                setMonthPickerVisible(false);
+                                            }}
+                                        >
+                                            <Text style={{ color: "white", fontSize: 14, textAlign: "center", }}>
+                                                {item.format('MMMM YYYY')}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            </View>
+                        </TouchableOpacity>
+                    </Modal>
+
+                    {/* Day Selector */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }} ref={scrollRef} // 👈 attach ref
+                    >
+                        {days.map((item, index) => (
+                            <LinearGradient
+                                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                start={{ x: 0, y: 0.95 }}
+                                end={{ x: 1, y: 1 }}
+                                key={index}
+                                style={{
+                                    borderRadius: 15,
+                                    marginRight: 10,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: 65,
+                                    height: 90,
+                                    borderWidth: 0.9,
+                                    borderColor: item.active ? theme.primaryColor : theme.borderColor,
+                                    backgroundColor: item.active ? 'rgba(29, 172, 255, 0.44)' : undefined,
+                                }}
+                            >
+                                <TouchableOpacity
+                                    onPress={() => setSelectedDate(item.dateString)}
+                                    style={{ alignItems: 'center' }}
+                                >
+                                    <View
+                                        style={{
+                                            backgroundColor: isDarkMode ? 'white' : theme.primaryColor,
+                                            width: 35,
+                                            height: 35,
+                                            borderRadius: 100,
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginBottom: 12,
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                color: isDarkMode ? '#000' : 'white',
+                                                fontSize: 15,
+                                                fontFamily: 'Inter-SemiBold',
+                                            }}
+                                        >
+                                            {item.date}
+                                        </Text>
+                                    </View>
+                                    <Text
+                                        style={{
+                                            color: theme.textColor,
+                                            fontSize: 12,
+                                            fontFamily: 'Inter-Medium',
+                                        }}
+                                    >
+                                        {item.day}
                                     </Text>
-                                </View>
-                                <Text style={[styles.dayButtonDay, item.active && styles.dayButtonDayActive]}>
-                                    {item.day}
-                                </Text>
-                            </TouchableOpacity>
+                                </TouchableOpacity>
+                            </LinearGradient>
                         ))}
                     </ScrollView>
 
                     {/* Trades List */}
-                    <View style={styles.tradesList}>
-                        {trades.map((trade, index) => (
-                            <TouchableOpacity key={index} style={styles.tradeItem} onPress={() => { navigation.navigate("Watchlist") }}>
-                                <View>
-                                    <Text style={styles.tradeCompanyName}>{trade.company}</Text>
-                                    <Text style={styles.tradeSymbol}>{trade.symbol}</Text>
-                                </View>
-                                <View style={styles.tradePriceContainer}>
-                                    <Text style={styles.tradePrice}>{trade.price}</Text>
-                                    <Text
-                                        style={trade.isPositive ? styles.tradeChangePositive : styles.tradeChangeNegative}
+                    <View style={{ marginBottom: 20 }}>
+                        {filteredTrades.length === 0 ? (
+                            <Text style={{ color: theme.subTextColor, textAlign: 'center' }}>
+                                No trades found for selected date.
+                            </Text>
+                        ) : (
+                            filteredTrades.map((trade, index) => {
+                                const price = trade.actualExitPrice?.toString();
+                                const priceDiff = trade.exitPrice - trade.entryPrice;
+                                const change = `${trade.result === 'Profit' ? '+' : '-'}${Math.abs(
+                                    priceDiff
+                                ).toFixed(2)} (${((priceDiff / trade.entryPrice) * 100).toFixed(2)}%)`;
+                                const isPositive = trade.result === 'Profit';
+
+                                return (
+                                    <TouchableOpacity
+                                        key={index}
+                                        onPress={() => {
+                                            setSelectedTrade(trade);
+                                            bottomSheetRef.current?.open();
+                                        }}
                                     >
-                                        {trade.change}
-                                        {trade.isPositive ? ' ▲' : ' ▼'} {/* Unicode triangles for up/down */}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
-                        ))}
+                                        <LinearGradient
+                                            start={{ x: 0, y: 0.95 }}
+                                            end={{ x: 1, y: 1 }}
+                                            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                            style={{
+                                                flexDirection: 'row',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                borderRadius: 12,
+                                                padding: 15,
+                                                paddingHorizontal: 18,
+                                                marginBottom: 10,
+                                                borderWidth: 0.9,
+                                                borderColor: theme.borderColor,
+                                            }}
+                                        >
+                                            <View>
+                                                <Text style={{ color: theme.textColor, fontSize: 14, fontWeight: 'bold' }}>
+                                                    {trade.setupName}
+                                                </Text>
+                                                <Text
+                                                    style={{
+                                                        marginTop: 3,
+                                                        color: theme.subTextColor,
+                                                        fontSize: 10,
+                                                        fontFamily: 'Inter-Light-BETA',
+                                                    }}
+                                                >
+                                                    {trade.notes}
+                                                </Text>
+                                            </View>
+                                            <View style={{ alignItems: 'flex-end' }}>
+                                                <Text
+                                                    style={{
+                                                        color: theme.textColor,
+                                                        fontSize: 15,
+                                                        fontFamily: 'Inter-Light-BETA',
+                                                    }}
+                                                >
+                                                    {price}
+                                                </Text>
+                                                <Text
+                                                    style={{
+                                                        color: isPositive ? '#4CAF50' : '#FF5252',
+                                                        fontSize: 11,
+                                                        fontFamily: 'Inter-Light-BETA',
+                                                    }}
+                                                >
+                                                    {change} {isPositive ? '▲' : '▼'}
+                                                </Text>
+                                            </View>
+                                        </LinearGradient>
+                                    </TouchableOpacity>
+                                );
+                            })
+                        )}
                     </View>
                 </ScrollView>
+                <TradeBottomSheet ref={bottomSheetRef} trade={selectedTrade} />
+
             </SafeAreaView>
         </ImageBackground>
-
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollViewContent: {
-        paddingHorizontal: 20,
-        paddingBottom: 100, // To make space for bottom nav
-    },
-
-    iconPlaceholder: {
-        fontSize: 20,
-        color: '#FFF',
-    },
-    iconPlaceholderSmall: {
-        fontSize: 14,
-        color: '#A0A0B0',
-        marginLeft: 5,
-    },
-    monthSelector: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9,
-        borderColor: theme.borderColor,
-        borderRadius: 10,
-        paddingVertical: 8,
-        paddingHorizontal: 15,
-        alignSelf: 'center', // Center the button
-        marginBottom: 20,
-        marginTop: 10,
-    },
-    monthSelectorText: {
-        color: '#A0A0B0',
-        fontSize: 14,
-        marginRight: 5,
-    },
-    daySelectorScroll: {
-        marginBottom: 20,
-    },
-    dayButton: {
-        backgroundColor: '#2C2C4A',
-        borderRadius: 15,
-        paddingVertical: 10,
-        // paddingHorizontal: 12,
-        marginRight: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 65, // Fixed width for consistent look
-        height: 90, // Fixed height
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9,
-        borderColor: theme.borderColor,
-    },
-    dayButtonActive: {
-        borderColor: theme.primaryColor,
-        backgroundColor: 'rgba(29, 172, 255, 0.44)', // Blue for active day
-    },
-    circle: {
-        backgroundColor: "white",
-        width: 35,
-        height: 35,
-        borderRadius: 100,
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 12,
-    },
-    dayButtonDate: {
-        color: '#000',
-        fontSize: 15,
-        fontFamily: 'Inter-SemiBold',
-    },
-    dayButtonDateActive: {
-        color: '#000',
-    },
-    dayButtonDay: {
-        color: '#A0A0B0',
-        fontSize: 12,
-    },
-    dayButtonDayActive: {
-        color: '#FFF',
-    },
-    tradesList: {
-        marginBottom: 20,
-    },
-    tradeItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#2C2C4A',
-        borderRadius: 12,
-        padding: 15,
-        paddingHorizontal: 18,
-        marginBottom: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9,
-        borderColor: theme.borderColor,
-    },
-    tradeCompanyName: {
-        color: '#FFF',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    tradeSymbol: {
-        marginTop: 3,
-        color: '#A0A0B0',
-        fontSize: 10,
-        fontFamily: "Inter-Light-BETA",
-    },
-    tradePriceContainer: {
-        alignItems: 'flex-end',
-    },
-    tradePrice: {
-        color: '#FFF',
-        fontSize: 15,
-        fontFamily: "Inter-Light-BETA",
-        // fontWeight: 'bold',
-    },
-    tradeChangePositive: {
-        color: '#4CAF50', // Green for positive change
-        fontFamily: "Inter-Light-BETA",
-        fontSize: 11,
-    },
-    tradeChangeNegative: {
-        color: '#FF5252', // Red for negative change
-        fontFamily: "Inter-Light-BETA",
-        fontSize: 11,
-    },
-    bottomNav: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        backgroundColor: '#2C2C4A',
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        paddingVertical: 10,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    navItem: {
-        alignItems: 'center',
-        padding: 5,
-    },
-    navItemActive: {
-        backgroundColor: '#007bff',
-        borderRadius: 20,
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    navItemActiveText: {
-        color: '#FFF',
-        fontSize: 12,
-        marginLeft: 5,
-    },
-});
+const getStyles = (theme) =>
+    StyleSheet.create({
+        container: { flex: 1 },
+        scrollViewContent: { paddingHorizontal: 20, paddingBottom: 100 },
+    });
 
 export default Trading;

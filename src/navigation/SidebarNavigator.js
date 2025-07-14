@@ -9,6 +9,7 @@ import UserProfileMenuScreen from '../screens/Settings/UserProfileMenu/Profile';
 import UserProfileDetailsScreen from '../screens/Settings/UserProfileDetails/UserProfileDetailsScreen';
 import CoursesNavigator from './CoursesNavigator';
 import AffiliateNavigator from './AffiliateNavigator';
+import AppSubscription from '../screens/Settings/Subscription/PlansScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,7 @@ const SidebarNavigator = () => {
             <Stack.Screen name="Menu" component={UserProfileMenuScreen} />
             <Stack.Screen name="UserProfileDetails" component={UserProfileDetailsScreen} />
             <Stack.Screen name="About" component={AboutTrader365Screen} />
+            <Stack.Screen name="AppSubscription" component={AppSubscription} />
             <Stack.Screen name="AccountSecurity" component={AccountSecurityScreen} />
             <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
             <Stack.Screen name="ReportProblem" component={ReportProblemScreen} />

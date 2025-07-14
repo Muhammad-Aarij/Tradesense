@@ -1,31 +1,62 @@
-
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, SafeAreaView, Platform, Dimensions, Modal, Pressable, ImageBackground } from 'react-native';
-import { back, bg, p2 } from '../../../assets/images';
+import React, { useState, useContext, useEffect } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image,
+  SafeAreaView, Dimensions, ImageBackground
+} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import DeviceInfo from 'react-native-device-info';
+import { back, bg, p2, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
+import { ThemeContext } from '../../../context/ThemeProvider';
+import { useDispatch, useSelector } from 'react-redux';
 
 const { width, height } = Dimensions.get('window');
-const scale = (size) => (width / 375) * size; // assuming 375 is the base width
-const verticalScale = (size) => (height / 812) * size; // assuming 812 is the base height
+const scale = (size) => (width / 375) * size;
+const verticalScale = (size) => (height / 812) * size;
 const responsiveWidth = (size) => (width / 375) * size;
 const responsiveHeight = (size) => (width / 375) * size;
 const responsiveFontSize = (size) => (width / 375) * size;
 
-const ReportProblemScreen = ({ }) => {
+import { API_URL } from "@env";
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import axios from 'axios';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
-  // const mockNavigation = {
-  //   navigate: (screenName, params) => console.log(`Navigating to: ${screenName}`, params),
-  //   goBack: () => console.log('Going back'),
-  // };
-  // const currentNavigation = navigation || mockNavigation;
 
+const ReportProblemScreen = () => {
+  const { theme } = useContext(ThemeContext);
+  const dispatch = useDispatch();
+  const { userId } = useSelector(state => state.auth);
   const [selectedIssueType, setSelectedIssueType] = useState('Select Issue Type');
   const [issueTypeDropdownVisible, setIssueTypeDropdownVisible] = useState(false);
   const [problemDescription, setProblemDescription] = useState('');
   const [deviceInfo, setDeviceInfo] = useState('');
   const [selectedResponseTime, setSelectedResponseTime] = useState('Preferred Response Time');
   const [responseTimeDropdownVisible, setResponseTimeDropdownVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState('success'); // 'success' or 'error'
+  const [modalMessage, setModalMessage] = useState('');
+
+  // Function to get device information
+  const getDeviceInfo = async () => {
+    try {
+      const deviceName = await DeviceInfo.getDeviceName();
+      const systemVersion = await DeviceInfo.getSystemVersion();
+      const appVersion = await DeviceInfo.getVersion();
+      const buildNumber = await DeviceInfo.getBuildNumber();
+      
+      const deviceInfoString = `${deviceName}, ${DeviceInfo.getSystemName()} ${systemVersion}, App v${appVersion} (${buildNumber})`;
+      setDeviceInfo(deviceInfoString);
+    } catch (error) {
+      console.error('Error fetching device info:', error);
+      setDeviceInfo('Device information unavailable');
+    }
+  };
+
+  // Fetch device info when component mounts
+  useEffect(() => {
+    getDeviceInfo();
+  }, []);
 
   const issueTypes = [
     'Login or Account issue',
@@ -43,22 +74,30 @@ const ReportProblemScreen = ({ }) => {
     'Flexible',
   ];
 
+
   const CustomDropdown = ({ label, selectedValue, options, onSelect, isVisible, toggleVisibility }) => (
     <View style={styles.inputGroup}>
-      <Text style={styles.inputLabel}>{label}</Text>
-      <TouchableOpacity style={styles.dropdownButton} onPress={toggleVisibility}>
-        <Text style={styles.dropdownButtonText}>{selectedValue}</Text>
-        <Image
-          source={back}
-          style={[
-            styles.dropdownArrowIcon,
-            isVisible && { transform: [{ rotate: '270deg' }] },
-          ]}
-        />
-      </TouchableOpacity>
+      <Text style={[styles.inputLabel, { color: theme.textColor }]}>{label}</Text>
+      <LinearGradient
+        start={{ x: 0.0, y: 0.95 }}
+        end={{ x: 1.0, y: 1.0 }}
+        colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+        style={[styles.dropdownButton, { borderColor: theme.borderColor }]}
+      >
+        <TouchableOpacity
+          onPress={toggleVisibility}
+          style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Text style={[styles.dropdownButtonText, { color: theme.textColor }]}>{selectedValue}</Text>
+          <Image
+            source={back}
+            style={[styles.dropdownArrowIcon, isVisible && { transform: [{ rotate: '270deg' }] }]}
+          />
+        </TouchableOpacity>
+      </LinearGradient>
 
-      {isVisible &&
-        <View style={styles.dropdownModalContainer}>
+      {isVisible && (
+        <View style={[styles.dropdownModalContainer, { borderColor: theme.borderColor }]}>
           {options.map((option, index) => (
             <TouchableOpacity
               key={index}
@@ -68,43 +107,68 @@ const ReportProblemScreen = ({ }) => {
                 toggleVisibility();
               }}
             >
-              <Text style={styles.modalOptionText}>{option}</Text>
+              <Text style={[styles.modalOptionText, { color: theme.textColor }]}>{option}</Text>
             </TouchableOpacity>
           ))}
         </View>
-      }
+      )}
     </View>
   );
 
-  const handleSubmit = () => {
-    console.log({
-      selectedIssueType,
-      problemDescription,
-      deviceInfo,
-      selectedResponseTime,
-    });
-    // Implement submission logic
-    alert('Problem Reported!');
-    currentNavigation.goBack();
+
+  const handleSubmit = async () => {
+    if (selectedIssueType === 'Select Issue Type' || !problemDescription) {
+      alert('Please select issue type and provide a description');
+      return;
+    }
+
+    try {
+      dispatch(startLoading());
+
+      const response = await axios.post(`${API_URL}/api/problem`, {
+        userId,
+        type: selectedIssueType,
+        description: problemDescription,
+      });
+
+      // Success modal
+      setModalType('success');
+      setModalMessage('Problem reported successfully!');
+      setModalVisible(true);
+
+      // Reset fields
+      setSelectedIssueType('Select Issue Type');
+      setProblemDescription('');
+      setDeviceInfo('');
+      setSelectedResponseTime('Preferred Response Time');
+    } catch (error) {
+      console.error('Report error:', error?.response?.data || error.message || error);
+
+      // Failure modal
+      setModalType('error');
+      setModalMessage('Something went wrong while reporting the problem.');
+      setModalVisible(true);
+    } finally {
+      dispatch(stopLoading());
+    }
   };
 
-  const handleReset = () => {
-    setSelectedIssueType('Select Issue Type');
-    setProblemDescription('');
-    setDeviceInfo('');
-    setSelectedResponseTime('Preferred Response Time');
-    alert('Form Reset!');
-  };
+
 
   return (
-    <ImageBackground source={bg} style={{ flex: 1, }}>
+    <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
+      <ConfirmationModal
+        isVisible={modalVisible}
+        title={modalType === 'success' ? 'Success' : 'Error'}
+        message={modalMessage}
+        icon={modalType === 'success' ? tick : back}
+        onClose={() => setModalVisible(false)}
+      />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* Header */}
-          <Header title={"Report Problem"}></Header>
+          <Header title={"Report Problem"} />
 
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Issue Type Dropdown */}
             <CustomDropdown
               label="Issue Type"
               selectedValue={selectedIssueType}
@@ -114,34 +178,45 @@ const ReportProblemScreen = ({ }) => {
               toggleVisibility={() => setIssueTypeDropdownVisible(!issueTypeDropdownVisible)}
             />
 
-            {/* Problem Description */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Describes the Issue?</Text>
-              <TextInput
-                style={[styles.textInput, styles.multilineTextInput]}
-                placeholder="Start typing..."
-                placeholderTextColor="#B0B0B0"
-                multiline
-                numberOfLines={4}
-                value={problemDescription}
-                onChangeText={setProblemDescription}
-                textAlignVertical="top" // Align text to top for multiline
-              />
+              <Text style={[styles.inputLabel, { color: theme.textColor }]}>Describes the Issue?</Text>
+              <LinearGradient
+                start={{ x: 0.0, y: 0.95 }}
+                end={{ x: 1.0, y: 1.0 }}
+                colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+                style={[styles.textInput, styles.multilineTextInput, { borderColor: theme.borderColor }]}
+              >
+                <TextInput
+                  placeholder="Start typing..."
+                  placeholderTextColor={theme.placeholderTextColor}
+                  multiline
+                  numberOfLines={4}
+                  value={problemDescription}
+                  onChangeText={setProblemDescription}
+                  style={{ color: theme.textColor, fontSize: 12, flex: 1, fontFamily: 'Inter-Regular' }}
+                  textAlignVertical="top"
+                />
+              </LinearGradient>
             </View>
 
-            {/* Device and App Info */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Device and App Info</Text>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Auto-filled (e.g., iPhone 13, iOS 17.5, App v1.0.0)"
-                placeholderTextColor="#B0B0B0"
-                value={deviceInfo}
-                onChangeText={setDeviceInfo}
-              />
+              <Text style={[styles.inputLabel, { color: theme.textColor }]}>Device and App Info</Text>
+              <LinearGradient
+                start={{ x: 0.0, y: 0.95 }}
+                end={{ x: 1.0, y: 1.0 }}
+                colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+                style={[styles.textInput, { borderColor: theme.borderColor }]}
+              >
+                <TextInput
+                  placeholder="Auto-filled (e.g., iPhone 13, iOS 17.5, App v1.0.0)"
+                  placeholderTextColor={theme.placeholderTextColor}
+                  value={deviceInfo}
+                  onChangeText={setDeviceInfo}
+                  style={{ color: theme.textColor, fontSize: 12, flex: 1, fontFamily: 'Inter-Regular' }}
+                />
+              </LinearGradient>
             </View>
 
-            {/* Preferred Response Time Dropdown */}
             <CustomDropdown
               label="Preferred Response Time"
               selectedValue={selectedResponseTime}
@@ -151,9 +226,11 @@ const ReportProblemScreen = ({ }) => {
               toggleVisibility={() => setResponseTimeDropdownVisible(!responseTimeDropdownVisible)}
             />
 
-            {/* Action Buttons */}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+              <TouchableOpacity
+                style={[styles.submitButton, { backgroundColor: theme.primaryColor }]}
+                onPress={() => handleSubmit()}
+              >
                 <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
@@ -162,54 +239,44 @@ const ReportProblemScreen = ({ }) => {
       </SafeAreaView>
 
       <View style={styles.absoluteFooter}>
-        <View style={styles.footerWrapper}>
-          <TouchableOpacity style={styles.profileButton} onPress={() => console.log('Edit Profile')}>
-            <Image source={p2} style={styles.profileButtonIcon} />
-            <Text style={styles.profileButtonText}>Report a Problem</Text>
-          </TouchableOpacity>
+        <View style={[styles.footerWrapper, { borderColor: theme.borderColor }]}>
+          <LinearGradient
+            start={{ x: 0.0, y: 0.95 }}
+            end={{ x: 1.0, y: 1.0 }}
+            colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+            style={[styles.profileButton, { backgroundColor: theme.primaryColor }]}
+          >
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image source={p2} style={styles.profileButtonIcon} />
+              <Text style={styles.profileButtonText}>Report a Problem</Text>
+            </TouchableOpacity>
+          </LinearGradient>
         </View>
       </View>
-
     </ImageBackground>
-
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: responsiveWidth(25),
-  },
-  scrollContent: {
-    paddingBottom: responsiveHeight(120),
-  },
-  inputGroup: {
-    marginBottom: responsiveHeight(20),
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1, paddingHorizontal: responsiveWidth(25) },
+  scrollContent: { paddingBottom: responsiveHeight(120) },
+  inputGroup: { marginBottom: responsiveHeight(20) },
   inputLabel: {
     fontSize: responsiveFontSize(12),
     fontFamily: "Inter-Regular",
-    color: '#E0E0E0',
     marginBottom: responsiveHeight(5),
   },
   dropdownButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#0a1d2e',
-    borderRadius: responsiveWidth(10),
+    borderWidth: 0.9,
+    borderRadius: 8,
     paddingHorizontal: responsiveWidth(15),
     height: responsiveHeight(50),
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9, borderColor: theme.borderColor,
-    borderRadius: 8,
+    justifyContent: 'center',
   },
   dropdownButtonText: {
     fontSize: responsiveFontSize(12),
-    color: '#E0E0E0',
+    fontFamily: 'Inter-Regular',
   },
   dropdownArrowIcon: {
     transform: [{ rotate: `90deg` }],
@@ -218,22 +285,13 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     tintColor: '#B0B0B0',
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   dropdownModalContainer: {
-    backgroundColor: '#0a1d2e',
-    width: "100%", // 80% of screen width
-    maxHeight: height * 0.5, // Max 50% of screen height
-    overflow: 'hidden',
+    width: "100%",
+    maxHeight: height * 0.5,
     marginTop: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9, borderColor: theme.borderColor,
+    borderWidth: 0.9,
     borderRadius: 8,
-
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
   },
   modalOptionItem: {
     paddingVertical: responsiveHeight(15),
@@ -244,22 +302,17 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontFamily: "Inter-Light-BETA",
     fontSize: responsiveFontSize(12),
-    color: '#E0E0E0',
   },
   textInput: {
-    backgroundColor: '#0a1d2e',
-    borderRadius: responsiveWidth(10),
-    paddingHorizontal: responsiveWidth(15),
-    color: '#E0E0E0',
-    fontSize: responsiveFontSize(12),
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9, borderColor: theme.borderColor,
+    borderWidth: 0.9,
     borderRadius: 8,
-    height: responsiveHeight(50), // Fixed height for single line
+    paddingHorizontal: responsiveWidth(15),
+    height: responsiveHeight(50),
+    justifyContent: 'center',
   },
   multilineTextInput: {
-    height: responsiveHeight(120), // Height for multiline input
-    paddingTop: responsiveHeight(10), // Adjust padding for multiline
+    height: responsiveHeight(120),
+    paddingTop: responsiveHeight(10),
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -269,12 +322,9 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     width: responsiveWidth(140),
-    backgroundColor: theme.primaryColor,
     borderRadius: responsiveWidth(13),
     paddingVertical: responsiveHeight(15),
     alignItems: 'center',
-    // flex: 1,
-    // marginRight: responsiveWidth(10),
   },
   submitButtonText: {
     color: '#FFFFFF',
@@ -290,7 +340,7 @@ const styles = StyleSheet.create({
   },
   footerWrapper: {
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderColor: theme.borderColor, borderWidth: 1,
+    borderWidth: 1,
     borderRadius: scale(102),
     padding: scale(14),
     paddingHorizontal: scale(26),
@@ -300,9 +350,8 @@ const styles = StyleSheet.create({
   profileButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.primaryColor,
     borderRadius: scale(120),
-    padding: scale(7),
+    padding: scale(12),
     paddingHorizontal: scale(25),
     justifyContent: 'center',
   },

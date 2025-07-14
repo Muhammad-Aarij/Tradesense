@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, ImageBackground } from 'react-native';
 import { lockicon, audioicon, audio2, videoIcon, audioNew, videoNew } from '../assets/images'; // Update path as needed
 import theme from '../themes/theme';
 import { useNavigation } from '@react-navigation/native';
+import OptimizedImage from './OptimizedImage';
 
 const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type }) => {
     const navigation = useNavigation();
@@ -26,41 +27,39 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
     };
     return (
         <TouchableOpacity style={styles.card} onPress={handlePress}>
-            {/** Ensure HTTPS to avoid App Transport Security blocking (iOS) */}
-            {(() => {
-                const secureImageSource = imageSource?.startsWith('http://') ? imageSource.replace('http://', 'https://') : imageSource;
-                console.log('TopPickTile image URL:', secureImageSource);
-                return (
-                    <ImageBackground 
-                        source={{ uri: secureImageSource }} 
-                        style={styles.imageBackground} 
-                        imageStyle={styles.imageStyle}
-                        onError={(error) => console.log('TopPickTile image loading error:', error?.nativeEvent?.error, secureImageSource)}
-                        onLoad={() => console.log('TopPickTile image loaded successfully:', secureImageSource)}
-                    >
+            <View style={styles.imageBackground}>
+                <OptimizedImage
+                    uri={imageSource}
+                    style={StyleSheet.absoluteFillObject}
+                    borderRadius={10}
+                    showLoadingIndicator={true}
+                    loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
+                />
                 {/* Bottom inset shadow */}
                 <View style={styles.shadowOverlay} />
 
                 {/* Bottom-aligned content */}
-                <View style={{ flexDirection: "row", justifyContent: "space-between", marginRight: 5, alignItems: "center" }}>
+                <View style={{
+                    flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", paddingHorizontal: 10, backgroundColor: 'rgba(0, 0, 0, 0.4)', paddingTop: 10,
+                }}>
                     <View style={styles.bottomContent}>
                         <Text style={{
-                            paddingHorizontal: 10, paddingVertical: 2, fontSize: 9, fontFamily: "Inter-Medium", color: "white", backgroundColor: 'rgba(0, 0, 0, 0.44)', borderRadius: 10,
+                            paddingHorizontal: 10, paddingVertical: 2, fontSize: 9, fontFamily: "Inter-Medium", color: "white", backgroundColor: 'rgba(0, 0, 0, 0.44)', borderRadius: 10,marginBottom: 5
                         }}>15 min</Text>
                         <Text style={styles.title} numberOfLines={1}>{title}</Text>
                         <Text style={styles.description} numberOfLines={2}>{description}</Text>
                     </View>
-                    {locked && (
-                        <View style={styles.lockWrapper}>
-                            <Image source={lockicon} style={styles.lockIcon} />
-                        </View>
-                    )}
+                    {/* {locked && ( */}
+                    <View style={styles.lockWrapper}>
+                        <Image source={lockicon} style={styles.lockIcon} />
+                    </View>
+                    {/* )} */}
                 </View>
 
                 {/* Audio Icon Overlay */}
                 <View style={styles.overlayIcon}>
                     <Image
-                        source={type === 'audio' ? audioNew : videoNew} // 👈 switch icon based on type
+                        source={type === 'audio' ? audioNew : videoNew}
                         style={{ width: 15, height: 15, resizeMode: "contain" }}
                     />
                     <Text style={{
@@ -73,9 +72,7 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                     </Text>
                 </View>
                 {/* Lock Icon (only if locked) */}
-                    </ImageBackground>
-                );
-            })()}
+            </View>
         </TouchableOpacity >
     );
 };
@@ -103,24 +100,27 @@ const styles = StyleSheet.create({
         bottom: 0,
         height: "100%",
         width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.69)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
     },
     bottomContent: {
         // borderWidth: 2,
-        width: "70%",
+        width: "75%",
+        // paddingVertical: 10,
         flexDirection: "column",
         justifyContent: "flex-start",
         alignItems: "flex-start",
         // position: 'absolute',
-        bottom: 8,
-        left: 8,
-        right: 8,
+        // bottom: 8,
+        // left: 8,
+        // right: 8,
+        borderRadius: 10,
     },
     title: {
         fontFamily: "Inter-Medium",
         fontSize: 10,
         fontWeight: '600',
         color: '#fff',
+        marginBottom: 5,
     },
     description: {
         fontFamily: "Inter-Regular",
@@ -153,14 +153,14 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         padding: 5,
         borderColor: theme.borderColor,
-      },
-      lockIcon: {
+    },
+    lockIcon: {
         width: 15,
         height: 15,
         resizeMode: 'contain',
-      },
+    },
 
 
 });
 
-export default TopPickTile;
+export default memo(TopPickTile);

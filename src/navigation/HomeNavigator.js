@@ -1,13 +1,11 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
-import { useNavigationState } from '@react-navigation/native';
 
 import HomeScreen from '../screens/home/HomeScreen';
 import BottomNavigator from './BottomNav';
 import MenuComponent from '../components/MenuComponent';
 import Hamburger from '../components/Hamburger';
-import MiniPlayer from '../components/MiniPlayer';
 import PlansScreen from '../screens/Courses/Plans/PlansScreen';
 import PlayerScreen from '../screens/TrackPlayer/PlayerScreen';
 import CourseEpisodesScreen from '../screens/Courses/courseEpisodes/CourseEpisodesScreen';
@@ -19,11 +17,15 @@ import Acc_FormData from '../screens/Accountability/formData/Acc_FormData';
 import CoursesNavigator from './CoursesNavigator';
 import SidebarNavigator from './SidebarNavigator';
 import AffiliateNavigator from './AffiliateNavigator';
+import Mode from '../components/Mode';
+import MiniPlayer from '../components/MiniPlayer';
+import { useNavigationState } from '@react-navigation/native';
+
 
 const Home = createNativeStackNavigator();
 
 const HomeNavigator = () => {
-  // Get current route name to hide mini player on TrackPlayer screen
+
   const routeName = useNavigationState(state => {
     const route = state?.routes[state?.index];
     return route?.name;
@@ -33,7 +35,7 @@ const HomeNavigator = () => {
 
   return (
     <>
-      <Home.Navigator screenOptions={{ headerShown: false }}>
+      <Home.Navigator screenOptions={{ headerShown: false }} >
         <Home.Screen name="BottomTabs" component={BottomNavigator} />
         <Home.Screen name="CoursesStack" component={CoursesNavigator} />
         <Home.Screen name="TrackPlayer" component={PlayerScreen} />
@@ -47,11 +49,9 @@ const HomeNavigator = () => {
         <Home.Screen name="Courses" component={CoursesNavigator} />
         <Home.Screen name="Affiliate" component={AffiliateNavigator} />
       </Home.Navigator>
-
-      {/* Show MiniPlayer only when not on TrackPlayer or VideoPlayer screen */}
-      {showMiniPlayer && <MiniPlayer />}
-      
+      <Mode />
       {/* {isSidebarOpen && <MenuComponent />} */}
+      {showMiniPlayer && <MiniPlayer />}
       <Hamburger />
     </>
   );

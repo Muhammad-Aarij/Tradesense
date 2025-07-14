@@ -1,53 +1,57 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageBackground, Dimensions } from 'react-native';
+import React, { useState, useContext, useMemo } from 'react';
+import {
+    View, Text, StyleSheet, ScrollView, TouchableOpacity,
+    Image, ImageBackground, Dimensions,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../../../components/Header';
-import { bank, bg, blueArrow, googlePay, PayPal } from '../../../assets/images';
-import theme from '../../../themes/theme';
+import { bank, bg, blueArrow, cardd, googlePay, PayPal } from '../../../assets/images';
+import ConfirmationModal from '../../../components/ConfirmationModal';
+import { ThemeContext } from '../../../context/ThemeProvider';
+import LinearGradient from 'react-native-linear-gradient';
+import { usePayments } from '../../../functions/affiliateApi';
 
 const { height } = Dimensions.get("window");
 
-const withdrawalHistoryData = [
-    { id: 'wh1', type: 'PayPal', amount: '$345', status: 'completed' },
-    { id: 'wh2', type: 'Google Pay', amount: '$5548.55', status: 'completed' },
-    { id: 'wh3', type: 'Bank', amount: '$345', status: 'pending' },
-    { id: 'wh4', type: 'PayPal', amount: '$345', status: 'completed' },
-    { id: 'wh5', type: 'Google Pay', amount: '$3548.55', status: 'completed' },
-    { id: 'wh6', type: 'Bank', amount: '$345', status: 'pending' },
-];
+const WithdrawScreen = ({ navigation, route }) => {
+    const { theme, isDarkMode } = useContext(ThemeContext);
+    const styles = useMemo(() => getStyles(theme), [theme]);
+    const [showModal, setShowModal] = useState(false);
+    const { totalAmount } = route.params;
+    const { data: payments = [], isLoading } = usePayments();
 
-const WithdrawScreen = ({ navigation }) => {
-    //   const navigation = useNavigation();
-
-    const getIconForType = (type) => {
-        switch (type) {
-            case 'PayPal': return PayPal;
-            case 'Google Pay': return googlePay;
-            case 'Bank': return bank;
-            default: return null;
-        }
+    const formatDate = (isoString) => {
+        const date = new Date(isoString);
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
     };
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            {/* Header */}
-            <Header title={"Withdraw"} />
+        <ImageBackground source={theme.bg} style={styles.container}>
+            <ConfirmationModal
+                title="Zero Balance Available"
+                isVisible={showModal}
+                onClose={() => setShowModal(false)}
+            />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                <Header title="Withdraw" style={{ marginTop: 10, marginBottom: 20 }} />
+
                 {/* Available Balance */}
-                <View style={styles.balanceContainer}>
-                    <Text style={styles.balanceAmount}>$1534.09</Text>
+                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={styles.balanceContainer}>
+                    <Text style={styles.balanceAmount}>${totalAmount}</Text>
                     <Text style={styles.balanceLabel}>Available Balance</Text>
-                </View>
+                </LinearGradient>
 
                 {/* Withdraw Button */}
                 <TouchableOpacity
                     style={styles.withdrawButton}
                     onPress={() => {
-                        if (navigation && navigation.navigate) {
-                            navigation.navigate('WithdrawDetailScreen');
+                        if (totalAmount < 1) {
+                            setShowModal(true);
                         } else {
-                            console.warn("Navigation navigate not available.");
+                            navigation.navigate('WithdrawDetailScreen', { totalAmount: totalAmount });
                         }
                     }}
                 >
@@ -57,114 +61,131 @@ const WithdrawScreen = ({ navigation }) => {
                 {/* History Section */}
                 <Text style={styles.historyTitle}>History</Text>
                 <View style={styles.historyContainer}>
-                    {withdrawalHistoryData.map((item) => (
-                        <View key={item.id} style={styles.historyItem}>
+                    {payments.map((item) => (
+                        <LinearGradient
+                            key={item._id}
+                            start={{ x: 0, y: 0.95 }}
+                            end={{ x: 1, y: 1 }}
+                            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                            style={styles.historyItem}
+                        >
                             <View style={styles.historyItemLeft}>
-                                <Image source={getIconForType(item.type)} style={styles.historyItemIcon} />
+                                <Image source={cardd} style={styles.historyItemIcon} />
                                 <View>
-                                    <Text style={styles.historyItemType}>{item.type}</Text>
-                                    <Text style={styles.historyItemType2}>Amount Withdraw</Text>
+                                    <Text style={styles.historyItemType}>{item.status}</Text>
+                                    <Text style={styles.historyItemType2}>{formatDate(item.createdAt)}</Text>
                                 </View>
                             </View>
                             <View style={styles.historyItemRight}>
-                                <Text style={styles.historyItemAmount}>{item.amount}</Text>
+                                <Text style={styles.historyItemAmount}>${item.amount}</Text>
                                 <Image source={blueArrow} style={styles.historyItemArrow} />
                             </View>
-                        </View>
+                        </LinearGradient>
                     ))}
+
                 </View>
             </ScrollView>
         </ImageBackground>
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#08131F', padding: 25, paddingTop: 20, paddingBottom: height * 0.1 },
-
-    scrollContent: {
-        // paddingHorizontal: 16,
-        // paddingBottom: 20,
-    },
-    balanceContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9, borderColor: theme.borderColor,
-        padding: 27,
-        borderRadius: 14,
-        alignItems: 'center',
-        marginTop: 20, // Space from header
-    },
-    balanceAmount: {
-        color: '#FFF', // Blue color for balance
-        fontSize: 30,
-        fontFamily: "Inter-Bold",
-        marginBottom: 10,
-    },
-    balanceLabel: {
-        color: '#CCCCCC',
-        fontSize: 13,
-        fontFamily: "Inter-Light-BETA",
-    },
-    withdrawButton: {
-        backgroundColor: theme.primaryColor, width: '100%',
-        padding: 15, borderRadius: 14, marginVertical: 30, alignItems: 'center'
-    },
-    withdrawButtonText: {
-        color: '#fff', fontSize: 17, fontWeight: '600', fontFamily: "Inter-Medium",
-    },
-    historyContainer: {
-        marginBottom: 40,
-        gap: 13,
-    },
-    historyTitle: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontFamily: "Inter-Regular",
-        marginBottom: 15,
-    },
-    historyItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9, borderColor: theme.borderColor,
-        padding: 16,
-        borderRadius: 8,
-    },
-    historyItemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    historyItemIcon: {
-        width: 37,
-        height: 35,
-        resizeMode: 'contain',
-        marginRight: 10,
-    },
-    historyItemType: {
-        color: '#FFFFFF',
-        fontSize: 13,
-        fontFamily: "Inter-Regular",
-    },
-    historyItemType2: {
-        color: '#FFFFFF',
-        fontSize: 10,
-        fontFamily: "Inter-Thin-BETA",
-    },
-    historyItemRight: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    historyItemAmount: {
-        color: '#FFF',
-        fontSize: 13,
-        fontFamily: "Inter-Medium",
-        marginRight: 10,
-    },
-    historyItemArrow: {
-        width: 15,
-        height: 15,
-        tintColor: '#AAAAAA',
-        resizeMode: 'contain',
-    },
-});
+const getStyles = (theme) =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: theme.backgroundColor,
+            padding: 25,
+        },
+        scrollContent: {},
+        balanceContainer: {
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            borderWidth: 0.9,
+            borderColor: theme.borderColor,
+            padding: 27,
+            borderRadius: 14,
+            alignItems: 'center',
+            marginTop: 20,
+        },
+        balanceAmount: {
+            color: theme.textColor,
+            fontSize: 30,
+            fontFamily: 'Inter-Bold',
+            marginBottom: 10,
+        },
+        balanceLabel: {
+            color: theme.subTextColor,
+            fontSize: 13,
+            fontFamily: 'Inter-Light-BETA',
+        },
+        withdrawButton: {
+            backgroundColor: theme.primaryColor,
+            width: '100%',
+            padding: 15,
+            borderRadius: 14,
+            marginVertical: 30,
+            alignItems: 'center',
+        },
+        withdrawButtonText: {
+            color: '#fff',
+            fontSize: 15,
+            fontFamily: 'Inter-Medium',
+        },
+        historyContainer: {
+            marginBottom: 40,
+            gap: 13,
+        },
+        historyTitle: {
+            color: theme.textColor,
+            fontSize: 16,
+            fontFamily: 'Inter-Regular',
+            marginBottom: 15,
+        },
+        historyItem: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            borderWidth: 0.9,
+            borderColor: theme.borderColor,
+            padding: 16,
+            borderRadius: 8,
+        },
+        historyItemLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        historyItemIcon: {
+            width: 37,
+            height: 35,
+            resizeMode: 'contain',
+            marginRight: 10,
+        },
+        historyItemType: {
+            textTransform: "capitalize",
+            color: theme.textColor,
+            fontSize: 13,
+            fontFamily: 'Inter-Regular',
+        },
+        historyItemType2: {
+            color: theme.subTextColor,
+            fontSize: 10,
+            fontFamily: 'Inter-Regular',
+        },
+        historyItemRight: {
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+        historyItemAmount: {
+            color: theme.textColor,
+            fontSize: 13,
+            fontFamily: 'Inter-Medium',
+            marginRight: 10,
+        },
+        historyItemArrow: {
+            width: 15,
+            height: 15,
+            tintColor: '#AAAAAA',
+            resizeMode: 'contain',
+        },
+    });
 
 export default WithdrawScreen;

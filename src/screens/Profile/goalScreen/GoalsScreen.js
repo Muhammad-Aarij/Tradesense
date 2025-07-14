@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground, Image, Alert } from 'react-native';
+import {
+    View, Text, StyleSheet, TouchableOpacity, ScrollView,
+    ImageBackground, Image, Alert
+} from 'react-native';
 import { bg, check, tick, uncheck } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { useDispatch } from 'react-redux';
-import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUser } from '../../../redux/slice/authSlice';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const GoalsScreen = ({ navigation, route }) => {
-    const { request, user, token, question: allQuestions } = route.params || {};
+    const { request, token, question: allQuestions, user } = route.params || {};
+    // const { userId } = useSelector(state => state.auth);
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOptionsMap, setSelectedOptionsMap] = useState({});
-    const [showSuccessModal, setShowSuccessModal] = useState(false); // 🔹 Modal state
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
     const dispatch = useDispatch();
 
     const questions = allQuestions?.filter(
@@ -21,13 +26,13 @@ const GoalsScreen = ({ navigation, route }) => {
 
     const currentQuestion = questions[currentIndex];
 
-    const handleSelect = (text) => {
+    const handleSelect = (optionId) => {
         const qId = currentQuestion._id;
         setSelectedOptionsMap(prev => {
             const selected = prev[qId] || [];
-            const updated = selected.includes(text)
-                ? selected.filter(t => t !== text)
-                : [...selected, text];
+            const updated = selected.includes(optionId)
+                ? selected.filter(id => id !== optionId)
+                : [...selected, optionId];
             return { ...prev, [qId]: updated };
         });
     };
@@ -42,38 +47,58 @@ const GoalsScreen = ({ navigation, route }) => {
         if (!isLast) {
             setCurrentIndex(prev => prev + 1);
         } else {
-            const goalQuestion = questions.find(q =>
-                q.title.toLowerCase().includes('goal')
-            );
+            // Construct questionnaireAnswers
+            const questionnaireAnswers = {};
 
-            const goals = goalQuestion ? selectedOptionsMap[goalQuestion._id] || [] : [];
+            // 1. Add goal questions
+            questions.forEach(q => {
+                const selectedIds = selectedOptionsMap[q._id] || [];
+                if (selectedIds.length > 0) {
+                    questionnaireAnswers[q._id] = selectedIds;
+                }
+            });
 
-            const onboarding = questions.map(q => ({
-                question: q.title,
-                selected: selectedOptionsMap[q._id] || []
-            }));
+            // 2. Add gender
+            if (request.gender?.questionId && request.gender?.answerId) {
+                questionnaireAnswers[request.gender.questionId] = [
+                    request.gender.answerId
+                ];
+            }
 
-            const payload = {
-                gender: request.gender?.toLowerCase(),
-                ageRange: request.ageRange,
-                goals,
-                onboarding,
-            };
+            // 3. Add age
+            if (request.ageRange?.questionId && request.ageRange?.answerId) {
+                questionnaireAnswers[request.ageRange.questionId] = [
+                    request.ageRange.answerId
+                ];
+            }
+
+            const payload = { questionnaireAnswers };
+
+            console.log('Submitting Payload:', user._id, "   ", JSON.stringify(payload, null, 2));
 
             try {
-                await axios.post(
-                    `${API_URL}/api/auth/setup-profile/${user._id}`,
+                const response = await axios.post(
+                    `${API_URL}/api/auth/setup-profile/${user?._id}`,
                     payload,
                     { headers: { 'Content-Type': 'application/json' } }
                 );
+                console.log('====================================');
+                console.log(response);
+                console.log('====================================');
+
+                const updatedUser = response.data?.user;
+                console.log('Token:', token);
+                console.log('User Object:', updatedUser || {});
+                console.log('Theme Type:', 'dark');
 
                 await dispatch(loginUser({
-                    token: token,
-                    user: user,
+                    token,
+                    user: updatedUser || {},
                     themeType: 'dark',
                 }));
-                // dispatch(setProfilingDone(true));
-                setShowSuccessModal(true); // ✅ Show success modal
+
+
+                setShowSuccessModal(true);
             } catch (err) {
                 console.error(err);
                 Alert.alert('Error', 'Failed to complete setup');
@@ -82,8 +107,8 @@ const GoalsScreen = ({ navigation, route }) => {
     };
 
     const handleCloseModal = () => {
-        setShowSuccessModal(false); // ✅ Hide modal
-        navigation.navigate('GetStarted'); // ✅ Navigate
+        setShowSuccessModal(false);
+        navigation.navigate('GetStarted');
     };
 
     if (!currentQuestion) {
@@ -116,12 +141,12 @@ const GoalsScreen = ({ navigation, route }) => {
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         {(currentQuestion.questions || []).map((opt) => {
-                            const isSelected = selected.includes(opt.text);
+                            const isSelected = selected.includes(opt._id);
                             return (
                                 <TouchableOpacity
                                     key={opt._id}
                                     style={[styles.option, isSelected && styles.selectedOption]}
-                                    onPress={() => handleSelect(opt.text)}
+                                    onPress={() => handleSelect(opt._id)}
                                 >
                                     {currentQuestion.images && opt.image && (
                                         <Image source={{ uri: opt.image }} style={styles.optionImage} />
@@ -140,10 +165,7 @@ const GoalsScreen = ({ navigation, route }) => {
 
                     <View style={styles.bottomButton}>
                         <TouchableOpacity
-                            style={[
-                                styles.button,
-                                selected.length === 0 ? styles.disabledButton : null
-                            ]}
+                            style={[styles.button, selected.length === 0 && styles.disabledButton]}
                             disabled={selected.length === 0}
                             onPress={handleNext}
                         >
@@ -193,7 +215,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.04)',
         borderRadius: 10,
         padding: 15,
-        flexDirection: 'row', 
+        flexDirection: 'row',
         alignItems: 'center',
         borderColor: theme.borderColor,
         borderWidth: 0.8,
@@ -204,8 +226,8 @@ const styles = StyleSheet.create({
         borderColor: theme.primaryColor
     },
     optionImage: {
-        width: 40,
-        height: 40,
+        width: 30,
+        height: 30,
         resizeMode: 'contain',
         marginRight: 10
     },
@@ -219,7 +241,8 @@ const styles = StyleSheet.create({
         width: 20,
         height: 25,
         resizeMode: 'contain',
-        marginLeft: 'auto'
+        marginLeft: 'auto',
+        marginRight: 15,
     },
     disabledButton: {
         backgroundColor: 'gray'

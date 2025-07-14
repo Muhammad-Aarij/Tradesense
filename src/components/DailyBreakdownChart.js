@@ -1,203 +1,517 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, Platform } from 'react-native';
-import { LineChart } from 'react-native-chart-kit'; // Import LineChart from react-native-chart-kit
+import React, { useState, useContext, useEffect } from 'react';
+import {
+    View, Text, StyleSheet, TouchableOpacity, Dimensions, Image
+} from 'react-native';
+import { BarChart } from 'react-native-gifted-charts';
+import { ThemeContext } from '../context/ThemeProvider';
+import { useHabitLogs } from '../functions/habbitFunctions';
+import { useAffiliateRecords } from '../functions/affiliateApi';
 import { back } from '../assets/images';
+import LinearGradient from 'react-native-linear-gradient';
+import { useSelector } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
-const DailyBreakdownChart = () => {
-    const [selectedFilter, setSelectedFilter] = useState('Daily');
+const DailyBreakdownChart = ({
+    title = "Daily Breakdown",
+    defaultFilter = 'Daily',
+    type = 'habit',
+}) => {
+    const { theme } = useContext(ThemeContext);
+
+    const userId = useSelector(state => state.auth.userObject?._id);
+    const [selectedFilter, setSelectedFilter] = useState(defaultFilter);
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-    const filterOptions = ['Daily', 'Weekly', 'Monthly', 'Yearly']; // Added more options for completeness
 
+    const { data: habitLogs = [] } = useHabitLogs(userId);
+    const { data: affiliateLogs = [] } = useAffiliateRecords(userId);
 
-    const chartData = {
-        labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'],
-        datasets: [
-            {
-                data: [250, 450, 400, 100, 200, 150], // Example data points
-                color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`, // Blue line color
-                strokeWidth: 2, // Line thickness
-            },
-        ],
+    const logs = type === 'affiliate' ? affiliateLogs : habitLogs;
+
+    const [dynamicChartData, setDynamicChartData] = useState([]);
+    const filterOptions = ['Daily', 'Monthly', 'Yearly'];
+    const styles = getStyles(theme);
+
+    // Re-compute chart data when the selected filter changes OR when the
+    // number of logs changes (new/removed entries). Using logs.length avoids
+    // dependency on a potentially new array reference returned on every
+    // render, preventing an infinite render loop.
+    useEffect(() => {
+        const chartData = transformLogsToChartData(logs, selectedFilter);
+        setDynamicChartData(chartData);
+    }, [selectedFilter, logs.length]);
+
+    const transformLogsToChartData = (logs, filter) => {
+        const now = new Date();
+        const result = [];
+
+        const extractDate = (log) =>
+            new Date(type === 'affiliate' ? log.createdAt : log.date);
+
+        if (filter === 'Daily') {
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(now);
+                date.setDate(now.getDate() - i);
+                const label = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const fullDate = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                });
+
+                // Compare ISO YYYY-MM-DD to avoid time-zone shifts
+                const targetISO = date.toISOString().split('T')[0];
+                const count = logs.filter((log) => {
+                    const logISO = extractDate(log).toISOString().split('T')[0];
+                    return logISO === targetISO;
+                }).length;
+
+                result.push({
+                    value: count,
+                    label,
+                    fullDate,
+                    frontColor: i % 2 === 0 ? theme.subTextColor : theme.primaryColor,
+                });
+            }
+        } else if (filter === 'Monthly') {
+            for (let i = 5; i >= 0; i--) {
+                const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const label = month.toLocaleDateString('en-US', { month: 'short' });
+                const fullDate = month.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                });
+
+                const count = logs.filter((log) => {
+                    const logDate = extractDate(log);
+                    return (
+                        logDate.getFullYear() === month.getFullYear() &&
+                        logDate.getMonth() === month.getMonth()
+                    );
+                }).length;
+
+                result.push({
+                    value: count,
+                    label,
+                    fullDate,
+                    frontColor: i % 2 === 0 ? theme.subTextColor : theme.primaryColor,
+                });
+            }
+        } else if (filter === 'Yearly') {
+            for (let i = 4; i >= 0; i--) {
+                const year = now.getFullYear() - i;
+
+                const count = logs.filter(
+                    (log) => extractDate(log).getFullYear() === year
+                ).length;
+
+                result.push({
+                    value: count,
+                    label: String(year),
+                    fullDate: String(year),
+                    frontColor: i % 2 === 0 ? theme.subTextColor : theme.primaryColor,
+                });
+            }
+        }
+
+        return result;
     };
 
-    const chartConfig = {
-        backgroundGradientFrom: '#2A2A2A', // Dark background of the chart area
-        backgroundGradientTo: '#2A2A2A',
-        decimalPlaces: 0, // No decimal places on Y-axis labels
-        color: (opacity = 1) => `rgba(255, 255, 255, ${opacity ? opacity * 0.7 : 0.7})`,
-        labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity ? opacity * 0.7 : 0.7})`,
-        strokeWidth: 2, // Default stroke width for the line itself
-        propsForDots: {
-            r: '6',
-            strokeWidth: '2',
-            stroke: '#007AFF', // Blue stroke for active dot
-        },
-        fillShadowGradient: 'transparent', // No fill shadow for the area under the line
-        fillShadowGradientOpacity: 0,
-        // No fill shadow opacity
-        // Customization to show the bars as background
-        // This requires a custom `renderDot` or `renderDecorator` if we want to mimic the background bars precisely
-        // ChartKit doesn't have native "background bars" like in the image for LineChart directly,
-        // so we'll approximate with `backgroundColor` and `paddingRight` adjustments for visual alignment.
-        // For exact bar-like representation, a BarChart might be overlaid or a custom SVG renderer is needed.
+    const hasData = () => {
+        if (!logs || logs.length === 0) return false;
+        
+        // Check if there's any data in the current time period
+        const totalValue = dynamicChartData.reduce((sum, item) => sum + item.value, 0);
+        return totalValue > 0;
+    };
+
+    const getDailyBreakdownDateText = () => {
+        if (selectedFilter === 'Daily') {
+            return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        } else if (selectedFilter === 'Monthly') {
+            return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        } else if (selectedFilter === 'Yearly') {
+            return new Date().toLocaleDateString('en-US', { year: 'numeric' });
+        }
+        return '';
     };
 
     return (
-        <View style={styles.dailyBreakdownContainer}>
-            <View style={styles.dailyBreakdownHeader}>
-                <View>
-                    <Text style={styles.dailyBreakdownTitle}>Top Breakdown</Text> {/* Changed from Daily to Top as per image */}
-                    <Text style={styles.dailyBreakdownDate}>January 05, 2025</Text> {/* Date from image */}
+        <LinearGradient
+            start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+            style={styles.LinearGradient}
+        >
+            <View style={styles.dailyBreakdownContainer}>
+                <View style={styles.dailyBreakdownHeader}>
+                    <View>
+                        <Text style={styles.dailyBreakdownTitle}>{title}</Text>
+                        <Text style={styles.dailyBreakdownDate}>{getDailyBreakdownDateText()}</Text>
+                    </View>
+                    <View style={{ position: 'relative' }}>
+                        <TouchableOpacity
+                            style={styles.dropdownContainer}
+                            onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
+                        >
+                            <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
+                            <Image
+                                source={back}
+                                style={{
+                                    ...styles.dropdownArrow,
+                                    transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
+                                }}
+                            />
+                        </TouchableOpacity>
+
+                        {filterDropdownVisible && (
+                            <View style={styles.dropdownOptions}>
+                                {filterOptions.map(option => (
+                                    <TouchableOpacity
+                                        key={option}
+                                        style={styles.optionItem}
+                                        onPress={() => {
+                                            setSelectedFilter(option);
+                                            setFilterDropdownVisible(false);
+                                        }}
+                                    >
+                                        <Text style={styles.optionText}>{option}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+                    </View>
                 </View>
-                <View style={{ position: "relative" }}>
-                    <TouchableOpacity
-                        style={styles.dropdownContainer}
-                        onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
-                    >
-                        {/* <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text> */}
-                        <Image
-                            source={back} // Use your actual arrow icon here
-                            style={{
-                                ...styles.dropdownArrow,
-                                transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
+
+                {hasData() ? (
+                    <View style={styles.barChartWrapper}>
+                        <BarChart
+                            data={dynamicChartData}
+                            barWidth={40}
+                            barBorderRadius={8}
+                            spacing={12}
+                            height={220}
+                            initialSpacing={10}
+                            noOfSections={4}
+                            yAxisThickness={0}
+                            xAxisThickness={0}
+                            hideYAxisText
+                            hideAxesAndRules
+                            showXAxisIndices={false}
+                            xAxisLabelTextStyle={{
+                                color: theme.subTextColor,
+                                fontSize: 12,
+                                fontFamily: 'Inter-Regular',
                             }}
+                            renderTooltip={(item) => (
+                                <View style={styles.tooltip}>
+                                    <Text style={styles.tooltipText}>Value: {item.value}</Text>
+                                    <Text style={styles.tooltipText}>Date: {item.fullDate}</Text>
+                                </View>
+                            )}
                         />
-                    </TouchableOpacity>
-
-                    {/* Dropdown options */}
-                    {filterDropdownVisible && (
-                        <View style={styles.dropdownOptions}>
-                            {filterOptions.map((option) => (
-                                <TouchableOpacity
-                                    key={option}
-                                    style={styles.optionItem}
-                                    onPress={() => {
-                                        setSelectedFilter(option);
-                                        setFilterDropdownVisible(false);
-                                    }}
+                    </View>
+                ) : (
+                    <View style={styles.noDataContainer}>
+                        <LinearGradient
+                            start={{ x: 0, y: 0 }} 
+                            end={{ x: 1, y: 1 }}
+                            colors={['rgba(17, 103, 177, 0.05)', 'rgba(42, 157, 244, 0.01)', 'transparent']}
+                            style={styles.noDataGradientWrapper}
+                        >
+                            {/* Decorative circles */}
+                            <View style={styles.decorativeCircle1} />
+                            <View style={styles.decorativeCircle2} />
+                            
+                            <View style={styles.noDataContentContainer}>
+                                <View
+                                    style={styles.noDataIconContainer}
                                 >
-                                    <Text style={styles.optionText}>{option}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-                    )}
-                </View>
+                                    <Text style={styles.noDataIcon}>
+                                        {type === 'affiliate' ? '✨' : '🎯'}
+                                    </Text>
+                                    <View style={styles.iconGlow} />
+                                </View>
+                                
+                                <Text style={styles.noDataTitle}>
+                                    {selectedFilter === 'Daily' ? 
+                                        (type === 'affiliate' ? 'Ready to Earn?' : 'Your Journey Awaits') :
+                                     selectedFilter === 'Monthly' ? 'A Fresh Start Awaits' :
+                                     'Endless Possibilities Ahead'}
+                                </Text>
+                                
+                                <Text style={styles.noDataSubtitle}>
+                                    {type === 'affiliate' 
+                                        ? 'Transform your passion into profit, one course at a time'
+                                        : 'Great things never come from comfort zones. Start today.'
+                                    }
+                                </Text>
+                                
+                                {/* <View style={styles.inspirationalContainer}>
+                                    <LinearGradient
+                                        start={{ x: 0, y: 0 }} 
+                                        end={{ x: 1, y: 0 }}
+                                        colors={[theme.primaryColor + '80', theme.primaryColor + '40']}
+                                        style={styles.motivationalBadge}>
+                                        <View style={styles.motivationalBadgeInner}>
+                                        <Text style={styles.motivationalText}>
+                                            {type === 'affiliate' ? '💰' : '🚀'} {type === 'affiliate' ? 'First Sale Awaits' : 'Progress Starts Here'}
+                                        </Text>
+                                        </View>
+                                    </LinearGradient>
+                                </View>
+                                 */}
+                                <View style={styles.noDataActionContainer}>
+                                    <LinearGradient
+                                        start={{ x: 0, y: 0 }} 
+                                        end={{ x: 1, y: 0 }}
+                                        colors={[theme.primaryColor, theme.primaryColor + '80']}
+                                        style={styles.noDataDot}
+                                    />
+                                    <Text style={styles.noDataMessage}>
+                                        {type === 'affiliate' 
+                                            ? 'Begin your affiliate journey and watch the magic unfold'
+                                            : 'Plant the seeds of success with your first habit today'
+                                        }
+                                    </Text>
+                                </View>
+                            </View>
+                        </LinearGradient>
+                    </View>
+                )}
             </View>
-
-            {/* Chart */}
-            <View style={styles.chartWrapper}>
-                <LineChart
-                    data={chartData}
-                    width={width - 40} // Screen width minus horizontal padding
-                    height={220} // Fixed height for the chart
-                    chartConfig={chartConfig}
-                    bezier // Smooth curve
-                    style={styles.chart}
-                    withVerticalLabels={true}
-                    withHorizontalLabels={true}
-                    withInnerLines={false} // Hide inner vertical lines
-                    withOuterLines={false} // Hide outer vertical lines
-                    verticalLabelRotation={0} // No rotation
-                    horizontalLabelRotation={0} // No rotation
-                    yAxisLabel={''} // Remove default Y-axis label text if not needed
-                    yAxisSuffix={''} // Remove default Y-axis suffix
-                    yLabelsOffset={0}
-                    xLabelsOffset={0}
-                // The background bars are a visual trick that LineChart doesn't directly support.
-                // We'll mimic the effect with the overall background and styling of the chart container.
-                // For a true "bar background", you might need to use a custom SVG renderer
-                // or combine LineChart with a custom BarChart/Rects for background.
-                />
-                {/* Manually placed dots/bars for visual match if needed, but ChartKit handles the line */}
-                {/* The highlighted bar effect (e.g., March) is also custom and would need another layer of rendering */}
-            </View>
-        </View>
+        </LinearGradient>
     );
 };
 
-const styles = StyleSheet.create({
-    dailyBreakdownContainer: {
-        backgroundColor: '#1E1E1E', // Main card background [cite: image_68e585.jpg]
-        borderRadius: 12,
-        marginHorizontal: 20,
-        marginTop: 20,
-        padding: 15,
-    },
-    dailyBreakdownHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start', // Align to top for title/date alignment
-        marginBottom: 10,
-    },
-    dailyBreakdownTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#E0E0E0', // Light grey text [cite: image_68e585.jpg]
-    },
-    dailyBreakdownDate: {
-        fontSize: 12,
-        color: '#A0A0A0', // Grey date text [cite: image_68e585.jpg]
-        marginTop: 2,
-    },
-    dropdownContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#3A3A3A', // Darker background for dropdown button [cite: image_68e585.jpg]
-        borderRadius: 8,
-        paddingVertical: 5,
-        paddingHorizontal: 10,
-    },
-    dailyBreakdownFilter: {
-        fontSize: 14,
-        color: '#E0E0E0',
-        marginRight: 5,
-    },
-    dropdownArrow: {
-        width: 12,
-        height: 12,
-        resizeMode: 'contain',
-        tintColor: '#E0E0E0', // Tint arrow to white/grey
-    },
-    dropdownOptions: {
-        position: 'absolute',
-        top: 40, // Position below the dropdown button
-        right: 0,
-        backgroundColor: '#3A3A3A', // Same background as dropdown button
-        borderRadius: 8,
-        // borderWidth: 1, // Optional border
-        // borderColor: '#555',
-        zIndex: 1000, // Ensure it appears above other content
-        width: 100, // Fixed width for dropdown options
-    },
-    optionItem: {
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#4A4A4A', // Separator between options
-    },
-    optionText: {
-        fontSize: 14,
-        color: '#E0E0E0',
-    },
-    chartWrapper: {
-        backgroundColor: '#2A2A2A', // Chart background, same as chartConfig.backgroundGradientFrom
-        borderRadius: 10,
-        overflow: 'hidden', // Ensures chart contents are clipped
-        paddingVertical: 10, // Padding around the chart itself
-        alignItems: 'center', // Center the chart
-    },
-    chart: {
-        // Specific styles for the chart component itself
-        marginVertical: 8,
-        borderRadius: 10,
-        // The background bars in the image are part of the overall visual design.
-        // LineChart primarily focuses on the line. To get the vertical bars,
-        // you would typically draw Rects using react-native-svg
-        // or use a different chart type / combine charts.
-        // For this example, we'll rely on the overall `chartWrapper` background.
-    },
-});
+const getStyles = (theme) =>
+    StyleSheet.create({
+        dailyBreakdownContainer: {
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            borderRadius: 8,
+            padding: 20,
+        },
+        LinearGradient: {
+            borderWidth: 0.9,
+            borderColor: theme.borderColor,
+            borderRadius: 8,
+            // padding: 20,
+            marginBottom: 30,
+        },
+        dailyBreakdownHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+        },
+        dailyBreakdownTitle: {
+            color: theme.subTextColor,
+            fontSize: 16,
+            fontFamily: 'Inter-SemiBold',
+        },
+        dailyBreakdownDate: {
+            color: theme.subTextColor,
+            fontSize: 12,
+            fontFamily: 'Inter-Light-BETA',
+        },
+        dropdownContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: theme.primaryColor,
+            borderWidth: 0.9,
+            borderColor: theme.borderColor,
+            borderRadius: 8,
+            paddingVertical: 7,
+            paddingHorizontal: 12,
+            justifyContent: 'space-between',
+        },
+        dropdownArrow: {
+            width: 10,
+            height: 10,
+            resizeMode: 'contain',
+            tintColor: '#CCCCCC',
+        },
+        dropdownOptions: {
+            position: 'absolute',
+            top: 35,
+            left: 0,
+            width: '100%',
+            backgroundColor: theme.primaryColor,
+            borderRadius: 8,
+            paddingVertical: 10,
+            zIndex: 1000,
+        },
+        optionItem: {
+            zIndex: 1000,
+            paddingVertical: 12,
+            paddingHorizontal: 15,
+        },
+        optionText: {
+            color: 'white',
+            fontSize: 12,
+            fontFamily: 'Inter-Regular',
+        },
+        dailyBreakdownFilter: {
+            color: '#FFF',
+            fontSize: 12,
+            fontFamily: 'Inter-Medium',
+            paddingHorizontal: 8,
+        },
+        barChartWrapper: {
+            width: '100%',
+        },
+        tooltip: {
+            backgroundColor: theme.primaryColor,
+            borderRadius: 8,
+            padding: 10,
+            zIndex: 10000,
+        },
+        tooltipText: {
+            color: '#F9FAFB',
+            fontSize: 11,
+        },
+        noDataContainer: {
+            marginTop: 10,
+            overflow: 'hidden',
+        },
+        noDataGradientWrapper: {
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            position: 'relative',
+            overflow: 'hidden',
+        },
+        noDataContentContainer: {
+            alignItems: 'center',
+            paddingVertical: 40,
+            paddingHorizontal: 20,
+            minHeight: 280,
+        },
+        decorativeCircle1: {
+            position: 'absolute',
+            top: -30,
+            right: -30,
+            width: 120,
+            height: 120,
+            borderRadius: 60,
+            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            opacity: 0.6,
+        },
+        decorativeCircle2: {
+            position: 'absolute',
+            bottom: -40,
+            left: -40,
+            width: 140,
+            height: 140,
+            borderRadius: 70,
+            backgroundColor: 'rgba(147, 51, 234, 0.06)',
+            opacity: 0.4,
+        },
+        noDataIconContainer: {
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+            alignSelf: 'center',
+            marginBottom: 20,
+            position: 'relative',
+            borderWidth: 2,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            marginVertical: 20,
+        },
+        iconGlow: {
+            position: 'absolute',
+            width: 100,
+            height: 100,
+            borderRadius: 50,
+            backgroundColor: theme.primaryColor,
+            opacity: 0.1,
+            zIndex: -1,
+        },
+        noDataIcon: {
+            fontSize: 36,
+            zIndex: 1,
+        },
+        noDataTitle: {
+            color: '#FFFFFF',
+            fontSize: 20,
+            fontFamily: 'Inter-Bold',
+            marginBottom: 14,
+            textAlign: 'center',
+            letterSpacing: 0.3,
+            textShadowColor: 'rgba(0, 0, 0, 0.3)',
+            textShadowOffset: { width: 0, height: 2 },
+            textShadowRadius: 4,
+            paddingHorizontal: 8,
+        },
+        noDataSubtitle: {
+            color: theme.subTextColor,
+            fontSize: 14,
+            fontFamily: 'Inter-Medium',
+            textAlign: 'center',
+            opacity: 0.9,
+            marginBottom: 24,
+            lineHeight: 20,
+            paddingHorizontal: 12,
+        },
+        inspirationalContainer: {
+
+            // marginBottom: 20,
+        },
+        motivationalBadge: {
+            borderRadius: 20,
+        },
+        motivationalBadgeInner: {
+            paddingVertical: 10,
+            paddingHorizontal: 18,
+            borderRadius: 20,
+            shadowColor: theme.primaryColor,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.4,
+            shadowRadius: 8,
+            elevation: 6,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+        },
+        motivationalText: {
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontFamily: 'Inter-SemiBold',
+            textAlign: 'center',
+            letterSpacing: 0.2,
+        },
+        noDataActionContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            alignSelf: 'stretch',
+            paddingHorizontal: 16,
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            paddingVertical: 14,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            marginHorizontal: 4,
+        },
+        noDataDot: {
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            marginRight: 12,
+            shadowColor: theme.primaryColor,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.6,
+            shadowRadius: 4,
+            elevation: 4,
+        },
+        noDataMessage: {
+            color: theme.subTextColor,
+            fontSize: 13,
+            fontFamily: 'Inter-Medium',
+            textAlign: 'left',
+            lineHeight: 19,
+            opacity: 0.9,
+            flex: 1,
+            letterSpacing: 0.1,
+        },
+    });
 
 export default DailyBreakdownChart;

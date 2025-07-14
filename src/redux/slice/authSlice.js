@@ -47,7 +47,8 @@ export const loginUser = createAsyncThunk(
     try {
       thunkAPI.dispatch(startLoading());
 
-      const isProfilingDone = user?.onboarding?.length > 0;
+      // ❌ Don't auto-set profilingDone to true
+      const isProfilingDone = false;
 
       await AsyncStorage.multiSet([
         ['token', token],
@@ -67,6 +68,8 @@ export const loginUser = createAsyncThunk(
     }
   }
 );
+
+
 
 // Thunk: Logout
 export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, thunkAPI) => {
@@ -104,6 +107,12 @@ const authSlice = createSlice({
     setProfilingDone: (state, action) => {
       state.isProfilingDone = action.payload;
       AsyncStorage.setItem('isProfilingDone', JSON.stringify(action.payload));
+    },
+    setProfilePic: (state, action) => {
+      if (state.userObject) {
+        state.userObject.profilePic = action.payload;
+        AsyncStorage.setItem('user', JSON.stringify(state.userObject));
+      }
     },
     setAffiliateData: (state, action) => {
       const { isAffiliate, affiliateCode } = action.payload;
@@ -154,5 +163,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setTheme, setProfilingDone, setAffiliateData } = authSlice.actions;
+export const { setTheme, setProfilingDone, setAffiliateData, setProfilePic } = authSlice.actions;
 export default authSlice.reducer;

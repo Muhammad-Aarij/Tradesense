@@ -1,13 +1,17 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import TopPickTile from './TopPickTile';
+import { ThemeContext } from '../context/ThemeProvider'; // adjust path if needed
 
 const TopPicksSection = ({ topPicks }) => {
+    const { theme } = useContext(ThemeContext);
+
     if (!topPicks || topPicks.length === 0) return null;
+
+    const styles = getStyles(theme);
 
     return (
         <View style={styles.container}>
-            {/* <Text style={styles.heading}>Top Picks for you</Text> */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {topPicks.map((item) => (
                     <TopPickTile
@@ -15,10 +19,9 @@ const TopPicksSection = ({ topPicks }) => {
                         type={item.type}
                         title={item.title}
                         description={item.description}
-                        imageSource={item.thumbnail }
+                        imageSource={item.thumbnail}
                         locked={item.isPremium}
                         url={item.url}
-
                     />
                 ))}
             </ScrollView>
@@ -26,13 +29,12 @@ const TopPicksSection = ({ topPicks }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     container: {
-        // marginBottom: 24,
         marginLeft: 25,
     },
     heading: {
-        color: '#fff',
+        color: theme.textColor,
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 12,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import LottieView from 'lottie-react-native';
-import loadingAnimation from '../assets/loading.json'; // replace with your actual JSON file
+import Video from 'react-native-video';
+import trader365Logo from '../assets/trader365Logo.mp4';
 
 export default function Loader() {
   const [loadingText, setLoadingText] = useState('Loading');
@@ -20,11 +20,13 @@ export default function Loader() {
   return (
     <View style={[StyleSheet.absoluteFillObject, styles.container]}>
       <View style={styles.modalView}>
-        <LottieView
-          source={loadingAnimation}
-          autoPlay
-          loop
-          style={{ width: 200, height: 200 }}
+        <Video
+          source={trader365Logo}
+          style={{ width: 100, height: 100 }}
+          resizeMode="contain"
+          repeat={true}
+          muted={true}
+          rate={1}
         />
         {/* <Text style={styles.modalText}>{loadingText}</Text> */}
       </View>
@@ -33,4 +35,4 @@ export default function Loader() {
 }
 
 
-const styles = StyleSheet.create({ container: { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.75)', zIndex: 10, }, modalText: { textAlign: 'center', fontWeight: 'bold', color: 'black', marginTop: 10, fontSize: 16, width: 110, }, modalView: { alignItems: 'center', }, });
+const styles = StyleSheet.create({ container: { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.75)', zIndex: 10, }, modalText: { textAlign: 'center', fontWeight: 'bold', color: 'black', marginTop: 10, fontSize: 16, width: 110, }, modalView: { alignItems: 'center', width: 100, height: 100, backgroundColor: 'black', borderRadius: 100, }, });

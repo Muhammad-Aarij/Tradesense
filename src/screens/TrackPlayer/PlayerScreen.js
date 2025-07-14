@@ -44,7 +44,7 @@ import theme from '../../themes/theme';
 const { height } = Dimensions.get('window');
 
 const PlayerScreen = ({ route }) => {
-  const { AudioTitle, AudioDescr, Thumbnail, AudioUrl, shouldFetchTrack } = route.params;
+  const { AudioTitle, AudioDescr, Thumbnail, AudioUrl, shouldFetchTrack, navigationKey } = route.params;
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -54,9 +54,25 @@ const PlayerScreen = ({ route }) => {
 
   const isPlayerSetup = useRef(false);
   const [audioLoading, setAudioLoading] = useState(true);
+  
+  // Add logging to debug audio URL issues
+  console.log('=== PlayerScreen Render Debug ===');
+  console.log('AudioTitle:', AudioTitle);
+  console.log('AudioDescr:', AudioDescr);
+  console.log('Thumbnail:', Thumbnail);
+  console.log('AudioUrl:', AudioUrl);
+  console.log('shouldFetchTrack:', shouldFetchTrack);
+  console.log('navigationKey:', navigationKey);
+  console.log('Component render timestamp:', Date.now());
+  console.log('==================================');
+  
+  // Repeat functionality state
+  const [repeatCount, setRepeatCount] = useState(0); // 0 = off, 1, 2, 7, 31
+  const [currentRepeats, setCurrentRepeats] = useState(0);
+  const repeatOptions = [0, 1, 2, 7, 31]; // 0 means off
 
   const track = {
-    id: `${AudioTitle}-${Date.now()}`,
+    id: `${AudioTitle}-${AudioUrl}-${Date.now()}-${Math.random()}`,
     url: AudioUrl,
     title: AudioTitle,
     artist: 'Alwin',
@@ -65,53 +81,209 @@ const PlayerScreen = ({ route }) => {
     description: AudioDescr,
   };
 
+  console.log('=== Track Object Debug ===');
+  console.log('Track ID:', track.id);
+  console.log('Track URL:', track.url);
+  console.log('Track Title:', track.title);
+  console.log('Track Artwork:', track.artwork);
+  console.log('==========================');
+
   useTrackPlayerEvents([Event.PlaybackState], (event) => {
     if (event.type === Event.PlaybackState) {
       if (event.state === PlaybackState.Buffering || event.state === PlaybackState.Loading) {
         dispatch(startLoading());
       } else if (event.state === PlaybackState.Ready || event.state === PlaybackState.Playing) {
         dispatch(stopLoading());
+      } else if (event.state === PlaybackState.Ended) {
+        // Handle repeat when track ends
+        if (repeatCount > 0 && currentRepeats < repeatCount) {
+          handleTrackEnded();
+        } else {
+          // Reset repeat counter when all repeats are done
+          setCurrentRepeats(0);
+        }
       }
     }
   });
 
+  const handleTrackEnded = async () => {
+    try {
+      setCurrentRepeats(prev => prev + 1);
+      // Small delay to ensure track has fully ended
+      setTimeout(async () => {
+        try {
+          await TrackPlayer.seekTo(0);
+          await TrackPlayer.play();
+        } catch (error) {
+          console.error('Error repeating track:', error);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error in handleTrackEnded:', error);
+    }
+  };
+
+  const toggleRepeat = () => {
+    const currentIndex = repeatOptions.indexOf(repeatCount);
+    const nextIndex = (currentIndex + 1) % repeatOptions.length;
+    const nextRepeatCount = repeatOptions[nextIndex];
+    
+    setRepeatCount(nextRepeatCount);
+    setCurrentRepeats(0); // Reset current repeats when changing mode
+  };
+
+  const getRepeatButtonText = () => {
+    if (repeatCount === 0) return '';
+    return repeatCount.toString();
+  };
+
   const setupPlayer = async () => {
     try {
+      console.log('=== setupPlayer Debug ===');
+      console.log('Setting up player with track URL:', track.url);
+      console.log('shouldFetchTrack:', shouldFetchTrack);
+      console.log('=========================');
+      
       dispatch(startLoading());
       setAudioLoading(true);
 
       // Ensure the player is initialised (only once per app lifecycle)
       if (!isPlayerSetup.current) {
-        await TrackPlayer.setupPlayer({ waitForBuffer: false });
-        isPlayerSetup.current = true;
+        console.log('Initializing TrackPlayer for first time');
+        try {
+          await TrackPlayer.setupPlayer({ waitForBuffer: false });
+          console.log('TrackPlayer.setupPlayer completed successfully');
+          isPlayerSetup.current = true;
+        } catch (setupError) {
+          console.log('TrackPlayer.setupPlayer error:', setupError);
+          // Try to continue anyway
+          isPlayerSetup.current = true;
+        }
       }
 
-      const currentTrackId = await TrackPlayer.getCurrentTrack();
-      const currentTrack = currentTrackId ? await TrackPlayer.getTrack(currentTrackId) : null;
+      let currentTrackId = null;
+      let currentTrack = null;
+      
+      try {
+        console.log('Getting current track...');
+        currentTrackId = await TrackPlayer.getCurrentTrack();
+        console.log('getCurrentTrack result:', currentTrackId);
+        
+        if (currentTrackId) {
+          console.log('Getting track details...');
+          currentTrack = await TrackPlayer.getTrack(currentTrackId);
+          console.log('getTrack result:', currentTrack ? 'Track found' : 'Track not found');
+        }
+      } catch (trackError) {
+        console.log('Error getting current track:', trackError);
+        // Continue with null values
+      }
+
+      console.log('=== Current Track Debug ===');
+      console.log('Current Track ID:', currentTrackId);
+      console.log('Current Track URL:', currentTrack?.url);
+      console.log('New Track URL:', track.url);
+      console.log('============================');
 
       const isSameTrack = currentTrack && currentTrack.url === track.url;
 
       let needToLoad = false;
 
       // Decide whether we need to load a new track into the queue
-      if (!currentTrack) {
+      if (shouldFetchTrack) {
+        // Caller explicitly requests a fresh fetch - always reload
+        console.log('shouldFetchTrack is true - forcing reload');
+        needToLoad = true;
+      } else if (!currentTrack) {
         // No track in queue – need to load
+        console.log('No current track - need to load');
         needToLoad = true;
       } else if (!isSameTrack) {
         // Different track
+        console.log('Different track detected - need to load');
         needToLoad = true;
-      } else if (shouldFetchTrack) {
-        // Caller explicitly requests a fresh fetch
-        needToLoad = true;
+      } else {
+        // Same track and shouldFetchTrack is false (coming from mini-player)
+        console.log('Same track and shouldFetchTrack is false - using existing track');
+        needToLoad = false;
       }
 
+      console.log('=== Track Loading Decision ===');
+      console.log('needToLoad:', needToLoad);
+      console.log('isSameTrack:', isSameTrack);
+      console.log('==============================');
+
       if (needToLoad) {
-        await TrackPlayer.reset();
-        await TrackPlayer.add(track);
+        console.log('Loading new track...');
+        
+        // Stop current playback first
+        try {
+          await TrackPlayer.stop();
+          console.log('TrackPlayer stopped');
+        } catch (stopError) {
+          console.log('Stop error (might be expected):', stopError.message);
+        }
+        
+        try {
+          console.log('About to reset TrackPlayer...');
+          await TrackPlayer.reset();
+          console.log('TrackPlayer reset complete');
+        } catch (resetError) {
+          console.log('Reset error:', resetError);
+        }
+        
+        try {
+          console.log('About to add track:', {
+            id: track.id,
+            url: track.url,
+            title: track.title,
+            artwork: track.artwork
+          });
+          await TrackPlayer.add(track);
+          console.log('Track added successfully to TrackPlayer');
+        } catch (addError) {
+          console.log('Add track error:', addError);
+        }
+        
+        // Verify the track was added
+        try {
+          const newCurrentTrackId = await TrackPlayer.getCurrentTrack();
+          const newCurrentTrack = newCurrentTrackId ? await TrackPlayer.getTrack(newCurrentTrackId) : null;
+          console.log('Verification - Current track after add:', {
+            id: newCurrentTrackId,
+            url: newCurrentTrack?.url,
+            title: newCurrentTrack?.title
+          });
+        } catch (verifyError) {
+          console.log('Verification error:', verifyError);
+        }
+      } else {
+        console.log('Using existing track');
       }
 
       // Start / resume playback
-      await TrackPlayer.play();
+      try {
+        console.log('Starting playback...');
+        await TrackPlayer.play();
+        console.log('Playback started successfully');
+      } catch (playError) {
+        console.log('Play error:', playError);
+      }
+      
+      // Final verification of what's actually playing
+      try {
+        const finalTrackId = await TrackPlayer.getCurrentTrack();
+        const finalTrack = finalTrackId ? await TrackPlayer.getTrack(finalTrackId) : null;
+        console.log('=== Final Playback Verification ===');
+        console.log('Actually playing track:', {
+          id: finalTrackId,
+          url: finalTrack?.url,
+          title: finalTrack?.title
+        });
+        console.log('===================================');
+      } catch (finalError) {
+        console.log('Final verification error:', finalError);
+      }
     } catch (error) {
       if (!error?.message?.includes('already been initialized')) {
         Alert.alert('Track Error', error?.message || 'Playback failed');
@@ -124,12 +296,40 @@ const PlayerScreen = ({ route }) => {
   };
 
   useEffect(() => {
-    setupPlayer();
+    console.log('=== useEffect Triggered ===');
+    console.log('AudioUrl dependency:', AudioUrl);
+    console.log('shouldFetchTrack dependency:', shouldFetchTrack);
+    console.log('navigationKey dependency:', navigationKey);
+    console.log('About to call setupPlayer...');
+    console.log('===========================');
+    
+    // Only setup player if we need to fetch a new track or if it's a new navigation
+    if (shouldFetchTrack) {
+      console.log('shouldFetchTrack is true - setting up player');
+      setupPlayer();
+      // Reset repeat state when loading a new track
+      setCurrentRepeats(0);
+    } else if (navigationKey) {
+      console.log('navigationKey present - setting up player');
+      setupPlayer();
+      // Reset repeat state when loading a new track
+      setCurrentRepeats(0);
+    } else {
+      console.log('Skipping setupPlayer - using existing track from mini-player');
+      // Don't call setupPlayer, just ensure loading state is stopped
+      dispatch(stopLoading());
+      setAudioLoading(false);
+    }
 
     return () => {
+      console.log('=== useEffect Cleanup ===');
+      console.log('Cleaning up for AudioUrl:', AudioUrl);
+      console.log('========================');
       dispatch(stopLoading());
+      // Reset repeat state on cleanup
+      setCurrentRepeats(0);
     };
-  }, [AudioUrl, shouldFetchTrack]);
+  }, [shouldFetchTrack, navigationKey, AudioUrl]);
 
   const togglePlayback = async () => {
     if (isPlaying) {
@@ -231,8 +431,13 @@ const PlayerScreen = ({ route }) => {
             <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
               <Image source={next} style={styles.controlIcon} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton1}>
-              <Image source={repeat} style={styles.controlIcon} />
+            <TouchableOpacity style={styles.controlButton1} onPress={toggleRepeat}>
+              <View style={styles.repeatButtonContainer}>
+                <Image source={repeat} style={[styles.controlIcon, { tintColor: repeatCount > 0 ? theme.primaryColor : '#FFFFFF' }]} />
+                {repeatCount > 0 && (
+                  <Text style={styles.repeatCountText}>{getRepeatButtonText()}</Text>
+                )}
+              </View>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -397,6 +602,27 @@ const styles = StyleSheet.create({
     tintColor: '#FFFFFF',
     resizeMode: 'contain',
   },
+  repeatButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  repeatCountText: {
+    color: theme.primaryColor,
+    fontSize: 10,
+    fontFamily: 'Inter-Medium',
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#000',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    textAlign: 'center',
+    lineHeight: 16,
+    paddingHorizontal: 2,
+  },
 });
 
 export default PlayerScreen;
+

@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { bell, calendar, deletewhite, editwhite } from '../assets/images';
-import theme from '../themes/theme';
+import { ThemeContext } from '../context/ThemeProvider';
+import LinearGradient from 'react-native-linear-gradient';
 
 const GoalCard = ({ goal, onEdit, onDelete }) => {
+    const { theme } = useContext(ThemeContext); // 💡 Get theme from context
+    const styles = getStyles(theme); // 💡 Create themed styles
+
     const formatDate = (isoDate) => {
         if (!isoDate) return '';
         const date = new Date(isoDate);
@@ -11,11 +15,14 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
             day: 'numeric',
             month: 'short',
             year: 'numeric',
-        }); // e.g. "26 Jun 2025"
+        });
     };
 
     return (
-        <View style={styles.cardContainer}>
+        <LinearGradient
+            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0.95 }}
+            end={{ x: 1, y: 1 }} style={styles.cardContainer}>
             <View style={styles.headerRow}>
                 <Text style={styles.goalTitle}>{goal.title}</Text>
                 <View style={styles.iconContainer}>
@@ -29,10 +36,12 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
             </View>
             <Text style={styles.goalDescription}>{goal.description}</Text>
             <View style={styles.progressSection}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", }}>
-                    <View style={{ flexDirection: "row", gap: 7, }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', gap: 7 }}>
                         <Image source={calendar} style={styles.icon} />
-                        <Text style={styles.goalDescription}>{formatDate(goal.updatedAt)} / {formatDate(goal.targetDate)}</Text>
+                        <Text style={styles.goalDescription}>
+                            {formatDate(goal.updatedAt)} / {formatDate(goal.targetDate)}
+                        </Text>
                     </View>
                     <Text style={styles.goalProgressText}>{goal.progress ?? 0}%</Text>
                 </View>
@@ -40,18 +49,18 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
                     <View style={[styles.progressBarFill, { width: `${goal.progress || 0}%` }]} />
                 </View>
             </View>
-        </View>
+        </LinearGradient>
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     cardContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 1.3, borderColor: "rgba(255, 255, 255, 0.1)",
+        // backgroundColor: theme.transparentBg,
+        borderWidth: 1.3,
+        borderColor: theme.borderColor,
         borderRadius: 8,
         padding: 15,
         marginVertical: 8,
-        // marginHorizontal: 20, // To match screen padding
     },
     headerRow: {
         flexDirection: 'row',
@@ -61,8 +70,8 @@ const styles = StyleSheet.create({
     },
     goalTitle: {
         fontSize: 15,
-        fontFamily: "Inter-Regular",
-        color: '#FFFFFF',
+        fontFamily: 'Inter-Regular',
+        color: theme.textColor,
         flex: 1,
     },
     iconContainer: {
@@ -71,42 +80,44 @@ const styles = StyleSheet.create({
     iconButton: {
         padding: 7,
         marginLeft: 5,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9, borderColor: "rgba(255, 255, 255, 0.1)",
+        backgroundColor: theme.transparentBg,
+        borderWidth: 0.9,
+        borderColor: theme.borderColor,
         borderRadius: 8,
     },
     icon: {
-        width: 15, height: 15,
+        width: 15,
+        height: 15,
         resizeMode: 'contain',
-        color: '#A0A0A0', // Grey icons
+        tintColor: theme.subTextColor, // Apply dynamic icon tint
     },
     goalDescription: {
         fontSize: 12,
-        color: '#B0B0B0', // Lighter grey for description
+        color: theme.subTextColor,
         marginBottom: 5,
         lineHeight: 20,
     },
     progressSection: {
-        width: "100%",
+        width: '100%',
         flexDirection: 'column',
         marginTop: 10,
     },
     goalProgressText: {
         fontSize: 13,
-        fontFamily: "Inter-Medium",
-        color: '#FFFFFF',
+        fontFamily: 'Inter-Medium',
+        color: theme.textColor,
         marginRight: 10,
     },
     progressBarBackground: {
         flex: 1,
         height: 6,
-        backgroundColor: '#404040', // Darker background for the bar
+        backgroundColor: theme.borderColor,
         borderRadius: 3,
         overflow: 'hidden',
     },
     progressBarFill: {
         height: '100%',
-        backgroundColor: theme.primaryColor, // Green for progress fill
+        backgroundColor: theme.primaryColor,
         borderRadius: 3,
     },
 });

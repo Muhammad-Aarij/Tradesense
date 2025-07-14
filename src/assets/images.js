@@ -117,6 +117,7 @@ import d from './d.png'
 import m from './m.png'
 import discover from './discover.png'
 import discover1 from './discover1.png'
+import discoverLight from './discoverLight.png'
 import lockicon from './lockicon.png'
 import play2 from './play2.png'
 import bundle from './bundle.png'
@@ -127,7 +128,12 @@ import noThumbnail from './noThumbnail.png'
 import work from './work.png'
 import fail from './fail.png'
 import userDefault from './userDefault.jpg'
-
+import discoverIcon from './discoverIcon.png'
+import menuIcon from './menuIcon.png'
+import traderHub from './traderHub.png'
+import info from './info.png'
+import camera from './camera.png'
+import affiliate1 from './affiliate1.png'
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
@@ -137,5 +143,5 @@ export {
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
-  audioNew, videoNew
+  audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1
 };

@@ -1,21 +1,42 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { video2, lockicon, audio2, videoIcon, audioNew, videoNew } from '../assets/images';
 import theme from '../themes/theme';
 import { useNavigation } from '@react-navigation/native';
+import OptimizedImage from './OptimizedImage';
 const { width } = Dimensions.get('window');
 const cardWidth = width * 0.42;
 
 const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url }) => {
   const navigation = useNavigation();
+  
+  // Add logging to debug audio URL issues
+  console.log('=== RecommendationTile Debug ===');
+  console.log('Title:', title);
+  console.log('Type:', type);
+  console.log('URL:', url);
+  console.log('Thumbnail:', thumbnail);
+  console.log('================================');
+  
   const handlePress = () => {
     if (type === 'audio') {
+      console.log('=== Audio Navigation Debug ===');
+      console.log('Navigating to TrackPlayer with:');
+      console.log('AudioTitle:', title);
+      console.log('AudioDescr:', description);
+      console.log('Thumbnail:', thumbnail);
+      console.log('AudioUrl:', url);
+      console.log('Timestamp:', Date.now());
+      console.log('================================');
+      
+      // Force a new navigation with unique key to ensure fresh PlayerScreen
       navigation.navigate('TrackPlayer', {
         AudioTitle: title,
         AudioDescr: description,
         Thumbnail: thumbnail,
         AudioUrl: url,
-        shouldFetchTrack: false,
+        shouldFetchTrack: true,
+        navigationKey: Date.now(), // Add unique key to force new navigation
       });
     } else if (type === 'video') {
       navigation.navigate('VideoPlayer', {
@@ -28,38 +49,30 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
   };
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      {/** Ensure HTTPS to avoid App Transport Security blocking (iOS) */}
-      {/** Convert http:// to https:// if needed */}
-      {/** This does not mutate the original prop */}
-      {(() => {
-        const secureThumbnail = thumbnail?.startsWith('http://') ? thumbnail.replace('http://', 'https://') : thumbnail;
-        return (
-          <View style={styles.imageWrapper}>
-            <Image
-              source={{ uri: secureThumbnail }}
-              // source={require('../assets/thumbnail2.jpg')}
-              style={styles.thumbnail}
-              onError={(error) => console.log('Image loading error:', error?.nativeEvent?.error, secureThumbnail)}
-              onLoad={() => console.log('Image loaded successfully:', secureThumbnail)}
-            />
-            <View style={styles.shadowOverlay} />
-            <View style={styles.overlayIcon}>
-              <Image
-                source={type === 'audio' ? audioNew : videoNew} // 👈 switch icon based on type
-                style={{ width: 15, height: 15, resizeMode: "contain" }}
-              />
-              <Text style={{
-                fontSize: 9,
-                fontFamily: "Inter-Medium",
-                color: 'rgba(255, 255, 255, 0.64)',
-                borderRadius: 10,
-              }}>
-                {type === 'audio' ? 'Audio' : 'Video'}
-              </Text>
-            </View>
-          </View>
-        );
-      })()}
+      <View style={styles.imageWrapper}>
+        <OptimizedImage
+          uri={thumbnail}
+          style={styles.thumbnail}
+          borderRadius={12}
+          showLoadingIndicator={true}
+          loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
+        />
+        <View style={styles.shadowOverlay} />
+        <View style={styles.overlayIcon}>
+          <Image
+            source={type === 'audio' ? audioNew : videoNew}
+            style={{ width: 15, height: 15, resizeMode: "contain" }}
+          />
+          <Text style={{
+            fontSize: 9,
+            fontFamily: "Inter-Medium",
+            color: 'rgba(255, 255, 255, 0.64)',
+            borderRadius: 10,
+          }}>
+            {type === 'audio' ? 'Audio' : 'Video'}
+          </Text>
+        </View>
+      </View>
       <View style={styles.content}>
         <View style={{ width: "80%" }}>
           <Text style={styles.title} numberOfLines={1}>
@@ -164,4 +177,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RecommendationTile;
+export default memo(RecommendationTile);

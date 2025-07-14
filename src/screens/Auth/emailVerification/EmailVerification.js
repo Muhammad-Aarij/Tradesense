@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions,
-    Image, ImageBackground
+    Image, ImageBackground, Alert
 } from 'react-native';
 import { bg, lock, tick, } from '../../../assets/images';
 import theme from '../../../themes/theme';
@@ -75,12 +75,60 @@ const EmailVerification = ({ navigation, route }) => {
                                 navigation.navigate("Login"); // Navigate after delay
                             }, 2000);
                         } else {
-                            alert("Registration failed.");
-                            console.error("No response from registerUser.");
+                            dispatch(stopLoading());
+                            Alert.alert(
+                                "Registration Failed",
+                                "The registration could not be completed. This might be due to duplicate information. Please try again with different details or contact support.",
+                                [
+                                    {
+                                        text: "Go Back",
+                                        onPress: () => navigation.goBack(),
+                                    },
+                                    {
+                                        text: "Try Login",
+                                        onPress: () => navigation.navigate("Login"),
+                                    }
+                                ]
+                            );
                         }
                     } catch (regError) {
+                        dispatch(stopLoading());
                         console.error("Registration failed:", regError);
-                        alert("Something went wrong during registration.");
+
+                        // Check if it's a duplicate error
+                        const errorMessage = regError?.response?.data?.message || regError.message || "Registration failed";
+
+                        if (errorMessage.includes("E11000") || errorMessage.includes("duplicate")) {
+                            Alert.alert(
+                                "Account Already Exists",
+                                "An account with this information already exists. Please try logging in instead.",
+                                [
+                                    {
+                                        text: "Go Back",
+                                        onPress: () => navigation.goBack(),
+                                    },
+                                    {
+                                        text: "Login",
+                                        onPress: () => navigation.navigate("Login"),
+                                    }
+                                ]
+                            );
+                        } else {
+                            Alert.alert(
+                                "Registration Error",
+                                "Something went wrong during registration. Please try again.",
+                                [
+                                    {
+                                        text: "Go Back",
+                                        onPress: () => navigation.goBack(),
+                                    },
+                                    {
+                                        text: "Retry",
+                                        onPress: () => handleVerify(),
+                                    }
+                                ]
+                            );
+                        }
                     }
                 } else {
                     dispatch(stopLoading());
@@ -88,14 +136,15 @@ const EmailVerification = ({ navigation, route }) => {
                 }
 
             } else {
-                alert("Invalid OTP, please try again.");
+                dispatch(stopLoading());
+                Alert.alert("Invalid OTP", "The OTP you entered is invalid. Please try again.");
                 console.error("OTP verification failed");
             }
         } catch (error) {
-            console.error("Error verifying OTP:", error);
-            alert("An error occurred, please try again.");
-        } finally {
             dispatch(stopLoading());
+            console.error("Error verifying OTP:", error);
+            const errorMessage = error?.response?.data?.message || error.message || "An error occurred";
+            Alert.alert("Verification Error", errorMessage);
         }
     };
 
@@ -116,6 +165,7 @@ const EmailVerification = ({ navigation, route }) => {
                     {code.map((digit, index) => (
                         <TextInput
                             key={index}
+                            keyboardType="numeric"
                             ref={ref => inputs.current[index] = ref}
                             value={digit}
                             onChangeText={text => handleChange(text, index)}

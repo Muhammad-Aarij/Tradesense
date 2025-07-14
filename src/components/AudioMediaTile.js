@@ -1,17 +1,57 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ImageBackground } from 'react-native';
-import { m, play2 } from '../assets/images';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ImageBackground,
+} from 'react-native';
+import { m, play2, lock } from '../assets/images'; // Add a lock icon if needed
+import { useNavigation } from '@react-navigation/native';
+import OptimizedImage from './OptimizedImage';
 
-const AudioMediaTile = ({ imageSource, title, title2, duration, locked }) => {
+const AudioMediaTile = ({
+  imageSource,
+  title,
+  title2,
+  duration,
+  description,
+  url,
+  locked = false,
+}) => {
+  const navigation = useNavigation();
+
   return (
-    <TouchableOpacity style={styles.card}>
-      <ImageBackground source={m} style={{ flex: 1, flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 25, }}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() =>
+        navigation.navigate('TrackPlayer', {
+          AudioTitle: title,
+          AudioDescr: description,
+          Thumbnail: imageSource?.uri || imageSource,
+          AudioUrl: url,
+          shouldFetchTrack: false,
+        })
+      }
+    >
+      <ImageBackground
+        source={m}
+        style={styles.background}
+        imageStyle={{ borderRadius: 10 }}
+      >
         <View style={styles.content}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
-
-          <Text style={styles.description} numberOfLines={2}>{title2} . {duration}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={styles.description} numberOfLines={2}>
+            {title2} · {duration}
+          </Text>
         </View>
+
         <Image source={play2} style={styles.audioIcon} />
+
+
       </ImageBackground>
     </TouchableOpacity>
   );
@@ -19,40 +59,26 @@ const AudioMediaTile = ({ imageSource, title, title2, duration, locked }) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: "auto",
     height: 100,
-
     marginHorizontal: 25,
     borderRadius: 10,
-    backgroundColor: '#1B1B1B',
     overflow: 'hidden',
-    borderWidth: 0.6,
-    borderColor: '#555',
+    backgroundColor: '#1B1B1B',
+    marginBottom: 15,
   },
-  thumbnail: {
-    width: '100%',
-    height: 100,
-    resizeMode: 'cover',
-  },
-  overlayIcon: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: '#ffffffcc',
-    borderRadius: 20,
-    padding: 4,
-  },
-  audioIcon: {
-    width: 40,
-    height: 40,
-    resizeMode: "contain",
+  background: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
   },
   content: {
     padding: 8,
   },
   title: {
-    fontSize: 17,
-    fontFamily: 'Inter-Regular',
+    fontSize: 15,
+    fontFamily: 'Inter-Medium',
     color: '#fff',
   },
   description: {
@@ -61,17 +87,22 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginTop: 2,
   },
+  audioIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+  },
   lock: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#fff2',
-    padding: 3,
+    backgroundColor: '#00000088',
+    padding: 4,
     borderRadius: 4,
   },
   lockIcon: {
-    width: 10,
-    height: 10,
+    width: 12,
+    height: 12,
     tintColor: '#fff',
   },
 });

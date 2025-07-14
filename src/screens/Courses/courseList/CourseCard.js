@@ -1,84 +1,83 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { play } from '../../../assets/images';
-import theme from '../../../themes/theme';
+import { ThemeContext } from '../../../context/ThemeProvider';
 
-// Get screen width for responsive card sizing
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 20 * 2 - 5) / 2;
 
-// Star rating component
-const StarRating = ({ rating }) => {
+const StarRating = ({ rating, theme }) => {
     const stars = [];
-    // Render full stars based on the integer part of the rating
     for (let i = 0; i < Math.floor(rating); i++) {
         stars.push(
-            <Text key={`filled-${i}`} style={cardStyles.filledStar}>
-                ★
-            </Text>
+            <Text key={`filled-${i}`} style={[styles.filledStar, { color: "#FFAE42" }]}>★</Text>
         );
     }
-    // Render empty stars for the remaining spots up to 5
     for (let i = Math.floor(rating); i < 5; i++) {
         stars.push(
-            <Text key={`empty-${i}`} style={cardStyles.emptyStar}>
-                ★
-            </Text>
+            <Text key={`empty-${i}`} style={[styles.emptyStar, { color: theme.subTextColor }]}>★</Text>
         );
     }
-    return <View style={cardStyles.starContainer}>{stars}</View>;
+    return <View style={styles.starContainer}>{stars}</View>;
 };
 
-// Reusable Card Component (now part of this file)
-const CourseCard = ({ imageSource, duration, title, rating, description, profileImage, profileName, profileRole, price, onPress }) => {
+const CourseCard = ({
+    imageSource,
+    duration,
+    title,
+    rating,
+    description,
+    profileImage,
+    profileName,
+    price,
+    onPress
+}) => {
+    const { theme, isDarkMode } = useContext(ThemeContext);
+
     return (
-        <TouchableOpacity style={cardStyles.card} onPress={onPress}>
-            <View style={cardStyles.imageWrapper}>
-                <Image source={imageSource} style={cardStyles.cardImage} />
-                <View style={cardStyles.timeOverlay}>
-                <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
-                <Text style={cardStyles.timeText}>{duration}</Text>
+        <TouchableOpacity style={[styles.card, { borderColor: theme.borderColor, }]} onPress={onPress}>
+            <View style={styles.imageWrapper}>
+                <Image source={imageSource} style={styles.cardImage} />
+                <View style={styles.timeOverlay}>
+                    <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
+                    <Text style={styles.timeText}>{duration}</Text>
                 </View>
             </View>
-            <View style={cardStyles.content}>
-                <Text style={cardStyles.title} numberOfLines={2}>{title}</Text>
-                <Text style={cardStyles.description} numberOfLines={2}>{description}</Text>
-                <StarRating rating={rating} />
-                <View style={cardStyles.footer}>
-                    <View style={cardStyles.profileInfo}>
-                        <Image source={profileImage} style={cardStyles.profileImage} />
+            <View style={styles.content}>
+                <Text style={[styles.title, { color: theme.textColor }]} numberOfLines={2}>{title}</Text>
+                <Text style={[styles.description, { color: theme.subTextColor }]} numberOfLines={2}>{description}</Text>
+                <StarRating rating={rating} theme={theme} />
+                <View style={styles.footer}>
+                    <View style={styles.profileInfo}>
+                        <Image source={profileImage} style={styles.profileImage} />
                         <View>
-                            <Text style={cardStyles.profileName}>{profileName}</Text>
-                            {/* <Text style={cardStyles.profileRole}>{profileRole}</Text> */}
+                            <Text style={[styles.profileName, { color: theme.primaryColor }]}>{profileName}</Text>
                         </View>
                     </View>
-                    <Text style={cardStyles.price}>{price}</Text>
+                    <Text style={[styles.price, { color: theme.textColor }]}>{price}</Text>
                 </View>
             </View>
         </TouchableOpacity>
     );
 };
 
-
-const cardStyles = StyleSheet.create({
+const styles = StyleSheet.create({
     card: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderWidth: 0.9, borderColor: theme.borderColor,
+        borderWidth: 0.9,
         borderRadius: 8,
         width: cardWidth,
-        height: "auto",
-        overflow: 'hidden', // Ensures image corners are rounded
-        marginBottom: 10, // Space between rows
+        overflow: 'hidden',
+        marginBottom: 10,
     },
     imageWrapper: {
         width: '100%',
-        height: cardWidth * 0.7, // Aspect ratio for the image, adjust as needed
+        height: cardWidth * 0.7,
         position: 'relative',
     },
     cardImage: {
         width: '100%',
         height: '100%',
-        resizeMode: 'contain',
+        resizeMode: 'cover',
     },
     timeOverlay: {
         position: 'absolute',
@@ -101,7 +100,6 @@ const cardStyles = StyleSheet.create({
         padding: 10,
     },
     title: {
-        color: '#FFFFFF',
         fontSize: 12,
         fontFamily: "Inter-Medium",
         marginBottom: 4,
@@ -111,16 +109,13 @@ const cardStyles = StyleSheet.create({
         marginBottom: 5,
     },
     filledStar: {
-        color: '#FFD700', // Gold color for filled stars
         fontSize: 16,
     },
     emptyStar: {
-        color: '#BBBBBB', // Lighter color for empty stars
         fontSize: 16,
     },
     description: {
         fontFamily: "Inter-Light-BETA",
-        color: '#AAAAAA',
         fontSize: 11,
         lineHeight: 16,
         flex: 1,
@@ -130,7 +125,7 @@ const cardStyles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 3, // Add some space from description
+        marginTop: 3,
     },
     profileInfo: {
         marginRight: 5,
@@ -143,19 +138,13 @@ const cardStyles = StyleSheet.create({
         height: 20,
         borderRadius: 15,
         marginRight: 5,
-        backgroundColor: '#666', // Placeholder background
+        backgroundColor: '#666',
     },
     profileName: {
-        color: theme.primaryColor,
         fontSize: 10,
         fontFamily: "Inter-Medium",
     },
-    profileRole: {
-        color: '#AAAAAA',
-        fontSize: 9,
-    },
     price: {
-        color: '#FFFFFF',
         fontSize: 12,
         fontWeight: 'bold',
         fontFamily: "Inter-SemiBold",

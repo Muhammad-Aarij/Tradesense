@@ -1,18 +1,59 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import theme from '../themes/theme';
-const CustomInput = ({ label, placeholder, secureTextEntry, value, onChangeText, icon, onIconPress, style }) => {
+import { ThemeContext } from '../context/ThemeProvider';
+
+const CustomInput = ({
+    label,
+    placeholder,
+    secureTextEntry,
+    value,
+    onChangeText,
+    icon,
+    onIconPress,
+    isMultiline = false,
+    style,
+    ...props
+}) => {
+    const { theme } = useContext(ThemeContext);
+    const [inputHeight, setInputHeight] = useState(100);
+
     return (
         <View style={styles.wrapper}>
-            <Text style={styles.label}>{label}</Text>
-            <View style={[styles.container,style]}>
+            {label && <Text style={[styles.label, { color: theme.textColor }]}>{label}</Text>}
+
+            <View
+                style={[
+                    styles.container,
+                    style,
+                    {
+                        borderColor: theme.borderColor,
+                        height: isMultiline ? undefined : 55,
+                        paddingVertical: isMultiline ? 8 : 0,
+                        alignItems: isMultiline ? 'flex-start' : 'center',
+                    },
+                ]}
+            >
                 <TextInput
+                    {...props}
+                    multiline={isMultiline}
                     placeholder={placeholder}
-                    placeholderTextColor="#aaa"
+                    placeholderTextColor={theme.textColor}
                     secureTextEntry={secureTextEntry}
-                    style={styles.input}
+                    style={[
+                        styles.input,
+                        {
+                            color: theme.textColor,
+                            height: isMultiline ? Math.max(100, inputHeight) : '100%',
+                            textAlignVertical: isMultiline ? 'top' : 'center',
+                        },
+                    ]}
                     value={value}
                     onChangeText={onChangeText}
+                    onContentSizeChange={(e) => {
+                        if (isMultiline) {
+                            setInputHeight(e.nativeEvent.contentSize.height + 10);
+                        }
+                    }}
                 />
                 {icon && (
                     <TouchableOpacity onPress={onIconPress} style={styles.iconButton}>
@@ -20,7 +61,7 @@ const CustomInput = ({ label, placeholder, secureTextEntry, value, onChangeText,
                     </TouchableOpacity>
                 )}
             </View>
-        </View> 
+        </View>
     );
 };
 
@@ -28,43 +69,36 @@ const styles = StyleSheet.create({
     wrapper: {
         width: '100%',
         marginBottom: 15,
-    }, 
+    },
     label: {
-        fontFamily: "Inter-Medium",
+        fontFamily: 'Inter-Medium',
         fontSize: 13,
-        color: "#fff",
         marginBottom: 5,
     },
     container: {
         flexDirection: 'row',
-        height: 55,
-        alignItems: 'center',
         width: '100%',
         position: 'relative',
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9, 
-        borderColor: theme.borderColor,
+        borderWidth: 0.9,
         borderRadius: 8,
-        // borderWidth: 0.8,
-        // borderColor: theme.borderColor,
         paddingHorizontal: 15,
+        backgroundColor: 'rgba(255,255,255,0.06)',
     },
     input: {
         flex: 1,
-        color: '#fff',
-        fontFamily: "Inter-Regular",
-        paddingVertical: 15,
+        fontFamily: 'Inter-Regular',
         fontSize: 13,
+        paddingRight: 35,
     },
     iconButton: {
-        position: "absolute",
+        position: 'absolute',
         right: 15,
+        top: 15,
         padding: 5,
     },
     icon: {
         width: 20,
         height: 20,
-        tintColor: "#aaa",
         resizeMode: 'contain',
     },
 });

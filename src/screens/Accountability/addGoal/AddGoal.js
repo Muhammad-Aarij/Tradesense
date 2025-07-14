@@ -8,12 +8,13 @@ import CustomInput from "../../../components/CustomInput";
 import { bg, calendar, tick } from "../../../assets/images";
 import Header from "../../../components/Header";
 import theme from "../../../themes/theme";
-import { postGoal, updateGoal } from "../../../functions/Goal";
+
 import { useDispatch, useSelector } from 'react-redux';
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
 import CustomDropdown from "../../../components/CustomSelector";
 import { useQueryClient } from '@tanstack/react-query';
+import { postHabit, updateHabit } from "../../../functions/habbitFunctions";
 
 export default function AddGoal({ route, navigation }) {
   const [goalName, setGoalName] = useState("");
@@ -38,9 +39,9 @@ export default function AddGoal({ route, navigation }) {
   ];
 
   const statusOptions = [
-    { label: "Active", value: "active" },
-    { label: "Completed", value: "completed" },
-    { label: "Dropped", value: "dropped" },
+    // { label: "Active", value: "active" },
+    // { label: "Completed", value: "completed" },
+    { label: "Pending", value: "dropped" },
   ];
 
   // Date picker handlers
@@ -62,17 +63,17 @@ export default function AddGoal({ route, navigation }) {
       title: goalName,
       status: status.toLowerCase(),
       description,
-      frequency: goalType.toLowerCase(),
+      type: goalType.toLowerCase(),
       targetDate: targetDate.toISOString().split('T')[0],
     };
 
     let result;
 
     if (editingGoal) {
-      result = await updateGoal(editingGoal._id, formData);
+      result = await updateHabit(editingGoal._id, formData);
       console.log('Updating goal:', formData);
     } else {
-      result = await postGoal(formData);
+      result = await postHabit(formData);
       console.log('Creating goal:', formData);
     }
 
@@ -112,7 +113,7 @@ export default function AddGoal({ route, navigation }) {
         // behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           {/* Header */}
-          <Header title={editingGoal ? "Edit Goal" : "Set Goal"} />
+          <Header title={editingGoal ? "Edit Goal" : "Set Goal"} style={{ marginBottom: 35 }} />
 
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
             {/* Goal Name */}
@@ -131,7 +132,8 @@ export default function AddGoal({ route, navigation }) {
                 <Image style={{ width: 20, height: 20 }} source={calendar} />
               </TouchableOpacity>
               {showDatePicker && (
-                <DateTimePicker testID="datePicker" value={targetDate} mode="date" display="default" onChange={onDateChange} />
+                <DateTimePicker testID="datePicker" minimumDate={new Date()}
+                  value={targetDate} mode="date" display="default" onChange={onDateChange} />
               )}
             </View>
 
@@ -156,7 +158,6 @@ export default function AddGoal({ route, navigation }) {
               onChangeText={setDescription}
               placeholder="Add more details..."
               isMultiline={true}
-              style={{ height: 100 }}
             />
 
             {/* Submit Button */}
@@ -189,11 +190,12 @@ export default function AddGoal({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 0,
     padding: 25,
 
   },
   formContainer: {
-    paddingBottom: 40,
+    // paddingBottom: 40,
   },
   inputGroup: {
     marginBottom: 15,
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 15,
     borderRadius: 14,
-    marginTop: 20,
+    marginTop: 50,
     alignItems: "center",
   },
   submitButtonText: {

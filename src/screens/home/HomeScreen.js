@@ -1,195 +1,197 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ImageBackground, Pressable, SafeAreaView, FlatList, Dimensions
+  View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ImageBackground,
+  SafeAreaView, Dimensions
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {
-  user, video, graph, bg, bell,
-  book, userDefault, care, circle, wave, back
+  userDefault, bell, graph, circle, back
 } from '../../assets/images';
 import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
 import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useHome } from '../../functions/homeApi';
+import moment from 'moment';
 import DailyBreakdownChart from '../../components/DailyBreakdownChart';
-import TopBreakdownChart from '../../components/TopBreakdownChart';
-import { useSelector } from 'react-redux';
+
 const { width, height } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
-  const { data: pillars, isLoading, error } = useAllPillars();
-  const [selectedFilter, setSelectedFilter] = useState('Daily');
-  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
+  const { data: pillars, isLoading } = useAllPillars();
+  // const [selectedFilter, setSelectedFilter] = useState('Daily');
+  // const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const filterOptions = ['Daily', 'Monthly', 'Yearly'];
-  
-  
+  const profilePic = useSelector(state => state.auth.userObject?.profilePic);
+  console.log("progfiule" + profilePic);
+  const userId = useSelector(state => state.auth.userObject?._id);
+  const name = useSelector(state => state.auth.userObject?.name);
+  const { data: homeData } = useHome(userId);
+  const logs = homeData?.logs || [];
+
+
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning! ☀️';
+    if (hour < 17) return 'Good Afternoon! 🌤️';
+    return 'Good Evening! 🌙';
+  };
+
+  const isDayCompleted = (dayIndex) => {
+    const today = moment();
+    const startOfWeek = today.clone().startOf('week');
+    const dayDate = startOfWeek.clone().add(dayIndex, 'days').format('YYYY-MM-DD');
+    return logs.some(log => moment(log.date).format('YYYY-MM-DD') === dayDate);
+  };
+
   useEffect(() => {
+    console.log("profilePic", profilePic);
     dispatch(startLoading());
     const timeout = setTimeout(() => {
       if (!isLoading) dispatch(stopLoading());
     }, 2000);
     return () => clearTimeout(timeout);
   }, [isLoading]);
-  
-  
-  const name = useSelector(state => state.auth.userObject?.name);
-  const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
 
-    if (hour < 12) return 'Good Morning! ☀️';
-    if (hour < 17) return 'Good Afternoon! 🌤️';
-    return 'Good Evening! 🌙';
-  };
+  if (!homeData) return null;
 
   return (
     <ImageBackground source={theme.bg} style={styles.container1}>
       <SafeAreaView>
-
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
-
-          {/* Header Section */}
           <View style={styles.header}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image source={userDefault} style={styles.avatar} />
+              <Image
+                source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
+                style={styles.avatar}
+              />
               <View>
                 <Text style={styles.username}>{name}</Text>
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
-            <Image source={bell} style={{ width: 45, height: 45, resizeMode: "contain", alignSelf: 'center' }} />
+            {/* <Image source={bell} style={styles.bell} /> */}
           </View>
 
-          {/* Main Content Row */}
           <View style={{ flexDirection: "row", width: "100%", gap: 10 }}>
-
-            {/* Left Column */}
-            <View style={{ flexDirection: "column", width: "47%", height: "100%" }}>
-              {/* Mindfulness Section */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Mindfulness & Motivation</Text>
-                <View style={styles.card}>
-                  <Image source={video} style={{ ...styles.cardImage, resizeMode: "cover" }} />
-                  <Text style={styles.playButtonText}>Guided Meditation for Traders</Text>
-                </View>
-              </View>
-
-              {/* Affirmations */}
-              <View style={{ ...styles.section, flex: 1 }}>
-                <Text style={styles.sectionTitle}>Personalized Affirmations</Text>
-                <View style={styles.card}>
-                  <Image source={wave} style={{ height: "80%", width: "100%", resizeMode: "cover" }} />
-                  <TouchableOpacity style={styles.playButton} />
-                </View>
-              </View>
-            </View>
-
-            {/* Right Column */}
-            <View style={{ flexDirection: "column", width: "50%" }}>
-              {/* Accountability */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Accountability</Text>
-                <View style={styles.goalProgress}>
-                  {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
-                    <View key={index} style={styles.dayContainer}>
-                      <Text style={styles.weekdays}>{day}</Text>
-                      <Text style={styles.weekDots}>{index < 4 ? "●" : "○"}</Text>
-                    </View>
-                  ))}
-                </View>
-                <Text style={{ ...styles.playButtonText, textAlign: "center" }}>Daily Goal Progress</Text>
-              </View>
-
-              {/* Trading Journal */}
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Trading Journal</Text>
-                <View style={styles.card}>
-                  <Image source={graph} style={styles.cardImage} />
-                  <Text style={{ ...styles.playButtonText, textAlign: "center" }}>Track Your Trades</Text>
-                </View>
-              </View>
-
-              {/* Affirmation Quote */}
-              <View style={{ ...styles.section, flexDirection: "row" }}>
-                <Text style={styles.sectionTitle2}>
-                  <Image source={circle} style={{ width: 25, height: 15, resizeMode: "contain" }} />
-                  I execute trades with discipline and confidence.
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Pillars Section */}
-          {/* <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pillars</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-              {pillars?.map((item) => (
-                <Pressable
-                  key={item._id}
-                  style={styles.pillars}
-                  onPress={() => navigation.navigate('Pillars', {
-                    screen: 'PsychologyCategoryScreen',
-                    params: {
-                      name: item.name,
-                      categories: item.categories,
-                    },
-                  })}
-                >
-                  <Image source={{ uri: item.image }} style={styles.pillarIcon} />
-                  <Text style={styles.smallhd}>{item.name}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </View> */}
-          <View style={styles.dailyBreakdownContainer}>
-            <View style={styles.dailyBreakdownHeader}>
-              <View>
-                <Text style={styles.dailyBreakdownTitle}>Daily Breakdown</Text>
-                <Text style={styles.dailyBreakdownDate}>January 18, 2020</Text>
-              </View>
-              <View style={{ position: "relative" }}>
-                <TouchableOpacity
-                  style={styles.dropdownContainer}
-                  onPress={() => setFilterDropdownVisible(!filterDropdownVisible)}
-                >
-                  <Text style={styles.dailyBreakdownFilter}>{selectedFilter}</Text>
-                  <Image
-                    source={back}
-                    style={{
-                      ...styles.dropdownArrow,
-                      transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
-                    }}
-                  />
-                </TouchableOpacity>
-
-
-                {/* Dropdown options */}
-                {filterDropdownVisible && (
-                  <View style={styles.dropdownOptions}>
-                    {filterOptions.map((option) => (
-                      <TouchableOpacity key={option} style={styles.optionItem} onPress={() => {
-                        setSelectedFilter(option);
-                        setFilterDropdownVisible(false);
+            <View style={{ flexDirection: "column", width: "47%" }}>
+              <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                style={styles.linearGradient}>
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Mindfulness & Motivation</Text>
+                  {homeData.audio?.thumbnail && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        const audio = homeData.audio;
+                        navigation.navigate('TrackPlayer', {
+                          AudioTitle: audio.title,
+                          AudioDescr: audio.description,
+                          Thumbnail: audio.thumbnail,
+                          AudioUrl: audio.url,
+                          shouldFetchTrack: false,
+                        });
                       }}>
-                        <Text style={styles.optionText}>{option}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
+                      <Image source={{ uri: homeData.audio.thumbnail }} style={styles.cardImage} />
+                      <Text style={styles.playButtonText}>{homeData.audio.title}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </LinearGradient>
+
+              <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                style={styles.linearGradient}>
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Personalized Affirmations</Text>
+                  {homeData.video?.thumbnail && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        const video = homeData.video;
+                        navigation.navigate('VideoPlayer', {
+                          VideoTitle: video.title,
+                          VideoDescr: video.description,
+                          Thumbnail: video.thumbnail,
+                          VideoUrl: video.url,
+                        });
+                      }}>
+                      <Image source={{ uri: homeData.video?.thumbnail }} style={styles.cardImage} />
+                      <Text style={styles.playButtonText}>{homeData.video.title}</Text>
+
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </LinearGradient>
             </View>
-            <TopBreakdownChart />
+
+            <View style={{ flexDirection: "column", width: "50%" }}>
+              <TouchableOpacity onPress={() => { navigation.navigate("Accountability") }
+              }>
+                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                  colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                  style={styles.linearGradient}>
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Accountability</Text>
+                    <View style={styles.goalProgress}>
+                      {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
+                        <View key={index} style={styles.dayContainer}>
+                          <Text style={styles.weekdays}>{day}</Text>
+                          <Text style={{ ...styles.weekDots, color: isDayCompleted(index) ? '#70C2E8' : '#AAA' }}>●</Text>
+                        </View>
+                      ))}
+                    </View>
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                      <Text style={[styles.playButtonText, { marginTop: 0 }]}>Daily Goal Progress</Text>
+                      <Image source={back} style={{ width: 10, height: 10, resizeMode: "contain", transform: [{ rotate: '180deg' }] }} />
+                    </View>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={() => { navigation.navigate("Accountability", { screen: "Trading" }) }
+              }>
+                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                  colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                  style={styles.linearGradient}>
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Trading Journal</Text>
+                    <Image source={graph} style={[styles.cardImage, { height: 67, resizeMode: "contain", borderBottomWidth: 2, borderColor: theme.borderColor }]} />
+                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
+                      <Text style={[styles.playButtonText, { marginTop: 0 }]}>Track Your Trades</Text>
+                      <Image source={back} style={{ width: 10, height: 10, resizeMode: "contain", transform: [{ rotate: '180deg' }] }} />
+                    </View>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                style={styles.linearGradient}>
+                <View style={{ ...styles.section, flexDirection: "row", alignItems: "center" }}>
+                  <Text style={styles.sectionTitle2}>
+                    <View style={{ width: 10, height: 10, marginRight: 10 }}>
+                      <Image source={circle} style={{ width: 10, height: 10, resizeMode: "contain" }} />
+                    </View>
+                    {" "}{homeData?.quotation || "I execute trades with discipline and confidence."}
+                  </Text>
+                </View>
+              </LinearGradient>
+            </View>
           </View>
+
+          <DailyBreakdownChart />
 
         </ScrollView>
       </SafeAreaView>
-    </ImageBackground >
+    </ImageBackground>
   );
 };
 
 const getStyles = (theme) => StyleSheet.create({
-  container1: { flex: 1, alignItems: 'center', paddingTop: 20, paddingBottom: height * 0.1, },
+  container1: { flex: 1, alignItems: 'center', paddingTop: 0, paddingBottom: height * 0.1 },
   container: { flex: 1, padding: 24 },
   header: {
     flexDirection: 'row',
@@ -198,157 +200,92 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 20,
   },
   avatar: { width: 45, height: 45, borderRadius: 8, marginRight: 10 },
-  greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Inter-Regular' },
+  bell: { width: 45, height: 45, resizeMode: "contain", alignSelf: 'center' },
+  greeting: { color: theme.primaryColor, fontSize: 12, fontFamily: 'Inter-Regular' },
   username: { color: theme.textColor, fontSize: 12, fontFamily: 'Inter-Medium' },
   section: {
     marginBottom: 10,
     width: "100%",
-    borderWidth: 1,
-    borderColor: theme.borderColor,
     borderRadius: 10,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    flex: 1
   },
   sectionTitle: {
-    color: "#C4C7C9",
-    fontSize: 16,
-    fontFamily: 'Inter-Light-BETA',
+    color: theme.textColor,
+    fontSize: 13,
+    fontFamily: 'Inter-Medium',
     marginBottom: 5,
   },
   sectionTitle2: {
-    color: "#C4C7C9",
-    fontSize: 14.5,
-    fontFamily: 'Inter-Light-BETA',
-    marginBottom: 1,
-  },
-  card: {},
-  cardImage: { width: '100%', height: 50, resizeMode: 'contain' },
-  playButtonText: {
-    // textAlign: "center",
-    color: "#B3B9BC",
-    fontSize: 13,
-    marginTop: 10,
-    fontFamily: 'Inter-Light-BETA',
-  },
-  smallhd: {
-    color: theme.textColor,
+    flexDirection: "row",
+    gap: 10,
+    // lineHeight:5,
+    color: theme.subTextColor,
     fontSize: 13,
     fontFamily: 'Inter-Regular',
-    marginTop: 5,
+  },
+  cardImage: { width: '100%', height: 90, resizeMode: 'cover', borderRadius: 5 },
+  playButtonText: {
+    color: theme.subTextColor,
+    fontSize: 12,
+    marginTop: 10,
+    fontFamily: 'Inter-Regular',
   },
   goalProgress: {
+    fontSize: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    width: "100%",
     justifyContent: "space-between",
+    marginVertical: 10,
   },
-  weekdays: { color: '#fff', fontSize: 14, fontFamily: 'Inter-Regular' },
-  weekDots: { color: '#70C2E8', fontSize: 18 },
-  pillars: {
-    flexDirection: "row",
-    width: (width - 72 - 10) / 2,
-    borderWidth: 1,
-    borderColor: theme.borderColor,
-    borderRadius: 10,
-    padding: 8,
-    paddingHorizontal: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    marginBottom: 8,
-  },
-  pillarIcon: { width: 25, height: 25, resizeMode: "contain", marginRight: 9 },
-  graphImage: { width: '100%', height: 120, resizeMode: 'contain' },
-  graphPlaceholder: {
-    height: 100,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
+  weekdays: { color: theme.textColor, fontSize: 12, textAlign: "center", fontFamily: 'Inter-Regular' },
+  weekDots: { color: '#70C2E8', fontSize: 16 },
   dailyBreakdownContainer: {
-    backgroundColor: '#1C2B3A',
-    borderRadius: 12,
+    borderWidth: 0.9,
+    borderColor: theme.borderColor,
+    borderRadius: 8,
     padding: 20,
     marginBottom: 30,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9, borderColor: theme.borderColor,
-    borderRadius: 8,
   },
   dailyBreakdownHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    // alignItems: 'center',
     marginBottom: 20,
   },
-  dailyBreakdownTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontFamily: "Inter-SemiBold",
-  },
-  dailyBreakdownDate: {
-    color: '#AAAAAA',
-    fontSize: 12,
-    fontFamily: "Inter-Light-BETA",
-  },
-  dailyBreakdownFilter: {
-    // backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    // borderWidth: 0.9, borderColor: theme.borderColor,
-    borderRadius: 8,
-    // paddingVertical: 7,
-    paddingHorizontal: 8,
-    color: '#FFF',
-    fontSize: 12,
-    fontFamily: "Inter-Medium",
-  },
-  chartContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end', // Bars should start from bottom
-    height: 100, // Fixed height for chart area
-    marginBottom: 20,
-  },
+  dailyBreakdownTitle: { color: theme.textColor, fontSize: 16, fontFamily: "Inter-SemiBold" },
+  dailyBreakdownDate: { color: theme.subTextColor, fontSize: 12, fontFamily: "Inter-Light-BETA" },
+  dailyBreakdownFilter: { color: theme.textColor, borderRadius: 8, paddingHorizontal: 8, color: '#FFF', fontSize: 12, fontFamily: "Inter-Medium" },
   dropdownContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: theme.primaryColor,
     borderWidth: 0.9,
     borderColor: theme.borderColor,
     borderRadius: 8,
     paddingVertical: 7,
     paddingHorizontal: 12,
-    justifyContent: 'space-between',
   },
-
+  dropdownArrow: { width: 10, height: 10, resizeMode: 'contain', tintColor: '#CCCCCC' },
   dropdownOptions: {
     position: "absolute",
     top: 35,
     left: 0,
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.86)",
+    backgroundColor: theme.primaryColor,
     borderRadius: 8,
     paddingVertical: 10,
     zIndex: 10,
   },
-
-  optionItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 15,
+  linearGradient: {
+    marginBottom: 10,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: theme.borderColor,
+    borderRadius: 10,
+    flex: 1,
   },
-
-  optionText: {
-    color: theme.darkBlue,
-    fontSize: 12,
-    fontFamily: "Inter-Regular",
-  },
-
-  dropdownArrow: {
-    width: 10,
-    height: 10,
-    resizeMode: 'contain',
-    tintColor: '#CCCCCC',
-    transform: [{ rotate: '90deg' }], // Adjust for dropdown arrow
-  },
-
+  optionItem: { paddingVertical: 12, paddingHorizontal: 15 },
+  optionText: { color: theme.textColor, fontSize: 12, fontFamily: "Inter-Regular" },
 });
 
 export default HomeScreen;

@@ -1,54 +1,111 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, TextInput, Alert, ImageBackground } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { back, bg } from '../../../assets/images';
+import React, { useState, useContext, useMemo } from 'react';
+import {
+    View, Text, StyleSheet, ScrollView, TouchableOpacity,
+    Image, Alert, ImageBackground
+} from 'react-native';
+import { acc, back, bg, fail, tick } from '../../../assets/images';
 import CustomInput from '../../../components/CustomInput';
 import Header from '../../../components/Header';
-import theme from '../../../themes/theme';
+import { ThemeContext } from '../../../context/ThemeProvider';
+import { useCreatePayment } from '../../../functions/affiliateApi';
+import { useDispatch, useSelector } from 'react-redux'; // For accessing user ID from Redux (if stored there)
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
-const WithdrawDetailScreen = () => {
-    // const navigation = useNavigation();
 
-    const [selectedType, setSelectedType] = useState('PayPal'); // Default selected type
-    const [accountNumber, setAccountNumber] = useState('1235'); // Pre-filled
-    const [amount, setAmount] = useState('459.58'); // Pre-filled
+const WithdrawDetailScreen = ({ navigation, route }) => {
+    const [selectedType, setSelectedType] = useState('PayPal');
+    const [accountNumber, setAccountNumber] = useState('1235');
+    const [amount, setAmount] = useState('459.58');
     const [dropdownVisible, setDropdownVisible] = useState(false);
+    const { mutate: submitPayment, isPending } = useCreatePayment();
+    const { userId } = useSelector(state => state.auth);
+    const { totalAmount } = route.params;
+    const [confirmation, setConfirmation] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        icon: null,
+    });
+
+    const { theme } = useContext(ThemeContext);
+    const styles = useMemo(() => getStyles(theme), [theme]);
 
     const handleSelectType = (type) => {
         setSelectedType(type);
-        setDropdownVisible(false); // Close dropdown after selection
+        setDropdownVisible(false);
     };
-
-
+    const dispatch = useDispatch();
     const handleWithdraw = () => {
+
+        const parsedAmount = parseFloat(amount);
+        console.log(selectedType, userId, amount, accountNumber);
+        dispatch(startLoading());
         if (!selectedType || !accountNumber || !amount) {
             Alert.alert('Error', 'Please fill in all details.');
+            dispatch(stopLoading());
             return;
         }
-        // Basic validation
-        if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            dispatch(stopLoading());
             Alert.alert('Error', 'Please enter a valid amount.');
             return;
         }
-        // In a real app, you'd send this to your backend/payment service
-        Alert.alert('Withdrawal Request', `Withdrawal of $${amount} to ${selectedType} account ${accountNumber} requested.`);
-        if (navigation && navigation.popToTop) {
-            navigation.popToTop(); // Go back to the main screen
-        } else {
-            console.warn("Navigation popToTop not available.");
-        }
+
+        submitPayment(
+            {
+                userId,
+                // type: selectedType.toLowerCase(),
+                type: "affiliate",
+                amount: parsedAmount,
+                accountNumber: accountNumber
+            },
+            {
+                onSuccess: () => {
+                    dispatch(stopLoading());
+                    setConfirmation({
+                        visible: true,
+                        title: 'Success',
+                        message: `Withdrawal of $${parsedAmount} to ${selectedType} requested.`,
+                        icon: tick, // your success icon
+                    });
+                },
+
+                onError: () => {
+                    dispatch(stopLoading());
+                    setConfirmation({
+                        visible: true,
+                        title: 'Error',
+                        message: 'Failed to submit withdrawal. Please try again.',
+                        icon: fail, // your error icon
+                    });
+                }
+
+            }
+        );
     };
 
-    // Mock dropdown options
+
     const paymentTypes = ['PayPal', 'Google Pay', 'Bank'];
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <Header title={"Withdraw"} />
+        <ImageBackground source={theme.bg} style={styles.container}>
+            <Header title="Withdraw" style={{ marginBottom: 20, }} />
+            {confirmation.visible && (
+                <ConfirmationModal
+                    visible={confirmation.visible}
+                    title={confirmation.title}
+                    message={confirmation.message}
+                    icon={confirmation.icon}
+                    onClose={() => setConfirmation(prev => ({ ...prev, visible: false }))}
+                />
+            )}
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* Select Type (Dropdown mock) */}
                 <Text style={styles.inputLabel}>Select Type</Text>
+
+                {/* Dropdown */}
                 <View style={{ position: "relative" }}>
                     <TouchableOpacity style={styles.dropdownContainer} onPress={() => setDropdownVisible(!dropdownVisible)}>
                         <View style={styles.dropdownSelected}>
@@ -68,8 +125,7 @@ const WithdrawDetailScreen = () => {
                     )}
                 </View>
 
-
-                {/* Account Number */}
+                {/* Inputs */}
                 <CustomInput
                     label="Account Number"
                     placeholder="Enter Account Number"
@@ -86,28 +142,47 @@ const WithdrawDetailScreen = () => {
                     onChangeText={setAmount}
                 />
 
-
-                {/* Join Button (changed to Withdraw) */}
-                <TouchableOpacity style={styles.withdrawFinalButton} onPress={handleWithdraw}>
-                    <Text style={styles.withdrawFinalButtonText}>Join</Text> {/* Text matches image "Join" */}
+                <TouchableOpacity
+                    style={[
+                        styles.withdrawFinalButton,
+                        (isPending || totalAmount < amount) && styles.disabledButton
+                    ]}
+                    onPress={handleWithdraw}
+                    disabled={isPending || totalAmount < amount}
+                >
+                    <Text style={styles.withdrawFinalButtonText}>
+                        {isPending ? 'Submitting...' : 'Withdraw'}
+                    </Text>
                 </TouchableOpacity>
+
             </ScrollView>
         </ImageBackground>
     );
 };
 
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#08131F', padding: 25, paddingTop: 0 },
-
+const getStyles = (theme) => StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: theme.backgroundColor,
+        padding: 25,
+        paddingTop: 0,
+    },
     scrollContent: {
+        // justifyContent: "center",
+        // alignItems: "center",
+        // flex: 1,
         paddingHorizontal: 16,
         paddingTop: 20,
         paddingBottom: 20,
     },
+    disabledButton: {
+        backgroundColor: '#777', // or theme.grayColor if defined
+        opacity: 0.6,
+    },
     inputLabel: {
         fontFamily: "Inter-Medium",
         fontSize: 13,
-        color: "#fff",
+        color: theme.textColor,
         marginBottom: 5,
     },
     dropdownContainer: {
@@ -118,7 +193,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 15,
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9, borderColor: theme.borderColor,
+        borderWidth: 0.9,
+        borderColor: theme.borderColor,
         borderRadius: 8,
         position: "relative",
     },
@@ -126,70 +202,53 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
     },
-    dropdownIcon: {
-        width: 20,
-        height: 20,
-        resizeMode: 'contain',
-        marginRight: 10,
-        tintColor: '#FFFFFF', // Assuming icons can be tinted
-    },
     dropdownText: {
-        color: '#fff',
+        color: theme.textColor,
         fontFamily: "Inter-Regular",
-        // paddingVertical: 15,
         fontSize: 13,
     },
     dropdownArrow: {
         width: 12,
         height: 12,
         resizeMode: 'contain',
-        tintColor: '#CCCCCC',
+        tintColor: theme.subTextColor,
         transform: [{ rotate: '-90deg' }],
     },
-
-    textInput: {
-        backgroundColor: '#1C2B3A',
-        borderRadius: 10,
-        paddingVertical: 15,
-        paddingHorizontal: 15,
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontFamily: "Inter-Regular",
-        marginBottom: 15,
-    },
     withdrawFinalButton: {
-        backgroundColor: theme.primaryColor, width: '100%',
-        padding: 15, borderRadius: 14, marginTop: 40, alignItems: 'center'
+        backgroundColor: theme.primaryColor,
+        width: '100%',
+        padding: 15,
+        borderRadius: 14,
+        marginTop: 40,
+        alignItems: 'center',
     },
     withdrawFinalButtonText: {
-        color: '#fff', fontSize: 17, fontWeight: '600', fontFamily: "Inter-SemiBold",
+        color: '#fff',
+        fontSize: 14,
+        // fontWeight: '600',
+        fontFamily: "Inter-Medium",
     },
-
-
     dropdownOptions: {
         position: "absolute",
-        top: 60, // Adjust based on your dropdown's location
-        left: 0, // Align with dropdown button
-        width: "100%", // Match dropdown width
-        backgroundColor: "#08131F",
+        top: 60,
+        left: 0,
+        width: "100%",
+        backgroundColor: theme.backgroundColor,
         borderRadius: 8,
-        // paddingVertical: 10,
-        zIndex: 10, // Ensures it stays above other elements
+        zIndex: 10,
     },
-
     optionItem: {
         paddingVertical: 12,
         paddingHorizontal: 15,
-        borderBottomWidth: 0.9, borderColor: theme.borderColor,
-        marginHorizontal: 10
+        borderBottomWidth: 0.9,
+        borderColor: theme.borderColor,
+        marginHorizontal: 10,
     },
-
     optionText: {
-        color: '#fff',
+        color: theme.textColor,
         fontSize: 14,
         fontFamily: "Inter-Regular",
     },
-
 });
 
 export default WithdrawDetailScreen;

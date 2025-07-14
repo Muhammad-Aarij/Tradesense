@@ -40,6 +40,13 @@ const MiniPlayer = () => {
   const previousTrackId = useRef(activeTrack?.id);
   useEffect(() => {
     if (activeTrack?.id !== previousTrackId.current) {
+      console.log('=== MiniPlayer Track Change Debug ===');
+      console.log('Previous Track ID:', previousTrackId.current);
+      console.log('New Track ID:', activeTrack?.id);
+      console.log('New Track URL:', activeTrack?.url);
+      console.log('New Track Title:', activeTrack?.title);
+      console.log('=====================================');
+      
       previousTrackId.current = activeTrack?.id;
       setVisible(true);
       translateY.setValue(0);
@@ -121,12 +128,22 @@ const MiniPlayer = () => {
 
   const openFullPlayer = () => {
     try {
+      console.log('=== MiniPlayer Navigation Debug ===');
+      console.log('Opening full player with:');
+      console.log('AudioTitle:', activeTrack.title);
+      console.log('AudioUrl:', activeTrack.url);
+      console.log('Thumbnail:', activeTrack.artwork);
+      console.log('shouldFetchTrack: false (preserve existing playback)');
+      console.log('navigationKey: undefined (no reset)');
+      console.log('===================================');
+      
       navigation.navigate('TrackPlayer', {
         AudioTitle: activeTrack.title,
         AudioDescr: activeTrack.description || activeTrack.album || '',
         Thumbnail: activeTrack.artwork,
         AudioUrl: activeTrack.url,
         shouldFetchTrack: false, // Don't fetch new track, use current one
+        // Note: No navigationKey - this preserves existing playback
       });
     } catch (error) {
       console.error('Navigation error:', error);

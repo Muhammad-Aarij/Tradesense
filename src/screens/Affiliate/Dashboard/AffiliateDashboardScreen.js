@@ -153,7 +153,7 @@ const AffiliateDashboardScreen = () => {
                             <Text style={styles.chartFooterValue}>15</Text>
                             <Text style={styles.chartFooterLabel}>Sales</Text>
                         </View>
-                    </View>
+                    </View> 
                 </View>
 
             </ScrollView>
