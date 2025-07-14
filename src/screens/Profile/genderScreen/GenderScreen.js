@@ -23,7 +23,9 @@ const GenderScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const [selectedGender, setSelectedGender] = useState(null);
     const [genderQuestions, setGenderQuestions] = useState([]);
+    const [genderQuestionId, setGenderQuestionId] = useState(null);
     const [question, setQuestions] = useState([]);
+
     const [request, setRequest] = useState({
         gender: null,
         ageRange: null,
@@ -31,9 +33,16 @@ const GenderScreen = ({ navigation, route }) => {
         choosenArea: [],
     });
 
-    const handleGenderSelection = (genderText) => {
-        setSelectedGender(genderText);
-        setRequest((prev) => ({ ...prev, gender: genderText }));
+    const handleGenderSelection = (genderObj, questionId) => {
+        setSelectedGender(genderObj._id);
+        setRequest((prev) => ({
+            ...prev,
+            gender: {
+                questionId,
+                answerId: genderObj._id,
+                value: genderObj.text,
+            },
+        }));
     };
 
     useFocusEffect(
@@ -50,10 +59,11 @@ const GenderScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         const loadGenderQuestions = async () => {
-            dispatch(startLoading);
+            dispatch(startLoading());
             const data = await fetchQuestionnaire();
             if (data) {
                 setQuestions(data);
+
                 const genderSection = data.find(
                     (section) =>
                         section.title.toLowerCase().includes('gender') &&
@@ -63,12 +73,10 @@ const GenderScreen = ({ navigation, route }) => {
 
                 if (genderSection) {
                     setGenderQuestions(genderSection.questions);
+                    setGenderQuestionId(genderSection._id); // 👈 Store gender questionId
                 }
-                dispatch(stopLoading());
             }
-            else {
-                dispatch(stopLoading());
-            }
+            dispatch(stopLoading());
         };
 
         loadGenderQuestions();
@@ -80,25 +88,25 @@ const GenderScreen = ({ navigation, route }) => {
             <Text style={styles.subtitle}>Select Your Gender</Text>
 
             <View style={styles.optionsContainer}>
-                {genderQuestions.map((question) => (
+                {genderQuestions.map((genderOption) => (
                     <TouchableOpacity
-                        key={question._id}
+                        key={genderOption._id}
                         style={[
                             styles.option,
-                            selectedGender === question.text && styles.selectedOption,
+                            selectedGender === genderOption._id && styles.selectedOption,
                         ]}
-                        onPress={() => handleGenderSelection(question.text)}
+                        onPress={() => handleGenderSelection(genderOption, genderQuestionId)}
                     >
-                        {question.image ? (
-                            <Image source={{ uri: question.image }} style={styles.icon} />
-                        ) : null}
+                        {genderOption.image && (
+                            <Image source={{ uri: genderOption.image }} style={styles.icon} />
+                        )}
                         <Text
                             style={[
                                 styles.optionText,
-                                selectedGender === question.text && styles.selectedOptiontext,
+                                selectedGender === genderOption._id && styles.selectedOptiontext,
                             ]}
                         >
-                            {question.text}
+                            {genderOption.text}
                         </Text>
                     </TouchableOpacity>
                 ))}
@@ -109,7 +117,12 @@ const GenderScreen = ({ navigation, route }) => {
                 disabled={!selectedGender}
                 onPress={() => {
                     if (selectedGender) {
-                        navigation.navigate('AgeScreen', { request, user, token, question });
+                        navigation.navigate('AgeScreen', {
+                            request,
+                            user,
+                            token,
+                            question,
+                        });
                     }
                 }}
             >
@@ -118,6 +131,7 @@ const GenderScreen = ({ navigation, route }) => {
         </ImageBackground>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

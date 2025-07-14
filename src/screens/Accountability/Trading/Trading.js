@@ -14,7 +14,8 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
-
+import RBSheet from 'react-native-raw-bottom-sheet';
+import TradeBottomSheet from '../../../components/TradeBottomSheet';
 import { bg } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
@@ -28,6 +29,8 @@ const Trading = ({ navigation }) => {
 
     const userData = useSelector((state) => state.auth);
     const userId = userData?.userObject?._id;
+    const bottomSheetRef = useRef();
+    const [selectedTrade, setSelectedTrade] = useState(null);
 
     const { data: tradesData = [] } = useTradeRecords(userId);
 
@@ -125,7 +128,7 @@ const Trading = ({ navigation }) => {
                             <View
                                 style={{
                                     marginHorizontal: 40,
-                                    backgroundColor: theme.darkBlue || '#fff',
+                                    backgroundColor: theme.primaryColor || '#fff',
                                     borderRadius: 12,
                                     paddingVertical: 20,
                                 }}
@@ -133,7 +136,7 @@ const Trading = ({ navigation }) => {
                                 <FlatList
                                     data={monthList}
                                     ItemSeparatorComponent={() => (
-                                        <View style={{ height: 1, backgroundColor: theme.borderColor, marginHorizontal: 16 }} />
+                                        <View style={{ height: 0.4, backgroundColor: theme.borderColor, marginHorizontal: 16, opacity: 0.5 }} />
                                     )}
                                     keyExtractor={(item) => item.format('YYYY-MM')}
 
@@ -147,7 +150,7 @@ const Trading = ({ navigation }) => {
                                                 setMonthPickerVisible(false);
                                             }}
                                         >
-                                            <Text style={{ color: theme.textColor, fontSize: 14, textAlign: "center", }}>
+                                            <Text style={{ color: "white", fontSize: 14, textAlign: "center", }}>
                                                 {item.format('MMMM YYYY')}
                                             </Text>
                                         </TouchableOpacity>
@@ -235,7 +238,10 @@ const Trading = ({ navigation }) => {
                                 return (
                                     <TouchableOpacity
                                         key={index}
-                                        onPress={() => navigation.navigate('Watchlist', { trade })}
+                                        onPress={() => {
+                                            setSelectedTrade(trade);
+                                            bottomSheetRef.current?.open();
+                                        }}
                                     >
                                         <LinearGradient
                                             start={{ x: 0, y: 0.95 }}
@@ -295,6 +301,8 @@ const Trading = ({ navigation }) => {
                         )}
                     </View>
                 </ScrollView>
+                <TradeBottomSheet ref={bottomSheetRef} trade={selectedTrade} />
+
             </SafeAreaView>
         </ImageBackground>
     );

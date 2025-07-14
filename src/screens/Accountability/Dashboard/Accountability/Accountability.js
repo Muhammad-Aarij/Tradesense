@@ -17,15 +17,16 @@ import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg'; // Import
 import { back, work, checkboxChecked, checkboxUnchecked } from '../../../../assets/images';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
-import { createHabitLog } from '../../../../functions/habbitFunctions';
+import { createHabitLog, useCreateHabitLog } from '../../../../functions/habbitFunctions';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useTodaysHabits, useHabitStats } from '../../../../functions/habbitFunctions';
 import DailyBreakdownChart from '../../../../components/DailyBreakdownChart';
-
+import { useQueryClient } from '@tanstack/react-query';
 // Get screen width for responsive design for the chart spacing
 const screenWidth = Dimensions.get('window').width;
 
 export default function Accountability({ navigation }) {
+  const queryClient = useQueryClient();
   const [selectedFilter, setSelectedFilter] = useState('Daily');
   const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
   const [chartData, setChartData] = useState([]); // State for chart data
@@ -53,6 +54,18 @@ export default function Accountability({ navigation }) {
   const growthPercentage = habitStats.total > 0
     ? Math.round((2 / habitStats.total) * 100)
     : 0;
+  // In your component
+
+  const logHabit = useCreateHabitLog();
+
+  const handleLog = async (habitId) => {
+    const result = await logHabit({ userId, habitId });
+    if (result?.error) {
+      Alert.alert('Error', result.error);
+    }
+  };
+
+
 
 
   return (
@@ -123,7 +136,7 @@ export default function Accountability({ navigation }) {
               />
 
             </View>
-            <View style={{flexDirection:"column",justifyContent:"space-between",height:"auto"}}>
+            <View style={{ flexDirection: "column", justifyContent: "space-between", height: "auto" }}>
               <View
                 style={styles.gridItem2}>
                 <Text style={styles.gridItemLabel}>Completed Goals</Text>
@@ -176,7 +189,9 @@ export default function Accountability({ navigation }) {
                   <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
                     <TouchableOpacity
                       onPress={() => {
-                        if (!habit.completedToday) handleHabitComplete(habit._id);
+                        if (!habit.completedToday) {
+                          handleLog(habit._id);
+                        }
                       }}
                       style={styles.checkbox}
                     >
@@ -235,14 +250,14 @@ const getStyles = (theme) => StyleSheet.create({
   },
   gridItem2: {
     flexDirection: "row",
-    justifyContent:"space-between",
-    alignItems:"center",
+    justifyContent: "space-between",
+    alignItems: "center",
     // backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 0.9,
     borderColor: theme.borderColor,
     borderRadius: 8,
     padding: 15,
-    paddingVertical:4,
+    paddingVertical: 4,
     width: 'auto', // Roughly half width with spacing
     marginBottom: "2.5%",
   },
@@ -302,7 +317,7 @@ const getStyles = (theme) => StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 7,
     paddingHorizontal: 15,
-    marginTop:2,
+    marginTop: 2,
   },
   progressTaskIcon: {
     width: 28,

@@ -27,9 +27,10 @@ const DiscoverScreen = () => {
     const { data: bundles, isLoading: loadingBundles, error: bundlesError } = useBundles(userId);
     const { data: dailyThought, isLoading: loadingThought } = useDailyThought();
 
+    console.log(bundles);
     useEffect(() => {
         dispatch(startLoading());
-        if (!loadingTop && !loadingRec && !loadingBundles && !loadingThought) {
+        if (!loadingTop && !loadingRec && !loadingBundles) {
             dispatch(stopLoading());
         }
     }, [loadingTop, loadingRec, loadingBundles]);
@@ -98,24 +99,29 @@ const DiscoverScreen = () => {
 
 
                 {/* Bundles */}
-                {bundles && Array.isArray(bundles) && bundles.map((bundle) => (
-                    <View key={bundle.goal} style={styles.section}>
-                        <Text style={styles.sectionTitle}>{bundle.goal}</Text>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginLeft: 25 }}>
-                            {bundle.resources && Array.isArray(bundle.resources) && bundle.resources.map((item) => (
-                                <BundleTileSection
-                                    key={item._id}
-                                    title={item.title}
-                                    description={item.description}
-                                    imageSource={{ uri: item.thumbnail }}
-                                    locked={item.isPremium}
-                                    type={item.type}
-                                    url={item.url}
-                                />
-                            ))}
-                        </ScrollView>
-                    </View>
-                ))}
+                {bundles && Array.isArray(bundles) && bundles.map((bundle) => {
+                    if (!Array.isArray(bundle.resources) || bundle.resources.length === 0) return null;
+
+                    return (
+                        <View key={bundle.goal} style={styles.section}>
+                            <Text style={styles.sectionTitle}>{bundle.goal}</Text>
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginLeft: 25 }}>
+                                {bundle.resources.map((item) => (
+                                    <BundleTileSection
+                                        key={item._id}
+                                        title={item.title}
+                                        description={item.description}
+                                        imageSource={{ uri: item.thumbnail }}
+                                        locked={item.isPremium}
+                                        type={item.type}
+                                        url={item.url}
+                                    />
+                                ))}
+                            </ScrollView>
+                        </View>
+                    );
+                })}
+
             </ScrollView>
         </ImageBackground>
     );

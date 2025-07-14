@@ -2,18 +2,25 @@ import React from 'react';
 import { View, Image, Text, Dimensions, ImageBackground, TouchableOpacity, StyleSheet } from 'react-native';
 import { bg, homeSplash, logoWhite } from '../../assets/images';
 import theme from '../../themes/theme';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setProfilingDone } from '../../redux/slice/authSlice'; // ✅ import
+import store from '../../redux/store/store';
 
 const { height, width } = Dimensions.get('window');
 
 export default function HomeSplash({ navigation }) {
     const dispatch = useDispatch(); // ✅ hook
-
+    const isProfilingDone = useSelector(state => state.auth.isProfilingDone);
+    console.log("isProfilingDone", isProfilingDone);
     const handleGetStarted = () => {
-        dispatch(setProfilingDone(true)); // ✅ mark profiling not done
-        // navigation.navigate('Signup');     // ✅ navigate to Signup
+        dispatch(setProfilingDone(true));
+        // ✅ Access the updated state immediately after dispatch
+        const updatedProfiling = store.getState().auth.isProfilingDone;
+        console.log("UPDATED isProfilingDone:", updatedProfiling);
+        navigation.replace('MainFlow');
+
     };
+
 
     return (
         <ImageBackground source={bg} style={styles.container}>

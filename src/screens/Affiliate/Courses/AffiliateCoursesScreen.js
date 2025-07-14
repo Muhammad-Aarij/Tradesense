@@ -19,10 +19,11 @@ import { useEnrolledCourses } from '../../../functions/handleCourses';
 import { useAffiliateStats, getUserDetails, sendAffiliateRequest } from '../../../functions/affiliateApi';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { setAffiliateData } from '../../../redux/slice/authSlice';
-import { bg, back } from '../../../assets/images';
+import { bg, back, tick, fail } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
 import DailyBreakdownChart from '../../../components/DailyBreakdownChart';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const { width } = Dimensions.get('window');
 
@@ -35,6 +36,12 @@ const AffiliateCoursesScreen = () => {
     const { userId, isAffiliate, userObject } = useSelector(state => state.auth);
     const { data: courses, isLoading: coursesLoading } = useEnrolledCourses(userId);
     const { data: affiliateStats, isLoading: statsLoading } = useAffiliateStats(userId);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalData, setModalData] = useState({
+        title: '',
+        message: '',
+        icon: '', // You might use icon name or path depending on your implementation
+    });
 
     const [checkedAffiliate, setCheckedAffiliate] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState('Daily');
@@ -63,10 +70,20 @@ const AffiliateCoursesScreen = () => {
         try {
             dispatch(startLoading());
             await sendAffiliateRequest(userId);
-            Alert.alert('Success', 'Affiliate request sent successfully!');
+
+            setModalData({
+                title: '',
+                message: 'Affiliate request sent successfully!',
+                icon: tick, // Customize based on your design
+            });
         } catch (error) {
-            Alert.alert('Error', 'Failed to send affiliate request');
+            setModalData({
+                title: 'Error ❌',
+                message: 'Failed to send affiliate request',
+                icon: fail,
+            });
         } finally {
+            setModalVisible(true);
             dispatch(stopLoading());
         }
     };
@@ -87,7 +104,15 @@ const AffiliateCoursesScreen = () => {
 
     return (
         <ImageBackground source={theme.bg || bg} style={styles.container}>
-
+            {modalVisible &&
+                <ConfirmationModal
+                    visible={modalVisible}
+                    title={modalData.title}
+                    message={modalData.message}
+                    icon={modalData.icon}
+                    onClose={() => setModalVisible(false)}
+                />
+            }
             {checkedAffiliate && isAffiliate ? (
                 <FlatList
                     data={courses}
@@ -125,7 +150,7 @@ const AffiliateCoursesScreen = () => {
                                 </LinearGradient>
                             </View>
 
-                            <DailyBreakdownChart type='affiliate'/>
+                            <DailyBreakdownChart type='affiliate' />
                         </>
                     )}
                     renderItem={renderItem}

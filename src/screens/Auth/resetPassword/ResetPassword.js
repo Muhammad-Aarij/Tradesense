@@ -30,12 +30,11 @@ const ResetPassword = ({ navigation, route }) => {
         }
         try {
             dispatch(startLoading());
-
             const response = await resetPassword(token, newPassword);
             console.log("Password reset successful:", response);
             dispatch(stopLoading());
-            // alert("Your password has been reset successfully!");
-            navigation.navigate("Login"); // Navigate to login screen
+            alert("Your password has been reset successfully!");
+            navigation.navigate("Login"); 
         } catch (error) {
             dispatch(stopLoading());
             console.error("Error resetting password:", error);

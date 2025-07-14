@@ -36,7 +36,7 @@ const ForgetPassword = ({ navigation }) => {
       const response = await sendOTP(email, false);
       console.log("Reset email sent:", response);
       dispatch(stopLoading());
-      alert("Password reset email sent successfully");
+      // alert("Password reset email sent successfully");
       navigation.navigate("EmailVerification", {
         email: email,
         status: "forget",

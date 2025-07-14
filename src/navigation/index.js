@@ -18,10 +18,16 @@ const RootStack = createNativeStackNavigator();
 
 const MainFlow = () => {
     const { isSignedIn, userToken, isProfilingDone } = useSelector(state => state.auth);
-    // console.log("isProfilingDone",isProfilingDone)
+
+    console.log("MainFlow State →");
+    console.log("✅ isSignedIn:", isSignedIn);
+    console.log("🔑 userToken:", userToken);
+    console.log("📌 isProfilingDone:", isProfilingDone);
+
     if (isSignedIn && userToken) {
         return isProfilingDone ? <HomeNavigator /> : <AuthNavigator />;
     }
+
     return <AuthNavigator />;
 };
 

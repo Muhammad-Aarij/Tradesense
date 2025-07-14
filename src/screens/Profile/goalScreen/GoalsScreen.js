@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground, Image, Alert } from 'react-native';
+import {
+    View, Text, StyleSheet, TouchableOpacity, ScrollView,
+    ImageBackground, Image, Alert
+} from 'react-native';
 import { bg, check, tick, uncheck } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../../redux/slice/authSlice';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const GoalsScreen = ({ navigation, route }) => {
-    const { request, user, token, question: allQuestions } = route.params || {};
+    const { request, token, question: allQuestions, user } = route.params || {};
+    // const { userId } = useSelector(state => state.auth);
+
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOptionsMap, setSelectedOptionsMap] = useState({});
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -42,8 +47,10 @@ const GoalsScreen = ({ navigation, route }) => {
         if (!isLast) {
             setCurrentIndex(prev => prev + 1);
         } else {
-            // Build new payload format
+            // Construct questionnaireAnswers
             const questionnaireAnswers = {};
+
+            // 1. Add goal questions
             questions.forEach(q => {
                 const selectedIds = selectedOptionsMap[q._id] || [];
                 if (selectedIds.length > 0) {
@@ -51,26 +58,45 @@ const GoalsScreen = ({ navigation, route }) => {
                 }
             });
 
-            const payload = {
-                gender: request.gender?.toLowerCase(),
-                ageRange: request.ageRange,
-                questionnaireAnswers
-            };
+            // 2. Add gender
+            if (request.gender?.questionId && request.gender?.answerId) {
+                questionnaireAnswers[request.gender.questionId] = [
+                    request.gender.answerId
+                ];
+            }
 
-            console.log('Submitting Payload:', JSON.stringify(payload, null, 2));
+            // 3. Add age
+            if (request.ageRange?.questionId && request.ageRange?.answerId) {
+                questionnaireAnswers[request.ageRange.questionId] = [
+                    request.ageRange.answerId
+                ];
+            }
+
+            const payload = { questionnaireAnswers };
+
+            console.log('Submitting Payload:', user._id, "   ", JSON.stringify(payload, null, 2));
 
             try {
-                await axios.post(
-                    `${API_URL}/api/auth/setup-profile/${user._id}`,
+                const response = await axios.post(
+                    `${API_URL}/api/auth/setup-profile/${user?._id}`,
                     payload,
                     { headers: { 'Content-Type': 'application/json' } }
                 );
+                console.log('====================================');
+                console.log(response);
+                console.log('====================================');
+
+                const updatedUser = response.data?.user;
+                console.log('Token:', token);
+                console.log('User Object:', updatedUser || {});
+                console.log('Theme Type:', 'dark');
 
                 await dispatch(loginUser({
                     token,
-                    user,
+                    user: updatedUser || {},
                     themeType: 'dark',
                 }));
+
 
                 setShowSuccessModal(true);
             } catch (err) {
@@ -139,10 +165,7 @@ const GoalsScreen = ({ navigation, route }) => {
 
                     <View style={styles.bottomButton}>
                         <TouchableOpacity
-                            style={[
-                                styles.button,
-                                selected.length === 0 ? styles.disabledButton : null
-                            ]}
+                            style={[styles.button, selected.length === 0 && styles.disabledButton]}
                             disabled={selected.length === 0}
                             onPress={handleNext}
                         >
@@ -192,7 +215,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.04)',
         borderRadius: 10,
         padding: 15,
-        // padddingRight:15,
         flexDirection: 'row',
         alignItems: 'center',
         borderColor: theme.borderColor,
@@ -220,7 +242,7 @@ const styles = StyleSheet.create({
         height: 25,
         resizeMode: 'contain',
         marginLeft: 'auto',
-        marginRight:15,
+        marginRight: 15,
     },
     disabledButton: {
         backgroundColor: 'gray'

@@ -16,7 +16,7 @@ export const fetchQuestionnaire = async () => {
   try {
     const response = await axios.get(`${API_URL}/api/onboarding/questionnaire`);
     const data = response.data;
-    console.log('Questionnaire Data:', data);
+    // console.log('Questionnaire Data:', data);
     return data;
   } catch (error) {
     console.error('Error fetching questionnaire:', error.message);

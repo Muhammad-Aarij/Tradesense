@@ -11,7 +11,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { loginUser } from '../../../redux/slice/authSlice';
+import { loginUser,setProfilingDone } from '../../../redux/slice/authSlice';
 import loginApi from '../../../functions/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Snackbar from 'react-native-snackbar';
@@ -20,7 +20,7 @@ import ConfirmationModal from '../../../components/ConfirmationModal';
 
 GoogleSignin.configure({
     iosClientId: GOOGLE_IOS_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    // androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     scopes: ['profile', 'email'],
 });
 
@@ -62,6 +62,13 @@ const LoginScreen = ({ navigation, route }) => {
             dispatch(startLoading());
 
             const data = await loginApi(username, password);
+            const answers = data.user?.questionnaireAnswers;
+            // console.log(data.user);
+            const isProfilingPending = !answers || // undefined/null
+                (typeof answers === 'object' &&
+                    Object.keys(answers).length === 0) || // empty object
+                (typeof answers === 'object' &&
+                    Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0)); // all arrays empty
 
             // ✅ FIRST: Check if pending deep link
             if (pendingDeepLink) {
@@ -71,18 +78,18 @@ const LoginScreen = ({ navigation, route }) => {
                     affiliateToken: pendingDeepLink.token,
                 });
             }
+            else if (isProfilingPending) {
 
-            // ❌ THEN: Check onboarding
-            else if (Array.isArray(data.user?.onboarding) && data.user.questionnaireAnswers.length === 0) {
+                console.log("Profiling Pending → Navigating to GenderScreen");
                 navigation.replace("GenderScreen", {
                     user: data.user,
                     token: data.token,
                 });
             }
-
-            // ✅ Otherwise: Go to MainFlow
             else {
                 await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
+                dispatch(setProfilingDone(true));
+                console.log("Navigating to MainFlow");
                 navigation.replace('MainFlow');
             }
         } catch (error) {

@@ -23,6 +23,7 @@ const verticalScale = (size) => (height / 812) * size;
 const UserProfileDetailsScreen = () => {
   const { theme } = useContext(ThemeContext); // ✅ use dynamic theme
   const styles = getStyles(theme);
+  const profilePic = useSelector(state => state.auth.userObject?.profilePic);
 
   const name = useSelector(state => state.auth.userObject?.name);
   const getTimeBasedGreeting = () => {
@@ -55,7 +56,10 @@ const UserProfileDetailsScreen = () => {
             {/* Profile Card */}
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
-                <Image source={userDefault} style={styles.avatar} />
+                <Image
+                  source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
+                  style={styles.avatar}
+                />
               </View>
               <View style={styles.profileInfo}>
                 <Text style={styles.profileName}>{name}</Text>

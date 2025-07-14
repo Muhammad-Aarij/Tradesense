@@ -21,11 +21,13 @@ export const trackAffiliateVisit = async ({ referrerUserId, courseId, type = "vi
 
 
 export const sendAffiliateRequest = async (userId) => {
+    console.log('++++++++++++++++++++++++++++', );
     try {
-        console.log(userId);
-        const response = await axios.post(`${API_URL}/api/affiliate/requests`, {
-            userId: userId,
-        });
+        console.log('++++++++++++++++++++++++++++', );
+        console.log('Sending affiliate request for user:', userId);
+
+        const response = await axios.post(`${API_URL}/api/affiliate/requests/${userId}`);
+
         console.log('Affiliate request sent:', response.data);
         return response.data;
     } catch (error) {

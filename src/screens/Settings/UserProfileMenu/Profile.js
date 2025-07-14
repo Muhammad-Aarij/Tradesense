@@ -29,7 +29,8 @@ const UserProfileMenuScreen = ({ navigation }) => {
 
   const [profileImage, setProfileImage] = useState(null);
   const [confirmation, setConfirmation] = useState({ visible: false, success: true, message: '' });
-  const userId = useSelector(state => state.auth.userObject?._id); // or pass it as a parameter
+  const userId = useSelector(state => state.auth.userObject?._id); 
+  const profilePic = useSelector(state => state.auth.userObject?.profilePic);
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -153,7 +154,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
                 <Image
-                  source={profileImage ? { uri: profileImage } : userDefault}
+                  source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
                   style={styles.avatar}
                 />
                 <TouchableOpacity onPress={openGallery} style={styles.cameraIconWrapper}>

@@ -47,7 +47,8 @@ export const loginUser = createAsyncThunk(
     try {
       thunkAPI.dispatch(startLoading());
 
-      const isProfilingDone = user?.onboarding?.length > 0;
+      // ❌ Don't auto-set profilingDone to true
+      const isProfilingDone = false;
 
       await AsyncStorage.multiSet([
         ['token', token],
@@ -67,6 +68,8 @@ export const loginUser = createAsyncThunk(
     }
   }
 );
+
+
 
 // Thunk: Logout
 export const logoutUser = createAsyncThunk('auth/logoutUser', async (_, thunkAPI) => {

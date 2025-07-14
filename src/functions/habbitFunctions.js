@@ -3,7 +3,7 @@ import axios from 'axios';
 import { API_URL } from "@env";
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
-
+import { useQueryClient } from '@tanstack/react-query';
 
 
 export const postHabit = async ({ userId, title, description, type, status, targetDate }) => {
@@ -69,24 +69,26 @@ export const useHabitByUser = (userId) => {
 
 
 
+export const useCreateHabitLog = () => {
+  const queryClient = useQueryClient();
 
-export const createHabitLog = async ({ userId, habitId, status }) => {
-  try {
-    console.log('====================================');
-    console.log("Log called", userId, habitId, status);
-    console.log('====================================');
-    const response = await axios.post(`${API_URL}/api/habitlogs`, {
-      userId,
-      habitId,
-      status,
-    });
+  const logHabit = async ({ userId, habitId, status = "completed" }) => {
+    try {
+      const response = await axios.post(`${API_URL}/api/habitlogs`, {
+        userId,
+        habitId,
+        status,
+      });
 
-    console.log("Log Response", response.data);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating habit log:', error?.response?.data?.message || error.message);
-    return { error: error?.response?.data?.message || 'Something went wrong' };
-  }
+      queryClient.invalidateQueries({ queryKey: ['todaysHabits', userId] });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating habit log:', error?.response?.data?.message || error.message);
+      return { error: error?.response?.data?.message || 'Something went wrong' };
+    }
+  };
+
+  return logHabit;
 };
 
 
