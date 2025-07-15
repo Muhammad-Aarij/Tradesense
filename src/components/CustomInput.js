@@ -37,7 +37,7 @@ const CustomInput = ({
                     {...props}
                     multiline={isMultiline}
                     placeholder={placeholder}
-                    placeholderTextColor={theme.textColor}
+                    placeholderTextColor={theme.subTextColor}
                     secureTextEntry={secureTextEntry}
                     style={[
                         styles.input,
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     },
     label: {
         fontFamily: 'Inter-Medium',
-        fontSize: 13,
+        fontSize: 12,
         marginBottom: 5,
     },
     container: {

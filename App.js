@@ -8,6 +8,7 @@ import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from "@env";
 import { ThemeProvider } from "./src/context/ThemeProvider";
 import AuthProvider from "./src/context/AuthProvider";
 import firebase from "@react-native-firebase/app";
+
 import messaging from "@react-native-firebase/messaging";
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

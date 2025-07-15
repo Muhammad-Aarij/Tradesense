@@ -1,12 +1,13 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { bell, calendar, deletewhite, editwhite } from '../assets/images';
+import { bell, calendar, deletewhite, dots, editwhite } from '../assets/images';
 import { ThemeContext } from '../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
 
 const GoalCard = ({ goal, onEdit, onDelete }) => {
-    const { theme } = useContext(ThemeContext); // 💡 Get theme from context
+    const { theme, isDarkMode } = useContext(ThemeContext); // 💡 Get theme from context
     const styles = getStyles(theme); // 💡 Create themed styles
+    const [dropdownVisible, setDropdownVisible] = useState(false);
 
     const formatDate = (isoDate) => {
         if (!isoDate) return '';
@@ -26,13 +27,26 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
             <View style={styles.headerRow}>
                 <Text style={styles.goalTitle}>{goal.title}</Text>
                 <View style={styles.iconContainer}>
-                    <TouchableOpacity onPress={() => onEdit(goal)} style={styles.iconButton}>
-                        <Image source={editwhite} style={styles.icon} />
+                    <TouchableOpacity
+                        onPress={() => setDropdownVisible(!dropdownVisible)}
+                    >
+                        <Image source={dots} style={styles.icon} />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => onDelete(goal._id)} style={styles.iconButton}>
-                        <Image source={deletewhite} style={styles.icon} />
-                    </TouchableOpacity>
+
+                    {dropdownVisible && (
+                        <View style={styles.dropdownMenu}>
+                            <TouchableOpacity style={styles.iconButton} onPress={() => { onEdit(goal); setDropdownVisible(false); }}>
+                                <Image source={editwhite} style={styles.icon} />
+                                <Text style={{ ...styles.dropdownItem, color: isDarkMode ? theme.textColor : theme.subTextColor }}>Edit</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.iconButton} onPress={() => { onDelete(goal._id); setDropdownVisible(false); }}>
+                                <Image source={deletewhite} style={styles.icon} />
+                                <Text style={styles.dropdownItem}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
+
             </View>
             <Text style={styles.goalDescription}>{goal.description}</Text>
             <View style={styles.progressSection}>
@@ -69,7 +83,7 @@ const getStyles = (theme) => StyleSheet.create({
         marginBottom: 10,
     },
     goalTitle: {
-        fontSize: 15,
+        fontSize: 14,
         fontFamily: 'Inter-Regular',
         color: theme.textColor,
         flex: 1,
@@ -78,9 +92,13 @@ const getStyles = (theme) => StyleSheet.create({
         flexDirection: 'row',
     },
     iconButton: {
-        padding: 7,
-        marginLeft: 5,
-        backgroundColor: theme.transparentBg,
+
+        backgroundColor: "white",
+        flexDirection: "row",
+        alignItems: 'center',
+        gap: 10,
+        // padding: 7,
+        paddingHorizontal: 10,
         borderWidth: 0.9,
         borderColor: theme.borderColor,
         borderRadius: 8,
@@ -120,6 +138,37 @@ const getStyles = (theme) => StyleSheet.create({
         backgroundColor: theme.primaryColor,
         borderRadius: 3,
     },
+    dropdownMenu: {
+        position: 'absolute',
+        top: 30,
+        right: 0,
+        gap: 5,
+        backgroundColor: theme.transparentBg,
+        borderColor: theme.borderColor,
+        borderWidth: 1,
+        borderRadius: 8,
+        zIndex: 1000,
+        paddingVertical: 5,
+        paddingHorizontal: 5,
+        shadowColor: theme.primaryColor,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+    },
+
+    dropdownItem: {
+        color: theme.subTextColor,
+        fontSize: 12,
+        fontFamily: 'Inter-Regular',
+        paddingVertical: 6,
+    },
+    iconContainer: {
+        flexDirection: 'row',
+        position: 'relative', // required for absolute dropdown inside
+    },
+
+
+
 });
 
 export default GoalCard;

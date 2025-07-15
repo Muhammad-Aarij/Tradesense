@@ -1,6 +1,6 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, Dimensions, Image
+    View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView
 } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { ThemeContext } from '../context/ThemeProvider';
@@ -18,6 +18,7 @@ const DailyBreakdownChart = ({
     type = 'habit',
 }) => {
     const { theme } = useContext(ThemeContext);
+    const scrollRef = useRef(null);
 
     const userId = useSelector(state => state.auth.userObject?._id);
     const [selectedFilter, setSelectedFilter] = useState(defaultFilter);
@@ -119,7 +120,7 @@ const DailyBreakdownChart = ({
 
     const hasData = () => {
         if (!logs || logs.length === 0) return false;
-        
+
         // Check if there's any data in the current time period
         const totalValue = dynamicChartData.reduce((sum, item) => sum + item.value, 0);
         return totalValue > 0;
@@ -158,6 +159,7 @@ const DailyBreakdownChart = ({
                                 source={back}
                                 style={{
                                     ...styles.dropdownArrow,
+                                    tintColor: "white",
                                     transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
                                 }}
                             />
@@ -184,36 +186,49 @@ const DailyBreakdownChart = ({
 
                 {hasData() ? (
                     <View style={styles.barChartWrapper}>
-                        <BarChart
-                            data={dynamicChartData}
-                            barWidth={40}
-                            barBorderRadius={8}
-                            spacing={12}
-                            height={220}
-                            initialSpacing={10}
-                            noOfSections={4}
-                            yAxisThickness={0}
-                            xAxisThickness={0}
-                            hideYAxisText
-                            hideAxesAndRules
-                            showXAxisIndices={false}
-                            xAxisLabelTextStyle={{
-                                color: theme.subTextColor,
-                                fontSize: 12,
-                                fontFamily: 'Inter-Regular',
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ paddingRight: 20 }} // optional
+                            ref={(ref) => (scrollRef.current = ref)}
+                            onContentSizeChange={() => {
+                                if (scrollRef.current) {
+                                    scrollRef.current.scrollToEnd({ animated: true });
+                                }
                             }}
-                            renderTooltip={(item) => (
-                                <View style={styles.tooltip}>
-                                    <Text style={styles.tooltipText}>Value: {item.value}</Text>
-                                    <Text style={styles.tooltipText}>Date: {item.fullDate}</Text>
-                                </View>
-                            )}
-                        />
+                        >
+                            <BarChart
+                                data={dynamicChartData}
+                                barWidth={40}
+                                barBorderRadius={8}
+                                spacing={12}
+                                height={220}
+                                initialSpacing={10}
+                                noOfSections={4}
+                                yAxisThickness={0}
+                                xAxisThickness={0}
+                                hideYAxisText
+                                hideAxesAndRules
+                                showXAxisIndices={false}
+                                xAxisLabelTextStyle={{
+                                    color: theme.subTextColor,
+                                    fontSize: 12,
+                                    fontFamily: 'Inter-Regular',
+                                }}
+                                renderTooltip={(item) => (
+                                    <View style={styles.tooltip}>
+                                        <Text style={styles.tooltipText}>Value: {item.value}</Text>
+                                        <Text style={styles.tooltipText}>Date: {item.fullDate}</Text>
+                                    </View>
+                                )}
+                            />
+                        </ScrollView>
                     </View>
+
                 ) : (
                     <View style={styles.noDataContainer}>
                         <LinearGradient
-                            start={{ x: 0, y: 0 }} 
+                            start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             colors={['rgba(17, 103, 177, 0.05)', 'rgba(42, 157, 244, 0.01)', 'transparent']}
                             style={styles.noDataGradientWrapper}
@@ -221,7 +236,7 @@ const DailyBreakdownChart = ({
                             {/* Decorative circles */}
                             <View style={styles.decorativeCircle1} />
                             <View style={styles.decorativeCircle2} />
-                            
+
                             <View style={styles.noDataContentContainer}>
                                 <View
                                     style={styles.noDataIconContainer}
@@ -231,21 +246,21 @@ const DailyBreakdownChart = ({
                                     </Text>
                                     <View style={styles.iconGlow} />
                                 </View>
-                                
+
                                 <Text style={styles.noDataTitle}>
-                                    {selectedFilter === 'Daily' ? 
+                                    {selectedFilter === 'Daily' ?
                                         (type === 'affiliate' ? 'Ready to Earn?' : 'Your Journey Awaits') :
-                                     selectedFilter === 'Monthly' ? 'A Fresh Start Awaits' :
-                                     'Endless Possibilities Ahead'}
+                                        selectedFilter === 'Monthly' ? 'A Fresh Start Awaits' :
+                                            'Endless Possibilities Ahead'}
                                 </Text>
-                                
+
                                 <Text style={styles.noDataSubtitle}>
-                                    {type === 'affiliate' 
+                                    {type === 'affiliate'
                                         ? 'Transform your passion into profit, one course at a time'
                                         : 'Great things never come from comfort zones. Start today.'
                                     }
                                 </Text>
-                                
+
                                 {/* <View style={styles.inspirationalContainer}>
                                     <LinearGradient
                                         start={{ x: 0, y: 0 }} 
@@ -262,13 +277,13 @@ const DailyBreakdownChart = ({
                                  */}
                                 <View style={styles.noDataActionContainer}>
                                     <LinearGradient
-                                        start={{ x: 0, y: 0 }} 
+                                        start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 0 }}
                                         colors={[theme.primaryColor, theme.primaryColor + '80']}
                                         style={styles.noDataDot}
                                     />
                                     <Text style={styles.noDataMessage}>
-                                        {type === 'affiliate' 
+                                        {type === 'affiliate'
                                             ? 'Begin your affiliate journey and watch the magic unfold'
                                             : 'Plant the seeds of success with your first habit today'
                                         }
@@ -316,8 +331,8 @@ const getStyles = (theme) =>
             flexDirection: 'row',
             alignItems: 'center',
             backgroundColor: theme.primaryColor,
-            borderWidth: 0.9,
-            borderColor: theme.borderColor,
+            // borderWidth: 0.9,
+            // borderColor: theme.borderColor,
             borderRadius: 8,
             paddingVertical: 7,
             paddingHorizontal: 12,

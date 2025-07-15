@@ -96,15 +96,13 @@ export const useCreateHabitLog = () => {
 
 
 export const fetchTodaysHabits = async (userId) => {
-  console.log(userId);
   const { data } = await axios.get(`${API_URL}/api/habbits/${userId}`);
-  console.log("Fetched Habit Data:", data); // <-- Add this
-
-  const todayISO = new Date().toISOString().split('T')[0];
+  const todayISO = new Date().toLocaleDateString('en-CA'); // local date 'YYYY-MM-DD'
 
   return data.map(habit => {
     const hasTodayLog = habit.habitLogs?.some(log => {
-      const logDate = new Date(log.date).toISOString().split('T')[0];
+      const logDate = new Date(log.date).toLocaleDateString('en-CA');
+      console.log('Habit:', habit.title, '→ Log Date:', logDate, '→ Today:', todayISO);
       return logDate === todayISO;
     });
 
@@ -116,6 +114,7 @@ export const fetchTodaysHabits = async (userId) => {
     };
   });
 };
+
 
 export const useTodaysHabits = (userId) => {
   const dispatch = useDispatch();
@@ -136,7 +135,7 @@ export const useTodaysHabits = (userId) => {
 
 export const fetchHabitStats = async (userId) => {
   const { data } = await axios.get(`${API_URL}/api/habbits/stats/${userId}`);
-  console.log("Fetched Habit Stats:", data); // For debugging
+  // console.log("Fetched Habit Stats:", data); // For debugging
 
   // You can add transformation logic here if needed
   return {

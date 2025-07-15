@@ -34,6 +34,7 @@ import video from './video.png'
 import user from './user.png'
 import graph from './graph.png'
 import bell from './bell.png'
+import bellWhite from './bellWhite.png'
 import circle from './circle.png'
 import wave from './wave.png'
 import play from './play.png'
@@ -106,6 +107,7 @@ import p8 from './p8.png'
 import p9 from './p9.png'
 import userProfile from './userProfile.jpg'
 import logoWhite from './logoWhite.png'
+import logoBlack from './logoBlack.png'
 import send from './send.png'
 import menu from './menu.png'
 import chatbot from './chatbot.png'
@@ -134,14 +136,21 @@ import traderHub from './traderHub.png'
 import info from './info.png'
 import camera from './camera.png'
 import affiliate1 from './affiliate1.png'
+import checkboxChecked from './checkboxChecked.png';
+import checkboxUnchecked from './checkboxUnchecked.png';
+import cf1 from './cf1.png';
+import cf2 from './cf2.png';
+import cf3 from './cf3.png';
+import cf4 from './cf4.png';
+import dots from './dots.png';
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
   lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
-  check, uncheck, home, care, video, book, user, scholar, graph, bell, circle, wave, play, playb, back, mountain, acc, fail,
+  check, uncheck, home, care, video, book, user, scholar, graph, bell, bellWhite, circle, wave, play, playb, back, mountain, acc, fail,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next, d, cwhite, cblue,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
-  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger,
+  audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger, dots, checkboxChecked, checkboxUnchecked,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
-  audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1
+  audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1, logoBlack, cf1, cf2, cf3, cf4
 };

@@ -10,7 +10,7 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
-import { back, bell, bg, user } from '../../../assets/images';
+import { back, bell, bellWhite, bg, user, userDefault } from '../../../assets/images';
 import Accountability from './Accountability/Accountability';
 import Journaling from './Journaling/Journaling';
 import { useSelector } from 'react-redux';
@@ -19,8 +19,9 @@ import { ThemeContext } from '../../../context/ThemeProvider';
 const Dashboard = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
   const name = useSelector(state => state.auth.userObject?.name);
-  const { theme } = useContext(ThemeContext);
+  const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
+  const profilePic = useSelector(state => state.auth.userObject?.profilePic);
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -37,13 +38,16 @@ const Dashboard = ({ navigation }) => {
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image source={user} style={styles.avatar} />
+              <Image
+                source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
+                style={styles.avatar}
+              />
               <View>
                 <Text style={styles.username}>{name}</Text>
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
-            <Image source={bell} style={styles.bellIcon} />
+            <Image source={isDarkMode ? bell : bellWhite} style={styles.bellIcon} />
           </View>
 
           {/* Tabs */}
@@ -100,12 +104,8 @@ const getStyles = (theme) =>
       fontSize: 12,
       fontFamily: 'Inter-Medium',
     },
-    bellIcon: {
-      width: 40,
-      height: 40,
-      resizeMode: "contain",
-      alignSelf: 'center',
-    },
+    bellIcon: { width: 35, height: 35, resizeMode: "contain", alignSelf: 'center' },
+
     tabsContainer: {
       flexDirection: 'row',
       backgroundColor: theme.inputBg || 'rgba(255, 255, 255, 0.06)',

@@ -163,3 +163,20 @@ export const useAffiliateRecords = (userId) => {
         onError: () => dispatch(stopLoading()),
     });
 };
+
+
+
+
+export const getAffiliateRequestStatus = async (userId) => {
+    console.log('====================================');
+    console.log("Affiliate Id",userId);
+    console.log('====================================');
+  try {
+    const response = await axios.get(`${API_URL}/api/affiliate/requests/${userId}`);
+    console.log("Affiliate Status", response);
+    return response.data; // Expecting an array like [{ status: "pending" }]
+  } catch (error) {
+    console.error('Error fetching affiliate request status:', error);
+    throw error;
+  }
+};

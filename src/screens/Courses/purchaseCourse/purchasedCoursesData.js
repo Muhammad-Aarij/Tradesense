@@ -154,7 +154,7 @@ const PurchasedCoursesScreen = () => {
                                     navigation={navigation}
                                     imageSource={{ uri: course.thumbnail }}
                                     title={course.title}
-                                    rating={course.averageRating ?? 0}
+                                    // rating={course.averageRating ?? 0}
                                     description={course.description}
                                     profileImage={user}
                                     duration={formatDuration(course.duration)}
@@ -190,12 +190,7 @@ const PurchasedCoursesScreen = () => {
                 <FlatList
                     ListHeaderComponent={() => (
                         <Header title="My Courses" style={{ marginBottom: 35 }} />
-                    )}
-                    ListFooterComponent={() => (
-                        <TouchableOpacity style={[styles.joinButton, { backgroundColor: theme.primaryColor }]} onPress={handleAffiliateRequest}>
-                            <Text style={styles.joinButtonText}>Become an Affiliate</Text>
-                        </TouchableOpacity>
-                    )}
+                    )}                   
                     data={flatListData}
                     renderItem={renderItem}
                     keyExtractor={(item, index) => item?.data?._id || item?.text || item?.title || index.toString()}

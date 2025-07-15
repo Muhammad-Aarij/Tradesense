@@ -133,7 +133,7 @@ const VideoPlayerScreen = ({ route }) => {
             controls={false}
           />
 
-          <View style={styles.albumArtOverlay}>
+          {/* <View style={styles.albumArtOverlay}>
             <View style={styles.artistInfo}>
               <Image source={user} style={styles.artistImage} />
               <View>
@@ -141,7 +141,7 @@ const VideoPlayerScreen = ({ route }) => {
                 <Text style={styles.artistRole}>Mentally Relax</Text>
               </View>
             </View>
-          </View>
+          </View> */}
 
           {(isBuffering || !videoLoaded) && (
             <View style={styles.loadingOverlay}>
@@ -216,6 +216,8 @@ const VideoPlayerScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems:"center",
+    justifyContent: "center",
     padding: 30,
     paddingBottom: 0,
   },
@@ -225,11 +227,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    paddingBottom: 80,
+    justifyContent: "center",
+    flex:1,
+    // borderWidth:3,
+    // borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   albumArtContainer: {
     width: '100%',
-    height: height * 0.55,
+    height: height * 0.25,
     borderRadius: 20,
     overflow: 'hidden',
     marginTop: 20,

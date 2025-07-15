@@ -1,14 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   SafeAreaView, StyleSheet, View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, ImageBackground, Image,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import CustomInput from "../../../components/CustomInput";
 import { bg, calendar, tick } from "../../../assets/images";
 import Header from "../../../components/Header";
-import theme from "../../../themes/theme";
-
+import { ThemeContext } from '../../../context/ThemeProvider';
 import { useDispatch, useSelector } from 'react-redux';
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
@@ -25,6 +23,8 @@ export default function AddGoal({ route, navigation }) {
   const [description, setDescription] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const queryClient = useQueryClient();
+  const { theme } = useContext(ThemeContext); // Use the theme context
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'goalType' or 'status'
 
   const userId = useSelector((state) => state.auth.userId);
   const dispatch = useDispatch();
@@ -41,7 +41,8 @@ export default function AddGoal({ route, navigation }) {
   const statusOptions = [
     // { label: "Active", value: "active" },
     // { label: "Completed", value: "completed" },
-    { label: "Pending", value: "dropped" },
+    { label: "Pending", value: "pending" },
+    { label: "Active", value: "active" },
   ];
 
   // Date picker handlers
@@ -54,6 +55,8 @@ export default function AddGoal({ route, navigation }) {
   const handleDatePress = () => {
     setShowDatePicker(true);
   };
+
+  const styles = getStyles(theme); // Generate themed styles
 
   const handleSubmit = async () => {
     dispatch(startLoading());
@@ -93,7 +96,7 @@ export default function AddGoal({ route, navigation }) {
     console.log(" useeffect Editing Goal:", editingGoal);
     if (editingGoal) {
       setGoalName(editingGoal.title || "");
-      setGoalType(capitalizeFirst(editingGoal.frequency || "Daily"));
+      setGoalType(capitalizeFirst(editingGoal.type || "Daily"));
       setStatus(capitalizeFirst(editingGoal.status || "Active"));
       setDescription(editingGoal.description || "");
       if (editingGoal.targetDate) {
@@ -106,14 +109,14 @@ export default function AddGoal({ route, navigation }) {
 
 
   return (
-    <ImageBackground source={bg} style={styles.container}>
+    <ImageBackground source={theme.bg} style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
         // behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           {/* Header */}
-          <Header title={editingGoal ? "Edit Goal" : "Set Goal"} style={{ marginBottom: 35 }} />
+          <Header title={editingGoal ? "Edit Goal" : "Add New Goal"} style={{ marginBottom: 35 }} />
 
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
             {/* Goal Name */}
@@ -129,7 +132,7 @@ export default function AddGoal({ route, navigation }) {
               <Text style={styles.inputLabel}>Target Date</Text>
               <TouchableOpacity onPress={handleDatePress} style={styles.datePickerInput}>
                 <Text style={styles.textInputContent}>{targetDate.toLocaleDateString()}</Text>
-                <Image style={{ width: 20, height: 20 }} source={calendar} />
+                <Image style={{ width: 20, height: 20, tintColor: theme.subTextColor }} source={calendar} />
               </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker testID="datePicker" minimumDate={new Date()}
@@ -139,9 +142,12 @@ export default function AddGoal({ route, navigation }) {
 
             <CustomDropdown
               label="Goal Type"
-              options={goalTypeOptions.map((item) => item.label)} // Just labels
+              options={goalTypeOptions.map((item) => item.label)}
               selectedValue={goalType}
               onValueChange={setGoalType}
+              dropdownId="goalType"
+              activeDropdown={activeDropdown}
+              setActiveDropdown={setActiveDropdown}
             />
 
             <CustomDropdown
@@ -149,6 +155,9 @@ export default function AddGoal({ route, navigation }) {
               options={statusOptions.map((item) => item.label)}
               selectedValue={status}
               onValueChange={setStatus}
+              dropdownId="status"
+              activeDropdown={activeDropdown}
+              setActiveDropdown={setActiveDropdown}
             />
 
             {/* Description */}
@@ -187,7 +196,7 @@ export default function AddGoal({ route, navigation }) {
 }
 
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 0,
@@ -202,8 +211,8 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontFamily: "Inter-Medium",
-    fontSize: 13,
-    color: "#fff",
+    fontSize: 12,
+    color: theme.textColor,
     marginBottom: 5,
   },
   pickerTxt: {
@@ -224,7 +233,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   textInputContent: {
-    color: "#fff",
+    color: theme.subTextColor,
     fontFamily: "Inter-Regular",
     paddingVertical: 15,
     fontSize: 13,

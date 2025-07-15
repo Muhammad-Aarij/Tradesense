@@ -1,23 +1,26 @@
-import React, { memo } from 'react';
+import React, { memo, useContext, useMemo } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { video2, lockicon, audio2, videoIcon, audioNew, videoNew } from '../assets/images';
 import theme from '../themes/theme';
 import { useNavigation } from '@react-navigation/native';
 import OptimizedImage from './OptimizedImage';
+import { ThemeContext } from '../../src/context/ThemeProvider';
 const { width } = Dimensions.get('window');
 const cardWidth = width * 0.42;
 
 const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url }) => {
   const navigation = useNavigation();
-  
+  const { theme, isDarkMode } = useContext(ThemeContext);
+  const styles = useMemo(() => getStyles(theme), [theme]);
+
   // Add logging to debug audio URL issues
-  console.log('=== RecommendationTile Debug ===');
-  console.log('Title:', title);
-  console.log('Type:', type);
-  console.log('URL:', url);
-  console.log('Thumbnail:', thumbnail);
-  console.log('================================');
-  
+  // console.log('=== RecommendationTile Debug ===');
+  // console.log('Title:', title);
+  // console.log('Type:', type);
+  // console.log('URL:', url);
+  // console.log('Thumbnail:', thumbnail);
+  // console.log('================================');
+
   const handlePress = () => {
     if (type === 'audio') {
       console.log('=== Audio Navigation Debug ===');
@@ -28,7 +31,7 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
       console.log('AudioUrl:', url);
       console.log('Timestamp:', Date.now());
       console.log('================================');
-      
+
       // Force a new navigation with unique key to ensure fresh PlayerScreen
       navigation.navigate('TrackPlayer', {
         AudioTitle: title,
@@ -92,7 +95,7 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   card: {
     width: cardWidth,
     height: 168,
@@ -158,7 +161,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   descr: {
-    color: 'rgb(214, 214, 214)',
+    color: theme.subTextColor,
     fontSize: 10,
     fontFamily: 'Inter-Light-BETA',
     paddingHorizontal: 8,

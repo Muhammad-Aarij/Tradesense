@@ -301,7 +301,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 
 const getStyles = (theme, isDarkMode) => StyleSheet.create({
 
-    container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 0 : 20 },
+    container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 0 : 10 },
     header: {
         flexDirection: 'row',
         alignItems: 'center',

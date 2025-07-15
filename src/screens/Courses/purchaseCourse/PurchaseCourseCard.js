@@ -29,9 +29,16 @@ const StarRating = ({ rating, theme }) => {
     return <View style={styles.starContainer}>{stars}</View>;
 };
 
+
+const formatDuration = (seconds) => {
+    if (seconds < 60) return '1 min';
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    return seconds >= 3600 ? `${hours} hour${hours > 1 ? 's' : ''}` : `${minutes} min`;
+};
 const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = true }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
-
+    console.log('PurchasedCourseCard course:', course);
     return (
         <TouchableOpacity
             style={[
@@ -49,7 +56,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                 {isDarkMode && <View style={styles.imgOverlay} />}
                 <View style={styles.timeOverlay}>
                     <Image source={play} style={styles.playIcon} />
-                    <Text style={styles.timeText}>{course.duration}</Text>
+                    <Text style={styles.timeText}>{formatDuration(course.duration)}</Text>
                 </View>
             </View>
 
@@ -60,7 +67,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
 
                 <Text
                     style={[styles.cardDescription, { color: theme.subTextColor }]}
-                    numberOfLines={2}
+                    numberOfLines={3}
                 >
                     {course.description}
                 </Text>

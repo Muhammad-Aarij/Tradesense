@@ -19,7 +19,7 @@ const StarRating = ({ rating, theme }) => {
         );
     }
     return <View style={styles.starContainer}>{stars}</View>;
-};
+}; 
 
 const CourseCard = ({
     imageSource,
@@ -44,9 +44,10 @@ const CourseCard = ({
                 </View>
             </View>
             <View style={styles.content}>
-                <Text style={[styles.title, { color: theme.textColor }]} numberOfLines={2}>{title}</Text>
+                <Text style={[styles.title, { color: theme.textColor }]} numberOfLines={1}>{title}</Text>
                 <Text style={[styles.description, { color: theme.subTextColor }]} numberOfLines={2}>{description}</Text>
                 <StarRating rating={rating} theme={theme} />
+                <View style={{ flex: 1, }} />
                 <View style={styles.footer}>
                     <View style={styles.profileInfo}>
                         <Image source={profileImage} style={styles.profileImage} />
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
     },
     imageWrapper: {
         width: '100%',
-        height: cardWidth * 0.7,
+        height: cardWidth * 0.8,
         position: 'relative',
     },
     cardImage: {
@@ -97,12 +98,15 @@ const styles = StyleSheet.create({
         fontFamily: "Inter-Regular"
     },
     content: {
+        flex: 1,
         padding: 10,
+        flexDirection: 'column',
     },
     title: {
         fontSize: 12,
         fontFamily: "Inter-Medium",
         marginBottom: 4,
+        // height: 32, // ✅ fixed height for description (2 lines max)
     },
     starContainer: {
         flexDirection: 'row',
@@ -115,10 +119,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     description: {
+        flex: 1, // this expands to fill remaining vertical space
         fontFamily: "Inter-Light-BETA",
         fontSize: 11,
         lineHeight: 16,
-        flex: 1,
         marginBottom: 3,
     },
     footer: {

@@ -19,16 +19,15 @@ import Header from '../../components/Header';
 import { ThemeContext } from '../../context/ThemeProvider';
 
 export default function GoalContainer({ navigation }) {
-    const { theme } = useContext(ThemeContext); // Use the theme context
+    const { theme, isDarkMode } = useContext(ThemeContext); // Use the theme context
     const userId = useSelector(state => state.auth.userId);
     const { data: goalsData = [], isLoading } = useGoalsByUser(userId);
     const queryClient = useQueryClient();
     const [selectedFilter, setSelectedFilter] = useState('All');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
     const dispatch = useDispatch();
-
-    const filterOptions = ['All', 'Weekly', 'Monthly'];
-
+    console.log("Goals Data:", goalsData); // Debugging line to check fetched data
+    const filterOptions = ['All', 'Daily', 'Weekly', 'Monthly'];
     useEffect(() => {
         dispatch(startLoading());
         const timeout = setTimeout(() => {
@@ -56,8 +55,8 @@ export default function GoalContainer({ navigation }) {
     };
 
     const filteredGoals = goalsData.filter(goal => {
-        const frequency = goal.frequency || '';
-        return selectedFilter === 'All' || frequency === selectedFilter;
+        const frequency = goal.type || '';
+        return selectedFilter.toLowerCase() === 'all' || frequency.toLowerCase() === selectedFilter.toLowerCase();
     });
 
     const styles = getStyles(theme); // Generate themed styles
@@ -255,7 +254,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     emptyStateButton: {
         backgroundColor: theme.primaryColor,
-        paddingHorizontal: 24,
+        paddingHorizontal: 30,
         paddingVertical: 14,
         borderRadius: 12,
         shadowColor: theme.primaryColor,
@@ -269,7 +268,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     emptyStateButtonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 12,
         fontFamily: 'Inter-Medium',
         textAlign: 'center',
     },

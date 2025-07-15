@@ -38,7 +38,7 @@ const DiscoverScreen = () => {
             recommendations.slice(0, 3).forEach(item => {
                 if (item.thumbnail) {
                     const secureUrl = item.thumbnail.startsWith('http://') ? item.thumbnail.replace('http://', 'https://') : item.thumbnail;
-                    Image.prefetch(secureUrl).catch(() => {});
+                    Image.prefetch(secureUrl).catch(() => { });
                 }
             });
         }
@@ -50,7 +50,7 @@ const DiscoverScreen = () => {
             topPicks.slice(0, 3).forEach(item => {
                 if (item.thumbnail) {
                     const secureUrl = item.thumbnail.startsWith('http://') ? item.thumbnail.replace('http://', 'https://') : item.thumbnail;
-                    Image.prefetch(secureUrl).catch(() => {});
+                    Image.prefetch(secureUrl).catch(() => { });
                 }
             });
         }
@@ -66,10 +66,10 @@ const DiscoverScreen = () => {
     // Memoize styles and image to prevent unnecessary re-renders
     const styles = useMemo(() => getStyles(theme), [theme]);
     const topImage = useMemo(() => !isDarkMode ? discoverLight : discover1, [isDarkMode]);
-    
+
     // Memoize filtered bundles to prevent unnecessary re-computation
     const filteredBundles = useMemo(() => {
-        return bundles && Array.isArray(bundles) 
+        return bundles && Array.isArray(bundles)
             ? bundles.filter(bundle => bundle.resources && Array.isArray(bundle.resources) && bundle.resources.length > 0)
             : [];
     }, [bundles]);
@@ -118,17 +118,17 @@ const DiscoverScreen = () => {
                         data={recommendations || []}
                         renderItem={({ item, index }) => {
                             // Add logging to debug recommendations data
-                            console.log('=== Discover Recommendations Debug ===');
-                            console.log(`Recommendation ${index}:`, {
-                                id: item._id,
-                                title: item.title,
-                                type: item.type,
-                                url: item.url,
-                                thumbnail: item.thumbnail,
-                                isPremium: item.isPremium
-                            });
-                            console.log('======================================');
-                            
+                            // console.log('=== Discover Recommendations Debug ===');
+                            // console.log(`Recommendation ${index}:`, {
+                            //     id: item._id,
+                            //     title: item.title,
+                            //     type: item.type,
+                            //     url: item.url,
+                            //     thumbnail: item.thumbnail,
+                            //     isPremium: item.isPremium
+                            // });
+                            // console.log('======================================');
+
                             return (
                                 <RecommendationTile
                                     thumbnail={item.thumbnail}

@@ -13,11 +13,10 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { PieChart } from 'react-native-gifted-charts';
-import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg'; // Import Svg components
 import { back, work, checkboxChecked, checkboxUnchecked } from '../../../../assets/images';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
-import { createHabitLog, useCreateHabitLog } from '../../../../functions/habbitFunctions';
+import {  useCreateHabitLog } from '../../../../functions/habbitFunctions';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useTodaysHabits, useHabitStats } from '../../../../functions/habbitFunctions';
 import DailyBreakdownChart from '../../../../components/DailyBreakdownChart';
@@ -27,12 +26,10 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function Accountability({ navigation }) {
   const queryClient = useQueryClient();
-  const [selectedFilter, setSelectedFilter] = useState('Daily');
-  const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-  const [chartData, setChartData] = useState([]); // State for chart data
-  const filterOptions = ['Daily', 'Monthly', 'Yearly'];
+  const [localHabitState, setLocalHabitState] = useState({});
   const userId = useSelector(state => state.auth.userId);
   const dispatch = useDispatch();
+
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
   const {
@@ -59,13 +56,27 @@ export default function Accountability({ navigation }) {
   const logHabit = useCreateHabitLog();
 
   const handleLog = async (habitId) => {
+    // Optimistically mark the habit as completed
+    setLocalHabitState(prev => ({ ...prev, [habitId]: true }));
+
     const result = await logHabit({ userId, habitId });
+
     if (result?.error) {
+      setLocalHabitState(prev => ({ ...prev, [habitId]: false }));
       Alert.alert('Error', result.error);
+    } else {
+      console.log('Habit logged successfully:', result);
+      await queryClient.invalidateQueries(['todaysHabits', userId]);
+      await queryClient.invalidateQueries(['habitStats', userId]);
+
+      // Clear the local optimistic state
+      setLocalHabitState(prev => {
+        const newState = { ...prev };
+        delete newState[habitId];
+        return newState;
+      });
     }
   };
-
-
 
 
   return (
@@ -199,7 +210,7 @@ export default function Accountability({ navigation }) {
                     Start your journey by creating your first habit. Every small step counts towards your success!
                   </Text>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.createHabitButton}
                   onPress={() => navigation.navigate("Goals")}
                 >
@@ -208,39 +219,45 @@ export default function Accountability({ navigation }) {
               </View>
             </LinearGradient>
           ) : (
-            todaysHabits.map((habit) => (
-              <LinearGradient key={habit._id}
-                start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                style={styles.successTrackerItemLinearGradient}
-              >
-                <View style={styles.successTrackerItem}>
-                <View style={styles.successTrackerTextContent}>
-                  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (!habit.completedToday) {
-                          handleLog(habit._id);
-                        }
-                      }}
-                      style={styles.checkbox}
-                    >
-                      <Image
-                        source={habit.completedToday ? checkboxChecked : checkboxUnchecked}
-                        style={{ width: 16, height: 16, resizeMode: 'contain' }}
-                      />
-                    </TouchableOpacity>
-                    <Text style={styles.successTrackerTitle}>
-                      {habit.title || "Untitled Habit"}
-                    </Text>
+
+            todaysHabits.map((habit) => {
+              const isChecked = habit.completedToday || localHabitState[habit._id];
+
+              return (
+                <LinearGradient key={habit._id}
+                  start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                  colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                  style={styles.successTrackerItemLinearGradient}
+                >
+                  <View style={styles.successTrackerItem}>
+                    <View style={styles.successTrackerTextContent}>
+                      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            if (!habit.completedToday && !localHabitState[habit._id]) {
+                              handleLog(habit._id);
+                            }
+                          }}
+                          style={styles.checkbox}
+                        >
+                          <Image
+                            source={isChecked ? checkboxChecked : checkboxUnchecked}
+                            style={{ width: 16, height: 16, resizeMode: 'contain' }}
+                          />
+                        </TouchableOpacity>
+
+                        <Text style={styles.successTrackerTitle}>
+                          {habit.title || "Untitled Habit"}
+                        </Text>
+                      </View>
+                      <Text style={styles.successTrackerDescription}>
+                        {habit.description || "No description"}
+                      </Text>
+                    </View>
                   </View>
-                  <Text style={styles.successTrackerDescription}>
-                    {habit.description || "No description"}
-                  </Text>
-                </View>
-                </View>
-              </LinearGradient>
-            ))
+                </LinearGradient>
+              );
+            })
           )}
         </View>
       </ScrollView>

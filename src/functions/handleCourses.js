@@ -103,7 +103,7 @@ const fetchEnrolledCourses = async (studentId) => {
         instructorName: enrollment.instructor?.name,
         instructorExperienceLevel: enrollment.instructor?.experienceLevel,
         status: enrollment.status,
-        duration: enrollment.duration,
+        duration: enrollment.course.duration,
         paymentStatus: enrollment.paymentStatus,
         enrolledAt: enrollment.enrolledAt,
         plan: enrollment.plan,
@@ -112,7 +112,9 @@ const fetchEnrolledCourses = async (studentId) => {
 
 export const useEnrolledCourses = (studentId) => {
     const dispatch = useDispatch();
-
+    console.log('====================================');
+    console.log(studentId);
+    console.log('====================================');
     return useQuery({
         queryKey: ['enrolledCourses', studentId],
         queryFn: () => fetchEnrolledCourses(studentId),

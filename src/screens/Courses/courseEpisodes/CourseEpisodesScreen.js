@@ -230,7 +230,20 @@ const CourseEpisodesScreen = ({ route }) => {
 
                     <View style={styles.episodesList}>
                         {modules.map((episode, index) => (
-                            <TouchableOpacity key={episode.id} onPress={() => playEpisode(episode)} style={styles.episodeItem}>
+                            <TouchableOpacity key={episode.id} onPress={() =>
+                                navigation.navigate('TrackPlayer', {
+                                    AudioTitle: episode.title,
+                                    AudioDescr: episode.description || '',
+                                    Thumbnail: courseImage,
+                                    AudioUrl: episode.url,
+                                    shouldFetchTrack: true,
+                                    InstructorName: course?.instructorName,
+                                    InstructorImage: course?.instructorImage,
+                                    InstructorTag:course?.instructorExperienceLevel,
+                                    showInstructor: true,
+                                    navigationKey: Date.now(),
+                                })}
+                                style={styles.episodeItem}>
                                 <View style={styles.episodeNumberContainer}>
                                     <Text style={styles.episodeNumber}>{index + 1}</Text>
                                 </View>
@@ -268,7 +281,7 @@ const CourseEpisodesScreen = ({ route }) => {
                 </ScrollView>
 
                 {/* Mini Player */}
-                {currentEpisode && (
+                {/* {currentEpisode && (
                     <TouchableOpacity
                         style={styles.miniPlayer}
                         onPress={() =>
@@ -278,6 +291,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                 Thumbnail: courseImage,
                                 AudioUrl: currentEpisode.url,
                                 shouldFetchTrack: true, // ✅ from mini player
+                                showInstructor: true, 
                             })
                         }
                     >
@@ -299,7 +313,7 @@ const CourseEpisodesScreen = ({ route }) => {
                         </TouchableOpacity>
                     </TouchableOpacity>
                 )
-                }
+                } */}
             </SafeAreaView>
         </ImageBackground >
     );

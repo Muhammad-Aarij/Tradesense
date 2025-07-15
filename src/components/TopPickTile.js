@@ -39,7 +39,7 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                 <View style={styles.shadowOverlay} />
 
                 {/* Bottom-aligned content */}
-                <View style={{
+                <View style={{marginBottom:10,
                     flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", paddingHorizontal: 10, backgroundColor: 'rgba(0, 0, 0, 0.4)', paddingTop: 10,
                 }}>
                     <View style={styles.bottomContent}>

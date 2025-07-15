@@ -37,14 +37,15 @@ import {
   video,
   video2,
   noThumbnail,
-  back
+  back,
+  userDefault
 } from '../../assets/images';
 import theme from '../../themes/theme';
 
 const { height } = Dimensions.get('window');
 
 const PlayerScreen = ({ route }) => {
-  const { AudioTitle, AudioDescr, Thumbnail, AudioUrl, shouldFetchTrack, navigationKey } = route.params;
+  const { AudioTitle, AudioDescr, Thumbnail, AudioUrl, shouldFetchTrack, navigationKey, InstructorName, InstructorImage, InstructorTag, isShowInside } = route.params;
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -54,7 +55,7 @@ const PlayerScreen = ({ route }) => {
 
   const isPlayerSetup = useRef(false);
   const [audioLoading, setAudioLoading] = useState(true);
-  
+
   // Add logging to debug audio URL issues
   console.log('=== PlayerScreen Render Debug ===');
   console.log('AudioTitle:', AudioTitle);
@@ -65,7 +66,7 @@ const PlayerScreen = ({ route }) => {
   console.log('navigationKey:', navigationKey);
   console.log('Component render timestamp:', Date.now());
   console.log('==================================');
-  
+
   // Repeat functionality state
   const [repeatCount, setRepeatCount] = useState(0); // 0 = off, 1, 2, 7, 31
   const [currentRepeats, setCurrentRepeats] = useState(0);
@@ -127,7 +128,7 @@ const PlayerScreen = ({ route }) => {
     const currentIndex = repeatOptions.indexOf(repeatCount);
     const nextIndex = (currentIndex + 1) % repeatOptions.length;
     const nextRepeatCount = repeatOptions[nextIndex];
-    
+
     setRepeatCount(nextRepeatCount);
     setCurrentRepeats(0); // Reset current repeats when changing mode
   };
@@ -143,7 +144,7 @@ const PlayerScreen = ({ route }) => {
       console.log('Setting up player with track URL:', track.url);
       console.log('shouldFetchTrack:', shouldFetchTrack);
       console.log('=========================');
-      
+
       dispatch(startLoading());
       setAudioLoading(true);
 
@@ -163,12 +164,12 @@ const PlayerScreen = ({ route }) => {
 
       let currentTrackId = null;
       let currentTrack = null;
-      
+
       try {
         console.log('Getting current track...');
         currentTrackId = await TrackPlayer.getCurrentTrack();
         console.log('getCurrentTrack result:', currentTrackId);
-        
+
         if (currentTrackId) {
           console.log('Getting track details...');
           currentTrack = await TrackPlayer.getTrack(currentTrackId);
@@ -215,7 +216,7 @@ const PlayerScreen = ({ route }) => {
 
       if (needToLoad) {
         console.log('Loading new track...');
-        
+
         // Stop current playback first
         try {
           await TrackPlayer.stop();
@@ -223,7 +224,7 @@ const PlayerScreen = ({ route }) => {
         } catch (stopError) {
           console.log('Stop error (might be expected):', stopError.message);
         }
-        
+
         try {
           console.log('About to reset TrackPlayer...');
           await TrackPlayer.reset();
@@ -231,7 +232,7 @@ const PlayerScreen = ({ route }) => {
         } catch (resetError) {
           console.log('Reset error:', resetError);
         }
-        
+
         try {
           console.log('About to add track:', {
             id: track.id,
@@ -244,7 +245,7 @@ const PlayerScreen = ({ route }) => {
         } catch (addError) {
           console.log('Add track error:', addError);
         }
-        
+
         // Verify the track was added
         try {
           const newCurrentTrackId = await TrackPlayer.getCurrentTrack();
@@ -269,7 +270,7 @@ const PlayerScreen = ({ route }) => {
       } catch (playError) {
         console.log('Play error:', playError);
       }
-      
+
       // Final verification of what's actually playing
       try {
         const finalTrackId = await TrackPlayer.getCurrentTrack();
@@ -302,7 +303,7 @@ const PlayerScreen = ({ route }) => {
     console.log('navigationKey dependency:', navigationKey);
     console.log('About to call setupPlayer...');
     console.log('===========================');
-    
+
     // Only setup player if we need to fetch a new track or if it's a new navigation
     if (shouldFetchTrack) {
       console.log('shouldFetchTrack is true - setting up player');
@@ -353,7 +354,6 @@ const PlayerScreen = ({ route }) => {
   return (
     <ImageBackground
       source={{ uri: fallbackThumbnail }}
-      // source={require('../../assets/thumbnail2.jpg')}
       style={styles.container}
       onError={(error) => console.log('PlayerScreen background image error:', error?.nativeEvent?.error, fallbackThumbnail)}
       onLoad={() => console.log('PlayerScreen background image loaded:', fallbackThumbnail)}
@@ -362,9 +362,9 @@ const PlayerScreen = ({ route }) => {
 
       {/* Back Button */}
       <TouchableOpacity
-        style={[styles.backButton, { top: insets.top + 10 }]}
+        style={[styles.backButton, { top: insets.top + 30 }]}
         onPress={() => navigation.goBack()}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        hitSlop={{ top: 10, bottom: 10, left: 5, right: 10 }}
       >
         <Image source={back} style={styles.backIcon} />
       </TouchableOpacity>
@@ -372,33 +372,38 @@ const PlayerScreen = ({ route }) => {
       <SafeAreaView style={styles.safeAreaContent}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.albumArtContainer}>
-            {secureThumbnail && <ImageBackground
-              source={{ uri: secureThumbnail }}
-              // source={require('../../assets/thumbnail2.jpg')}
-              style={styles.albumArt}
-              onError={(error) => console.log('PlayerScreen album art error:', error?.nativeEvent?.error, secureThumbnail)}
-              onLoad={() => console.log('PlayerScreen album art loaded:', secureThumbnail)}
-            >
-              <View style={styles.albumArtOverlay}>
-                <View style={styles.artistInfo}>
-                  <Image source={user} style={styles.artistImage} />
-                  <View>
-                    <Text style={styles.artistName}>Alwin</Text>
-                    <Text style={styles.artistRole}>Mentally Relax</Text>
+            {secureThumbnail &&
+              <ImageBackground
+                source={{ uri: secureThumbnail }}
+                style={styles.albumArt}
+                onError={(error) => console.log('PlayerScreen album art error:', error?.nativeEvent?.error, secureThumbnail)}
+                onLoad={() => console.log('PlayerScreen album art loaded:', secureThumbnail)}
+              >
+
+                <View style={styles.albumArtOverlay}>
+                  <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
+                    {InstructorName &&
+                      <Image source={InstructorImage ? InstructorImage : userDefault} style={styles.artistImage} />
+                    }
+                    <View>
+                      <Text style={styles.artistName}>{InstructorName}</Text>
+                      <Text style={styles.artistRole}>{InstructorTag}</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </ImageBackground>}
+              </ImageBackground>
+            }
           </View>
 
           <View style={styles.infoContainer}>
-            {!Thumbnail && <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
-              <Image source={user} style={styles.artistImage} />
-              <View>
-                <Text style={styles.artistName}>Alwin</Text>
-                <Text style={styles.artistRole}>Mentally Relax</Text>
-              </View>
-            </View>}
+            {/* {(!Thumbnail && false) &&
+              <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
+                <Image source={InstructorImage} style={styles.artistImage} />
+                <View>
+                  <Text style={styles.artistName}>{InstructorName}</Text>
+                  <Text style={styles.artistRole}>{InstructorTag}</Text>
+                </View>
+              </View>} */}
             <Text style={styles.courseTitle}>{AudioTitle}</Text>
             <Text style={styles.courseDescription}>{AudioDescr}</Text>
           </View>
@@ -456,16 +461,19 @@ const styles = StyleSheet.create({
   },
   safeAreaContent: {
     flex: 1,
-    paddingHorizontal: 30,
+    alignItems: 'center',
+
   },
   scrollContent: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: 'center',
-    paddingBottom: 80,
     paddingHorizontal: 30,
+
   },
   albumArtContainer: {
     width: '100%',
-    height: height * 0.47,
+    height: height * 0.50,
     borderRadius: 20,
     overflow: 'hidden',
     marginTop: 20,
@@ -474,6 +482,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFF',
   },
   albumArt: {
+
     flex: 1,
     // resizeMode:"contain",
     justifyContent: 'flex-end',
@@ -585,10 +594,10 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    left: 30,
+    left: 20,
     zIndex: 1000,
-    width: 40,
-    height: 40,
+    width: 35,
+    height: 35,
     borderRadius: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',

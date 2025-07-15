@@ -5,7 +5,8 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
-  userDefault, bell, graph, circle, back
+  userDefault, bell, graph, circle, back,
+  bellWhite
 } from '../../assets/images';
 import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
@@ -19,7 +20,7 @@ const { width, height } = Dimensions.get("window");
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
-  const { theme } = useContext(ThemeContext);
+  const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = getStyles(theme);
   const { data: pillars, isLoading } = useAllPillars();
   // const [selectedFilter, setSelectedFilter] = useState('Daily');
@@ -73,7 +74,7 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
-            {/* <Image source={bell} style={styles.bell} /> */}
+            <Image source={isDarkMode ? bell : bellWhite} style={styles.bell} />
           </View>
 
           <View style={{ flexDirection: "row", width: "100%", gap: 10 }}>
@@ -200,7 +201,7 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 20,
   },
   avatar: { width: 45, height: 45, borderRadius: 8, marginRight: 10 },
-  bell: { width: 45, height: 45, resizeMode: "contain", alignSelf: 'center' },
+  bell: { width: 35, height: 35, resizeMode: "contain", alignSelf: 'center' },
   greeting: { color: theme.primaryColor, fontSize: 12, fontFamily: 'Inter-Regular' },
   username: { color: theme.textColor, fontSize: 12, fontFamily: 'Inter-Medium' },
   section: {

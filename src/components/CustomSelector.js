@@ -1,37 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import theme from '../themes/theme'; // make sure to import your theme
 import { back } from '../assets/images'; // adjust the path to your icon
+import { ThemeContext } from '../context/ThemeProvider';
 
-const CustomDropdown = ({ label, options, selectedValue, onValueChange }) => {
-    const [visible, setVisible] = useState(false);
+const CustomDropdown = ({
+    label,
+    options,
+    selectedValue,
+    onValueChange,
+    dropdownId,
+    activeDropdown,
+    setActiveDropdown
+}) => {
+    const isVisible = activeDropdown === dropdownId;
+    const { theme } = useContext(ThemeContext);
+    const styles = getStyles(theme);
 
     return (
         <View style={{ position: 'relative' }}>
             {label && <Text style={styles.label}>{label}</Text>}
             <TouchableOpacity
                 style={styles.dropdownContainer}
-                onPress={() => setVisible(!visible)}
+                onPress={() => {
+                    setActiveDropdown(isVisible ? null : dropdownId); // toggle
+                }}
             >
                 <Text style={styles.selectedText}>{selectedValue || 'Select an option'}</Text>
                 <Image
                     source={back}
                     style={{
                         ...styles.dropdownArrow,
-                        transform: [{ rotate: visible ? '90deg' : '-90deg' }],
+                        tintColor: theme.subTextColor,
+                        transform: [{ rotate: isVisible ? '90deg' : '-90deg' }],
                     }}
                 />
             </TouchableOpacity>
 
-            {visible && (
-                <View style={styles.dropdownOptions}>
+            {isVisible && (
+                <View style={[styles.dropdownOptions, { backgroundColor: theme.primaryColor }]}>
                     {options.map((option) => (
                         <TouchableOpacity
                             key={option}
                             style={styles.optionItem}
                             onPress={() => {
-                                onValueChange(option);      // ✅ select
-                                setVisible(false);          // ✅ close
+                                onValueChange(option);
+                                setActiveDropdown(null); // close after select
                             }}
                         >
                             <Text style={styles.optionText}>{option}</Text>
@@ -43,16 +56,17 @@ const CustomDropdown = ({ label, options, selectedValue, onValueChange }) => {
     );
 };
 
-const styles = StyleSheet.create({
+
+const getStyles = (theme) => StyleSheet.create({
     label: {
         fontFamily: "Inter-Medium",
-        fontSize: 13,
-        color: "#fff",
+        fontSize: 12,
+        color: theme.textColor,
         marginBottom: 5,
     },
     dropdownContainer: {
         flexDirection: 'row',
-         height: 55,
+        height: 55,
         alignItems: 'center',
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
         borderWidth: 0.9,
@@ -61,16 +75,16 @@ const styles = StyleSheet.create({
         paddingVertical: 7,
         paddingHorizontal: 12,
         justifyContent: 'space-between',
-        marginBottom:12,
+        marginBottom: 12,
     },
     selectedText: {
-        color: '#fff',
+        color: theme.subTextColor,
         fontSize: 13,
         fontFamily: 'Inter-Regular',
     },
     dropdownOptions: {
         position: 'absolute',
-        top: 73,
+        top: 85,
         left: 0,
         width: '100%',
         backgroundColor: 'rgba(255, 255, 255, 0.86)',
@@ -79,11 +93,12 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     optionItem: {
+        backgroundColor: theme.primayColor,
         paddingVertical: 12,
         paddingHorizontal: 15,
     },
     optionText: {
-        color: theme.darkBlue,
+        color: theme.textColor,
         fontSize: 12,
         fontFamily: 'Inter-Regular',
     },
