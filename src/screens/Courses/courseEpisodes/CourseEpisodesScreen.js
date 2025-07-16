@@ -29,8 +29,6 @@ const CourseEpisodesScreen = ({ route }) => {
     const { data: course, isLoading } = useCourseDetail(courseId);
     const [currentEpisode, setCurrentEpisode] = useState(null);
     const [favoriteIds, setFavoriteIds] = useState([]);
-    const playbackState = usePlaybackState();
-    const isPlaying = playbackState.state === State.Playing;
     const userId = useSelector(state => state.auth);
     const [durations, setDurations] = useState({});
     const modules = course?.courseModules || [];
@@ -239,7 +237,18 @@ const CourseEpisodesScreen = ({ route }) => {
                                     shouldFetchTrack: true,
                                     InstructorName: course?.instructorName,
                                     InstructorImage: course?.instructorImage,
-                                    InstructorTag:course?.instructorExperienceLevel,
+                                    instructorInfo: course?.instructorInfo,
+                                    instructorDescription: course?.instructorDescription,
+                                    instructorLinks: course?.instructorLinks,
+                                    InstructorTag: course?.instructorExperienceLevel,
+                                    InstructorData: {
+                                        name: course?.instructorName,
+                                        email: course?.instructorInfo,
+                                        description: course?.instructorDescription,
+                                        experienceLevel: course?.instructorExperienceLevel,
+                                        image: course?.instructorImage,
+                                        links: course?.instructorLinks
+                                    },
                                     showInstructor: true,
                                     navigationKey: Date.now(),
                                 })}

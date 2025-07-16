@@ -9,7 +9,8 @@ import {
   ImageBackground,
   Dimensions,
   StyleSheet,
-  SafeAreaView
+  SafeAreaView,
+  Pressable
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useDispatch } from 'react-redux';
@@ -38,14 +39,29 @@ import {
   video2,
   noThumbnail,
   back,
-  userDefault
+  userDefault,
+  info
 } from '../../assets/images';
 import theme from '../../themes/theme';
+import InstructorInfo from '../../components/InstructorInfo';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
 const PlayerScreen = ({ route }) => {
-  const { AudioTitle, AudioDescr, Thumbnail, AudioUrl, shouldFetchTrack, navigationKey, InstructorName, InstructorImage, InstructorTag, isShowInside } = route.params;
+  const {
+    AudioTitle,
+    AudioDescr,
+    Thumbnail,
+    AudioUrl,
+    shouldFetchTrack,
+    navigationKey,
+    InstructorName,
+    InstructorImage,
+    InstructorTag,
+    InstructorData,
+    isShowInside
+  } = route.params;
+
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -70,6 +86,7 @@ const PlayerScreen = ({ route }) => {
   // Repeat functionality state
   const [repeatCount, setRepeatCount] = useState(0); // 0 = off, 1, 2, 7, 31
   const [currentRepeats, setCurrentRepeats] = useState(0);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const repeatOptions = [0, 1, 2, 7, 31]; // 0 means off
 
   const track = {
@@ -358,6 +375,19 @@ const PlayerScreen = ({ route }) => {
       onError={(error) => console.log('PlayerScreen background image error:', error?.nativeEvent?.error, fallbackThumbnail)}
       onLoad={() => console.log('PlayerScreen background image loaded:', fallbackThumbnail)}
     >
+
+      <InstructorInfo
+        isVisible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        InstructorImage={InstructorData?.image}
+        InstructorName={InstructorData?.name}
+        InstructorTag={InstructorData?.experienceLevel}
+        instructorLinks={InstructorData?.links}
+        message="These are personalized recommendations based on your trading goals, experience level, and learning preferences. We analyze your behavior and interests to suggest the most relevant content that will help you grow as a trader."
+        position="center"
+        maxWidth={width * 0.9}
+      />
+
       <View style={styles.blurOverlay} />
 
       {/* Back Button */}
@@ -390,6 +420,11 @@ const PlayerScreen = ({ route }) => {
                       <Text style={styles.artistRole}>{InstructorTag}</Text>
                     </View>
                   </View>
+                  <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+                    {InstructorName &&
+                      <Image source={info} style={{ width: 20, height: 20, tintColor: '#FFF', marginBottom: 20, marginLeft: 10, }} />
+                    }
+                  </TouchableOpacity>
                 </View>
               </ImageBackground>
             }
@@ -495,7 +530,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flex: 1,
     padding: 15,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   artistInfo: {
     flexDirection: 'row',

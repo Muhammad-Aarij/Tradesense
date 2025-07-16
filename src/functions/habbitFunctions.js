@@ -93,26 +93,35 @@ export const useCreateHabitLog = () => {
 
 
 
-
+// Utility to get YYYY-MM-DD in UTC
+const getUTCDateString = (date = new Date()) =>
+  new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toISOString().split('T')[0];
 
 export const fetchTodaysHabits = async (userId) => {
   const { data } = await axios.get(`${API_URL}/api/habbits/${userId}`);
-  const todayISO = new Date().toLocaleDateString('en-CA'); // local date 'YYYY-MM-DD'
 
-  return data.map(habit => {
-    const hasTodayLog = habit.habitLogs?.some(log => {
-      const logDate = new Date(log.date).toLocaleDateString('en-CA');
-      console.log('Habit:', habit.title, '→ Log Date:', logDate, '→ Today:', todayISO);
-      return logDate === todayISO;
+  const todayUTC = getUTCDateString(); // 'YYYY-MM-DD'
+
+  return data
+    .filter(habit => !habit.isDeleted)
+    .map(habit => {
+      const hasTodayLog = habit.habitLogs?.some(log => {
+        const logDateUTC = getUTCDateString(new Date(log.date));
+        return logDateUTC === todayUTC;
+      });
+
+      return {
+        _id: habit._id,
+        title: habit.title,
+        description: habit.description,
+        type: habit.type,
+        progress: habit.progress,
+        isChecked: habit.isChecked,
+        completedToday: habit.isChecked,
+        expectedCount: habit.expectedCount,
+        completedCount: habit.completedCount,
+      };
     });
-
-    return {
-      _id: habit._id,
-      title: habit.title,
-      description: habit.description,
-      completedToday: hasTodayLog,
-    };
-  });
 };
 
 
@@ -123,13 +132,14 @@ export const useTodaysHabits = (userId) => {
     queryKey: ['todaysHabits', userId],
     queryFn: () => fetchTodaysHabits(userId),
     enabled: !!userId,
+    staleTime: 1000 * 60 * 60 * 6, // 6 hours
+    cacheTime: 1000 * 60 * 60 * 12, // 12 hours
     onSuccess: () => dispatch(stopLoading()),
     onError: () => dispatch(stopLoading()),
-    retry: 1,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 };
-
 
 
 

@@ -16,7 +16,7 @@ import { PieChart } from 'react-native-gifted-charts';
 import { back, work, checkboxChecked, checkboxUnchecked } from '../../../../assets/images';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
-import {  useCreateHabitLog } from '../../../../functions/habbitFunctions';
+import { useCreateHabitLog } from '../../../../functions/habbitFunctions';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useTodaysHabits, useHabitStats } from '../../../../functions/habbitFunctions';
 import DailyBreakdownChart from '../../../../components/DailyBreakdownChart';
@@ -42,6 +42,10 @@ export default function Accountability({ navigation }) {
     isLoading,
     refetch,
   } = useTodaysHabits(userId);
+  console.log('====================================');
+  console.log(todaysHabits);
+  console.log("id", userId);
+  console.log('====================================');
 
   useEffect(() => {
     (isLoading || statsLoading) ? dispatch(startLoading()) : dispatch(stopLoading());
@@ -232,19 +236,18 @@ export default function Accountability({ navigation }) {
                   <View style={styles.successTrackerItem}>
                     <View style={styles.successTrackerTextContent}>
                       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            if (!habit.completedToday && !localHabitState[habit._id]) {
-                              handleLog(habit._id);
-                            }
-                          }}
-                          style={styles.checkbox}
-                        >
-                          <Image
-                            source={isChecked ? checkboxChecked : checkboxUnchecked}
-                            style={{ width: 16, height: 16, resizeMode: 'contain' }}
-                          />
-                        </TouchableOpacity>
+                        <View style={styles.checkbox}>
+                          <TouchableOpacity
+                            disabled={isChecked}
+                            onPress={() => handleLog(habit._id)}
+                          >
+                            <Image
+                              source={isChecked ? checkboxChecked : checkboxUnchecked}
+                              style={{ width: 16, height: 16, resizeMode: 'contain' }}
+                            />
+                          </TouchableOpacity>
+                        </View>
+
 
                         <Text style={styles.successTrackerTitle}>
                           {habit.title || "Untitled Habit"}

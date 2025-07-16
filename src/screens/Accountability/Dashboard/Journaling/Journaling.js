@@ -10,7 +10,7 @@ import {
     StyleSheet,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { back } from '../../../../assets/images';
+import { addBtn, back } from '../../../../assets/images';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useUserMood, usePostMood, useUpdateMood } from '../../../../functions/MoodApi';
 import { useSelector } from 'react-redux';
@@ -86,6 +86,10 @@ const Journaling = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
+
+            <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Acc_FormData")}>
+                <Image source={addBtn} style={{ width: 35, height: 120, resizeMode: "contain" }}></Image>
+            </TouchableOpacity>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
                 {/* Gradient Card */}
@@ -217,6 +221,13 @@ const Journaling = ({ navigation }) => {
 
 const getStyles = (theme) =>
     StyleSheet.create({
+        addButton: {
+            position: "absolute",  // or "absolute" depending on environment
+            right: -20,            // ✅ pin to left edge
+            top: 300,
+            resizeMode: "contain",
+            zIndex: 1000,
+        },
         card: {
             backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderWidth: 0.9,

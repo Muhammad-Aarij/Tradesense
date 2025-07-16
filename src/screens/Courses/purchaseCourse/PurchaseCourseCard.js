@@ -72,7 +72,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                     {course.description}
                 </Text>
 
-                <StarRating rating={course.rating} theme={theme} />
+                {/* <StarRating rating={course.rating} theme={theme} /> */}
 
                 <View style={styles.instructorInfo}>
                     <View style={{ flexDirection: 'row' }}>
@@ -146,8 +146,8 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     imageWrapper: {
-        width: width * 0.38,
-        borderRadius: 12,
+        width: width * 0.32,
+        // borderRadius: 12,
         overflow: 'hidden',
         position: 'relative',
     },

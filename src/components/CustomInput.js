@@ -57,7 +57,7 @@ const CustomInput = ({
                 />
                 {icon && (
                     <TouchableOpacity onPress={onIconPress} style={styles.iconButton}>
-                        <Image source={icon} style={styles.icon} />
+                        <Image source={icon} style={[styles.icon,{tintColor:theme.subTextColor}]} />
                     </TouchableOpacity>
                 )}
             </View>

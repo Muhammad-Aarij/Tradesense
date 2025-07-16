@@ -1,24 +1,30 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
 // import { BlurView } from '@react-native-community/blur';
+import { ThemeContext } from '../context/ThemeProvider';
+
 import theme from '../themes/theme';
+import LinearGradient from 'react-native-linear-gradient';
 
 const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = true }) => {
+    const { theme, isDarkMode } = useContext(ThemeContext);
+
     return (
         <Modal transparent animationType="fade" visible={isVisible} onRequestClose={onClose}>
             <View style={styles.overlay}>
                 {/* <BlurView style={styles.blurContainer} blurType="dark" blurAmount={1} /> */}
                 <View style={styles.blurContainer} />
-                <View style={styles.modalContainer}>
+                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={[styles.modalContainer, { backgroundColor: isDarkMode ? "#080E17" : "#FFFFFF" }]}>
                     {icon && <Image source={icon} style={styles.icon} />}
-                    <Text style={styles.title}>{title}</Text>
-                    <Text style={styles.message}>{message}</Text>
+                    <Text style={{ ...styles.title, color: theme.textColor }}>{title}</Text>
+                    <Text style={{ ...styles.message, color: theme.subTextColor }}>{message}</Text>
                     {button && <TouchableOpacity onPress={onClose} style={styles.button}>
                         <Text style={styles.buttonText}>Continue</Text>
                     </TouchableOpacity>}
-                </View>
+                </LinearGradient>
             </View>
-        </Modal>
+        </Modal >
     );
 };
 
@@ -39,7 +45,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#080E17",
         paddingVertical: 30,
         paddingHorizontal: 30,
-        borderRadius: 15,
+        borderRadius: 8,
         alignItems: 'center',
         width: "80%",
     },

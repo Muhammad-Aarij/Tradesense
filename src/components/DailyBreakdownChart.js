@@ -407,7 +407,7 @@ const getStyles = (theme) =>
             width: 120,
             height: 120,
             borderRadius: 60,
-            backgroundColor: 'rgba(59, 130, 246, 0.08)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
             opacity: 0.6,
         },
         decorativeCircle2: {
@@ -447,10 +447,10 @@ const getStyles = (theme) =>
             zIndex: 1,
         },
         noDataTitle: {
-            color: '#FFFFFF',
-            fontSize: 20,
+            color: theme.subTextColor,
+            fontSize: 18,
             fontFamily: 'Inter-Bold',
-            marginBottom: 14,
+            marginBottom: 10,
             textAlign: 'center',
             letterSpacing: 0.3,
             textShadowColor: 'rgba(0, 0, 0, 0.3)',

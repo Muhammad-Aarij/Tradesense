@@ -4,7 +4,7 @@ import { play } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
 
 const { width } = Dimensions.get('window');
-const cardWidth = (width - 20 * 2 - 5) / 2;
+const cardWidth = (width - 20 * 2 - 15) / 2;
 
 const StarRating = ({ rating, theme }) => {
     const stars = [];
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     },
     imageWrapper: {
         width: '100%',
-        height: cardWidth * 0.8,
+        height: cardWidth * 1.2,
         position: 'relative',
     },
     cardImage: {

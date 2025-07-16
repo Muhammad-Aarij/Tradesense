@@ -38,6 +38,7 @@ export const useCourses = () => {
 
 const fetchCourseDetail = async (courseId) => {
     const { data } = await axios.get(`${API_URL}/api/courses/${courseId}`);
+
     return {
         Courseid: data._id,
         title: data.title,
@@ -46,11 +47,22 @@ const fetchCourseDetail = async (courseId) => {
         description: data.description,
         isPremium: data.isPremium,
         plans: data.plans || [],
+        courseModules: data.courseModules || [],
         instructorName: data.instructor?.name,
+        instructorInfo: data.instructor?.email,
+        instructorDescription: data.instructor?.description,
         instructorExperienceLevel: data.instructor?.experienceLevel,
-        courseModules: data.courseModules || []
+        instructorLinks: {
+            github: data.instructor?.links?.github || '',
+            linkedin: data.instructor?.links?.linkedin || '',
+            portfolio: data.instructor?.links?.portfolio || '',
+            instagram: data.instructor?.links?.instagram || '',
+            facebook: data.instructor?.links?.facebook || '',
+            twitter: data.instructor?.links?.twitter || ''
+        }
     };
 };
+
 
 export const useCourseDetail = (courseId) => {
     const dispatch = useDispatch();

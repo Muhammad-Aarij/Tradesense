@@ -21,16 +21,17 @@ import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { submitTradeForm } from '../../../functions/Trades';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ import theme context
+import LinearGradient from 'react-native-linear-gradient';
 
 const CustomPicker = ({ label, selectedValue, onValueChange, items, styles, theme }) => (
   <View style={styles.inputGroup}>
     <Text style={[styles.inputLabel, { color: theme.textColor }]}>{label}</Text>
-    <View style={[styles.pickerContainer,{borderColor:theme.borderColor}]}>
+    <View style={[styles.pickerContainer, { borderColor: theme.borderColor }]}>
       <Picker
         selectedValue={selectedValue}
         onValueChange={onValueChange}
-        style={[{fontSize:13,},{color:theme.textColor}]}
-        itemStyle={styles.pickerItem}
+        style={[{ fontSize: 12, }, { color: theme.textColor }]}
+        itemStyle={[styles.pickerItem, { fontSize: 6, }]}
         dropdownIconColor={theme.textColor}
       >
         {items.map((item, index) => (
@@ -179,10 +180,16 @@ export default function Acc_FormData() {
             <CustomPicker label="Emotional State" selectedValue={emotionalState} onValueChange={setEmotionalState} items={emotionalStateOptions} styles={styles} theme={theme} />
             <CustomInput label="Reflection Notes" value={reflectionNotes} onChangeText={setReflectionNotes} placeholder="What happened..." isMultiline={true} />
 
-            <TouchableOpacity style={styles.uploadButton} onPress={() => console.log('Upload chart pressed')}>
-              <Text style={styles.uploadButtonIcon}>☁️</Text>
-              <Text style={styles.uploadButtonText}>Upload chart image or screenshot</Text>
-            </TouchableOpacity>
+            <LinearGradient
+              start={{ x: 0, y: 0.95 }}
+              end={{ x: 1, y: 1 }}
+              colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}>
+
+              <TouchableOpacity style={styles.uploadButton} onPress={() => console.log('Upload chart pressed')}>
+                <Text style={styles.uploadButtonIcon}>☁️</Text>
+                <Text style={styles.uploadButtonText}>Upload chart image or screenshot</Text>
+              </TouchableOpacity>
+            </LinearGradient>
 
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
               <Text style={styles.submitButtonText}>Submit</Text>
@@ -244,8 +251,8 @@ const getStyles = (theme) =>
       alignItems: 'center',
     },
     textInputContent: {
-      color: '#fff',
-      fontFamily: 'Inter-Regular',
+      color: theme.subTextColor,
+      fontFamily: 'Inter-Medium',
       fontSize: 13,
       paddingVertical: 15,
     },
@@ -267,7 +274,7 @@ const getStyles = (theme) =>
     uploadButton: {
       backgroundColor: 'rgba(255,255,255,0.06)',
       borderWidth: 1,
-      borderColor: '#333',
+      borderColor: theme.borderColor,
       borderRadius: 8,
       paddingHorizontal: 15,
       paddingVertical: 35,
@@ -275,10 +282,10 @@ const getStyles = (theme) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    uploadButtonIcon: { fontSize: 20, color: '#FFF', marginRight: 10 },
+    uploadButtonIcon: { fontSize: 20, color: theme.textColor, marginRight: 10 },
     uploadButtonText: {
-      color: '#FFF',
-      fontSize: 13,
+      color: theme.textColor,
+       fontSize: 13,
       fontWeight: '500',
       fontFamily: 'Inter-Regular',
     },

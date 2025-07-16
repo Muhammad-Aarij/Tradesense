@@ -21,9 +21,9 @@ export const trackAffiliateVisit = async ({ referrerUserId, courseId, type = "vi
 
 
 export const sendAffiliateRequest = async (userId) => {
-    console.log('++++++++++++++++++++++++++++', );
+    console.log('++++++++++++++++++++++++++++',);
     try {
-        console.log('++++++++++++++++++++++++++++', );
+        console.log('++++++++++++++++++++++++++++',);
         console.log('Sending affiliate request for user:', userId);
 
         const response = await axios.post(`${API_URL}/api/affiliate/requests/${userId}`);
@@ -165,18 +165,31 @@ export const useAffiliateRecords = (userId) => {
 };
 
 
-
-
 export const getAffiliateRequestStatus = async (userId) => {
-    console.log('====================================');
-    console.log("Affiliate Id",userId);
-    console.log('====================================');
-  try {
-    const response = await axios.get(`${API_URL}/api/affiliate/requests/${userId}`);
-    console.log("Affiliate Status", response);
-    return response.data; // Expecting an array like [{ status: "pending" }]
-  } catch (error) {
-    console.error('Error fetching affiliate request status:', error);
-    throw error;
-  }
+    try {
+        const response = await axios.get(`${API_URL}/api/affiliate/requests/${userId}`);
+        const data = response.data;
+
+        if (Array.isArray(data) && data.length > 0) {
+            // Sort by createdAt and return the latest
+            return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error fetching affiliate request status:', error?.response?.data || error.message);
+        throw error;
+    }
+};
+
+
+
+export const useAffiliateRequestStatus = (userId) => {
+  return useQuery({
+    queryKey: ['affiliateRequestStatus', userId],
+    queryFn: () => getAffiliateRequestStatus(userId),
+    enabled: !!userId, // run only when userId exists
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
 };

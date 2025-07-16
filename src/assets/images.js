@@ -144,6 +144,12 @@ import cf3 from './cf3.png';
 import cf4 from './cf4.png';
 import dots from './dots.png';
 
+import facebook from './facebook.png';
+import instagram from './instagram.png';
+import twitter from './twitter.png';
+import linkedin from './linkedin.png';
+import addBtn from './addBtn.png';
+
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
   lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
@@ -152,5 +158,6 @@ export {
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger, dots, checkboxChecked, checkboxUnchecked,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
-  audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1, logoBlack, cf1, cf2, cf3, cf4
+  audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1, logoBlack, cf1, cf2, cf3, cf4,
+  facebook, instagram, twitter, linkedin, addBtn
 };

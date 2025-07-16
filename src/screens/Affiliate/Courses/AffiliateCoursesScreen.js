@@ -49,18 +49,24 @@ const AffiliateCoursesScreen = () => {
     const [affiliateRequestStatus, setAffiliateRequestStatus] = useState(null); // 'pending' | 'accepted' | null
 
     useEffect(() => {
-        const fetchInitial = async () => {
+        const fetchAffiliateStatus = async () => {
             try {
                 dispatch(startLoading());
 
-                const statusData = await getAffiliateRequestStatus(userId);
-                if (statusData.length > 0) {
-                    setAffiliateRequestStatus(statusData[0].status);
-                }
-
                 if (!isAffiliate) {
-                    const { affiliateCode, isAffiliate } = await getUserDetails(userId);
-                    dispatch(setAffiliateData({ isAffiliate, affiliateCode }));
+                    const statusData = await getAffiliateRequestStatus(userId);
+console.log('====================================');
+console.log('Affiliate request status:', statusData);
+console.log('====================================');
+                    if (!statusData) {
+                        setAffiliateRequestStatus(null); // Show request button
+                    } else if (statusData.status === 'pending') {
+                        setAffiliateRequestStatus('pending'); // Show pending message
+                    } else if (statusData.status === 'accepted') {
+                        // Fetch latest user details after acceptance
+                        const { affiliateCode, isAffiliate: newAffiliateStatus } = await getUserDetails(userId);
+                        dispatch(setAffiliateData({ affiliateCode, isAffiliate: newAffiliateStatus }));
+                    }
                 }
 
                 setCheckedAffiliate(true);
@@ -71,7 +77,7 @@ const AffiliateCoursesScreen = () => {
             }
         };
 
-        fetchInitial();
+        fetchAffiliateStatus();
     }, []);
 
     const handleRequestAffiliate = async () => {
@@ -124,84 +130,127 @@ const AffiliateCoursesScreen = () => {
                 />
             }
 
-            {checkedAffiliate && isAffiliate ? (
-                <FlatList
-                    data={courses}
-                    ListHeaderComponent={() => (
-                        <>
-                            <Header title="Affiliated Courses" style={{ marginBottom: 35 }} />
-                            <View style={styles.statsContainer}>
-                                <Pressable onPress={() => {
-                                    navigation.navigate("WithdrawScreen", { totalAmount: affiliateStats?.money });
-                                }}>
+            {checkedAffiliate ? (
+                isAffiliate ? (
+                    <FlatList
+                        data={courses}
+                        ListHeaderComponent={() => (
+                            <>
+                                <Header title="Affiliated Courses" style={{ marginBottom: 35 }} />
+                                <View style={styles.statsContainer}>
+                                    <Pressable onPress={() => {
+                                        navigation.navigate("WithdrawScreen", { totalAmount: affiliateStats?.money });
+                                    }}>
+                                        <LinearGradient
+                                            start={{ x: 0, y: 0.95 }}
+                                            end={{ x: 1, y: 1 }}
+                                            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                            style={styles.statCard}
+                                        >
+                                            <Text style={styles.statLabel}>${affiliateStats?.money?.toFixed(2) || '0.00'}</Text>
+                                            <Text style={styles.statValue}>Available Balance</Text>
+                                        </LinearGradient>
+                                    </Pressable>
+
                                     <LinearGradient
                                         start={{ x: 0, y: 0.95 }}
                                         end={{ x: 1, y: 1 }}
                                         colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                         style={styles.statCard}
                                     >
-                                        <Text style={styles.statLabel}>${affiliateStats?.money?.toFixed(2) || '0.00'}</Text>
-                                        <Text style={styles.statValue}>Available Balance</Text>
+                                        <Text style={styles.statLabel}>
+                                            {affiliateStats?.enrolled && affiliateStats?.visited
+                                                ? ((affiliateStats.enrolled / affiliateStats.visited) * 100).toFixed(1)
+                                                : '0'}%
+                                        </Text>
+                                        <Text style={styles.statValue}>Conversion Rate</Text>
                                     </LinearGradient>
-                                </Pressable>
 
-                                <LinearGradient
-                                    start={{ x: 0, y: 0.95 }}
-                                    end={{ x: 1, y: 1 }}
-                                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                                    style={styles.statCard}
-                                >
-                                    <Text style={styles.statLabel}>
-                                        {affiliateStats?.enrolled && affiliateStats?.visited
-                                            ? ((affiliateStats.enrolled / affiliateStats.visited) * 100).toFixed(1)
-                                            : '0'}%
+                                    <LinearGradient
+                                        start={{ x: 0, y: 0.95 }}
+                                        end={{ x: 1, y: 1 }}
+                                        colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                        style={styles.statCard}
+                                    >
+                                        <Text style={styles.statLabel}>{affiliateStats?.visited || 0}</Text>
+                                        <Text style={styles.statValue}>Views</Text>
+                                    </LinearGradient>
+
+                                    <LinearGradient
+                                        start={{ x: 0, y: 0.95 }}
+                                        end={{ x: 1, y: 1 }}
+                                        colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                        style={styles.statCard}
+                                    >
+                                        <Text style={styles.statLabel}>{affiliateStats?.enrolled || 0}</Text>
+                                        <Text style={styles.statValue}>Clicks</Text>
+                                    </LinearGradient>
+                                </View>
+
+                                <DailyBreakdownChart type='affiliate' />
+                            </>
+                        )}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item._id}
+                        contentContainerStyle={styles.listContainer}
+                        showsVerticalScrollIndicator={false}
+                    />
+                ) : (
+                    <View style={styles.noDataContainer}>
+                        <LinearGradient
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            colors={['rgba(17, 103, 177, 0.05)', 'rgba(42, 157, 244, 0.01)', 'transparent']}
+                            style={styles.noDataGradientWrapper}
+                        >
+                            <View style={styles.decorativeCircle1} />
+                            <View style={styles.decorativeCircle2} />
+
+                            <View style={styles.noDataContentContainer}>
+                                <View style={styles.noDataIconContainer}>
+                                    <Text style={styles.noDataIcon}>
+                                        {affiliateRequestStatus === 'pending' ? '⏳' : '✨'}
                                     </Text>
-                                    <Text style={styles.statValue}>Conversion Rate</Text>
-                                </LinearGradient>
+                                    <View style={styles.iconGlow} />
+                                </View>
 
-                                <LinearGradient
-                                    start={{ x: 0, y: 0.95 }}
-                                    end={{ x: 1, y: 1 }}
-                                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                                    style={styles.statCard}
-                                >
-                                    <Text style={styles.statLabel}>{affiliateStats?.visited || 0}</Text>
-                                    <Text style={styles.statValue}>Views</Text>
-                                </LinearGradient>
+                                <Text style={styles.noDataTitle}>
+                                    {affiliateRequestStatus === 'pending' ? 'Request Pending' : 'Ready to Earn'}
+                                </Text>
 
-                                <LinearGradient
-                                    start={{ x: 0, y: 0.95 }}
-                                    end={{ x: 1, y: 1 }}
-                                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                                    style={styles.statCard}
-                                >
-                                    <Text style={styles.statLabel}>{affiliateStats?.enrolled || 0}</Text>
-                                    <Text style={styles.statValue}>Clicks</Text>
-                                </LinearGradient>
+                                <Text style={styles.noDataSubtitle}>
+                                    {affiliateRequestStatus === 'pending'
+                                        ? 'Your request is under review. Please wait for approval.'
+                                        : 'Transform your passion into profit, one course at a time'}
+                                </Text>
+
+                                <View style={styles.noDataActionContainer}>
+                                    <LinearGradient
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                        colors={[theme.primaryColor, theme.primaryColor + '80']}
+                                        style={styles.noDataDot}
+                                    />
+                                    <Text style={styles.noDataMessage}>
+                                        {affiliateRequestStatus === 'pending'
+                                            ? 'You will be notified once approved to start earning.'
+                                            : 'Begin your affiliate journey and watch the magic unfold'}
+                                    </Text>
+                                </View>
+
+                                {affiliateRequestStatus !== 'pending' && (
+                                    <TouchableOpacity style={styles.requestButton} onPress={handleRequestAffiliate}>
+                                        <Text style={styles.requestButtonText}>Request Affiliate Access</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
-
-                            <DailyBreakdownChart type='affiliate' />
-                        </>
-                    )}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item._id}
-                    contentContainerStyle={styles.listContainer}
-                    showsVerticalScrollIndicator={false}
-                />
-            ) : checkedAffiliate && affiliateRequestStatus === 'pending' ? (
-                <View style={styles.messageContainer}>
-                    <Text style={styles.messageText}>
-                        Your affiliate request is pending. Please wait for approval.
-                    </Text>
-                </View>
-            ) : checkedAffiliate && !isAffiliate ? (
-                <View style={styles.messageContainer}>
-                    <Text style={styles.messageText}>You are not an affiliate yet.</Text>
-                    <TouchableOpacity style={styles.requestButton} onPress={handleRequestAffiliate}>
-                        <Text style={styles.requestButtonText}>Request Affiliate Access</Text>
-                    </TouchableOpacity>
-                </View>
+                        </LinearGradient>
+                    </View>
+                )
             ) : null}
+
+
+
         </ImageBackground>
     );
 };
@@ -226,6 +275,152 @@ const getStyles = (theme) => StyleSheet.create({
     },
     statLabel: { color: theme.textColor, fontSize: 20, fontFamily: 'Inter-SemiBold' },
     statValue: { color: theme.subTextColor, fontSize: 10, fontFamily: 'Inter-Light-BETA' },
+    noDataContainer: {
+        marginTop: width * 0.3,
+        alignSelf: "center",
+        overflow: 'hidden',
+    },
+    noDataGradientWrapper: {
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    noDataContentContainer: {
+        alignItems: 'center',
+        paddingVertical: 40,
+        paddingHorizontal: 20,
+        minHeight: 280,
+    },
+    decorativeCircle1: {
+        position: 'absolute',
+        top: -30,
+        right: -30,
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        opacity: 0.6,
+    },
+    decorativeCircle2: {
+        position: 'absolute',
+        bottom: -40,
+        left: -40,
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        backgroundColor: 'rgba(147, 51, 234, 0.06)',
+        opacity: 0.4,
+    },
+    noDataIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
+        marginBottom: 20,
+        position: 'relative',
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        marginVertical: 20,
+    },
+    iconGlow: {
+        position: 'absolute',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: theme.primaryColor,
+        opacity: 0.1,
+        zIndex: -1,
+    },
+    noDataIcon: {
+        fontSize: 36,
+        zIndex: 1,
+    },
+    noDataTitle: {
+        color: theme.subTextColor,
+        fontSize: 18,
+        fontFamily: 'Inter-Bold',
+        marginBottom: 10,
+        textAlign: 'center',
+        letterSpacing: 0.3,
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+        paddingHorizontal: 8,
+    },
+    noDataSubtitle: {
+        color: theme.subTextColor,
+        fontSize: 14,
+        fontFamily: 'Inter-Medium',
+        textAlign: 'center',
+        opacity: 0.9,
+        marginBottom: 24,
+        lineHeight: 20,
+        paddingHorizontal: 12,
+    },
+    inspirationalContainer: {
+
+        // marginBottom: 20,
+    },
+    motivationalBadge: {
+        borderRadius: 20,
+    },
+    motivationalBadgeInner: {
+        paddingVertical: 10,
+        paddingHorizontal: 18,
+        borderRadius: 20,
+        shadowColor: theme.primaryColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 6,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    motivationalText: {
+        color: '#FFFFFF',
+        fontSize: 13,
+        fontFamily: 'Inter-SemiBold',
+        textAlign: 'center',
+        letterSpacing: 0.2,
+    },
+    noDataActionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'stretch',
+        paddingHorizontal: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        paddingVertical: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        marginHorizontal: 4,
+        marginBottom: 20,
+    },
+    noDataDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginRight: 12,
+        shadowColor: theme.primaryColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.6,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    noDataMessage: {
+        color: theme.subTextColor,
+        fontSize: 13,
+        fontFamily: 'Inter-Medium',
+        textAlign: 'left',
+        lineHeight: 19,
+        opacity: 0.9,
+        flex: 1,
+        letterSpacing: 0.1,
+    },
 });
 
 export default AffiliateCoursesScreen;
