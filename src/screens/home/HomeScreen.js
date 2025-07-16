@@ -152,7 +152,7 @@ const HomeScreen = ({ navigation }) => {
                 </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => { navigation.navigate("Accountability", { screen: "Trading" }) }
+              <TouchableOpacity onPress={() => { navigation.navigate("Accountability", { screen: "Accountability" }) }
               }>
                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}

@@ -88,7 +88,7 @@ const Journaling = ({ navigation }) => {
             <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
 
             <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Acc_FormData")}>
-                <Image source={addBtn} style={{ width: 35, height: 120, resizeMode: "contain" }}></Image>
+                <Image source={addBtn} style={{ width: 35, height: 120, resizeMode: "contain", tintColor: theme.primaryColor }}></Image>
             </TouchableOpacity>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
 

@@ -127,13 +127,13 @@ const HelpCenterScreen = ({ navigation }) => {
                         source={back}
                         style={[
                           styles.faqArrow,
-                          expandedFAQ === (faq._id || index) && { transform: [{ rotate: '270deg' }] },
+                          expandedFAQ != (faq._id || index) && { transform: [{ rotate: '270deg' }] },
                         ]}
                       />
                     </TouchableOpacity>
                     {expandedFAQ === (faq._id || index) && (
                       <View style={styles.faqAnswerContainer}>
-                        <Text style={[styles.faqAnswer, { color: theme.textColor }]}>{faq.answer}</Text>
+                        <Text style={[styles.faqAnswer, { color: theme.subTextColor }]}>{faq.answer}</Text>
                       </View>
                     )}
                   </LinearGradient>
@@ -232,7 +232,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   faqQuestion: {
     fontSize: responsiveFontSize(13),
-    fontFamily: 'Inter-Light-BETA',
+    fontFamily: 'Inter-Regular',
     flex: 1,
     marginRight: responsiveWidth(10),
   },
@@ -252,7 +252,7 @@ const getStyles = (theme) => StyleSheet.create({
   faqAnswer: {
     fontSize: responsiveFontSize(13),
     paddingTop: responsiveWidth(10),
-    fontFamily: 'Inter-Thin-BETA',
+    fontFamily: 'Inter-Light-BETA',
     lineHeight: responsiveFontSize(20),
   },
   loadingContainer: {

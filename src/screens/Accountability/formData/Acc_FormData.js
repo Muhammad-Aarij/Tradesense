@@ -22,6 +22,7 @@ import { submitTradeForm } from '../../../functions/Trades';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ import theme context
 import LinearGradient from 'react-native-linear-gradient';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const CustomPicker = ({ label, selectedValue, onValueChange, items, styles, theme }) => (
   <View style={styles.inputGroup}>
@@ -198,32 +199,25 @@ export default function Acc_FormData() {
         </KeyboardAvoidingView>
       </SafeAreaView>
 
-      {/* ✅ Success Modal */}
-      <Modal transparent={true} visible={showSuccessModal} animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>✅ Trade submitted successfully!</Text>
-            <TouchableOpacity onPress={() => {
-              setShowSuccessModal(false);
-              navigation.navigate('Trading'); // 👈 change this if needed
-            }} style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Go to Trades</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {(showSuccessModal || showErrorModal) && <ConfirmationModal
+        visible={showSuccessModal || showErrorModal}
+        title={showSuccessModal ? 'Success' : 'Error'}
+        message={
+          showSuccessModal
+            ? '✅ Trade submitted successfully!'
+            : '❌ Failed to submit trade.'
+        }
+        icon={showSuccessModal ? '✅' : '❌'}
+        onClose={() => {
+          if (showSuccessModal) {
+            setShowSuccessModal(false);
+            navigation.goBack(); // Adjust screen name as needed
+          } else {
+            setShowErrorModal(false);
+          }
+        }}
+      />}
 
-      {/* ❌ Error Modal */}
-      <Modal transparent={true} visible={showErrorModal} animationType="fade">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>❌ Failed to submit trade.</Text>
-            <TouchableOpacity onPress={() => setShowErrorModal(false)} style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </ImageBackground>
   );
 }
@@ -285,7 +279,7 @@ const getStyles = (theme) =>
     uploadButtonIcon: { fontSize: 20, color: theme.textColor, marginRight: 10 },
     uploadButtonText: {
       color: theme.textColor,
-       fontSize: 13,
+      fontSize: 13,
       fontWeight: '500',
       fontFamily: 'Inter-Regular',
     },
