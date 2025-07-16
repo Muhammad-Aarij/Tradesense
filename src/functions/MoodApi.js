@@ -1,0 +1,66 @@
+
+import axios from 'axios';
+import { API_URL } from "@env"; // Ensure API_URL is in your .env file
+
+// 1. Add a new mood
+export const postMood = async ({ userId, mood }) => {
+  const response = await axios.post(`${API_URL}/api/mood`, { userId, mood });
+  return response.data;
+};
+
+// 2. Get the latest mood entry for a user
+export const getLatestMood = async (userId) => {
+  const response = await axios.get(`${API_URL}/api/mood/${userId}`);
+  const moods = response.data;
+  return moods.length ? moods[moods.length - 1] : null;
+};
+
+// 3. Update a mood by moodId
+export const updateMoodById = async ({ moodId, mood }) => {
+  const response = await axios.patch(`${API_URL}/api/mood/${moodId}`, { mood });
+  return response.data;
+};
+
+
+
+
+// hooks/useMood.js
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// ⏳ 10 hours in ms
+const TEN_HOURS = 10 * 60 * 60 * 1000;
+
+// 1. Hook to get latest mood
+export const useUserMood = (userId) => {
+  return useQuery({
+    queryKey: ['user-mood', userId],
+    queryFn: () => getLatestMood(userId),
+    enabled: !!userId,
+    staleTime: TEN_HOURS,
+    cacheTime: TEN_HOURS,
+  });
+};
+
+// 2. Hook to post a new mood
+export const usePostMood = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: postMood,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['user-mood', variables.userId]);
+    },
+  });
+};
+
+// 3. Hook to update an existing mood
+export const useUpdateMood = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateMoodById,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['user-mood', variables.userId]);
+    },
+  });
+};

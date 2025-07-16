@@ -17,9 +17,7 @@ import {
     chatbot,
     send2,
     back,
-    circle,
-    cwhite,
-    cblue
+    circle
 } from '../../../assets/images';
 import { getChatbotSessionId, sendChatbotMessage, getChatbotHistory } from '../../../functions/chatbotApi';
 import { useDispatch, useSelector } from 'react-redux';
@@ -29,9 +27,7 @@ import { ThemeContext } from '../../../context/ThemeProvider';
 
 const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
     const { partnerName } = route.params || { partnerName: 'AI Companion' };
-    const { theme, isDarkMode } = useContext(ThemeContext); // ✅ Correct location
-
-
+    const { theme, isDarkMode } = useContext(ThemeContext);
     const userId = useSelector((state) => state.auth.userId);
     const dispatch = useDispatch();
 
@@ -72,7 +68,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 
         const anim1 = createAnimation(dot1Anim, 0);
         const anim2 = createAnimation(dot2Anim, 300);
-        const anim3 = createAnimation(dot3Anim, 300);
+        const anim3 = createAnimation(dot3Anim, 600);
 
         anim1.start();
         anim2.start();
@@ -90,17 +86,6 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
             try {
                 dispatch(startLoading());
                 const newSessionId = await getChatbotSessionId();
-                if (!newSessionId) {
-                    setMessages([
-                        {
-                            id: 'error-init',
-                            text: 'Failed to start chat. Please try again later.',
-                            sender: 'partner',
-                            time: getTime()
-                        }
-                    ]);
-                    return;
-                }
                 setSessionId(newSessionId);
 
                 if (userId) {
@@ -130,15 +115,12 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                     );
                 }
             } catch (error) {
-                console.error('Chat initialization error:', error);
-                setMessages([
-                    {
-                        id: 'error-init-catch',
-                        text: 'Error connecting to chat service. Please try again.',
-                        sender: 'partner',
-                        time: getTime()
-                    }
-                ]);
+                setMessages([{
+                    id: 'error-init',
+                    text: 'Failed to start chat. Please try again later.',
+                    sender: 'partner',
+                    time: getTime()
+                }]);
             } finally {
                 dispatch(stopLoading());
             }
@@ -149,37 +131,27 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 
     const handleSendMessageToBot = useCallback(
         async (messageText) => {
-            if (!sessionId) {
-                setMessages((prev) => [
-                    ...prev,
-                    {
-                        id: `warn-${Date.now()}`,
-                        text: 'Chat not ready. Please wait or restart.',
-                        sender: 'partner',
-                        time: getTime()
-                    }
-                ]);
-                return;
-            }
+            if (!sessionId) return;
 
             setIsBotTyping(true);
-            const stopLoadingAnim = startDotAnimation();
+            const stopTypingAnim = startDotAnimation();
 
             try {
                 const botResponse = await sendChatbotMessage(sessionId, messageText, userId);
-                const responseText = botResponse || "I didn't get a clear response. Could you rephrase?";
-                setMessages((prev) => [
+                const responseText = botResponse?.response || "I didn't get a clear response. Could you rephrase?";
+                const responseTokens = botResponse?.tokens || responseText.split(" ");
+
+                setMessages(prev => [
                     ...prev,
                     {
                         id: `bot-${Date.now()}`,
-                        text: responseText,
+                        tokens: responseTokens,
                         sender: 'partner',
                         time: getTime()
                     }
                 ]);
             } catch (error) {
-                console.error('Bot error:', error);
-                setMessages((prev) => [
+                setMessages(prev => [
                     ...prev,
                     {
                         id: `bot-error-${Date.now()}`,
@@ -190,7 +162,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                 ]);
             } finally {
                 setIsBotTyping(false);
-                stopLoadingAnim();
+                stopTypingAnim();
             }
         },
         [sessionId, userId, startDotAnimation]
@@ -229,10 +201,10 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         ]
     });
 
-    const styles = getStyles(theme, isDarkMode); // ✅ pass isDarkMode too
+    const styles = getStyles(theme, isDarkMode);
 
     return (
-        <ImageBackground source={theme.bg} style={{ flex: 1 }}>
+        <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                     <View style={styles.header}>
@@ -255,16 +227,25 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                                     msg.sender === 'me' ? styles.myMessage : styles.partnerMessage
                                 ]}
                             >
-                                <Text
-                                    style={[
+                                {msg.tokens ? (
+                                    <TypewriterTokens
+                                        tokens={msg.tokens}
+                                        textStyle={[
+                                            styles.messageText,
+                                            msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
+                                        ]}
+                                    />
+                                ) : (
+                                    <Text style={[
                                         styles.messageText,
                                         msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
-                                    ]}
-                                >
-                                    {msg.text}
-                                </Text>
+                                    ]}>
+                                        {msg.text}
+                                    </Text>
+                                )}
                             </View>
                         ))}
+
                         {isBotTyping && (
                             <View style={styles.typingIndicatorContainer}>
                                 <View style={styles.partnerMessage}>
@@ -298,9 +279,34 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         </ImageBackground>
     );
 };
+const TypewriterTokens = ({ tokens, textStyle }) => {
+    const [visibleText, setVisibleText] = useState('');
+
+    useEffect(() => {
+        const fullText = tokens.join(' ');
+        let index = 0;
+
+        const interval = setInterval(() => {
+            if (index < fullText.length) {
+                setVisibleText(prev => prev + fullText[index]);
+                index++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 25); // adjust speed here (lower = faster)
+
+        return () => clearInterval(interval);
+    }, [tokens]);
+
+    return (
+        <Text style={textStyle}>
+            {visibleText}
+        </Text>
+    );
+};
+
 
 const getStyles = (theme, isDarkMode) => StyleSheet.create({
-
     container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 0 : 10 },
     header: {
         flexDirection: 'row',
@@ -352,7 +358,6 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
         backgroundColor: isDarkMode ? "#FFFFFF" : theme.borderColor,
         borderBottomLeftRadius: 5
     },
-
     messageText: { fontSize: 13 },
     myMessageText: { color: '#FFF' },
     partnerMessageText: { color: theme.textSecondaryColor },

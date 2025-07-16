@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -12,14 +12,9 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { back } from '../../../../assets/images';
 import { ThemeContext } from '../../../../context/ThemeProvider';
+import { useUserMood, usePostMood, useUpdateMood } from '../../../../functions/MoodApi';
+import { useSelector } from 'react-redux';
 
-const days = [
-    { date: '😀', day: 'Good', active: false },
-    { date: '😎', day: 'Cool', active: false },
-    { date: '😁', day: 'Happy', active: false },
-    { date: '😔', day: 'Sad', active: true },
-    { date: '😡', day: 'Angry', active: false },
-];
 
 const trades = [
     {
@@ -55,6 +50,38 @@ const trades = [
 const Journaling = ({ navigation }) => {
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
+
+    const userId = useSelector(state => state.auth.userId);
+
+    const { data: moodData } = useUserMood(userId);
+    const { mutate: postMood } = usePostMood();
+    const { mutate: updateMood } = useUpdateMood();
+
+    const [selectedMood, setSelectedMood] = useState('happy');
+
+    // mood options with emoji-to-value mapping
+    const moodOptions = [
+        { emoji: '😀', label: 'Good', value: 'good' },
+        { emoji: '😎', label: 'Cool', value: 'cool' },
+        { emoji: '😁', label: 'Happy', value: 'happy' },
+        { emoji: '😔', label: 'Sad', value: 'sad' },
+        { emoji: '😡', label: 'Angry', value: 'angry' },
+    ];
+    useEffect(() => {
+        if (moodData?.mood) {
+            setSelectedMood(moodData.mood);
+        }
+    }, [moodData]);
+
+    const handleMoodSelect = (moodValue) => {
+        setSelectedMood(moodValue);
+
+        if (moodData?._id) {
+            updateMood({ moodId: moodData._id, mood: moodValue });
+        } else {
+            postMood({ userId, mood: moodValue });
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -102,20 +129,27 @@ const Journaling = ({ navigation }) => {
 
                 {/* Feeling Today */}
                 <Text style={styles.sectionTitle}>How you're feeling Today?</Text>
+
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.daySelectorScroll}>
-                    {days.map((item, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[styles.dayButton, item.active && styles.dayButtonActive]}>
-                            <Text style={[styles.dayButtonDate, item.active && styles.dayButtonDateActive]}>
-                                {item.date}
-                            </Text>
-                            <Text style={[styles.dayButtonDay, item.active && styles.dayButtonDayActive]}>
-                                {item.day}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                    {moodOptions.map((item, index) => {
+                        const isActive = selectedMood === item.value;
+                        return (
+                            <TouchableOpacity
+                                key={index}
+                                style={[styles.dayButton, isActive && styles.dayButtonActive]}
+                                onPress={() => handleMoodSelect(item.value)}
+                            >
+                                <Text style={[styles.dayButtonDate, isActive && styles.dayButtonDateActive]}>
+                                    {item.emoji}
+                                </Text>
+                                <Text style={[styles.dayButtonDay, isActive && styles.dayButtonDayActive]}>
+                                    {item.label}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </ScrollView>
+
 
                 {/* Chart Section */}
                 <View style={styles.tradesHeader}>

@@ -107,8 +107,8 @@ export default function Accountability({ navigation }) {
         </View>
 
         {/* My Growth */}
-        <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-          colors={['rgba(126,126,126,0.25)', 'rgba(255,255,255,0)']}
+        <LinearGradient start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.1 }}
+          colors={['rgba(126, 126, 126, 0.14)', 'rgba(255,255,255,0)']}
           style={styles.myGrowthCardLinearGradient}>
           <View style={styles.myGrowthCard}>
             <Text style={styles.sectionTitle}>My Growth</Text>

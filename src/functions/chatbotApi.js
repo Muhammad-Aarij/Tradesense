@@ -15,8 +15,6 @@ export const getChatbotSessionId = async () => {
     return null;
   }
 };
-
-// 2. Send a message to the chatbot
 export const sendChatbotMessage = async (sessionId, message, userId) => {
   try {
     const response = await fetch(`${API_URL}/api/bot`, {
@@ -28,7 +26,12 @@ export const sendChatbotMessage = async (sessionId, message, userId) => {
     if (!response.ok) throw new Error("Bot message send failed");
 
     const data = await response.json();
-    return data.response || null;
+
+    // Expecting backend to return { response: "Full message", tokens: ["word1", "word2", ...] }
+    return {
+      response: data.response || "",
+      tokens: data.tokens || data.response?.split(" ") || []
+    };
   } catch (error) {
     console.error("sendChatbotMessage error:", error);
     throw error;

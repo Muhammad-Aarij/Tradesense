@@ -46,10 +46,13 @@ export default function GoalContainer({ navigation }) {
     };
 
     const handleDelete = async (id, type) => {
+        dispatch(startLoading());
         const result = await deleteGoal(id);
         if (result.error) {
+            dispatch(stopLoading());
             console.warn(`Failed to delete ${type}:`, result.error);
         } else {
+            dispatch(stopLoading());
             queryClient.invalidateQueries(['goals', userId]);
         }
     };
