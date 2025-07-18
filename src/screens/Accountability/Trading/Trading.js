@@ -33,7 +33,7 @@ const Trading = ({ navigation }) => {
     const [selectedTrade, setSelectedTrade] = useState(null);
 
     const { data: tradesData = [] } = useTradeRecords(userId);
-
+    console.log("Trades Data:", tradesData);
     const currentDate = moment();
     const [selectedMonth, setSelectedMonth] = useState(moment().startOf('month'));
     const [selectedDate, setSelectedDate] = useState(currentDate.format('YYYY-MM-DD'));
@@ -261,7 +261,7 @@ const Trading = ({ navigation }) => {
                                         >
                                             <View>
                                                 <Text style={{ color: theme.textColor, fontSize: 14, fontWeight: 'bold' }}>
-                                                    {trade.setupName}
+                                                    {trade.stockName}
                                                 </Text>
                                                 <Text
                                                     style={{
@@ -271,7 +271,7 @@ const Trading = ({ navigation }) => {
                                                         fontFamily: 'Inter-Light-BETA',
                                                     }}
                                                 >
-                                                    {trade.notes}
+                                                    {trade.tradeType}
                                                 </Text>
                                             </View>
                                             <View style={{ alignItems: 'flex-end' }}>

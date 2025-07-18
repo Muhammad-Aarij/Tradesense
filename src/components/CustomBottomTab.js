@@ -19,8 +19,8 @@ const tabItems = [
   { name: "Home", icon: homeT },
   { name: "Pillars", icon: discoverIcon },
   { name: "Accountability", icon: traderHub },
-  { name: "Sidebar", icon: menuIcon },
-  { name: "ChatBot", icon: chatbot },
+  { name: "More", icon: menuIcon }, 
+  { name: "Sense Ai", icon: chatbot },
 ];
 
 export default function CustomBottomTab({ state, descriptors, navigation }) {
@@ -177,23 +177,23 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
 
         const label =
           route.name === "Pillars" ? "Discover"
-            : route.name === "Accountability" ? "Trader Hub"
+            : route.name === "Accountability" ? "Trader's Hub"
               : route.name === "ChatBot" ? "TraderSense"
                 : route.name;
 
         // Define custom icon sizes for each specific route
         const getIconSize = (routeName) => {
           switch (routeName) {
-            case "Sidebar":
+            case "More":
               return responsiveWidth(45); // Largest for sidebar
             case "Pillars": // Discover
               return responsiveWidth(30); // Large for discover
-            case "ChatBot":
-              return responsiveWidth(35); // Large for chatbot
+            case "Sense Ai":
+              return responsiveWidth(40); // Large for chatbot
             case "Home":
               return responsiveWidth(18); // Medium for home
             case "Accountability": // Trader Hub
-              return responsiveWidth(20); // Smallest for trader hub
+              return responsiveWidth(25); // Smallest for trader hub
             default:
               return responsiveWidth(20); // Default fallback
           }
@@ -338,7 +338,7 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
     justifyContent: "center",
   },
   activeTab: {
-    paddingHorizontal: responsiveWidth(16),
+    paddingHorizontal: responsiveWidth(11),
     paddingVertical: responsiveHeight(6),
     height: responsiveHeight(40),
   },

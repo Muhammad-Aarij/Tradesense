@@ -2,18 +2,16 @@ import React, { useState, useContext } from 'react';
 import {
     View,
     Text,
-    TextInput,
     TouchableOpacity,
     StyleSheet,
     Dimensions,
     Image,
     ImageBackground,
     ScrollView,
-    Alert,
     KeyboardAvoidingView,
-    Platform
+    Platform,
 } from 'react-native';
-import { bg, G, eyeClose, secureUser, applePay } from '../../../assets/images';
+import { bg, G, eyeClose, secureUser, applePay, tick } from '../../../assets/images';
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
 import { sendOTP } from '../../../functions/otpService';
@@ -21,6 +19,7 @@ import validateUser from '../../../functions/validateUser';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,70 +35,124 @@ const SignUp = ({ navigation }) => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalMessage, setModalMessage] = useState('');
+    const [modalIcon, setModalIcon] = useState(null);
+
+    const showConfirmationModal = ({ title, message, icon }) => {
+        setModalTitle(title);
+        setModalMessage(message);
+        setModalIcon(icon);
+        setModalVisible(true);
+    };
+
     const handleSignUp = async () => {
         if (password !== confirmPassword) {
-            Alert.alert("Passwords do not match!");
+            showConfirmationModal({
+                title: 'Password Mismatch',
+                message: 'Passwords do not match!',
+                icon: tick.fail,
+            });
             return;
         }
 
-        // Basic validation
         if (!name || !phone || !email || !password) {
-            Alert.alert("Error", "Please fill in all fields");
+            showConfirmationModal({
+                title: 'Missing Fields',
+                message: 'Please fill in all fields',
+                icon: tick.fail,
+            });
             return;
         }
 
-        const userData = { name, phone, email, password, role: "user" };
+        const userData = { name, phone, email, password, role: 'user' };
 
         try {
             dispatch(startLoading());
 
-            // First, validate if user already exists
             try {
                 await validateUser(email, phone);
             } catch (validationError) {
                 dispatch(stopLoading());
-                const errorMessage = validationError?.response?.data?.message || "User validation failed";
-                
-                if (errorMessage.includes("email") && errorMessage.includes("phone")) {
-                    Alert.alert("User Already Exists", "An account with this email and phone number already exists. Please use different credentials or try logging in.");
-                } else if (errorMessage.includes("email")) {
-                    Alert.alert("Email Already Exists", "An account with this email already exists. Please use a different email or try logging in.");
-                } else if (errorMessage.includes("phone")) {
-                    Alert.alert("Phone Already Exists", "An account with this phone number already exists. Please use a different phone number or try logging in.");
+                const errorMessage = validationError?.response?.data?.message || 'User validation failed';
+
+                if (errorMessage.includes('email') && errorMessage.includes('phone')) {
+                    showConfirmationModal({
+                        title: 'User Already Exists',
+                        message: 'An account with this email and phone number already exists.',
+                        icon: tick.fail,
+                    });
+                } else if (errorMessage.includes('email')) {
+                    showConfirmationModal({
+                        title: 'Email Already Exists',
+                        message: 'An account with this email already exists.',
+                        icon: tick.fail,
+                    });
+                } else if (errorMessage.includes('phone')) {
+                    showConfirmationModal({
+                        title: 'Phone Already Exists',
+                        message: 'An account with this phone number already exists.',
+                        icon: tick.fail,
+                    });
                 } else {
-                    Alert.alert("Error", errorMessage);
+                    showConfirmationModal({
+                        title: 'Validation Error',
+                        message: errorMessage,
+                        icon: tick.fail,
+                    });
                 }
+
                 return;
             }
 
-            // If validation passes, send OTP
+            // Send OTP if validation passes
             const response = await sendOTP(email, true);
+            dispatch(stopLoading());
+
             if (response) {
-                dispatch(stopLoading());
-                navigation.navigate("EmailVerification", {
+                navigation.navigate('EmailVerification', {
                     email,
                     userData,
-                    status: "register",
+                    status: 'register',
                 });
             } else {
-                dispatch(stopLoading());
-                Alert.alert("OTP confirmation failed", "Please try again");
+                showConfirmationModal({
+                    title: 'OTP Failed',
+                    message: 'OTP confirmation failed. Please try again.',
+                    icon: tick.fail,
+                });
             }
         } catch (error) {
             dispatch(stopLoading());
-            const serverMessage =
-                error?.response?.data?.message || "Something went wrong. Please try again.";
-            Alert.alert("Error", serverMessage);
+            const serverMessage = error?.response?.data?.message || 'Something went wrong. Please try again.';
+            showConfirmationModal({
+                title: 'Error',
+                message: serverMessage,
+                icon: tick.fail,
+            });
         }
     };
 
     return (
         <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.bg }]}>
-            <KeyboardAvoidingView style={styles.keyboardAvoiding} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            {modalVisible &&
+                <ConfirmationModal
+                    visible={modalVisible}
+                    title={modalTitle}
+                    message={modalMessage}
+                    icon={modalIcon}
+                    onClose={() => setModalVisible(false)}
+                />}
+
+            <KeyboardAvoidingView
+                style={styles.keyboardAvoiding}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
                 <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     <Image source={secureUser} style={styles.image} />
 
-                    <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.isDarkMode : "white" }]}>
+                    <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.isDarkMode : 'white' }]}>
                         <Text style={[styles.title, { color: theme.textColor }]}>Register Now</Text>
                         <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Create a new account</Text>
 
@@ -136,7 +189,8 @@ const SignUp = ({ navigation }) => {
 
                         <View style={styles.orContainer}>
                             <LinearGradient
-                                start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
+                                start={{ x: 0.0, y: 0.95 }}
+                                end={{ x: 1.0, y: 1.0 }}
                                 colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
                                 style={styles.Line}
                             />
@@ -176,6 +230,7 @@ const SignUp = ({ navigation }) => {
         </ImageBackground>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

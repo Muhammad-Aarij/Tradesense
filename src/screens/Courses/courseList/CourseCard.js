@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { play } from '../../../assets/images';
+import { play, userBlue } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
 
 const { width } = Dimensions.get('window');
@@ -19,7 +19,7 @@ const StarRating = ({ rating, theme }) => {
         );
     }
     return <View style={styles.starContainer}>{stars}</View>;
-}; 
+};
 
 const CourseCard = ({
     imageSource,
@@ -46,11 +46,13 @@ const CourseCard = ({
             <View style={styles.content}>
                 <Text style={[styles.title, { color: theme.textColor }]} numberOfLines={1}>{title}</Text>
                 <Text style={[styles.description, { color: theme.subTextColor }]} numberOfLines={2}>{description}</Text>
-                <StarRating rating={rating} theme={theme} />
+                {/* <StarRating rating={rating} theme={theme} /> */}
                 <View style={{ flex: 1, }} />
                 <View style={styles.footer}>
                     <View style={styles.profileInfo}>
-                        <Image source={profileImage} style={styles.profileImage} />
+                        <Image
+                            source={profileImage ? { uri: `https://trade-sense-app-backend.onrender.com/${profileImage}` } : userBlue}
+                            style={styles.profileImage} />
                         <View>
                             <Text style={[styles.profileName, { color: theme.primaryColor }]}>{profileName}</Text>
                         </View>

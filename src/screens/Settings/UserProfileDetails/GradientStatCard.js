@@ -28,7 +28,7 @@ const getStyles = (theme) => StyleSheet.create({
     card: {
         // backgroundColor: 'rgba(255, 255, 255, 0.06)',
         borderColor: theme.borderColor,
-        borderWidth: 1.5,
+        // borderWidth: 1.5,
         borderRadius: scale(12),
         paddingVertical: verticalScale(15),
         paddingHorizontal: scale(5),

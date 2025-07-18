@@ -65,7 +65,7 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
           <Image
             source={type === 'audio' ? audioNew : videoNew}
             style={{ width: 15, height: 15, resizeMode: "contain" }}
-          />
+          /> 
           <Text style={{
             fontSize: 9,
             fontFamily: "Inter-Medium",

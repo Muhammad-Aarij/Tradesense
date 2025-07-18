@@ -29,6 +29,7 @@ import uncheck from './uncheck.png'
 import home from './home.png'
 import scholar from './scholar.png'
 import care from './care.png'
+import cardd from './cardd.png'
 import book from './book.png'
 import video from './video.png'
 import user from './user.png'
@@ -149,6 +150,7 @@ import instagram from './instagram.png';
 import twitter from './twitter.png';
 import linkedin from './linkedin.png';
 import addBtn from './addBtn.png';
+import userBlue from './userBlue.png';
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
@@ -159,5 +161,5 @@ export {
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger, dots, checkboxChecked, checkboxUnchecked,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
   audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1, logoBlack, cf1, cf2, cf3, cf4,
-  facebook, instagram, twitter, linkedin, addBtn
+  facebook, instagram, twitter, linkedin, addBtn, userBlue, cardd
 };

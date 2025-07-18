@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import { useNavigation } from '@react-navigation/native';
-import { bg, heart, heartOutline, mountain, pause, play, stop, user } from '../../../assets/images';
+import { bg, heart, heartOutline, mountain, pause, play, stop, user, userBlue } from '../../../assets/images';
 import Sound from 'react-native-sound';
 import theme from '../../../themes/theme';
 import Header from '../../../components/Header';
@@ -208,7 +208,9 @@ const CourseEpisodesScreen = ({ route }) => {
                                     <Text style={styles.timeBadgeText}>15min</Text>
                                 </View> */}
                                 <View style={styles.instructorInfo}>
-                                    <Image source={user} style={styles.instructorImage} />
+                                    <Image
+                                        source={course?.instructorImage ? { uri: `https://trade-sense-app-backend.onrender.com/${course.instructorImage}` } : userBlue}
+                                        style={styles.instructorImage} />
                                     <View>
                                         <Text style={styles.instructorName}>{course?.instructorName}</Text>
                                         <Text style={styles.instructorSubtitle}>{course?.instructorExperienceLevel}</Text>
@@ -235,12 +237,12 @@ const CourseEpisodesScreen = ({ route }) => {
                                     Thumbnail: courseImage,
                                     AudioUrl: episode.url,
                                     shouldFetchTrack: true,
-                                    InstructorName: course?.instructorName,
-                                    InstructorImage: course?.instructorImage,
-                                    instructorInfo: course?.instructorInfo,
-                                    instructorDescription: course?.instructorDescription,
-                                    instructorLinks: course?.instructorLinks,
-                                    InstructorTag: course?.instructorExperienceLevel,
+                                    // InstructorName: course?.instructorName,
+                                    // InstructorImage: course?.instructorImage,
+                                    // instructorInfo: course?.instructorInfo,
+                                    // instructorDescription: course?.instructorDescription,
+                                    // instructorLinks: course?.instructorLinks,
+                                    // InstructorTag: course?.instructorExperienceLevel,
                                     InstructorData: {
                                         name: course?.instructorName,
                                         email: course?.instructorInfo,
@@ -371,7 +373,7 @@ const styles = StyleSheet.create({
     },
     overlayTop: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         alignItems: 'flex-end',
     },
     timeBadge: {

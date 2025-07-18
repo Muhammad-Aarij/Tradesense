@@ -10,8 +10,9 @@ import {
     KeyboardAvoidingView,
     Platform,
     ImageBackground,
-    Animated
+    Keyboard // Import Keyboard for keyboard events
 } from 'react-native';
+import LottieView from 'lottie-react-native';
 import {
     bg,
     chatbot,
@@ -24,22 +25,26 @@ import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import typing from '../../../assets/typing.json' // Assuming this is your typing Lottie animation
+
+// Assuming your Lottie animation JSON files are located here
+const LOADING_ANIMATION = typing; // <<< IMPORTANT: Update this path
 
 const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
     const { partnerName } = route.params || { partnerName: 'AI Companion' };
     const { theme, isDarkMode } = useContext(ThemeContext);
     const userId = useSelector((state) => state.auth.userId);
     const dispatch = useDispatch();
+    const isLoading = useSelector((state) => state.loader.isLoading);
 
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [sessionId, setSessionId] = useState(null);
     const [isBotTyping, setIsBotTyping] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0); // State to track keyboard height
     const scrollViewRef = useRef();
-
-    const dot1Anim = useRef(new Animated.Value(0)).current;
-    const dot2Anim = useRef(new Animated.Value(0)).current;
-    const dot3Anim = useRef(new Animated.Value(0)).current;
+    const lottieLoadingRef = useRef(null);
+    const lottieTypingRef = useRef(null);
 
     const getTime = () =>
         new Date().toLocaleTimeString('en-US', {
@@ -47,39 +52,6 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
             minute: '2-digit',
             hour12: true
         });
-
-    const startDotAnimation = useCallback(() => {
-        const createAnimation = (dotAnim, delay) =>
-            Animated.loop(
-                Animated.sequence([
-                    Animated.timing(dotAnim, {
-                        toValue: 1,
-                        duration: 300,
-                        delay,
-                        useNativeDriver: true
-                    }),
-                    Animated.timing(dotAnim, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true
-                    })
-                ])
-            );
-
-        const anim1 = createAnimation(dot1Anim, 0);
-        const anim2 = createAnimation(dot2Anim, 300);
-        const anim3 = createAnimation(dot3Anim, 600);
-
-        anim1.start();
-        anim2.start();
-        anim3.start();
-
-        return () => {
-            anim1.stop();
-            anim2.stop();
-            anim3.stop();
-        };
-    }, [dot1Anim, dot2Anim, dot3Anim]);
 
     useEffect(() => {
         const initializeChat = async () => {
@@ -115,6 +87,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                     );
                 }
             } catch (error) {
+                console.error("Chat initialization error:", error);
                 setMessages([{
                     id: 'error-init',
                     text: 'Failed to start chat. Please try again later.',
@@ -127,19 +100,37 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         };
 
         initializeChat();
-    }, [userId]);
+
+        // Keyboard listeners for dynamic marginBottom
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            (e) => {
+                setKeyboardHeight(e.endCoordinates.height);
+            }
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => {
+                setKeyboardHeight(0);
+            }
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, [userId, dispatch]);
 
     const handleSendMessageToBot = useCallback(
         async (messageText) => {
             if (!sessionId) return;
 
             setIsBotTyping(true);
-            const stopTypingAnim = startDotAnimation();
 
             try {
                 const botResponse = await sendChatbotMessage(sessionId, messageText, userId);
                 const responseText = botResponse?.response || "I didn't get a clear response. Could you rephrase?";
-                const responseTokens = botResponse?.tokens || responseText.split(" ");
+                const responseTokens = responseText.split(" ");
 
                 setMessages(prev => [
                     ...prev,
@@ -151,6 +142,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                     }
                 ]);
             } catch (error) {
+                console.error("Error sending message to bot:", error);
                 setMessages(prev => [
                     ...prev,
                     {
@@ -162,10 +154,9 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                 ]);
             } finally {
                 setIsBotTyping(false);
-                stopTypingAnim();
             }
         },
-        [sessionId, userId, startDotAnimation]
+        [sessionId, userId]
     );
 
     const handleUserSendMessage = () => {
@@ -190,123 +181,145 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         }, 100);
     }, [messages, isBotTyping]);
 
-    const getDotStyle = (animValue) => ({
-        transform: [
-            {
-                translateY: animValue.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [0, -3, 0]
-                })
-            }
-        ]
-    });
-
-    const styles = getStyles(theme, isDarkMode);
+    const styles = getStyles(theme, isDarkMode, keyboardHeight); // Pass keyboardHeight to styles
 
     return (
         <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                     <View style={styles.header}>
+                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                            <Image source={back} style={styles.backIcon} />
+                        </TouchableOpacity>
                         <View style={styles.partnerHeaderInfo}>
                             <Image source={chatbot} style={styles.partnerAvatar} />
                             <Text style={styles.partnerName}>{partnerName}</Text>
                         </View>
                     </View>
 
-                    <ScrollView
-                        ref={scrollViewRef}
-                        contentContainerStyle={styles.messagesContainer}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        {messages.map((msg) => (
-                            <View
-                                key={msg.id}
-                                style={[
-                                    styles.messageBubble,
-                                    msg.sender === 'me' ? styles.myMessage : styles.partnerMessage
-                                ]}
+                    {(
+                        <>
+                            <ScrollView
+                                ref={scrollViewRef}
+                                contentContainerStyle={styles.messagesContainer}
+                                showsVerticalScrollIndicator={false}
                             >
-                                {msg.tokens ? (
-                                    <TypewriterTokens
-                                        tokens={msg.tokens}
-                                        textStyle={[
-                                            styles.messageText,
-                                            msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
+                                {messages.map((msg) => (
+                                    <View
+                                        key={msg.id}
+                                        style={[
+                                            styles.messageBubble,
+                                            msg.sender === 'me' ? styles.myMessage : styles.partnerMessage
                                         ]}
-                                    />
-                                ) : (
-                                    <Text style={[
-                                        styles.messageText,
-                                        msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
-                                    ]}>
-                                        {msg.text}
-                                    </Text>
-                                )}
-                            </View>
-                        ))}
-
-                        {isBotTyping && (
-                            <View style={styles.typingIndicatorContainer}>
-                                <View style={styles.partnerMessage}>
-                                    <View style={styles.typingDotsWrapper}>
-                                        <Animated.Image style={[styles.typingDot, getDotStyle(dot1Anim)]} source={circle} />
-                                        <Animated.Image style={[styles.typingDot, getDotStyle(dot2Anim)]} source={circle} />
-                                        <Animated.Image style={[styles.typingDot, getDotStyle(dot3Anim)]} source={circle} />
+                                    >
+                                        {msg.tokens ? (
+                                            <TypewriterTokens
+                                                tokens={msg.tokens}
+                                                textStyle={[
+                                                    styles.messageText,
+                                                    msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
+                                                ]}
+                                            />
+                                        ) : (
+                                            <Text style={[
+                                                styles.messageText,
+                                                msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
+                                            ]}>
+                                                {msg.text}
+                                            </Text>
+                                        )}
                                     </View>
-                                </View>
-                            </View>
-                        )}
-                    </ScrollView>
+                                ))}
 
-                    <View style={styles.inputContainer}>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholder="Type your message"
-                            placeholderTextColor={theme.subTextColor}
-                            value={newMessage}
-                            onChangeText={setNewMessage}
-                            onSubmitEditing={handleUserSendMessage}
-                            multiline={false}
-                            editable={!isBotTyping}
-                        />
-                        <TouchableOpacity onPress={handleUserSendMessage} style={styles.sendButton} disabled={isBotTyping}>
-                            <Image source={send2} style={{ width: 25, height: 25, resizeMode: 'contain' }} />
-                        </TouchableOpacity>
-                    </View>
+                                {isBotTyping && (
+                                    <View style={styles.typingIndicatorContainer}>
+                                        <View style={styles.partnerMessage}>
+                                            <LottieView
+                                                ref={lottieTypingRef}
+                                                source={typing}
+                                                autoPlay
+                                                loop
+                                                style={styles.typingLottieAnimation}
+                                            />
+                                        </View>
+                                    </View>
+                                )}
+                            </ScrollView>
+
+                            <View style={styles.inputContainer}>
+                                <TextInput
+                                    style={styles.textInput}
+                                    placeholder="Type your message"
+                                    placeholderTextColor={theme.subTextColor}
+                                    value={newMessage}
+                                    onChangeText={setNewMessage}
+                                    onSubmitEditing={handleUserSendMessage}
+                                    multiline={false}
+                                    editable={!isBotTyping}
+                                />
+                                <TouchableOpacity onPress={handleUserSendMessage} style={styles.sendButton} disabled={isBotTyping}>
+                                    <Image source={send2} style={{ width: 25, height: 25, resizeMode: 'contain' }} />
+                                </TouchableOpacity>
+                            </View>
+                        </>
+                    )}
                 </KeyboardAvoidingView>
             </SafeAreaView>
         </ImageBackground>
     );
 };
+
 const TypewriterTokens = ({ tokens, textStyle }) => {
-    const [visibleText, setVisibleText] = useState('');
+    const [visibleLines, setVisibleLines] = useState([]);
 
     useEffect(() => {
         const fullText = tokens.join(' ');
-        let index = 0;
 
-        const interval = setInterval(() => {
-            if (index < fullText.length) {
-                setVisibleText(prev => prev + fullText[index]);
-                index++;
+        const lines = fullText.split(/\n|(?=\d+\.\s)/g).map(line => line.trim());
+
+        let currentLine = 0;
+        let charIndex = 0;
+        let currentText = '';
+
+        const typeNextChar = () => {
+            if (currentLine >= lines.length) return;
+
+            if (charIndex < lines[currentLine].length) {
+                currentText += lines[currentLine][charIndex];
+                charIndex++;
+
+                setVisibleLines(prev => {
+                    const updated = [...prev];
+                    while (updated.length < lines.length) updated.push('');
+                    updated[currentLine] = currentText;
+                    return updated;
+                });
             } else {
-                clearInterval(interval);
+                currentLine++;
+                charIndex = 0;
+                currentText = '';
             }
-        }, 25); // adjust speed here (lower = faster)
+        };
+
+        const interval = setInterval(typeNextChar, 25);
+        setVisibleLines(['']);
 
         return () => clearInterval(interval);
     }, [tokens]);
 
     return (
-        <Text style={textStyle}>
-            {visibleText}
-        </Text>
+        <View>
+            {visibleLines.map((line, idx) => (
+                <Text key={idx} style={textStyle}>
+                    {line}
+                </Text>
+            ))}
+        </View>
     );
 };
 
 
-const getStyles = (theme, isDarkMode) => StyleSheet.create({
+const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 0 : 10 },
     header: {
         flexDirection: 'row',
@@ -315,6 +328,16 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
         paddingVertical: 15,
         borderBottomWidth: 1,
         borderBottomColor: theme.borderColor
+    },
+    backButton: {
+        marginRight: 10,
+        padding: 5,
+    },
+    backIcon: {
+        width: 20,
+        height: 20,
+        resizeMode: 'contain',
+        tintColor: theme.textColor,
     },
     partnerHeaderInfo: {
         flexDirection: 'row',
@@ -337,34 +360,40 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
     messagesContainer: {
         flexGrow: 1,
         paddingTop: 30,
-        paddingHorizontal: 25,
-        paddingVertical: 10
+        paddingHorizontal: 20,
+        paddingVertical: 10,
     },
     messageBubble: {
         maxWidth: '80%',
-        borderRadius: 20,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        marginBottom: 13
+        marginBottom: 13,
     },
     myMessage: {
-        marginRight: 10,
+        marginRight: 0,
         alignSelf: 'flex-end',
         backgroundColor: theme.primaryColor,
-        borderBottomRightRadius: 5
+        borderRadius: 20,
+        borderBottomRightRadius: 5,
+        paddingHorizontal: 20, // Explicit padding
+        paddingVertical: 10,   // Explicit padding
     },
     partnerMessage: {
         alignSelf: 'flex-start',
         backgroundColor: isDarkMode ? "#FFFFFF" : theme.borderColor,
-        borderBottomLeftRadius: 5
+        borderRadius: 20,
+        borderBottomLeftRadius: 5,
+        paddingHorizontal: 20, // Explicit padding
+        paddingVertical: 10,   // Explicit padding
     },
     messageText: { fontSize: 13 },
     myMessageText: { color: '#FFF' },
-    partnerMessageText: { color: theme.textSecondaryColor },
+    partnerMessageText: {
+        color: !isDarkMode ? theme.subTextColor : 'black',
+    },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: Platform.OS === 'ios' ? "16%" : 95,
+        // Dynamic marginBottom based on keyboardHeight
+        marginBottom: Platform.OS === 'ios' ? "16%" : (keyboardHeight > 0 ? 130 : 95),
         paddingHorizontal: 15,
         paddingVertical: 5,
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -389,21 +418,27 @@ const getStyles = (theme, isDarkMode) => StyleSheet.create({
     },
     typingIndicatorContainer: {
         alignSelf: 'flex-start',
-        marginBottom: 13
+        marginBottom: 13,
     },
-    typingDotsWrapper: {
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        gap: 5
+    typingLottieAnimation: {
+        width: 60,
+        height: 40,
     },
-    typingDot: {
-        fontSize: 20,
-        lineHeight: 18,
-        color: 'gray',
-        marginHorizontal: -2
-    }
+    lottieContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    lottieAnimation: {
+        width: 150,
+        height: 150,
+    },
+    loadingText: {
+        color: theme.subTextColor,
+        marginTop: 10,
+        fontSize: 16,
+    },
 });
 
 export default AccountabilityPartnerChatScreen;

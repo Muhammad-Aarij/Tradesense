@@ -15,8 +15,10 @@ import Header from '../../../components/Header';
 import GradientStatCard from './GradientStatCard';
 import { useSelector } from 'react-redux';
 import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ Correct theme context
-
+import { useAffiliateStats } from '../../../functions/affiliateApi';
+import { useHabitStats } from '../../../functions/habbitFunctions';
 const { width, height } = Dimensions.get('window');
+
 const scale = (size) => (width / 375) * size;
 const verticalScale = (size) => (height / 812) * size;
 
@@ -24,8 +26,12 @@ const UserProfileDetailsScreen = () => {
   const { theme } = useContext(ThemeContext); // ✅ use dynamic theme
   const styles = getStyles(theme);
   const profilePic = useSelector(state => state.auth.userObject?.profilePic);
-
   const name = useSelector(state => state.auth.userObject?.name);
+  const userId = useSelector(state => state.auth.userId);
+  const { data: affiliateStats = { enrolled: 0, money: 0, visited: 0 } } = useAffiliateStats(userId);
+  const { data: habitStats = { total: 0, completed: 0, pending: 0, streak: 0 } } = useHabitStats(userId);
+
+
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning! ☀️';
@@ -68,28 +74,39 @@ const UserProfileDetailsScreen = () => {
             </View>
 
             {/* Stats */}
-            <View style={styles.statsContainer}>
+            {/* <View style={styles.statsContainer}>
               <GradientStatCard value={userData.totalSessions} label="Total Streaks" />
               <GradientStatCard value={userData.totalTime} label="Total Time Spend" />
-              {/* <GradientStatCard value={userData.totalCourses} label="Total Courses" /> */}
+            </View> */}
+
+            <Text style={styles.progressTitle}>Goal Statistics</Text>
+            <View style={styles.statsContainer}>
+              <GradientStatCard value={habitStats.streak} label="Streak" />
+            </View>
+            <View style={styles.statsContainer}>
+              <GradientStatCard value={habitStats.total} label="Total" />
+              <GradientStatCard value={habitStats.completed} label="Completed" />
+              <GradientStatCard value={habitStats.pending} label="Pending" />
             </View>
 
-            {/* Streaks */}
-            <View style={styles.progressSection}>
-              <Text style={styles.progressTitle}>Days Learning Streak</Text>
-              <View style={styles.streakCardsRow}>
-                <GradientStatCard value={userData.daysLearningStreak} label="Current" />
-                <GradientStatCard value={userData.daysLearningStreakTarget} label="Target" />
-              </View>
+
+            <Text style={styles.progressTitle}>Affiliate Statistics</Text>
+            <View style={styles.statsContainer}>
+              <GradientStatCard value={affiliateStats.visited} label="Visits" />
+              <GradientStatCard value={affiliateStats.enrolled} label="Enrolled" />
+            </View>
+            <View style={styles.statsContainer}>
+              <GradientStatCard value={`$${affiliateStats.money}`} label="Earnings" />
+              <GradientStatCard
+                value={
+                  affiliateStats.visited
+                    ? affiliateStats.enrolled / affiliateStats.visited
+                    : 0
+                }
+                label="Conversion Rate"
+              />
             </View>
 
-            <View style={styles.progressSection}>
-              <Text style={styles.progressTitle}>Weeks Learning Streak</Text>
-              <View style={styles.streakCardsRow}>
-                <GradientStatCard value={userData.weeksLearningStreak} label="Current" />
-                <GradientStatCard value={userData.weeksLearningStreakTarget} label="Target" />
-              </View>
-            </View>
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -162,7 +179,7 @@ const getStyles = (theme) => StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: verticalScale(30),
+    marginBottom: verticalScale(10),
     gap: scale(8),
   },
   progressSection: {
@@ -172,7 +189,7 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: scale(14),
     color: theme.textColor,
     fontFamily: 'Inter-Medium',
-    marginBottom: verticalScale(15),
+    marginVertical: verticalScale(15),
   },
   streakCardsRow: {
     flexDirection: 'row',

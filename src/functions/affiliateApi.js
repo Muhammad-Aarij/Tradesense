@@ -19,14 +19,11 @@ export const trackAffiliateVisit = async ({ referrerUserId, courseId, type = "vi
     }
 };
 
-
 export const sendAffiliateRequest = async (userId) => {
-    console.log('++++++++++++++++++++++++++++',);
     try {
-        console.log('++++++++++++++++++++++++++++',);
         console.log('Sending affiliate request for user:', userId);
 
-        const response = await axios.post(`${API_URL}/api/affiliate/requests/${userId}`);
+        const response = await axios.post(`${API_URL}/api/affiliate/requests`, { userId });
 
         console.log('Affiliate request sent:', response.data);
         return response.data;
@@ -35,6 +32,7 @@ export const sendAffiliateRequest = async (userId) => {
         throw error;
     }
 };
+
 
 
 export const getUserDetails = async (userId) => {
@@ -90,35 +88,34 @@ export const createPayment = async ({ userId, type, amount, accountNumber }) => 
     }
 };
 
-// GET: Fetch all payments
-export const fetchPayments = async () => {
+export const fetchPayments = async (userId) => {
     try {
-        const { data } = await axios.get(`${API_URL}/api/payment`);
+        const { data } = await axios.get(`${API_URL}/api/payment/${userId}`);
+        console.log("✅ Payments fetched:", data);
         return data?.payments || [];
     } catch (error) {
         const message = error?.response?.data?.message || error.message;
-        console.error('Error fetching payments:', message);
+        console.error('❌ Error fetching payments:', message);
         throw new Error(message);
     }
 };
 
-
-
-export const usePayments = () => {
+export const usePayments = (userId) => {
     const dispatch = useDispatch();
 
+    console.log("🟡 Fetching payments for userId:", userId);
+
     return useQuery({
-        queryKey: ['payments'],
-        queryFn: fetchPayments,
-        staleTime: 5 * 60 * 1000, // cache for 5 minutes
+        queryKey: ['payments', userId],
+        queryFn: () => fetchPayments(userId), // ✅ call fetchPayments with userId explicitly
+        enabled: !!userId, // ✅ Only fetch if userId is available
+        staleTime: 5 * 60 * 1000,
         retry: 2,
         refetchOnWindowFocus: false,
         onSuccess: () => dispatch(stopLoading()),
         onError: () => dispatch(stopLoading()),
     });
 };
-
-
 export const useCreatePayment = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -185,11 +182,11 @@ export const getAffiliateRequestStatus = async (userId) => {
 
 
 export const useAffiliateRequestStatus = (userId) => {
-  return useQuery({
-    queryKey: ['affiliateRequestStatus', userId],
-    queryFn: () => getAffiliateRequestStatus(userId),
-    enabled: !!userId, // run only when userId exists
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
+    return useQuery({
+        queryKey: ['affiliateRequestStatus', userId],
+        queryFn: () => getAffiliateRequestStatus(userId),
+        enabled: !!userId, // run only when userId exists
+        retry: 1,
+        refetchOnWindowFocus: false,
+    });
 };

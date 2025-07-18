@@ -6,12 +6,13 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
         kotlinVersion = "1.9.25"
-        hermesEnabled = false
+        hermesEnabled = true
     }
     repositories {
         google()
         mavenCentral()
     }
+    
     dependencies {
         classpath("com.android.tools.build:gradle:8.4.0") // ✅ set version
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.25")

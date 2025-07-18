@@ -12,7 +12,16 @@ export const postMood = async ({ userId, mood }) => {
 export const getLatestMood = async (userId) => {
   const response = await axios.get(`${API_URL}/api/mood/${userId}`);
   const moods = response.data;
+  console.log('Latest moods:', moods); // Debug log to check fetched moods
   return moods.length ? moods[moods.length - 1] : null;
+};
+
+
+export const getAllMoods = async (userId) => {
+  const response = await axios.get(`${API_URL}/api/mood/${userId}`);
+  const moods = response.data;
+  console.log('All moods:', moods);
+  return moods || [];
 };
 
 // 3. Update a mood by moodId
@@ -30,6 +39,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 // ⏳ 10 hours in ms
 const TEN_HOURS = 10 * 60 * 60 * 1000;
 
+
+
+export const useAllMoods = (userId) => {
+  return useQuery({
+    queryKey: ['all-moods', userId],
+    queryFn: () => getAllMoods(userId),
+    enabled: !!userId,
+    staleTime: TEN_HOURS,
+    cacheTime: TEN_HOURS,
+  });
+};
 // 1. Hook to get latest mood
 export const useUserMood = (userId) => {
   return useQuery({

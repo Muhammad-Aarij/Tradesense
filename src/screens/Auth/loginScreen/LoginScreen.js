@@ -11,8 +11,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+loginUser
+// import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
 import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
-import loginApi from '../../../functions/auth';
+import { loginApi, googleLoginApi } from '../../../functions/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Snackbar from 'react-native-snackbar';
 import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from '@env';
@@ -63,14 +65,12 @@ const LoginScreen = ({ navigation, route }) => {
 
             const data = await loginApi(username, password);
             const answers = data.user?.questionnaireAnswers;
-            // console.log(data.user);
-            const isProfilingPending = !answers || // undefined/null
-                (typeof answers === 'object' &&
-                    Object.keys(answers).length === 0) || // empty object
-                (typeof answers === 'object' &&
-                    Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0)); // all arrays empty
 
-            // ✅ FIRST: Check if pending deep link
+            const isProfilingPending =
+                !answers ||
+                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
+                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
+
             if (pendingDeepLink) {
                 await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
                 if (!isProfilingPending) {
@@ -80,27 +80,31 @@ const LoginScreen = ({ navigation, route }) => {
                     courseId: pendingDeepLink.courseId,
                     affiliateToken: pendingDeepLink.token,
                 });
-            }
-            else if (isProfilingPending) {
-
+            } else if (isProfilingPending) {
                 console.log("Profiling Pending → Navigating to GenderScreen");
                 navigation.replace("GenderScreen", {
                     user: data.user,
                     token: data.token,
                 });
-            }
-            else {
+            } else {
                 await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
                 dispatch(setProfilingDone(true));
                 console.log("Navigating to MainFlow");
                 navigation.replace('MainFlow');
             }
+
         } catch (error) {
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                'Please check your credentials and try again.';
+
             showConfirmationModal({
                 title: 'Login Failed',
-                message: 'Please check your credentials and try again.',
+                message: errorMessage,
                 icon: tick.fail,
             });
+
             console.error("Login error:", error);
         } finally {
             setLoading(false);
@@ -115,8 +119,38 @@ const LoginScreen = ({ navigation, route }) => {
             await GoogleSignin.signOut();
             await new Promise(resolve => setTimeout(resolve, 200));
             const response = await GoogleSignin.signIn();
-            console.log('Google login response:', response);
+            console.log("Google Sign-In response:", response);
+            dispatch(startLoading());
+
+            const data = await googleLoginApi(response.data.user);
+            const answers = data.user?.questionnaireAnswers;
+
+            const isProfilingPending =
+                !answers ||
+                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
+                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
+
+            await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
+
+            if (pendingDeepLink) {
+                if (!isProfilingPending) dispatch(setProfilingDone(true));
+                navigation.replace('CourseDeepLink', {
+                    courseId: pendingDeepLink.courseId,
+                    affiliateToken: pendingDeepLink.token,
+                });
+            } else if (isProfilingPending) {
+                navigation.replace("GenderScreen", {
+                    user: data.user,
+                    token: data.token,
+                });
+            } else {
+                dispatch(setProfilingDone(true));
+                navigation.replace('MainFlow');
+            }
+
         } catch (error) {
+            console.error("Google Sign-In error:", error);
+
             const message = {
                 [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in cancelled.',
                 [statusCodes.IN_PROGRESS]: 'Sign-in already in progress.',
@@ -126,11 +160,14 @@ const LoginScreen = ({ navigation, route }) => {
             Snackbar.show({
                 text: message,
                 duration: 3000,
-                backgroundColor: '#010b13',
+                backgroundColor: '#010b13b6',
                 textColor: '#fff',
             });
+        } finally {
+            dispatch(stopLoading());
         }
     };
+
 
     return (
         <>
@@ -189,9 +226,9 @@ const LoginScreen = ({ navigation, route }) => {
                                     </TouchableOpacity>
                                 </LinearGradient>
 
-                                <TouchableOpacity style={styles(theme).appleBtn}>
+                                {/* <TouchableOpacity style={styles(theme).appleBtn}>
                                     <Image source={applePay} style={styles(theme).socialIcon} />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
 
                             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>

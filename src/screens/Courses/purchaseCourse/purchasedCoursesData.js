@@ -38,9 +38,9 @@ const PurchasedCoursesScreen = () => {
     const { data: allCourses, isLoading: isLoadingAll, error: errorAll, refetch: refetchAll } = useCourses();
 
     // console.log(studentId);
-    console.log(enrolledCourses);
+    console.log("All COurses", allCourses);
     const [refreshing, setRefreshing] = useState(false);
-    const overallLoading = isLoadingEnrolled || isLoadingAll;
+    const overallLoading = isLoadingEnrolled && isLoadingAll;
 
     useEffect(() => {
         dispatch(startLoading());
@@ -62,18 +62,6 @@ const PurchasedCoursesScreen = () => {
         }, 1500);
     }, [refetchAll]);
 
-    const handleAffiliateRequest = async () => {
-        try {
-            await sendAffiliateRequest(studentId);
-            setModalSuccess(true);
-            setModalMessage('Affiliate request sent successfully!');
-        } catch (error) {
-            setModalSuccess(false);
-            setModalMessage('Failed to send affiliate request. Please try again.');
-        } finally {
-            setModalVisible(true);
-        }
-    };
 
     const formatDuration = (seconds) => {
         if (seconds < 60) return '1 min';
@@ -130,7 +118,7 @@ const PurchasedCoursesScreen = () => {
                         <Text style={[styles.emptyStateDescription, { color: theme.textColor }]}>
                             Start your learning journey by exploring our amazing courses below and unlock your trading potential!
                         </Text>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             style={[styles.exploreBButton, { backgroundColor: theme.primaryColor }]}
                             onPress={() => navigation.navigate('OurCoursesScreen')}
                         >
@@ -156,7 +144,7 @@ const PurchasedCoursesScreen = () => {
                                     title={course.title}
                                     // rating={course.averageRating ?? 0}
                                     description={course.description}
-                                    profileImage={user}
+                                    profileImage={course.instructorImage}
                                     duration={formatDuration(course.duration)}
                                     profileName={course.instructorName}
                                     price={`${course.price} $`}
@@ -190,7 +178,7 @@ const PurchasedCoursesScreen = () => {
                 <FlatList
                     ListHeaderComponent={() => (
                         <Header title="My Courses" style={{ marginBottom: 35 }} />
-                    )}                   
+                    )}
                     data={flatListData}
                     renderItem={renderItem}
                     keyExtractor={(item, index) => item?.data?._id || item?.text || item?.title || index.toString()}

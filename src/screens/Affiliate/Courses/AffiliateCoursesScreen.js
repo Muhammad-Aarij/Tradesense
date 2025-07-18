@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     Alert,
     Pressable,
+    Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,7 +24,7 @@ import {
 } from '../../../functions/affiliateApi';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { setAffiliateData } from '../../../redux/slice/authSlice';
-import { bg, tick, fail } from '../../../assets/images';
+import { bg, tick, fail, back } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
 import DailyBreakdownChart from '../../../components/DailyBreakdownChart';
@@ -55,9 +56,9 @@ const AffiliateCoursesScreen = () => {
 
                 if (!isAffiliate) {
                     const statusData = await getAffiliateRequestStatus(userId);
-console.log('====================================');
-console.log('Affiliate request status:', statusData);
-console.log('====================================');
+                    console.log('====================================');
+                    console.log('Affiliate request status:', statusData);
+                    console.log('====================================');
                     if (!statusData) {
                         setAffiliateRequestStatus(null); // Show request button
                     } else if (statusData.status === 'pending') {
@@ -129,6 +130,9 @@ console.log('====================================');
                     onClose={() => setModalVisible(false)}
                 />
             }
+            {!isAffiliate &&
+                <Header  style={{ marginBottom: 35,marginTop:10, }} />
+            }
 
             {checkedAffiliate ? (
                 isAffiliate ? (
@@ -148,7 +152,10 @@ console.log('====================================');
                                             style={styles.statCard}
                                         >
                                             <Text style={styles.statLabel}>${affiliateStats?.money?.toFixed(2) || '0.00'}</Text>
-                                            <Text style={styles.statValue}>Available Balance</Text>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: "100%", }}>
+                                                <Text style={styles.statValue}>Available Balance</Text>
+                                                <Image source={back} style={{ width: 10, height: 10, tintColor: theme.textColor, resizeMode: "contain", transform: [{ rotate: '180deg' }] }} />
+                                            </View>
                                         </LinearGradient>
                                     </Pressable>
 
@@ -292,6 +299,8 @@ const getStyles = (theme) => StyleSheet.create({
         paddingVertical: 40,
         paddingHorizontal: 20,
         minHeight: 280,
+        borderWidth: 2,
+        borderColor: theme.borderColor,
     },
     decorativeCircle1: {
         position: 'absolute',

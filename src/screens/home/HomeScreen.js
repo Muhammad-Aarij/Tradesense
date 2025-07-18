@@ -1,12 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
   View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ImageBackground,
-  SafeAreaView, Dimensions
+  SafeAreaView, Dimensions,
+  Pressable
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   userDefault, bell, graph, circle, back,
-  bellWhite
+  bellWhite, audioNew, videoNew
 } from '../../assets/images';
 import { ThemeContext } from '../../context/ThemeProvider';
 import { useAllPillars } from '../../functions/PillarsFunctions';
@@ -15,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useHome } from '../../functions/homeApi';
 import moment from 'moment';
 import DailyBreakdownChart from '../../components/DailyBreakdownChart';
+import OptimizedImage from '../../components/OptimizedImage';
 
 const { width, height } = Dimensions.get("window");
 
@@ -23,16 +25,11 @@ const HomeScreen = ({ navigation }) => {
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = getStyles(theme);
   const { data: pillars, isLoading } = useAllPillars();
-  // const [selectedFilter, setSelectedFilter] = useState('Daily');
-  // const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-  const filterOptions = ['Daily', 'Monthly', 'Yearly'];
   const profilePic = useSelector(state => state.auth.userObject?.profilePic);
-  console.log("progfiule" + profilePic);
   const userId = useSelector(state => state.auth.userObject?._id);
   const name = useSelector(state => state.auth.userObject?.name);
   const { data: homeData } = useHome(userId);
   const logs = homeData?.logs || [];
-
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -49,7 +46,6 @@ const HomeScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    console.log("profilePic", profilePic);
     dispatch(startLoading());
     const timeout = setTimeout(() => {
       if (!isLoading) dispatch(stopLoading());
@@ -74,7 +70,9 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
-            <Image source={isDarkMode ? bell : bellWhite} style={styles.bell} />
+            <Pressable onPress={() => navigation.navigate("Notifications")}>
+              <Image source={isDarkMode ? bell : bellWhite} style={styles.bell} />
+            </Pressable>
           </View>
 
           <View style={{ flexDirection: "row", width: "100%", gap: 10 }}>
@@ -84,22 +82,37 @@ const HomeScreen = ({ navigation }) => {
                 style={styles.linearGradient}>
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Mindfulness & Motivation</Text>
+
                   {homeData.audio?.thumbnail && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        const audio = homeData.audio;
-                        navigation.navigate('TrackPlayer', {
-                          AudioTitle: audio.title,
-                          AudioDescr: audio.description,
-                          Thumbnail: audio.thumbnail,
-                          AudioUrl: audio.url,
+                    <View style={styles.cardImage}>
+                      <View style={styles.imageBackground}>
+                        <OptimizedImage
+                          uri={homeData.audio.thumbnail}
+                          style={{ ...StyleSheet.absoluteFillObject, borderRadius: 10 }}
+                          borderRadius={10}
+                          showLoadingIndicator
+                          loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
+                        />
+                        <View style={styles.topRightTag}>
+                          <Image source={audioNew} style={styles.tagIcon} />
+                          <Text style={styles.tagText}>Audio</Text>
+                        </View>
+                        {/* {homeData.audio.duration && (
+                          <View style={styles.bottomLeftDuration}>
+                            <Text style={styles.durationText}>{homeData.audio.duration}</Text>
+                          </View>
+                        )} */}
+                        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => navigation.navigate('TrackPlayer', {
+                          AudioTitle: homeData.audio.title,
+                          AudioDescr: homeData.audio.description,
+                          Thumbnail: homeData.audio.thumbnail,
+                          AudioUrl: homeData.audio.url,
                           shouldFetchTrack: false,
-                        });
-                      }}>
-                      <Image source={{ uri: homeData.audio.thumbnail }} style={styles.cardImage} />
-                      <Text style={styles.playButtonText}>{homeData.audio.title}</Text>
-                    </TouchableOpacity>
+                        })} />
+                      </View>
+                    </View>
                   )}
+                  <Text style={styles.playButtonText}>{homeData.audio.title}</Text>
                 </View>
               </LinearGradient>
 
@@ -109,19 +122,28 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Personalized Affirmations</Text>
                   {homeData.video?.thumbnail && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        const video = homeData.video;
-                        navigation.navigate('VideoPlayer', {
-                          VideoTitle: video.title,
-                          VideoDescr: video.description,
-                          Thumbnail: video.thumbnail,
-                          VideoUrl: video.url,
-                        });
-                      }}>
-                      <Image source={{ uri: homeData.video?.thumbnail }} style={styles.cardImage} />
+                    <TouchableOpacity onPress={() => {
+                      const video = homeData.video;
+                      navigation.navigate('VideoPlayer', {
+                        VideoTitle: video.title,
+                        VideoDescr: video.description,
+                        Thumbnail: video.thumbnail,
+                        VideoUrl: video.url,
+                      });
+                    }}>
+                      <View style={styles.imageBackground}>
+                        <Image source={{ uri: homeData.video?.thumbnail }} style={styles.cardImage} />
+                        <View style={styles.topRightTag}>
+                          <Image source={videoNew} style={styles.tagIcon} />
+                          <Text style={styles.tagText}>Video</Text>
+                        </View>
+                        {homeData.video.duration && (
+                          <View style={styles.bottomLeftDuration}>
+                            <Text style={styles.durationText}>{homeData.video.duration}</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.playButtonText}>{homeData.video.title}</Text>
-
                     </TouchableOpacity>
                   )}
                 </View>
@@ -129,8 +151,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
 
             <View style={{ flexDirection: "column", width: "50%" }}>
-              <TouchableOpacity onPress={() => { navigation.navigate("Accountability") }
-              }>
+              <TouchableOpacity onPress={() => navigation.navigate("Accountability")}>
                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                   style={styles.linearGradient}>
@@ -140,7 +161,10 @@ const HomeScreen = ({ navigation }) => {
                       {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
                         <View key={index} style={styles.dayContainer}>
                           <Text style={styles.weekdays}>{day}</Text>
-                          <Text style={{ ...styles.weekDots, color: isDayCompleted(index) ? '#70C2E8' : '#AAA' }}>●</Text>
+                          <Text style={{
+                            ...styles.weekDots,
+                            color: isDayCompleted(index) ? '#70C2E8' : '#AAA'
+                          }}>●</Text>
                         </View>
                       ))}
                     </View>
@@ -152,14 +176,18 @@ const HomeScreen = ({ navigation }) => {
                 </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => { navigation.navigate("Accountability", { screen: "Accountability" }) }
-              }>
+              <TouchableOpacity onPress={() => navigation.navigate("Accountability", { screen: "Accountability" })}>
                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                   style={styles.linearGradient}>
                   <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Trading Journal</Text>
-                    <Image source={graph} style={[styles.cardImage, { height: 67, resizeMode: "contain", borderBottomWidth: 2, borderColor: theme.borderColor }]} />
+                    <Image source={graph} style={[styles.cardImage, {
+                      height: 67,
+                      resizeMode: "contain",
+                      borderBottomWidth: 2,
+                      borderColor: theme.borderColor
+                    }]} />
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10 }}>
                       <Text style={[styles.playButtonText, { marginTop: 0 }]}>Track Your Trades</Text>
                       <Image source={back} style={{ width: 10, height: 10, resizeMode: "contain", transform: [{ rotate: '180deg' }] }} />
@@ -172,11 +200,9 @@ const HomeScreen = ({ navigation }) => {
                 colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                 style={styles.linearGradient}>
                 <View style={{ ...styles.section, flexDirection: "row", alignItems: "center" }}>
+                  <Image source={circle} style={{ width: 10, height: 10, marginRight: 10, resizeMode: "contain" }} />
                   <Text style={styles.sectionTitle2}>
-                    <View style={{ width: 10, height: 10, marginRight: 10 }}>
-                      <Image source={circle} style={{ width: 10, height: 10, resizeMode: "contain" }} />
-                    </View>
-                    {" "}{homeData?.quotation || "I execute trades with discipline and confidence."}
+                    {homeData?.quotation || "I execute trades with discipline and confidence."}
                   </Text>
                 </View>
               </LinearGradient>
@@ -184,7 +210,6 @@ const HomeScreen = ({ navigation }) => {
           </View>
 
           <DailyBreakdownChart />
-
         </ScrollView>
       </SafeAreaView>
     </ImageBackground>
@@ -200,7 +225,7 @@ const getStyles = (theme) => StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 20,
   },
-  avatar: { width: 45, height: 45, borderRadius: 8, marginRight: 10 },
+  avatar: { width: 45, height: 45, borderRadius: 98, marginRight: 10 },
   bell: { width: 35, height: 35, resizeMode: "contain", alignSelf: 'center' },
   greeting: { color: theme.primaryColor, fontSize: 12, fontFamily: 'Inter-Regular' },
   username: { color: theme.textColor, fontSize: 12, fontFamily: 'Inter-Medium' },
@@ -218,14 +243,19 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 5,
   },
   sectionTitle2: {
-    flexDirection: "row",
-    gap: 10,
-    // lineHeight:5,
+marginRight:10,
     color: theme.subTextColor,
     fontSize: 13,
     fontFamily: 'Inter-Regular',
+    // flex: 1,
+    flexWrap: "wrap"
   },
-  cardImage: { width: '100%', height: 90, resizeMode: 'cover', borderRadius: 5 },
+  cardImage: {
+    width: '100%',
+    height: 90,
+    borderRadius: 5,
+    resizeMode: 'cover'
+  },
   playButtonText: {
     color: theme.subTextColor,
     fontSize: 12,
@@ -233,7 +263,6 @@ const getStyles = (theme) => StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   goalProgress: {
-    fontSize: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: "space-between",
@@ -241,42 +270,6 @@ const getStyles = (theme) => StyleSheet.create({
   },
   weekdays: { color: theme.textColor, fontSize: 12, textAlign: "center", fontFamily: 'Inter-Regular' },
   weekDots: { color: '#70C2E8', fontSize: 16 },
-  dailyBreakdownContainer: {
-    borderWidth: 0.9,
-    borderColor: theme.borderColor,
-    borderRadius: 8,
-    padding: 20,
-    marginBottom: 30,
-  },
-  dailyBreakdownHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  dailyBreakdownTitle: { color: theme.textColor, fontSize: 16, fontFamily: "Inter-SemiBold" },
-  dailyBreakdownDate: { color: theme.subTextColor, fontSize: 12, fontFamily: "Inter-Light-BETA" },
-  dailyBreakdownFilter: { color: theme.textColor, borderRadius: 8, paddingHorizontal: 8, color: '#FFF', fontSize: 12, fontFamily: "Inter-Medium" },
-  dropdownContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.primaryColor,
-    borderWidth: 0.9,
-    borderColor: theme.borderColor,
-    borderRadius: 8,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-  },
-  dropdownArrow: { width: 10, height: 10, resizeMode: 'contain', tintColor: '#CCCCCC' },
-  dropdownOptions: {
-    position: "absolute",
-    top: 35,
-    left: 0,
-    width: "100%",
-    backgroundColor: theme.primaryColor,
-    borderRadius: 8,
-    paddingVertical: 10,
-    zIndex: 10,
-  },
   linearGradient: {
     marginBottom: 10,
     width: "100%",
@@ -285,8 +278,48 @@ const getStyles = (theme) => StyleSheet.create({
     borderRadius: 10,
     flex: 1,
   },
-  optionItem: { paddingVertical: 12, paddingHorizontal: 15 },
-  optionText: { color: theme.textColor, fontSize: 12, fontFamily: "Inter-Regular" },
+  imageBackground: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    position: 'relative',
+  },
+  topRightTag: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+    borderRadius: 12,
+    zIndex: 1,
+  },
+  tagText: {
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: 'Inter-Medium',
+    marginLeft: 4,
+  },
+  tagIcon: {
+    width: 14,
+    height: 14,
+    resizeMode: 'contain',
+  },
+  bottomLeftDuration: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  durationText: {
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+  },
 });
 
 export default HomeScreen;

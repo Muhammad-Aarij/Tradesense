@@ -32,7 +32,7 @@ const getSocialIcon = (platform) => {
     case 'twitter':
       return twitter;
     default:
-      return null;
+      return linkedin;
   }
 };
 
@@ -55,40 +55,40 @@ const InstructorInfo = ({
   useEffect(() => {
     const animations = isVisible
       ? [
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.spring(scaleAnim, {
-            toValue: 1,
-            tension: 100,
-            friction: 8,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]
       : [
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scaleAnim, {
-            toValue: 0.8,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: -20,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ];
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.8,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: -20,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ];
 
     Animated.parallel(animations).start();
   }, [isVisible]);
@@ -141,8 +141,9 @@ const InstructorInfo = ({
             </Text>
 
             <View style={styles.socialLinksRow}>
-              {Object.entries(instructorLinks).map(([platform, url]) =>
-                url ? (
+              {Object.entries(instructorLinks).map(([platform, url]) => {
+                console.log('Platform:', platform, 'URL:', url); // 👈 Log platform and link
+                return url ? (
                   <TouchableOpacity
                     key={platform}
                     onPress={() => Linking.openURL(url)}
@@ -150,9 +151,10 @@ const InstructorInfo = ({
                   >
                     <Image source={getSocialIcon(platform)} style={styles.socialIcon} />
                   </TouchableOpacity>
-                ) : null
-              )}
+                ) : null;
+              })}
             </View>
+
           </View>
 
           {/* Close Button */}
@@ -224,7 +226,7 @@ const styles = StyleSheet.create({
     width: 35,
     height: 35,
     resizeMode: 'contain',
-    tintColor: '#CCCCCC',
+    // tintColor: '#CCCCCC',
   },
   closeButton: {
     alignSelf: 'center',

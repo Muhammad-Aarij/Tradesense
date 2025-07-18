@@ -383,7 +383,7 @@ const PlayerScreen = ({ route }) => {
         InstructorName={InstructorData?.name}
         InstructorTag={InstructorData?.experienceLevel}
         instructorLinks={InstructorData?.links}
-        message="These are personalized recommendations based on your trading goals, experience level, and learning preferences. We analyze your behavior and interests to suggest the most relevant content that will help you grow as a trader."
+        message={InstructorData?.description}
         position="center"
         maxWidth={width * 0.9}
       />

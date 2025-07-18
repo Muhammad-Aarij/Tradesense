@@ -47,7 +47,9 @@ const Dashboard = ({ navigation }) => {
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
-            <Image source={isDarkMode ? bell : bellWhite} style={styles.bellIcon} />
+            <TouchableOpacity onPress={() => navigation.navigate("Notifications")}> 
+              <Image source={isDarkMode ? bell : bellWhite} style={styles.bellIcon} />
+            </TouchableOpacity>
           </View>
 
           {/* Tabs */}
@@ -91,7 +93,7 @@ const getStyles = (theme) =>
     avatar: {
       width: 45,
       height: 45,
-      borderRadius: 8,
+      borderRadius: 88,
       marginRight: 10,
     },
     greeting: {

@@ -56,6 +56,7 @@ export default function Acc_FormData() {
   const [tradeType, setTradeType] = useState('Intraday');
   const [setupName, setSetupName] = useState('Reversal');
   const [direction, setDirection] = useState('Short');
+  const [stock, setStock] = useState('');
   const [entryPrice, setEntryPrice] = useState('');
   const [exitPrice, setExitPrice] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -112,6 +113,7 @@ export default function Acc_FormData() {
   const handleSubmit = async () => {
     const formData = {
       tradeDate: tradeDate.toISOString().split('T')[0],
+      stockName: stock,
       userId: studentId,
       tradeType,
       setupName,
@@ -167,6 +169,7 @@ export default function Acc_FormData() {
               )}
             </View>
 
+            <CustomInput label="Stock Name" value={stock} onChangeText={setStock} />
             <CustomPicker label="Trade Type" selectedValue={tradeType} onValueChange={setTradeType} items={tradeTypeOptions} styles={styles} theme={theme} />
             <CustomPicker label="Setup Name" selectedValue={setupName} onValueChange={setSetupName} items={setupNameOptions} styles={styles} theme={theme} />
             <CustomPicker label="Direction" selectedValue={direction} onValueChange={setDirection} items={directionOptions} styles={styles} theme={theme} />

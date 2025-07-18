@@ -47,8 +47,8 @@ export default function BottomNavigator() {
         options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
       /> */}
 
-      <Tab.Screen name="ChatBot" component={AccountabilityPartnerChatScreen} />
-      <Tab.Screen name="Sidebar" component={UserProfileMenuScreen} />
+      <Tab.Screen name="Sense Ai" component={AccountabilityPartnerChatScreen} />
+      <Tab.Screen name="More" component={UserProfileMenuScreen} />
     </Tab.Navigator>
   );
 }

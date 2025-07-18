@@ -1,3 +1,5 @@
+// 🔁 Imports remain unchanged
+
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import {
   View,
@@ -9,11 +11,16 @@ import {
   Image,
   StyleSheet,
   Alert,
-  Dimensions, // Import Dimensions for responsive spacing
+  Dimensions,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { PieChart } from 'react-native-gifted-charts';
-import { back, work, checkboxChecked, checkboxUnchecked } from '../../../../assets/images';
+import {
+  back,
+  work,
+  checkboxChecked,
+  checkboxUnchecked
+} from '../../../../assets/images';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
 import { useCreateHabitLog } from '../../../../functions/habbitFunctions';
@@ -21,7 +28,8 @@ import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useTodaysHabits, useHabitStats } from '../../../../functions/habbitFunctions';
 import DailyBreakdownChart from '../../../../components/DailyBreakdownChart';
 import { useQueryClient } from '@tanstack/react-query';
-// Get screen width for responsive design for the chart spacing
+import Snackbar from 'react-native-snackbar';
+
 const screenWidth = Dimensions.get('window').width;
 
 export default function Accountability({ navigation }) {
@@ -29,38 +37,34 @@ export default function Accountability({ navigation }) {
   const [localHabitState, setLocalHabitState] = useState({});
   const userId = useSelector(state => state.auth.userId);
   const dispatch = useDispatch();
-
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
-  const {
-    data: habitStats = {},
-    isLoading: statsLoading,
-  } = useHabitStats(userId);
 
-  const {
-    data: todaysHabits = [],
-    isLoading,
-    refetch,
-  } = useTodaysHabits(userId);
-  console.log('====================================');
-  console.log(todaysHabits);
-  console.log("id", userId);
-  console.log('====================================');
+  const { data: habitStats = {}, isLoading: statsLoading } = useHabitStats(userId);
+  const { data: todaysHabits = [], isLoading, refetch } = useTodaysHabits(userId);
 
   useEffect(() => {
     (isLoading || statsLoading) ? dispatch(startLoading()) : dispatch(stopLoading());
   }, [isLoading, statsLoading]);
 
-  // Calculate percentage
   const growthPercentage = habitStats.total > 0
-    ? Math.round((2 / habitStats.total) * 100)
+    ? Math.round((habitStats.completed / habitStats.total) * 100)
     : 0;
-  // In your component
 
   const logHabit = useCreateHabitLog();
 
   const handleLog = async (habitId) => {
-    // Optimistically mark the habit as completed
+    const isAlreadyChecked = localHabitState[habitId] || todaysHabits.find(h => h._id === habitId)?.completedToday;
+
+    if (isAlreadyChecked) {
+      Snackbar.show({
+        text: 'Already checked!',
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: '#FFA726',
+      });
+      return;
+    }
+
     setLocalHabitState(prev => ({ ...prev, [habitId]: true }));
 
     const result = await logHabit({ userId, habitId });
@@ -69,19 +73,21 @@ export default function Accountability({ navigation }) {
       setLocalHabitState(prev => ({ ...prev, [habitId]: false }));
       Alert.alert('Error', result.error);
     } else {
-      console.log('Habit logged successfully:', result);
+      Snackbar.show({
+        text: 'Goal checked!',
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: '#66BB6A',
+      });
+
       await queryClient.invalidateQueries(['todaysHabits', userId]);
       await queryClient.invalidateQueries(['habitStats', userId]);
-
-      // Clear the local optimistic state
-      setLocalHabitState(prev => {
-        const newState = { ...prev };
-        delete newState[habitId];
-        return newState;
-      });
     }
   };
 
+  // ❌ Filter out completed habits from view on fresh mount
+  const visibleHabits = todaysHabits.filter(habit => {
+    return !habit.completedToday && !localHabitState[habit._id];
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -94,8 +100,6 @@ export default function Accountability({ navigation }) {
           {[
             { label: 'Total Goals on time', value: habitStats.total ?? '--' },
             { label: 'Streak', value: habitStats.streak ?? '--' },
-            // { label: 'Pending Goals', value: habitStats.pending ?? '--' },
-            // { label: 'Completed Goals', value: habitStats.completed ?? '--' },
           ].map((item, idx) => (
             <LinearGradient key={idx}
               start={{ x: 0, y: 0.95 }}
@@ -152,26 +156,17 @@ export default function Accountability({ navigation }) {
                     </View>
                   )}
                 />
-
               </View>
-              <View style={{ flexDirection: "column", justifyContent: "space-between", height: "auto" }}>
-                <View
-                  style={styles.gridItem2}>
+
+              <View style={{ flexDirection: "column", justifyContent: "space-between" }}>
+                <View style={styles.gridItem2}>
                   <Text style={styles.gridItemLabel}>Completed Goals</Text>
                   <Text style={styles.gridItemValue}>{habitStats.completed}</Text>
                 </View>
-                <View
-                  style={styles.gridItem2}>
+                <View style={styles.gridItem2}>
                   <Text style={styles.gridItemLabel}>Pending Goals</Text>
                   <Text style={styles.gridItemValue}>{habitStats.pending}</Text>
                 </View>
-
-                {/* <View style={styles.progressTaskContainer}>
-                  <Image source={work} style={styles.progressTaskIcon} />
-                  <Text style={styles.progressTaskText}>
-                    Progress Task: {growthPercentage}%
-                  </Text>
-                </View> */}
               </View>
             </View>
           </View>
@@ -196,6 +191,7 @@ export default function Accountability({ navigation }) {
 
         <View style={styles.successTrackerList}>
           {todaysHabits.length === 0 ? (
+            // No goals at all
             <LinearGradient
               start={{ x: 0, y: 0.95 }}
               end={{ x: 1, y: 1 }}
@@ -222,52 +218,77 @@ export default function Accountability({ navigation }) {
                 </TouchableOpacity>
               </View>
             </LinearGradient>
+          ) : visibleHabits.length === 0 ? (
+            // All habits completed
+            <LinearGradient
+              start={{ x: 0, y: 0.95 }}
+              end={{ x: 1, y: 1 }}
+              colors={['rgba(126, 126, 126, 0.2)', 'rgba(255,255,255,0)']}
+              style={styles.emptyHabitsCard}
+            >
+              <View style={styles.emptyHabitsContent}>
+                <View style={styles.emptyHabitsIconContainer}>
+                  <View style={styles.emptyHabitsIcon}>
+                    <Text style={styles.emptyHabitsIconText}>🎉</Text>
+                  </View>
+                </View>
+                <View style={styles.emptyHabitsTextContainer}>
+                  <Text style={styles.emptyHabitsTitle}>Congratulations!</Text>
+                  <Text style={styles.emptyHabitsSubtitle}>
+                    All your goals for today are completed. Great job staying accountable!
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
           ) : (
-
-            todaysHabits.map((habit) => {
-              const isChecked = habit.completedToday || localHabitState[habit._id];
-
+            // Show habits if any left
+            visibleHabits.map((habit) => {
+              const isChecked = localHabitState[habit._id];
               return (
                 <LinearGradient key={habit._id}
-                  start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+                  start={{ x: 0, y: 0.95 }}
+                  end={{ x: 1, y: 1 }}
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                   style={styles.successTrackerItemLinearGradient}
                 >
                   <View style={styles.successTrackerItem}>
                     <View style={styles.successTrackerTextContent}>
-                      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
+                      <View style={{ flexDirection: "row", alignItems: "flex-start", marginRight: 20 }}>
                         <View style={styles.checkbox}>
-                          <TouchableOpacity
-                            disabled={isChecked}
-                            onPress={() => handleLog(habit._id)}
-                          >
+                          <TouchableOpacity onPress={() => handleLog(habit._id)}>
                             <Image
                               source={isChecked ? checkboxChecked : checkboxUnchecked}
                               style={{ width: 16, height: 16, resizeMode: 'contain' }}
                             />
                           </TouchableOpacity>
                         </View>
-
-
-                        <Text style={styles.successTrackerTitle}>
-                          {habit.title || "Untitled Habit"}
-                        </Text>
+                        <View style={{ flexDirection: "column" }}>
+                          <Text style={[
+                            styles.successTrackerTitle,
+                            isChecked && { textDecorationLine: 'line-through', color: 'gray' }
+                          ]}>
+                            {habit.title || "Untitled Habit"}
+                          </Text>
+                          <Text style={[
+                            styles.successTrackerDescription,
+                            isChecked && { textDecorationLine: 'line-through', color: 'gray' }
+                          ]}>
+                            {habit.description || "No description"}
+                          </Text>
+                        </View>
                       </View>
-                      <Text style={styles.successTrackerDescription}>
-                        {habit.description || "No description"}
-                      </Text>
                     </View>
                   </View>
                 </LinearGradient>
               );
             })
           )}
+
         </View>
       </ScrollView>
-    </SafeAreaView >
+    </SafeAreaView>
   );
 }
-
 
 const getStyles = (theme) => StyleSheet.create({
   container: {
@@ -481,7 +502,7 @@ const getStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 0.9,
+    // borderWidth: 0.9,
     borderColor: theme.borderColor,
     borderRadius: 8,
     padding: 15,
@@ -496,6 +517,7 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 10,
   },
   checkbox: {
+    marginTop: 3,
     width: 17,
     height: 17,
     borderRadius: 5,

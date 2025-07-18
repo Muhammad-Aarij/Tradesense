@@ -10,6 +10,7 @@ import ConfirmationModal from '../../../components/ConfirmationModal';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
 import { usePayments } from '../../../functions/affiliateApi';
+import { useSelector } from 'react-redux';
 
 const { height } = Dimensions.get("window");
 
@@ -18,7 +19,10 @@ const WithdrawScreen = ({ navigation, route }) => {
     const styles = useMemo(() => getStyles(theme), [theme]);
     const [showModal, setShowModal] = useState(false);
     const { totalAmount } = route.params;
-    const { data: payments = [], isLoading } = usePayments();
+    const { userId, isLoading: authLoading } = useSelector(state => state.auth);
+    const { data: payments = [], isLoading } = usePayments(userId);
+    console.log("✅ userId passed to usePayments:", userId);
+
 
     const formatDate = (isoString) => {
         const date = new Date(isoString);

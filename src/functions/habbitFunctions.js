@@ -145,9 +145,8 @@ export const useTodaysHabits = (userId) => {
 
 export const fetchHabitStats = async (userId) => {
   const { data } = await axios.get(`${API_URL}/api/habbits/stats/${userId}`);
-  // console.log("Fetched Habit Stats:", data); // For debugging
+  console.log("Fetched Habit Stats:", data); // For debugging
 
-  // You can add transformation logic here if needed
   return {
     total: data.total || 0,
     completed: data.completed || 0,

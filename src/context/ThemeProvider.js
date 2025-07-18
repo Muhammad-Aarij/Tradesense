@@ -1,5 +1,4 @@
 import React, { createContext, useEffect, useState } from "react";
-import { Appearance } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import theme from "../themes/theme";
@@ -8,8 +7,7 @@ import { bg, whiteBg } from "../assets/images";
 export const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  const systemColorScheme = Appearance.getColorScheme(); // dark | light
-  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
+  const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark
   const [goalImages, setGoalImages] = useState(true);
   const [areaImages, setAreaImages] = useState(true);
   const [isConfigLoaded, setIsConfigLoaded] = useState(false);
@@ -27,6 +25,9 @@ export const ThemeProvider = ({ children }) => {
       const saved = await AsyncStorage.getItem(STORAGE_KEY);
       if (saved) {
         setIsDarkMode(saved === 'dark');
+      } else {
+        // Save default dark if no theme stored yet
+        await AsyncStorage.setItem(STORAGE_KEY, 'dark');
       }
     } catch (err) {
       console.warn("Failed to load stored theme:", err);
@@ -35,15 +36,14 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const initTheme = async () => {
-      await loadStoredTheme(); // This will override system if user selected
+      await loadStoredTheme();
+
       try {
         const response = await axios.get(`https://trade-sense-app-backend.onrender.com/api/config`);
         const config = response?.data;
 
-        // Theme from backend is optional, fallback to local
         setGoalImages(config?.goalImages ?? true);
         setAreaImages(false);
-
         setIsConfigLoaded(true);
       } catch (err) {
         console.error("Failed to fetch theme config:", err);

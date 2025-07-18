@@ -117,18 +117,6 @@ const DiscoverScreen = () => {
                     <FlatList
                         data={recommendations || []}
                         renderItem={({ item, index }) => {
-                            // Add logging to debug recommendations data
-                            // console.log('=== Discover Recommendations Debug ===');
-                            // console.log(`Recommendation ${index}:`, {
-                            //     id: item._id,
-                            //     title: item.title,
-                            //     type: item.type,
-                            //     url: item.url,
-                            //     thumbnail: item.thumbnail,
-                            //     isPremium: item.isPremium
-                            // });
-                            // console.log('======================================');
-
                             return (
                                 <RecommendationTile
                                     thumbnail={item.thumbnail}
@@ -145,7 +133,7 @@ const DiscoverScreen = () => {
                         keyExtractor={(item) => item._id}
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ marginLeft: 25 }}
+                        contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
                         ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
                         initialNumToRender={3}
                         maxToRenderPerBatch={3}
@@ -155,6 +143,7 @@ const DiscoverScreen = () => {
                             { length: 192, offset: 192 * index, index }
                         )}
                     />
+
                 </View>
 
                 {/* Top Picks Section */}
@@ -180,7 +169,7 @@ const DiscoverScreen = () => {
                         keyExtractor={(item) => item._id}
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ marginLeft: 25 }}
+                        contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
                         ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
                         initialNumToRender={3}
                         maxToRenderPerBatch={3}

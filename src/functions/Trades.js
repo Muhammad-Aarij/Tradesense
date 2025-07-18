@@ -23,7 +23,9 @@ export const submitTradeForm = async (tradeData) => {
 
 export const fetchTradeRecords = async (userId) => {
     const { data } = await axios.get(`${API_URL}/api/trading-form/${userId}`);
+
     return data.map(trade => ({
+        stockName: trade.stockName,
         _id: trade._id,
         tradeDate: trade.tradeDate,
         tradeType: trade.tradeType,
@@ -51,6 +53,7 @@ import { useDispatch } from 'react-redux';
 import { stopLoading } from '../redux/slice/loaderSlice';
 
 export const useTradeRecords = (userId) => {
+    console.log('Fetching trade records for user:', userId);
     const dispatch = useDispatch();
 
     return useQuery({

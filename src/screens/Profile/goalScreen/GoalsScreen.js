@@ -10,6 +10,7 @@ import { API_URL } from '@env';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../../../redux/slice/authSlice';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
 const GoalsScreen = ({ navigation, route }) => {
     const { request, token, question: allQuestions, user } = route.params || {};
@@ -28,14 +29,30 @@ const GoalsScreen = ({ navigation, route }) => {
 
     const handleSelect = (optionId) => {
         const qId = currentQuestion._id;
+
+        // Safer way: Check if title matches and force lowercase
+        const isSingleChoice = currentQuestion.title?.trim().toLowerCase() === 'trading experience';
+
         setSelectedOptionsMap(prev => {
             const selected = prev[qId] || [];
-            const updated = selected.includes(optionId)
-                ? selected.filter(id => id !== optionId)
-                : [...selected, optionId];
+
+            let updated;
+
+            if (isSingleChoice) {
+                // Only allow one option at a time
+                updated = [optionId];
+            } else {
+                // Toggle selection
+                updated = selected.includes(optionId)
+                    ? selected.filter(id => id !== optionId)
+                    : [...selected, optionId];
+            }
+
             return { ...prev, [qId]: updated };
         });
     };
+
+
 
     const handleNext = async () => {
         const qId = currentQuestion._id;
@@ -75,7 +92,7 @@ const GoalsScreen = ({ navigation, route }) => {
             const payload = { questionnaireAnswers };
 
             console.log('Submitting Payload:', user._id, "   ", JSON.stringify(payload, null, 2));
-
+            dispatch(startLoading());
             try {
                 const response = await axios.post(
                     `${API_URL}/api/auth/setup-profile/${user?._id}`,
@@ -103,8 +120,13 @@ const GoalsScreen = ({ navigation, route }) => {
                 console.error(err);
                 Alert.alert('Error', 'Failed to complete setup');
             }
+            finally {
+                dispatch(stopLoading());
+            }
         }
     };
+
+
 
     const handleCloseModal = () => {
         setShowSuccessModal(false);
@@ -155,9 +177,10 @@ const GoalsScreen = ({ navigation, route }) => {
                                         {opt.text}
                                     </Text>
                                     <Image
-                                        source={isSelected ? check : uncheck}
-                                        style={styles.checkbox}
+                                        source={isSelected ? check : uncheck} // You can also use radio icons
+                                        style={[styles.checkbox, currentQuestion.title?.toLowerCase() === 'trading experience' && { tintColor: '#FFD700' }]}
                                     />
+
                                 </TouchableOpacity>
                             );
                         })}

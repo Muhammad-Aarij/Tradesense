@@ -3,9 +3,13 @@ import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 import { API_URL } from "@env";
+import { userBlue } from '../assets/images';
+
 
 const fetchCourses = async () => {
+console.log("Fetching courses from API:", API_URL);
     const { data } = await axios.get(`${API_URL}/api/courses`);
+    
     return data.map(course => ({
         _id: course._id,
         title: course.title,
@@ -16,6 +20,7 @@ const fetchCourses = async () => {
         averageRating: course.averageRating,
         isPremium: course.isPremium,
         instructorName: course.instructor?.name,
+        instructorImage: course.instructor?.profilePic,
         instructorExperienceLevel: course.instructor?.experienceLevel
     }));
 };
@@ -38,7 +43,7 @@ export const useCourses = () => {
 
 const fetchCourseDetail = async (courseId) => {
     const { data } = await axios.get(`${API_URL}/api/courses/${courseId}`);
-
+    console.log("Fetch COurse Detail Data of Instructor:", data.instructor);
     return {
         Courseid: data._id,
         title: data.title,
@@ -49,6 +54,7 @@ const fetchCourseDetail = async (courseId) => {
         plans: data.plans || [],
         courseModules: data.courseModules || [],
         instructorName: data.instructor?.name,
+        instructorImage: data.instructor?.profilePic ,
         instructorInfo: data.instructor?.email,
         instructorDescription: data.instructor?.description,
         instructorExperienceLevel: data.instructor?.experienceLevel,

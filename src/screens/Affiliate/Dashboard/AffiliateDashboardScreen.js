@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, ImageBackground, Touchable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, ImageBackground, Touchable, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { bell, bg, user, back } from '../../../assets/images';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
@@ -61,7 +61,9 @@ const AffiliateDashboardScreen = () => {
                     </View>
                 </View>
                 {/* Ensuring the bell stays aligned */}
-                <Image source={bell} style={{ width: 40, height: 40, resizeMode: "contain", alignSelf: 'center' }} />
+                <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+                    <Image source={bell} style={{ width: 40, height: 40, resizeMode: "contain", alignSelf: 'center' }} />
+                </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -120,7 +122,7 @@ const AffiliateDashboardScreen = () => {
                                         </TouchableOpacity>
                                     ))}
                                 </View>
-                            )} 
+                            )}
                         </View>
 
                     </View>
@@ -153,7 +155,7 @@ const AffiliateDashboardScreen = () => {
                             <Text style={styles.chartFooterValue}>15</Text>
                             <Text style={styles.chartFooterLabel}>Sales</Text>
                         </View>
-                    </View> 
+                    </View>
                 </View>
 
             </ScrollView>
@@ -169,7 +171,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         marginBottom: 35,
     },
-    avatar: { width: 45, height: 45, borderRadius: 8, marginRight: 10 },
+    avatar: { width: 45, height: 45, borderRadius: 98, marginRight: 10 },
     greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Inter-Regular' },
     username: { color: 'white', fontSize: 12, fontFamily: 'Inter-Medium' },
     scrollContent: {

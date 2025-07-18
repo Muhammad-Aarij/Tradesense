@@ -20,6 +20,7 @@ import AffiliateNavigator from './AffiliateNavigator';
 import Mode from '../components/Mode';
 import MiniPlayer from '../components/MiniPlayer';
 import { useNavigationState } from '@react-navigation/native';
+import NotificationsScreen from '../screens/notificationsScreen/NotificationsScreen';
 
 
 const Home = createNativeStackNavigator();
@@ -42,6 +43,7 @@ const HomeNavigator = () => {
         <Home.Screen name="VideoPlayer" component={VideoPlayerScreen} />
         <Home.Screen name="CourseEpisodesScreen" component={CourseEpisodesScreen} />
         <Home.Screen name="AddGoal" component={AddGoal} />
+        <Home.Screen name="Notifications" component={NotificationsScreen} />
         <Home.Screen name="AddHabit" component={HabitTracking} />
         <Home.Screen name="Acc_FormData" component={Acc_FormData} />
         <Home.Screen name="ChatScreen" component={AccountabilityPartnerChatScreen} />
@@ -49,7 +51,7 @@ const HomeNavigator = () => {
         <Home.Screen name="Courses" component={CoursesNavigator} />
         <Home.Screen name="Affiliate" component={AffiliateNavigator} />
       </Home.Navigator>
-      <Mode />
+      {/* <Mode /> */}
       {/* {isSidebarOpen && <MenuComponent />} */}
       {showMiniPlayer && <MiniPlayer />}
       <Hamburger />

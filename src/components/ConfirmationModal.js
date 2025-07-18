@@ -13,9 +13,12 @@ const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = 
         <Modal transparent animationType="fade" visible={isVisible} onRequestClose={onClose}>
             <View style={styles.overlay}>
                 {/* <BlurView style={styles.blurContainer} blurType="dark" blurAmount={1} /> */}
-                <View style={styles.blurContainer} />
-                <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
-                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={[styles.modalContainer, { backgroundColor: isDarkMode ? "#080E17" : "#FFFFFF" }]}>
+                {/* <View style={styles.blurContainer} /> */}
+                <LinearGradient
+                    start={{ x: 0.0, y: 0.95 }}
+                    end={{ x: 1.0, y: 1.0 }}
+                    colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+                    style={[styles.modalContainer, { backgroundColor: isDarkMode ? "#080E17" : "#FFFFFF" }]}>
                     {icon && <Image source={icon} style={styles.icon} />}
                     <Text style={{ ...styles.title, color: theme.textColor }}>{title}</Text>
                     <Text style={{ ...styles.message, color: theme.subTextColor }}>{message}</Text>
