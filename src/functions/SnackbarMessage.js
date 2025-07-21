@@ -11,6 +11,7 @@ const SnackbarMessage = ({ visible, message, type = 'success' }) => {
   return (
     <Animated.View style={[styles.container]}>
       <Text style={styles.text}>{message}</Text>
+      {/*  */}
     </Animated.View>
   );
 };
