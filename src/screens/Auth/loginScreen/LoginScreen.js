@@ -11,19 +11,19 @@ import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-loginUser
-// import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
 import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
-import { loginApi, googleLoginApi } from '../../../functions/auth';
+import { loginApi } from '../../../functions/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Snackbar from 'react-native-snackbar';
 import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from '@env';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 
 GoogleSignin.configure({
+    webClientId: GOOGLE_WEB_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     // androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     scopes: ['profile', 'email'],
+    offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
 });
 
 const { width, height } = Dimensions.get('window');
@@ -65,12 +65,14 @@ const LoginScreen = ({ navigation, route }) => {
 
             const data = await loginApi(username, password);
             const answers = data.user?.questionnaireAnswers;
+            // console.log(data.user);
+            const isProfilingPending = !answers || // undefined/null
+                (typeof answers === 'object' &&
+                    Object.keys(answers).length === 0) || // empty object
+                (typeof answers === 'object' &&
+                    Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0)); // all arrays empty
 
-            const isProfilingPending =
-                !answers ||
-                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
-                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
-
+            // ✅ FIRST: Check if pending deep link
             if (pendingDeepLink) {
                 await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
                 if (!isProfilingPending) {
@@ -80,31 +82,27 @@ const LoginScreen = ({ navigation, route }) => {
                     courseId: pendingDeepLink.courseId,
                     affiliateToken: pendingDeepLink.token,
                 });
-            } else if (isProfilingPending) {
+            }
+            else if (isProfilingPending) {
+
                 console.log("Profiling Pending → Navigating to GenderScreen");
                 navigation.replace("GenderScreen", {
                     user: data.user,
                     token: data.token,
                 });
-            } else {
+            }
+            else {
                 await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
                 dispatch(setProfilingDone(true));
                 console.log("Navigating to MainFlow");
                 navigation.replace('MainFlow');
             }
-
         } catch (error) {
-            const errorMessage =
-                error?.response?.data?.message ||
-                error?.message ||
-                'Please check your credentials and try again.';
-
             showConfirmationModal({
                 title: 'Login Failed',
-                message: errorMessage,
+                message: 'Please check your credentials and try again.',
                 icon: tick.fail,
             });
-
             console.error("Login error:", error);
         } finally {
             setLoading(false);
@@ -115,59 +113,73 @@ const LoginScreen = ({ navigation, route }) => {
 
     const googleSignIn = async () => {
         try {
-            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-            await GoogleSignin.signOut();
-            await new Promise(resolve => setTimeout(resolve, 200));
-            const response = await GoogleSignin.signIn();
-            console.log("Google Sign-In response:", response);
-            dispatch(startLoading());
+            console.log('🔍 Starting Google Sign-In process...');
+            console.log('🔍 Platform:', Platform.OS);
+            // console.log('🔍 Google Web Client ID:', GOOGLE_WEB_CLIENT_ID || 'Missing');
+            // console.log('🔍 Google iOS Client ID:', GOOGLE_IOS_CLIENT_ID || 'Missing');
+            // console.log('🔍 Google Android Client ID:', GOOGLE_ANDROID_CLIENT_ID || 'Missing');
 
-            const data = await googleLoginApi(response.data.user);
-            const answers = data.user?.questionnaireAnswers;
-
-            const isProfilingPending =
-                !answers ||
-                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
-                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
-
-            await dispatch(loginUser({ token: data.token, user: data.user, themeType: 'dark' }));
-
-            if (pendingDeepLink) {
-                if (!isProfilingPending) dispatch(setProfilingDone(true));
-                navigation.replace('CourseDeepLink', {
-                    courseId: pendingDeepLink.courseId,
-                    affiliateToken: pendingDeepLink.token,
-                });
-            } else if (isProfilingPending) {
-                navigation.replace("GenderScreen", {
-                    user: data.user,
-                    token: data.token,
-                });
-            } else {
-                dispatch(setProfilingDone(true));
-                navigation.replace('MainFlow');
+            // Check if Google Play Services is available (Android only)
+            if (Platform.OS === 'android') {
+                console.log('🔍 Checking Google Play Services...');
+                await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
             }
 
-        } catch (error) {
-            console.error("Google Sign-In error:", error);
+            // Sign out first to ensure clean state
+            console.log('🔍 Signing out previous session...');
+            await GoogleSignin.signOut();
 
-            const message = {
-                [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in cancelled.',
-                [statusCodes.IN_PROGRESS]: 'Sign-in already in progress.',
-                [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: 'Play Services not available.',
-            }[error.code] || 'Google Sign-In failed.';
+            // Add a small delay
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            Snackbar.show({
-                text: message,
-                duration: 3000,
-                backgroundColor: '#010b13b6',
-                textColor: '#fff',
+            console.log('🔍 Attempting Google Sign-In...');
+            const response = await GoogleSignin.signIn();
+
+            console.log('✅ Google Sign-In successful!');
+            console.log('✅ Response:', JSON.stringify(response, null, 2));
+
+            // Handle the successful response here
+            const { user } = response;
+            console.log('✅ User info:', {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                photo: user.photo
             });
-        } finally {
-            dispatch(stopLoading());
+
+            // TODO: Send this data to your backend for authentication
+            showConfirmationModal({
+                title: 'Google Sign-In Success',
+                message : `Welcome ${user.name}! Google Sign-In is working. Backend integration pending.`,
+                icon: tick, // success icon
+            });
+
+        } catch (error) {
+            console.error('❌ Google Sign-In Error:', error);
+            console.error('❌ Error code:', error.code);
+            console.error('❌ Error message:', error.message);
+
+            let message = 'Google Sign-In failed.';
+
+            if (error.code) {
+                const errorMessages = {
+                    [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in was cancelled by user.',
+                    [statusCodes.IN_PROGRESS]: 'Sign-in is already in progress.',
+                    [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: 'Google Play Services not available.',
+                    [statusCodes.SIGN_IN_REQUIRED]: 'Sign-in is required.',
+                };
+                const message = errorMessages[error.code] || `Google Sign-In failed: ${error.message}`;
+            }
+
+            console.error('❌ Showing error to user:', message);
+
+            showConfirmationModal({
+                title: 'Google Sign-In Failed',
+                message: message,
+                icon: fail,
+            });
         }
     };
-
 
     return (
         <>
@@ -211,7 +223,7 @@ const LoginScreen = ({ navigation, route }) => {
 
                             <View style={styles(theme).orContainer}>
                                 <LinearGradient colors={['rgba(204,204,204,0.07)', 'rgba(255,255,255,0.32)']} style={styles(theme).Line} />
-                                <Text style={styles(theme).or}>Or continue with</Text>
+                                <Text style={styles(theme).or}>or continue with</Text>
                                 <LinearGradient colors={['rgba(255,255,255,0.32)', 'rgba(204,204,204,0.07)']} style={styles(theme).Line} />
                             </View>
 
@@ -226,9 +238,9 @@ const LoginScreen = ({ navigation, route }) => {
                                     </TouchableOpacity>
                                 </LinearGradient>
 
-                                {/* <TouchableOpacity style={styles(theme).appleBtn}>
+                                <TouchableOpacity style={styles(theme).appleBtn}>
                                     <Image source={applePay} style={styles(theme).socialIcon} />
-                                </TouchableOpacity> */}
+                                </TouchableOpacity>
                             </View>
 
                             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>

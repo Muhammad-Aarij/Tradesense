@@ -17,7 +17,7 @@ const Accountability = createNativeStackNavigator();
 
 const AccountabilityNavigator = () => {
     return (
-        <Accountability.Navigator screenOptions={{ headerShown: false }}>
+        <Accountability.Navigator screenOptions={{ headerShown: false }} initialRouteName='AccountabilityDashboard'>
             <Accountability.Screen name="AccountabilityDashboard" component={Dashboard} />
             <Accountability.Screen name="Trading" component={Trading} />
             <Accountability.Screen name="Watchlist" component={Watchlist} />

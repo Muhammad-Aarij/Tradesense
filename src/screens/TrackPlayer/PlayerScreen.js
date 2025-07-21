@@ -44,6 +44,8 @@ import {
 } from '../../assets/images';
 import theme from '../../themes/theme';
 import InstructorInfo from '../../components/InstructorInfo';
+import { useUserContext } from '../../context/UserProvider';
+import { recordAudioProgress } from '../../functions/recordAudioProgress';
 
 const { height, width } = Dimensions.get('window');
 

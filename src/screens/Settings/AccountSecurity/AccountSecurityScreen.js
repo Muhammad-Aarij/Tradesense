@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
     View,
     Text,
@@ -11,6 +11,7 @@ import {
     ImageBackground,
     Dimensions,
     TextInput,
+    Keyboard,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
@@ -20,7 +21,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { bg, fail, p2, tick } from '../../../assets/images';
+import { back, bg, fail, p2, tick } from '../../../assets/images';
 
 const { width, height } = Dimensions.get('window');
 const scale = (size) => (width / 375) * size;
@@ -34,11 +35,28 @@ const AccountSecurityScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalType, setModalType] = useState('success');
     const [modalMessage, setModalMessage] = useState('');
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
     const [isFactorAuthEnabled, setIsFactorAuthEnabled] = useState(true);
     const [showChangePassword, setShowChangePassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+
+    useEffect(() => {
+        const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+            setIsKeyboardVisible(true);
+        });
+
+        const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+            setIsKeyboardVisible(false);
+        });
+
+        return () => {
+            showSubscription.remove();
+            hideSubscription.remove();
+        };
+    }, []);
+
 
     const styles = getStyles(theme);
 
@@ -64,16 +82,24 @@ const AccountSecurityScreen = () => {
                 token: userToken,
                 password: newPassword,
             });
+            console.log('====================================');
+            console.log(response.data?.message);
+            console.log('====================================');
+            if (response.data?.message?.toLowerCase().includes('password updated')) {
+                setModalType('success');
+                setModalMessage('Password changed successfully!');
+                setModalVisible(true);
+                // Reset fields
+                setNewPassword('');
+                setConfirmPassword('');
+                setShowChangePassword(false);
+            } else {
+                setModalType('error');
+                setModalMessage(response.data?.message || 'Unexpected response.');
+                setModalVisible(true);
+            }
 
-            setModalType('success');
-            setModalMessage('Password changed successfully!');
-            setModalVisible(true);
 
-            // Reset fields
-            setOldPassword('');
-            setNewPassword('');
-            setConfirmPassword('');
-            setShowChangePassword(false);
         } catch (error) {
             const errMsg = error?.response?.data?.message || "Failed to change password.";
             setModalType('error');
@@ -114,6 +140,15 @@ const AccountSecurityScreen = () => {
                 style={styles.securityItem}
             >
                 <Text style={styles.securityItemText}>{text}</Text>
+                <Image
+                    source={back}
+                    style={{
+                        width: 10,
+                        height: 10,
+                        resizeMode: "contain",
+                        transform: [{ rotate: "270deg" }],
+                    }}
+                />
             </LinearGradient>
         </TouchableOpacity>
     );
@@ -124,13 +159,14 @@ const AccountSecurityScreen = () => {
                 <ConfirmationModal
                     isVisible={modalVisible}
                     title={modalType === 'success' ? 'Success' : 'Error'}
-                    message={modalMessage}
                     icon={modalType === 'success' ? tick : fail}
+
+                    message={modalMessage}
                     onClose={() => setModalVisible(false)}
                 />
 
                 <View style={styles.container}>
-                    <Header title="Account Security" style={{ marginBottom: 20, }} />
+                    <Header title="Account Settings" style={{ marginBottom: 20, }} />
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         <View style={styles.securityOptionsContainer}>
@@ -194,19 +230,22 @@ const AccountSecurityScreen = () => {
                 </View>
             </SafeAreaView>
 
-            <View style={styles.absoluteFooter}>
-                <LinearGradient
-                    start={{ x: 0, y: 0.95 }}
-                    end={{ x: 1, y: 1 }}
-                    colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
-                    style={styles.footerWrapper}
-                >
-                    <TouchableOpacity style={styles.profileButton}>
-                        <Image source={p2} style={styles.profileButtonIcon} />
-                        <Text style={styles.profileButtonText}>Account Security</Text>
-                    </TouchableOpacity>
-                </LinearGradient>
-            </View>
+            {!isKeyboardVisible && (
+                <View style={styles.absoluteFooter}>
+                    <LinearGradient
+                        start={{ x: 0, y: 0.95 }}
+                        end={{ x: 1, y: 1 }}
+                        colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
+                        style={styles.footerWrapper}
+                    >
+                        <TouchableOpacity style={styles.profileButton}>
+                            <Image source={p2} style={styles.profileButtonIcon} />
+                            <Text style={styles.profileButtonText}>Account Settings</Text>
+                        </TouchableOpacity>
+                    </LinearGradient>
+                </View>
+            )}
+
         </ImageBackground>
     );
 };

@@ -1,51 +1,62 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useContext, useMemo } from 'react';
+import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { ThemeContext } from '../context/ThemeProvider'; // Assuming you have a ThemeContext
+import { useWeeklyProfitLoss } from '../functions/Trades';
+import { trackAffiliateVisit } from '../functions/affiliateApi';
 
 const { width } = Dimensions.get('window');
 
-const TradingJourneyChart = () => {
+const TradingJourneyChart = ({ userId }) => { // Accept userId as a prop
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
 
-    // Dummy data for the line chart
-    const [lineData, setLineData] = useState([]);
+    // Use the custom hook to fetch data with the provided userId
+    const { data, isLoading, isError, error } = useWeeklyProfitLoss(userId);
+    console.log("WeeklyData", data); // Corrected typo from "WeedlyData"
 
-    useEffect(() => {
-        // Generate dummy data for the last 8 days
-        const generateData = () => {
-            const data = [];
-            const today = new Date();
-            // Start with a value that allows for fluctuations around the lower end of the chart
-            let currentProfitLoss = 1000;
+    // Transform fetched data into the format required by LineChart
+    const lineData = useMemo(() => {
+        // Ensure data is an array before attempting to sort or map
+        const actualData = data || [];
 
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(today.getDate() - i);
+        // Create a map for quick lookup of fetched data by date
+        const dataMap = new Map();
+        actualData.forEach(item => {
+            const dateKey = new Date(item.date).toISOString().split('T')[0]; // Format 'YYYY-MM-DD'
+            dataMap.set(dateKey, item.amount);
+        });
 
-                // Simulate profit/loss fluctuations that can go up to 15000
-                const change = (Math.random() - 0.5) * 2500; // Random change between -2000 and 2000
-                currentProfitLoss = Math.max(0, Math.min(15000, currentProfitLoss + change)); // Keep within 0-15000 range
+        const chartData = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Normalize to start of day
 
-                data.push({
-                    value: currentProfitLoss,
-                    label: date.toLocaleDateString('en-US', { weekday: 'short' }), // Day of the week (Mon, Tue, etc.)
-                    dataPointText: `${Math.round(currentProfitLoss)}`, // Data point text will be rounded number
-                    dateLabel: date.getDate(), // Date number (15, 16, etc.)
-                });
-            }
-            setLineData(data);
-        };
+        // Generate data for the last 7 days
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dateKey = date.toISOString().split('T')[0];
 
-        generateData();
-    }, []);
+            // Get amount from fetched data or default to 0
+            const amount = dataMap.has(dateKey) ? dataMap.get(dateKey) : 0;
+
+            chartData.push({
+                value: amount,
+                label: date.toLocaleDateString('en-US', { weekday: 'short' }), // Day of the week (Mon, Tue, etc.)
+                dataPointText: `${Math.round(amount)}`, // Data point text will be rounded number
+                dateLabel: date.getDate(), // Date number (15, 16, etc.)
+            });
+        }
+
+        return chartData;
+    }, [data]);
 
     // Dynamically generate Y-axis labels based on lineData
     const yAxisLabels = useMemo(() => {
         const numLabels = 7; // Exactly 7 Y-axis labels
 
         if (lineData.length === 0) {
+            // Default labels if no data is available yet
             return { labels: ['0k', '3k', '6k', '9k', '12k', '15k'], min: 0, max: 15000 };
         }
 
@@ -71,7 +82,7 @@ const TradingJourneyChart = () => {
         const interval = calculateNiceInterval(rawMinValue, rawMaxValue, numLabels - 1);
 
         let yAxisMinValue = Math.floor(rawMinValue / interval) * interval;
-        if (yAxisMinValue < 0 && rawMinValue >= 0) yAxisMinValue = 0;
+        if (yAxisMinValue < 0 && rawMinValue >= 0) yAxisMinValue = 0; // Ensure min is not negative if all values are positive
 
         let yAxisMaxValue = yAxisMinValue + interval * (numLabels - 1);
         while (yAxisMaxValue < rawMaxValue) {
@@ -94,16 +105,26 @@ const TradingJourneyChart = () => {
         };
     }, [lineData]);
 
+    if (isLoading) {
+        return (
+            <View style={[styles.container, styles.loadingContainer]}>
+                <ActivityIndicator size="large" color={theme.primaryColor} />
+                <Text style={styles.loadingText}>Loading trading data...</Text>
+            </View>
+        );
+    }
 
+    if (isError) {
+        return (
+            <View style={[styles.container, styles.errorContainer]}>
+                <Text style={styles.errorText}>Error: {error?.message || 'Failed to fetch data'}</Text>
+                <Text style={styles.errorText}>Please try again later.</Text>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
-            {/* Header for the chart, if needed (commented out in previous version) */}
-            {/* <View style={styles.header}>
-                <Text style={styles.title}>Your Trading Journey</Text>
-                <Image source={back} style={styles.arrowIcon} />
-            </View> */}
-
             <View style={styles.chartWrapper}>
                 <LineChart
                     data={lineData}
@@ -152,9 +173,6 @@ const TradingJourneyChart = () => {
                             <Text style={styles.xAxisLabelDate}>{item.dateLabel}</Text>
                         </View>
                     )}
-                    // Pass min and max values to the chart for correct scaling
-                    // minValue={yAxisLabels.min}
-                    // maxValue={yAxisLabels.max}
                 />
             </View>
         </View>
@@ -163,19 +181,38 @@ const TradingJourneyChart = () => {
 
 const getStyles = (theme) => StyleSheet.create({
     container: {
-        // backgroundColor: 'rgba(255, 255, 255, 0.06)', // Using a semi-transparent background for the card
-        // borderWidth: 0.9,
-        // borderColor: theme.borderColor,
         borderRadius: 8,
         marginBottom: 10,
-        // No padding here, padding is applied to chartWrapper to control chart width
+    },
+    loadingContainer: {
+        minHeight: 250, // Ensure enough space for loading indicator
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.cardBackground,
+    },
+    loadingText: {
+        marginTop: 10,
+        color: theme.textColor,
+        fontSize: 16,
+    },
+    errorContainer: {
+        minHeight: 250,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: theme.cardBackground,
+    },
+    errorText: {
+        color: theme.errorColor || 'red', // Assuming theme has an errorColor or default to red
+        fontSize: 16,
+        textAlign: 'center',
+        marginHorizontal: 20,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 20,
-        paddingHorizontal: 20, // Add padding to header
+        paddingHorizontal: 20,
     },
     title: {
         color: theme.textColor,
@@ -189,10 +226,8 @@ const getStyles = (theme) => StyleSheet.create({
         transform: [{ rotate: '180deg' }],
     },
     chartWrapper: {
-        alignItems: 'center', // Center the chart
-        // paddingHorizontal: 20, // Padding to create space from container edges
-        padding: 10, // Space below chart for X-axis labels
-        // paddingTop: 20, // Space above chart for Y-axis labels
+        alignItems: 'center',
+        padding: 10,
     },
     xAxisLabel: {
         color: theme.subTextColor,
@@ -203,7 +238,7 @@ const getStyles = (theme) => StyleSheet.create({
         fontSize: 12,
     },
     customXAxisLabel: {
-        marginBottom: 12, // Space between labels and chart bottom
+        marginBottom: 12,
         alignItems: 'center',
     },
     xAxisLabelDay: {
@@ -227,5 +262,6 @@ const getStyles = (theme) => StyleSheet.create({
         fontSize: 12,
     },
 });
+
 
 export default TradingJourneyChart;

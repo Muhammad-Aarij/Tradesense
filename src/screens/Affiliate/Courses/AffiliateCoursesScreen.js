@@ -190,7 +190,7 @@ const AffiliateCoursesScreen = () => {
                                         style={styles.statCard}
                                     >
                                         <Text style={styles.statLabel}>{affiliateStats?.enrolled || 0}</Text>
-                                        <Text style={styles.statValue}>Clicks</Text>
+                                        <Text style={styles.statValue}>Conversions</Text>
                                     </LinearGradient>
                                 </View>
 

@@ -14,11 +14,11 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomInput from '../../../components/CustomInput';
-import { bg } from '../../../assets/images';
+import { bg, fail, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { submitTradeForm } from '../../../functions/Trades';
+import { submitTradeForm, useSubmitTrade } from '../../../functions/Trades';
 import { useNavigation } from '@react-navigation/native';
 import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ import theme context
 import LinearGradient from 'react-native-linear-gradient';
@@ -110,6 +110,7 @@ export default function Acc_FormData() {
     setTradeDate(currentDate);
   };
 
+  const { mutate: submitTrade } = useSubmitTrade(studentId); // ✅
   const handleSubmit = async () => {
     const formData = {
       tradeDate: tradeDate.toISOString().split('T')[0],
@@ -132,7 +133,7 @@ export default function Acc_FormData() {
     console.log('Form Submitted:', formData);
     try {
       dispatch(startLoading());
-      const response = await submitTradeForm(formData);
+      const response = await submitTrade(formData);
       console.log('Trade submitted successfully:', response);
       setShowSuccessModal(true);
     } catch (error) {
@@ -142,6 +143,8 @@ export default function Acc_FormData() {
       dispatch(stopLoading());
     }
   };
+
+
 
   return (
     <ImageBackground source={isDarkMode ? bg : null} style={styles.container}>
@@ -202,24 +205,25 @@ export default function Acc_FormData() {
         </KeyboardAvoidingView>
       </SafeAreaView>
 
-      {(showSuccessModal || showErrorModal) && <ConfirmationModal
-        visible={showSuccessModal || showErrorModal}
-        title={showSuccessModal ? 'Success' : 'Error'}
-        message={
-          showSuccessModal
-            ? '✅ Trade submitted successfully!'
-            : '❌ Failed to submit trade.'
-        }
-        icon={showSuccessModal ? '✅' : '❌'}
-        onClose={() => {
-          if (showSuccessModal) {
-            setShowSuccessModal(false);
-            navigation.goBack(); // Adjust screen name as needed
-          } else {
-            setShowErrorModal(false);
+      {(showSuccessModal || showErrorModal) &&
+        <ConfirmationModal
+          visible={showSuccessModal || showErrorModal}
+          title={showSuccessModal ? 'Success' : 'Error'}
+          message={
+            showSuccessModal
+              ? 'Trade submitted successfully!'
+              : ' Failed to submit trade.'
           }
-        }}
-      />}
+          icon={showSuccessModal ? tick : fail}
+          onClose={() => {
+            if (showSuccessModal) {
+              setShowSuccessModal(false);
+              navigation.goBack(); // Adjust screen name as needed
+            } else {
+              setShowErrorModal(false);
+            }
+          }}
+        />}
 
     </ImageBackground>
   );

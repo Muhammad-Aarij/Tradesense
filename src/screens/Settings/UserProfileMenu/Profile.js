@@ -226,11 +226,12 @@ const getStyles = (theme) => StyleSheet.create({
     padding: scale(6),
   },
   cameraIcon: {
-    width: scale(16),
-    height: scale(16),
+    width: scale(15),
+    height: scale(15),
     tintColor: "white",
   },
   profileName: {
+    textTransform: "capitalize",
     marginTop: verticalScale(15),
     textAlign: "center",
     fontSize: scale(16),
@@ -270,11 +271,11 @@ const getStyles = (theme) => StyleSheet.create({
     // alignItems: 'center',
   },
   menuIcon: {
-    width: scale(25),
-    height: scale(25),
+    width: scale(23),
+    height: scale(23),
     tintColor: theme.primaryColor,
     resizeMode: 'contain',
-    marginRight: scale(20),
+    marginRight: scale(15),
   },
   menuText: {
     fontSize: scale(13),
@@ -283,8 +284,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   chevronIcon: {
     marginRight: scale(15),
-    width: scale(15),
-    height: scale(15),
+    width: scale(10),
+    height: scale(10),
     tintColor: theme.bw,
     resizeMode: 'contain',
     transform: [{ rotate: '180deg' }],

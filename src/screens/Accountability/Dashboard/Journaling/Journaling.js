@@ -240,7 +240,7 @@ const Journaling = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                <TradingJourneyChart />
+                <TradingJourneyChart userId={userId} />
 
                 {/* Trades Section */}
                 <View style={styles.tradesHeader}>

@@ -1,31 +1,17 @@
-// 🔁 Imports remain unchanged
-
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  SafeAreaView,
-  StatusBar,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  Alert,
-  Dimensions,
+  View, Text, ScrollView, SafeAreaView, StatusBar,
+  TouchableOpacity, Image, StyleSheet, Alert, Dimensions,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { PieChart } from 'react-native-gifted-charts';
 import {
-  back,
-  work,
-  checkboxChecked,
-  checkboxUnchecked
+  back, checkboxChecked, checkboxUnchecked
 } from '../../../../assets/images';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
-import { useCreateHabitLog } from '../../../../functions/habbitFunctions';
+import { useCreateHabitLog, useTodaysHabits, useHabitStats } from '../../../../functions/habbitFunctions';
 import { ThemeContext } from '../../../../context/ThemeProvider';
-import { useTodaysHabits, useHabitStats } from '../../../../functions/habbitFunctions';
 import DailyBreakdownChart from '../../../../components/DailyBreakdownChart';
 import { useQueryClient } from '@tanstack/react-query';
 import Snackbar from 'react-native-snackbar';
@@ -34,60 +20,47 @@ const screenWidth = Dimensions.get('window').width;
 
 export default function Accountability({ navigation }) {
   const queryClient = useQueryClient();
-  const [localHabitState, setLocalHabitState] = useState({});
-  const userId = useSelector(state => state.auth.userId);
   const dispatch = useDispatch();
+  const userId = useSelector(state => state.auth.userId);
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
 
+  const [localHabitState, setLocalHabitState] = useState({});
+  const { data: todaysHabits = [], isLoading } = useTodaysHabits(userId);
   const { data: habitStats = {}, isLoading: statsLoading } = useHabitStats(userId);
-  const { data: todaysHabits = [], isLoading, refetch } = useTodaysHabits(userId);
+  const logHabit = useCreateHabitLog();
+
+  const visibleHabits = todaysHabits.filter(h => !(localHabitState[h._id] || h.completedToday));
+  const completedCount = todaysHabits.filter(h => h.completedToday || localHabitState[h._id]).length;
+  const remainingCount = todaysHabits.length - completedCount;
 
   useEffect(() => {
-    (isLoading || statsLoading) ? dispatch(startLoading()) : dispatch(stopLoading());
+    if (isLoading || statsLoading) dispatch(startLoading());
+    else dispatch(stopLoading());
   }, [isLoading, statsLoading]);
 
   const growthPercentage = habitStats.total > 0
     ? Math.round((habitStats.completed / habitStats.total) * 100)
     : 0;
 
-  const logHabit = useCreateHabitLog();
-
   const handleLog = async (habitId) => {
-    const isAlreadyChecked = localHabitState[habitId] || todaysHabits.find(h => h._id === habitId)?.completedToday;
-
-    if (isAlreadyChecked) {
-      Snackbar.show({
-        text: 'Already checked!',
-        duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: '#FFA726',
-      });
+    if (localHabitState[habitId] || todaysHabits.find(h => h._id === habitId)?.completedToday) {
+      Snackbar.show({ text: 'Already checked!', duration: Snackbar.LENGTH_SHORT, backgroundColor: '#FFA726' });
       return;
     }
 
     setLocalHabitState(prev => ({ ...prev, [habitId]: true }));
 
     const result = await logHabit({ userId, habitId });
-
     if (result?.error) {
       setLocalHabitState(prev => ({ ...prev, [habitId]: false }));
       Alert.alert('Error', result.error);
     } else {
-      Snackbar.show({
-        text: 'Goal checked!',
-        duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: '#66BB6A',
-      });
-
+      Snackbar.show({ text: 'Goal checked!', duration: Snackbar.LENGTH_SHORT, backgroundColor: '#66BB6A' });
       await queryClient.invalidateQueries(['todaysHabits', userId]);
       await queryClient.invalidateQueries(['habitStats', userId]);
     }
   };
-
-  // ❌ Filter out completed habits from view on fresh mount
-  const visibleHabits = todaysHabits.filter(habit => {
-    return !habit.completedToday && !localHabitState[habit._id];
-  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,10 +73,11 @@ export default function Accountability({ navigation }) {
           {[
             { label: 'Total Goals on time', value: habitStats.total ?? '--' },
             { label: 'Streak', value: habitStats.streak ?? '--' },
+            // { label: "Completed Today", value: completedCount },
+            // { label: "Remaining Today", value: remainingCount },
           ].map((item, idx) => (
             <LinearGradient key={idx}
-              start={{ x: 0, y: 0.95 }}
-              end={{ x: 1, y: 1 }}
+              start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
               colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
               style={styles.gridItemLinearGradient}>
               <View style={styles.gridItem}>
@@ -124,14 +98,8 @@ export default function Accountability({ navigation }) {
               <View style={styles.pieChartWrapper}>
                 <PieChart
                   data={[
-                    {
-                      value: growthPercentage,
-                      color: theme.primaryColor,
-                    },
-                    {
-                      value: 100 - growthPercentage,
-                      color: theme.borderColor,
-                    },
+                    { value: (completedCount / (completedCount + remainingCount)) * 100, color: theme.primaryColor },
+                    { value: 100 - (completedCount / (completedCount + remainingCount)) * 100, color: theme.borderColor }
                   ]}
                   radius={50}
                   donut
@@ -140,32 +108,25 @@ export default function Accountability({ navigation }) {
                   innerCircleColor="transparent"
                   centerLabelComponent={() => (
                     <View style={{
-                      backgroundColor: !isDarkMode ? "white" : "#080E17",
-                      width: 70,
-                      height: 70,
-                      flexDirection: "row",
-                      borderRadius: 100,
-                      justifyContent: "center",
-                      alignItems: "center",
+                      backgroundColor: isDarkMode ? "#080E17" : "white",
+                      width: 70, height: 70, borderRadius: 100,
+                      justifyContent: "center", alignItems: "center"
                     }}>
-                      <Text style={{
-                        color: theme.textColor, fontSize: 14, fontFamily: "Inter-Bold"
-                      }}>
-                        {growthPercentage}%
+                      <Text style={{ color: theme.textColor, fontSize: 14, fontFamily: "Inter-Bold" }}>
+                        {(completedCount / (completedCount + remainingCount)) * 100}%
                       </Text>
                     </View>
                   )}
                 />
               </View>
-
               <View style={{ flexDirection: "column", justifyContent: "space-between" }}>
                 <View style={styles.gridItem2}>
                   <Text style={styles.gridItemLabel}>Completed Goals</Text>
-                  <Text style={styles.gridItemValue}>{habitStats.completed}</Text>
+                  <Text style={styles.gridItemValue}>{completedCount}</Text>
                 </View>
                 <View style={styles.gridItem2}>
                   <Text style={styles.gridItemLabel}>Pending Goals</Text>
-                  <Text style={styles.gridItemValue}>{habitStats.pending}</Text>
+                  <Text style={styles.gridItemValue}>{remainingCount}</Text>
                 </View>
               </View>
             </View>
@@ -180,88 +141,34 @@ export default function Accountability({ navigation }) {
           <TouchableOpacity onPress={() => navigation.navigate("Goals")} style={styles.manageRow}>
             <Text style={styles.manageText}>Manage</Text>
             <Image source={back} style={{
-              width: 10,
-              height: 10,
-              resizeMode: 'contain',
-              tintColor: theme.primaryColor,
-              transform: [{ rotate: '180deg' }],
+              width: 10, height: 10, resizeMode: 'contain',
+              tintColor: theme.primaryColor, transform: [{ rotate: '180deg' }],
             }} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.successTrackerList}>
           {todaysHabits.length === 0 ? (
-            // No goals at all
-            <LinearGradient
-              start={{ x: 0, y: 0.95 }}
-              end={{ x: 1, y: 1 }}
-              colors={['rgba(126, 126, 126, 0.2)', 'rgba(255,255,255,0)']}
-              style={styles.emptyHabitsCard}
-            >
-              <View style={styles.emptyHabitsContent}>
-                <View style={styles.emptyHabitsIconContainer}>
-                  <View style={styles.emptyHabitsIcon}>
-                    <Text style={styles.emptyHabitsIconText}>🌱</Text>
-                  </View>
-                </View>
-                <View style={styles.emptyHabitsTextContainer}>
-                  <Text style={styles.emptyHabitsTitle}>Ready to Grow?</Text>
-                  <Text style={styles.emptyHabitsSubtitle}>
-                    Start your journey by creating your first habit. Every small step counts towards your success!
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.createHabitButton}
-                  onPress={() => navigation.navigate("Goals")}
-                >
-                  <Text style={styles.createHabitButtonText}>Create Your First Goal</Text>
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
+            <EmptyCard emoji="🌱" title="Ready to Grow?" subtitle="Start your journey by creating your first habit. Every small step counts towards your success!" theme={theme}  onPress={() => navigation.navigate("Goals")} />
           ) : visibleHabits.length === 0 ? (
-            // All habits completed
-            <LinearGradient
-              start={{ x: 0, y: 0.95 }}
-              end={{ x: 1, y: 1 }}
-              colors={['rgba(126, 126, 126, 0.2)', 'rgba(255,255,255,0)']}
-              style={styles.emptyHabitsCard}
-            >
-              <View style={styles.emptyHabitsContent}>
-                <View style={styles.emptyHabitsIconContainer}>
-                  <View style={styles.emptyHabitsIcon}>
-                    <Text style={styles.emptyHabitsIconText}>🎉</Text>
-                  </View>
-                </View>
-                <View style={styles.emptyHabitsTextContainer}>
-                  <Text style={styles.emptyHabitsTitle}>Congratulations!</Text>
-                  <Text style={styles.emptyHabitsSubtitle}>
-                    All your goals for today are completed. Great job staying accountable!
-                  </Text>
-                </View>
-              </View>
-            </LinearGradient>
+            <EmptyCard emoji="🎉" title="Congratulations!" subtitle="All your goals for today are completed. Great job staying accountable!" theme={theme} />
           ) : (
-            // Show habits if any left
-            visibleHabits.map((habit) => {
+            visibleHabits.map(habit => {
               const isChecked = localHabitState[habit._id];
               return (
                 <LinearGradient key={habit._id}
-                  start={{ x: 0, y: 0.95 }}
-                  end={{ x: 1, y: 1 }}
+                  start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                  style={styles.successTrackerItemLinearGradient}
-                >
+                  style={styles.successTrackerItemLinearGradient}>
                   <View style={styles.successTrackerItem}>
                     <View style={styles.successTrackerTextContent}>
                       <View style={{ flexDirection: "row", alignItems: "flex-start", marginRight: 20 }}>
-                        <View style={styles.checkbox}>
-                          <TouchableOpacity onPress={() => handleLog(habit._id)}>
-                            <Image
-                              source={isChecked ? checkboxChecked : checkboxUnchecked}
-                              style={{ width: 16, height: 16, resizeMode: 'contain' }}
-                            />
-                          </TouchableOpacity>
-                        </View>
+                        <TouchableOpacity onPress={() => handleLog(habit._id)} style={styles.checkbox}>
+                          <Image
+                            source={isChecked ? checkboxChecked : checkboxUnchecked}
+                            style={{ width: 16, height: 16, resizeMode: 'contain' }}
+                          />
+                        </TouchableOpacity>
                         <View style={{ flexDirection: "column" }}>
                           <Text style={[
                             styles.successTrackerTitle,
@@ -283,12 +190,37 @@ export default function Accountability({ navigation }) {
               );
             })
           )}
-
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const EmptyCard = ({ emoji, title, subtitle, onPress, theme }) => (
+  <LinearGradient
+    start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
+    colors={['rgba(126, 126, 126, 0.2)', 'rgba(255,255,255,0)']}
+    style={{
+      padding: 25,
+      paddingVertical:40,
+      borderRadius: 12,
+      // marginVertical: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+    <Text style={{ fontSize: 36 }}>{emoji}</Text>
+    <Text style={{ fontSize: 16, fontFamily:"Inter-SemiBold", marginTop: 10, color: theme.textColor }}>{title}</Text>
+    <Text style={{ fontSize: 12, fontFamily:"Inter-Regular", textAlign: 'center', marginTop: 5, color: theme.subTextColor }}>
+      {subtitle}
+    </Text>
+    {onPress && (
+      <TouchableOpacity onPress={onPress} style={{ marginTop: 12, backgroundColor: '#444', padding: 10, borderRadius: 8 }}>
+        <Text style={{ color: 'white' }}>Create Your First Goal</Text>
+      </TouchableOpacity>
+    )}
+  </LinearGradient>
+);
+
 
 const getStyles = (theme) => StyleSheet.create({
   container: {

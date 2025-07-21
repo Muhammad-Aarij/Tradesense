@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,26 @@ import Accountability from './Accountability/Accountability';
 import Journaling from './Journaling/Journaling';
 import { useSelector } from 'react-redux';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import { useFocusEffect } from '@react-navigation/native';
 
-const Dashboard = ({ navigation }) => {
+const Dashboard = ({ navigation, route }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
   const name = useSelector(state => state.auth.userObject?.name);
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
   const profilePic = useSelector(state => state.auth.userObject?.profilePic);
+  useFocusEffect(
+    useCallback(() => {
+      console.log('====================================');
+      console.log("ROUTE", route?.params?.goJournaling);
+      console.log('====================================');
+      if (route?.params?.goJournaling === true && activeTab !== 'Journaling') {
+        console.log("Navigating to Journaling");
+        setActiveTab('Journaling');
+      }
+    }, [route?.params?.goJournaling, activeTab])
+  );
+
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -47,7 +60,7 @@ const Dashboard = ({ navigation }) => {
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
               </View>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate("Notifications")}> 
+            <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
               <Image source={isDarkMode ? bell : bellWhite} style={styles.bellIcon} />
             </TouchableOpacity>
           </View>

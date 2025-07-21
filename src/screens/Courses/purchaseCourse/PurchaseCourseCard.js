@@ -60,19 +60,54 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
             </View>
 
             <View style={styles.cardContent}>
-                <Text style={[styles.cardTitle, { color: theme.textColor }]} numberOfLines={1}>
-                    {course.title || 'Untitled Course'}
-                </Text>
+                <View style={{}}>
+                    <Text style={[styles.cardTitle, { color: theme.textColor }]} numberOfLines={1}>
+                        {course.title || 'Untitled Course'}
+                    </Text>
 
-                <Text
-                    style={[styles.cardDescription, { color: theme.subTextColor }]}
-                    numberOfLines={3}
-                >
-                    {course.description}
-                </Text>
+                    <Text
+                        style={[styles.cardDescription, { color: theme.subTextColor }]}
+                        numberOfLines={3}
+                    >
+                        {course.description}
+                    </Text>
+                    {showUrl && (
+                        <TouchableOpacity
+                            onPress={() => {
+                                Clipboard.setString(course.url);
+                                ToastAndroid.show('Link copied!', ToastAndroid.SHORT);
+                            }}
+                        >
 
-                {/* <StarRating rating={course.rating} theme={theme} /> */}
+                            <View
+                                style={[
+                                    styles.urlcontainer,
+                                    { borderColor: theme.borderColor },
+                                ]}
+                            >
+                                <Text style={[styles.url, { color: theme.textColor }]} numberOfLines={1}>
+                                    {course.url}
+                                </Text>
 
+                                <View style={{ flexDirection: 'row' }}>
+                                    {/* <TouchableOpacity
+                                    onPress={() => {
+                                        Clipboard.setString(course.url);
+                                        ToastAndroid.show('Link copied!', ToastAndroid.SHORT);
+                                    }}
+                                > */}
+                                    <Image
+                                        style={[styles.icon, { tintColor: theme.textColor, }]}
+                                        source={copy}
+                                    />
+                                    {/* </TouchableOpacity> */}
+                                </View>
+                            </View>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* <StarRating rating={course.rating} theme={theme} /> */}
+                </View>
                 <View style={styles.instructorInfo}>
                     <View style={{ flexDirection: 'row' }}>
                         <Image source={user} style={styles.instructorImage} />
@@ -82,55 +117,30 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                             </Text>
                         </View>
                     </View>
-                    <Text style={[styles.price, { color: theme.textColor }]}>{course.price}</Text>
+                    {showUrl &&
+                        <TouchableOpacity
+                            onPress={async () => {
+                                try {
+                                    await Share.open({
+                                        title: 'Share Course',
+                                        message: `Check out this course: ${course.url}`,
+                                    });
+                                } catch (error) {
+                                    if (error.message !== 'User did not share') {
+                                        console.log('Share error:', error);
+                                    }
+                                }
+                            }}
+                        >
+                            <Image
+                                style={[styles.icon]}
+                                source={send}
+                            />
+                        </TouchableOpacity>}
+                    {/* <Text style={[styles.price, { color: theme.textColor }]}>{course.price}</Text> */}
                 </View>
 
-                {showUrl && (
-                    <View
-                        style={[
-                            styles.urlcontainer,
-                            { borderColor: theme.borderColor },
-                        ]}
-                    >
-                        <Text style={[styles.url, { color: theme.textColor }]} numberOfLines={1}>
-                            {course.url}
-                        </Text>
 
-                        <View style={{ flexDirection: 'row' }}>
-                            <TouchableOpacity
-                                onPress={() => {
-                                    Clipboard.setString(course.url);
-                                    ToastAndroid.show('Link copied!', ToastAndroid.SHORT);
-                                }}
-                            >
-                                <Image
-                                    style={[styles.icon, { tintColor: theme.textColor, }]}
-                                    source={copy}
-                                />
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                onPress={async () => {
-                                    try {
-                                        await Share.open({
-                                            title: 'Share Course',
-                                            message: `Check out this course: ${course.url}`,
-                                        });
-                                    } catch (error) {
-                                        if (error.message !== 'User did not share') {
-                                            console.log('Share error:', error);
-                                        }
-                                    }
-                                }}
-                            >
-                                <Image
-                                    style={[styles.icon]}
-                                    source={send}
-                                />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                )}
             </View>
         </TouchableOpacity>
     );
@@ -187,6 +197,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Regular',
     },
     cardContent: {
+        // borderWidth: 2,
+        height: "100%",
         flex: 1,
         padding: 12,
         paddingLeft: 10,
@@ -209,17 +221,18 @@ const styles = StyleSheet.create({
     },
     cardDescription: {
         fontFamily: 'Inter-Light-BETA',
-        fontSize: 10,
-        lineHeight: 14,
-        marginBottom: 3,
+        fontSize: 9,
+        lineHeight: 12,
+        marginVertical: 3,
     },
     instructorInfo: {
         flex: 1,
+        // borderWidth:2,
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-end',
         justifyContent: 'space-between',
         borderRadius: 20,
-        paddingVertical: 5,
+        // paddingVertical: 5,
         zIndex: 10,
     },
     price: {
@@ -227,8 +240,8 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-SemiBold',
     },
     instructorImage: {
-        width: 25,
-        height: 25,
+        width: 20,
+        height: 20,
         borderRadius: 100,
         marginRight: 5,
     },
@@ -242,6 +255,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 5,
+        marginTop: 10,
         paddingHorizontal: 8,
     },
     url: {

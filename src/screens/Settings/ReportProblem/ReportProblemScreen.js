@@ -1,11 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image,
-  SafeAreaView, Dimensions, ImageBackground
+  SafeAreaView, Dimensions, ImageBackground,
+  Keyboard
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import DeviceInfo from 'react-native-device-info';
-import { back, bg, p2, tick } from '../../../assets/images';
+import { back, bg, fail, p2, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,6 +22,7 @@ import { API_URL } from "@env";
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import axios from 'axios';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import SnackbarMessage from '../../../functions/SnackbarMessage';
 
 
 const ReportProblemScreen = () => {
@@ -36,6 +38,8 @@ const ReportProblemScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState('success'); // 'success' or 'error'
   const [modalMessage, setModalMessage] = useState('');
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'message' });
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // Function to get device information
   const getDeviceInfo = async () => {
@@ -44,7 +48,7 @@ const ReportProblemScreen = () => {
       const systemVersion = await DeviceInfo.getSystemVersion();
       const appVersion = await DeviceInfo.getVersion();
       const buildNumber = await DeviceInfo.getBuildNumber();
-      
+
       const deviceInfoString = `${deviceName}, ${DeviceInfo.getSystemName()} ${systemVersion}, App v${appVersion} (${buildNumber})`;
       setDeviceInfo(deviceInfoString);
     } catch (error) {
@@ -57,6 +61,29 @@ const ReportProblemScreen = () => {
   useEffect(() => {
     getDeviceInfo();
   }, []);
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+    });
+
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (snackbar.visible) {
+      const timer = setTimeout(() => {
+        setSnackbar(prev => ({ ...prev, visible: false }));
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar.visible]);
 
   const issueTypes = [
     'Login or Account issue',
@@ -117,8 +144,17 @@ const ReportProblemScreen = () => {
 
 
   const handleSubmit = async () => {
-    if (selectedIssueType === 'Select Issue Type' || !problemDescription) {
-      alert('Please select issue type and provide a description');
+    if (
+      selectedIssueType === 'Select Issue Type' ||
+      selectedResponseTime === 'Preferred Response Time' ||
+      !problemDescription ||
+      !deviceInfo
+    ) {
+      setSnackbar({
+        visible: true,
+        message: 'Please complete all fields before submitting.',
+        type: 'message',
+      });
       return;
     }
 
@@ -131,7 +167,6 @@ const ReportProblemScreen = () => {
         description: problemDescription,
       });
 
-      // Success modal
       setModalType('success');
       setModalMessage('Problem reported successfully!');
       setModalVisible(true);
@@ -144,7 +179,6 @@ const ReportProblemScreen = () => {
     } catch (error) {
       console.error('Report error:', error?.response?.data || error.message || error);
 
-      // Failure modal
       setModalType('error');
       setModalMessage('Something went wrong while reporting the problem.');
       setModalVisible(true);
@@ -157,11 +191,17 @@ const ReportProblemScreen = () => {
 
   return (
     <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
+      <SnackbarMessage
+        visible={snackbar.visible}
+        message={snackbar.message}
+        type={snackbar.type}
+      />
+
       <ConfirmationModal
         isVisible={modalVisible}
         title={modalType === 'success' ? 'Success' : 'Error'}
         message={modalMessage}
-        icon={modalType === 'success' ? tick : back}
+        icon={modalType === 'success' ? tick : fail}
         onClose={() => setModalVisible(false)}
       />
       <SafeAreaView style={styles.safeArea}>
@@ -188,7 +228,7 @@ const ReportProblemScreen = () => {
               >
                 <TextInput
                   placeholder="Start typing..."
-                  placeholderTextColor={theme.placeholderTextColor}
+                  placeholderTextColor={theme.subTextColor}
                   multiline
                   numberOfLines={4}
                   value={problemDescription}
@@ -209,7 +249,7 @@ const ReportProblemScreen = () => {
               >
                 <TextInput
                   placeholder="Auto-filled (e.g., iPhone 13, iOS 17.5, App v1.0.0)"
-                  placeholderTextColor={theme.placeholderTextColor}
+                  placeholderTextColor={theme.subTextColor}
                   value={deviceInfo}
                   onChangeText={setDeviceInfo}
                   style={{ color: theme.textColor, fontSize: 12, flex: 1, fontFamily: 'Inter-Regular' }}
@@ -238,21 +278,22 @@ const ReportProblemScreen = () => {
         </View>
       </SafeAreaView>
 
-      <View style={styles.absoluteFooter}>
-        <View style={[styles.footerWrapper, { borderColor: theme.borderColor }]}>
-          <LinearGradient
-            start={{ x: 0.0, y: 0.95 }}
-            end={{ x: 1.0, y: 1.0 }}
-            colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
-            style={[styles.profileButton, { backgroundColor: theme.primaryColor }]}
-          >
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image source={p2} style={styles.profileButtonIcon} />
-              <Text style={styles.profileButtonText}>Report a Problem</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
-      </View>
+      {!isKeyboardVisible &&
+        <View style={styles.absoluteFooter}>
+          <View style={[styles.footerWrapper, { borderColor: theme.borderColor }]}>
+            <LinearGradient
+              start={{ x: 0.0, y: 0.95 }}
+              end={{ x: 1.0, y: 1.0 }}
+              colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+              style={[styles.profileButton, { backgroundColor: theme.primaryColor }]}
+            >
+              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Image source={p2} style={styles.profileButtonIcon} />
+                <Text style={styles.profileButtonText}>Report a Problem</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        </View>}
     </ImageBackground>
   );
 };

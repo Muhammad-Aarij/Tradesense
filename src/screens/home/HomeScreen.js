@@ -176,7 +176,14 @@ const HomeScreen = ({ navigation }) => {
                 </LinearGradient>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate("Accountability", { screen: "Accountability" })}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("Accountability", {
+                    screen: "AccountabilityDashboard",
+                    goJournaling: true,
+                  })
+                }
+              >
                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                   colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                   style={styles.linearGradient}>
@@ -243,7 +250,7 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 5,
   },
   sectionTitle2: {
-marginRight:10,
+    marginRight: 10,
     color: theme.subTextColor,
     fontSize: 13,
     fontFamily: 'Inter-Regular',
@@ -253,7 +260,7 @@ marginRight:10,
   cardImage: {
     width: '100%',
     height: 90,
-    borderRadius: 5,
+    borderRadius: 6,
     resizeMode: 'cover'
   },
   playButtonText: {

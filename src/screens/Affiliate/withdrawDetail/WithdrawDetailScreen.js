@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
     Image, Alert, ImageBackground
@@ -11,15 +11,18 @@ import { useCreatePayment } from '../../../functions/affiliateApi';
 import { useDispatch, useSelector } from 'react-redux'; // For accessing user ID from Redux (if stored there)
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import SnackbarMessage from '../../../functions/SnackbarMessage';
 
 
 const WithdrawDetailScreen = ({ navigation, route }) => {
     const [selectedType, setSelectedType] = useState('PayPal');
-    const [accountNumber, setAccountNumber] = useState('1235');
-    const [amount, setAmount] = useState('459.58');
+    const [accountNumber, setAccountNumber] = useState('');
+    const [amount, setAmount] = useState('');
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const { mutate: submitPayment, isPending } = useCreatePayment();
     const { userId } = useSelector(state => state.auth);
+    const dispatch = useDispatch();
+    const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'success' });
     const { totalAmount } = route.params;
     const [confirmation, setConfirmation] = useState({
         visible: false,
@@ -28,6 +31,15 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
         icon: null,
     });
 
+    useEffect(() => {
+        if (snackbar.visible) {
+            const timer = setTimeout(() => {
+                setSnackbar(prev => ({ ...prev, visible: false }));
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [snackbar.visible]);
+
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
 
@@ -35,31 +47,51 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
         setSelectedType(type);
         setDropdownVisible(false);
     };
-    const dispatch = useDispatch();
-    const handleWithdraw = () => {
 
+    const isValidAccountNumber = /^\d{3}-\d{7}-\d{3}$/.test(accountNumber);
+
+    const handleWithdraw = () => {
         const parsedAmount = parseFloat(amount);
-        console.log(selectedType, userId, amount, accountNumber);
         dispatch(startLoading());
+
+        // Basic validation
         if (!selectedType || !accountNumber || !amount) {
-            Alert.alert('Error', 'Please fill in all details.');
             dispatch(stopLoading());
+            setSnackbar({
+                visible: true,
+                message: 'Please fill in all details.',
+                type: 'message',
+            });
             return;
         }
 
         if (isNaN(parsedAmount) || parsedAmount <= 0) {
             dispatch(stopLoading());
-            Alert.alert('Error', 'Please enter a valid amount.');
+            setSnackbar({
+                visible: true,
+                message: 'Please enter a valid amount.',
+                type: 'message',
+            });
+            return;
+        }
+        if (!isValidAccountNumber) {
+            dispatch(stopLoading());
+            setSnackbar({
+                visible: true,
+                message: 'Invalid Account Number .\n Use 000-0000000-000 format.',
+                type: 'message',
+            });
             return;
         }
 
+
+        // Proceed with withdrawal
         submitPayment(
             {
                 userId,
-                // type: selectedType.toLowerCase(),
-                type: "affiliate",
+                type: 'affiliate',
                 amount: parsedAmount,
-                accountNumber: accountNumber
+                accountNumber: accountNumber,
             },
             {
                 onSuccess: () => {
@@ -68,22 +100,37 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
                         visible: true,
                         title: 'Success',
                         message: `Withdrawal of $${parsedAmount} to ${selectedType} requested.`,
-                        icon: tick, // your success icon
+                        icon: tick,
                     });
                 },
-
                 onError: () => {
                     dispatch(stopLoading());
                     setConfirmation({
                         visible: true,
                         title: 'Error',
                         message: 'Failed to submit withdrawal. Please try again.',
-                        icon: fail, // your error icon
+                        icon: fail,
                     });
-                }
-
+                },
             }
         );
+    };
+
+
+    const formatAccountNumber = (input) => {
+        // Remove all non-digit characters
+        const digits = input.replace(/\D/g, '');
+
+        // Format as 000-0000000-000
+        const part1 = digits.slice(0, 3);
+        const part2 = digits.slice(3, 10);
+        const part3 = digits.slice(10, 13);
+
+        let formatted = part1;
+        if (part2) formatted += '-' + part2;
+        if (part3) formatted += '-' + part3;
+
+        return formatted;
     };
 
 
@@ -91,6 +138,8 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
 
     return (
         <ImageBackground source={theme.bg} style={styles.container}>
+            <SnackbarMessage visible={snackbar.visible} message={snackbar.message} type={snackbar.type} />
+
             <Header title="Withdraw" style={{ marginBottom: 20, }} />
             {confirmation.visible && (
                 <ConfirmationModal
@@ -131,8 +180,7 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
                     placeholder="Enter Account Number"
                     keyboardType="numeric"
                     value={accountNumber}
-                    onChangeText={setAccountNumber}
-                />
+                    onChangeText={(text) => setAccountNumber(formatAccountNumber(text))} />
 
                 <CustomInput
                     label="Amount"

@@ -118,6 +118,7 @@ export default function GoalContainer({ navigation }) {
 
                     {filteredGoals.length > 0 ? (
                         <FlatList
+                        showsVerticalScrollIndicator={false}
                             data={filteredGoals}
                             keyExtractor={item => item._id.toString()}
                             renderItem={({ item }) => (
@@ -157,6 +158,7 @@ const getStyles = (theme) => StyleSheet.create({
         flex: 1,
         paddingHorizontal: 20,
         paddingTop: 40,
+        paddingBottom:70,
     },
     sectionHeader: {
         marginBottom: 20,

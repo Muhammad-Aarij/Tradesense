@@ -20,6 +20,8 @@ import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { playb, stop, noThumbnail } from '../assets/images';
 import theme from '../themes/theme';
+import { useUserContext } from '../context/UserProvider';
+import { recordAudioProgress } from '../functions/recordAudioProgress';
 
 const { width } = Dimensions.get('window');
 
@@ -29,9 +31,11 @@ const MiniPlayer = () => {
   const activeTrack = useActiveTrack();
   const progress = useProgress();
   const insets = useSafeAreaInsets();
-  
+  const userContext = useUserContext();
+  const userId = userContext?.id;
+
   const isPlaying = playbackState.state === PlaybackState.Playing;
-  
+
   // Swipe-to-dismiss state & animation
   const [visible, setVisible] = useState(true);
   const translateY = useRef(new Animated.Value(0)).current;
@@ -46,7 +50,7 @@ const MiniPlayer = () => {
       console.log('New Track URL:', activeTrack?.url);
       console.log('New Track Title:', activeTrack?.title);
       console.log('=====================================');
-      
+
       previousTrackId.current = activeTrack?.id;
       setVisible(true);
       translateY.setValue(0);
@@ -79,6 +83,17 @@ const MiniPlayer = () => {
                 // Stop the player and reset position, clearing progress without destroying queue
                 await TrackPlayer.stop();
                 await TrackPlayer.seekTo(0);
+                // Record progress when mini player is dismissed
+                console.log('====================================');
+                console.log("Mini Player Progress",userId, activeTrack?.url, progress?.position);
+                console.log('====================================');
+                if (userId && activeTrack?.url && progress?.position) {
+                  recordAudioProgress({
+                    userId,
+                    resourceId: activeTrack.url,
+                    currentTime: progress.position,
+                  });
+                }
               } catch (err) {
                 console.error('Error resetting TrackPlayer:', err);
               }
@@ -95,11 +110,11 @@ const MiniPlayer = () => {
       },
     })
   ).current;
-  
+
   // Get current route name to hide mini player on certain screens
   const routeName = useNavigationState(state => {
     if (!state) return null;
-    
+
     // Navigate through the nested navigation structure to get the current screen
     let currentState = state;
     while (currentState.routes && currentState.index !== undefined) {
@@ -112,7 +127,7 @@ const MiniPlayer = () => {
     }
     return null;
   });
-  
+
   // Don't show mini player if no track is active or on certain screens
   if (!visible || !activeTrack || routeName === 'TrackPlayer' || routeName === 'VideoPlayer') {
     return null;
@@ -136,7 +151,7 @@ const MiniPlayer = () => {
       console.log('shouldFetchTrack: false (preserve existing playback)');
       console.log('navigationKey: undefined (no reset)');
       console.log('===================================');
-      
+
       navigation.navigate('TrackPlayer', {
         AudioTitle: activeTrack.title,
         AudioDescr: activeTrack.description || activeTrack.album || '',
@@ -151,8 +166,8 @@ const MiniPlayer = () => {
   };
 
   // Ensure HTTPS for secure image loading
-  const secureArtwork = activeTrack.artwork?.startsWith('http://') 
-    ? activeTrack.artwork.replace('http://', 'https://') 
+  const secureArtwork = activeTrack.artwork?.startsWith('http://')
+    ? activeTrack.artwork.replace('http://', 'https://')
     : activeTrack.artwork;
   console.log('MiniPlayer artwork URL:', secureArtwork);
 
@@ -161,21 +176,21 @@ const MiniPlayer = () => {
       <TouchableOpacity style={{ flex: 1 }} onPress={openFullPlayer} activeOpacity={0.8}>
         {/* Background with gradient effect */}
         <View style={styles.background} />
-        
+
         {/* Progress bar */}
         <View style={styles.progressContainer}>
-          <View 
+          <View
             style={[
-              styles.progressBar, 
+              styles.progressBar,
               { width: `${(progress.position / progress.duration) * 100 || 0}%` }
-            ]} 
+            ]}
           />
         </View>
 
         <View style={styles.content}>
           {/* Album Art */}
-          <Image 
-            source={{ uri: secureArtwork || noThumbnail }} 
+          <Image
+            source={{ uri: secureArtwork || noThumbnail }}
             style={styles.albumArt}
             onError={(error) => console.log('MiniPlayer image loading error:', error?.nativeEvent?.error, secureArtwork)}
             onLoad={() => console.log('MiniPlayer image loaded successfully:', secureArtwork)}
@@ -192,14 +207,14 @@ const MiniPlayer = () => {
           </View>
 
           {/* Play/Pause Button */}
-          <TouchableOpacity 
-            style={styles.playButton} 
+          <TouchableOpacity
+            style={styles.playButton}
             onPress={togglePlayback}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Image 
-              source={isPlaying ? stop : playb} 
-              style={styles.playIcon} 
+            <Image
+              source={isPlaying ? stop : playb}
+              style={styles.playIcon}
             />
           </TouchableOpacity>
         </View>

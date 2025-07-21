@@ -233,7 +233,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 
                                 {isBotTyping && (
                                     <View style={styles.typingIndicatorContainer}>
-                                        <View style={styles.partnerMessage}>
+                                        <View style={{...styles.partnerMessage,paddingHorizontal:10, paddingVertical:0,}}>
                                             <LottieView
                                                 ref={lottieTypingRef}
                                                 source={typing}
@@ -371,16 +371,16 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
         marginRight: 0,
         alignSelf: 'flex-end',
         backgroundColor: theme.primaryColor,
-        borderRadius: 20,
-        borderBottomRightRadius: 5,
+        borderRadius: 15,
+        borderBottomRightRadius: 1,
         paddingHorizontal: 20, // Explicit padding
         paddingVertical: 10,   // Explicit padding
     },
     partnerMessage: {
         alignSelf: 'flex-start',
         backgroundColor: isDarkMode ? "#FFFFFF" : theme.borderColor,
-        borderRadius: 20,
-        borderBottomLeftRadius: 5,
+        borderRadius: 15,
+        borderBottomLeftRadius: 1,
         paddingHorizontal: 20, // Explicit padding
         paddingVertical: 10,   // Explicit padding
     },
@@ -418,21 +418,23 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     },
     typingIndicatorContainer: {
         alignSelf: 'flex-start',
-        marginBottom: 13,
+        // marginBottom: 13,
     },
     typingLottieAnimation: {
         width: 60,
+        // borderWidth: 2,
+        // borderColor:"red",
         height: 40,
     },
     lottieContainer: {
-        flex: 1,
+        // flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'transparent',
     },
     lottieAnimation: {
-        width: 150,
-        height: 150,
+        width: 100,
+        height: 50,
     },
     loadingText: {
         color: theme.subTextColor,

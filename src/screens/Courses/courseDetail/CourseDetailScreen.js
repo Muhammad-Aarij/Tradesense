@@ -32,7 +32,7 @@ const CourseDetailScreen = () => {
         isLoading,
         error,
     } = useCourseDetail(courseId);
-    console.log("Course Detail Data:", course.instructorImage);
+    // console.log("Course Detail Data:", course.instructorImage);
 
     useEffect(() => {
         dispatch(startLoading());

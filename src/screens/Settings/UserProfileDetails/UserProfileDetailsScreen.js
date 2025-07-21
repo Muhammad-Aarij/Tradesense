@@ -186,10 +186,10 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: verticalScale(20),
   },
   progressTitle: {
-    fontSize: scale(14),
+    fontSize: scale(12),
     color: theme.textColor,
     fontFamily: 'Inter-Medium',
-    marginVertical: verticalScale(15),
+    marginVertical: verticalScale(10),
   },
   streakCardsRow: {
     flexDirection: 'row',
