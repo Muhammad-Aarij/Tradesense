@@ -1,6 +1,6 @@
 // api/goals.js
 import axios from 'axios';
-import { API_URL } from "@env"; // Ensure API_URL is in your .env file
+import { API_URL } from "@env";
 
 export const fetchGoals = async () => {
   try {
@@ -33,4 +33,11 @@ export const fetchChosenAreas = async () => {
     console.error('Error fetching chosen areas:', error);
     return [];
   }
+};
+
+
+
+export const fetchWelcomeData = async () => {
+  const response = await axios.get(`${API_URL}/api/welcome`);
+  return response.data;
 };

@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { play, userBlue } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import { API_URL } from "@env";
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 20 * 2 - 15) / 2;
@@ -27,7 +28,7 @@ const CourseCard = ({
     title,
     rating,
     description,
-    profileImage,
+    instructorImage,
     profileName,
     price,
     onPress
@@ -51,7 +52,7 @@ const CourseCard = ({
                 <View style={styles.footer}>
                     <View style={styles.profileInfo}>
                         <Image
-                            source={profileImage ? { uri: `https://trade-sense-app-backend.onrender.com/${profileImage}` } : userBlue}
+                            source={instructorImage ? { uri: `${API_URL}/${instructorImage}` } : userBlue}
                             style={styles.profileImage} />
                         <View>
                             <Text style={[styles.profileName, { color: theme.primaryColor }]}>{profileName}</Text>

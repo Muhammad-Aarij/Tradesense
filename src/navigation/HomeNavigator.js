@@ -21,6 +21,7 @@ import Mode from '../components/Mode';
 import MiniPlayer from '../components/MiniPlayer';
 import { useNavigationState } from '@react-navigation/native';
 import NotificationsScreen from '../screens/notificationsScreen/NotificationsScreen';
+import HomeSplash from '../screens/splashScreen/HomeSplash';
 
 
 const Home = createNativeStackNavigator();
@@ -37,6 +38,7 @@ const HomeNavigator = () => {
   return (
     <>
       <Home.Navigator screenOptions={{ headerShown: false }} >
+        {/* <Home.Screen name="HomeSplash" component={HomeSplash} /> */}
         <Home.Screen name="BottomTabs" component={BottomNavigator} />
         <Home.Screen name="CoursesStack" component={CoursesNavigator} />
         <Home.Screen name="TrackPlayer" component={PlayerScreen} />

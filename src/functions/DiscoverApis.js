@@ -52,11 +52,33 @@ const fetchBundles = async (userId) => {
 };
 
 export const useBundles = (userId) => {
+  console.log(userId);
   const dispatch = useDispatch();
 
   return useQuery({
     queryKey: ['bundles', userId],
     queryFn: () => fetchBundles(userId),
+    enabled: !!userId,
+    onSuccess: () => dispatch(stopLoading()),
+    onError: () => dispatch(stopLoading()),
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+};
+
+const fetchMusic = async (userId) => {
+  const response = await axios.get(`${API_URL}/api/music`);
+  console.log("Music Data", response.data);
+  return response.data;
+};
+
+
+export const useMusic = (userId) => {
+  const dispatch = useDispatch();
+
+  return useQuery({
+    queryKey: ['music', userId],
+    queryFn: () => fetchMusic(userId),
     enabled: !!userId,
     onSuccess: () => dispatch(stopLoading()),
     onError: () => dispatch(stopLoading()),

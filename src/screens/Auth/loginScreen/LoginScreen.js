@@ -17,6 +17,7 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import Snackbar from 'react-native-snackbar';
 import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from '@env';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import { getFCMToken } from '../../../functions/getFCMToken';
 
 GoogleSignin.configure({
     webClientId: GOOGLE_WEB_CLIENT_ID,
@@ -54,6 +55,7 @@ const LoginScreen = ({ navigation, route }) => {
     };
 
     const handleLogin = async () => {
+
         if (!username || !password) {
             setShowModal(true);
             return;
@@ -150,7 +152,7 @@ const LoginScreen = ({ navigation, route }) => {
             // TODO: Send this data to your backend for authentication
             showConfirmationModal({
                 title: 'Google Sign-In Success',
-                message : `Welcome ${user.name}! Google Sign-In is working. Backend integration pending.`,
+                message: `Welcome ${user.name}! Google Sign-In is working. Backend integration pending.`,
                 icon: tick, // success icon
             });
 

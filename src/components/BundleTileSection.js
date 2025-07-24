@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Bundle from './Bundle';
 
-const BundleTileSection = ({ title, description, imageSource, locked, type, url }) => {
+const BundleTileSection = ({ title, description, imageSource, locked, type, url, duration }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -12,7 +12,7 @@ const BundleTileSection = ({ title, description, imageSource, locked, type, url 
         AudioDescr: description,
         Thumbnail: imageSource?.uri || imageSource,
         AudioUrl: url,
-        shouldFetchTrack: false,
+        shouldFetchTrack: true,
       });
     } else if (type === 'video') {
       navigation.navigate('VideoPlayer', {
@@ -30,6 +30,7 @@ const BundleTileSection = ({ title, description, imageSource, locked, type, url 
       description={description}
       imageSource={imageSource}
       locked={locked}
+      duration={duration}
       type={type}
       onPress={handlePress}
     />

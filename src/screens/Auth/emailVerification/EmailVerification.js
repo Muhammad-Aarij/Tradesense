@@ -10,7 +10,7 @@ import { verifyOTP } from '../../../functions/otpService';
 import registerUser from '../../../functions/registerUser';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-
+import SnackbarMessage from '../../../functions/SnackbarMessage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,6 +21,9 @@ const EmailVerification = ({ navigation, route }) => {
     const userData = route.params?.userData || null;
     const status = route.params?.status || "";
     const dispatch = useDispatch();
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarType, setSnackbarType] = useState('error'); // or 'success'
 
     const [code, setCode] = useState(['', '', '', '']);
     const inputs = useRef([]);
@@ -51,7 +54,7 @@ const EmailVerification = ({ navigation, route }) => {
         const otp = code.join("");
 
         if (otp.length !== 4) {
-            alert("Please enter a 4-digit OTP");
+            showSnackbar("Please enter a 4-digit OTP");
             return;
         }
 
@@ -137,21 +140,34 @@ const EmailVerification = ({ navigation, route }) => {
 
             } else {
                 dispatch(stopLoading());
-                Alert.alert("Invalid OTP", "The OTP you entered is invalid. Please try again.");
+                showSnackbar("The OTP you entered is invalid. Please try again.");
                 console.error("OTP verification failed");
             }
         } catch (error) {
             dispatch(stopLoading());
             console.error("Error verifying OTP:", error);
             const errorMessage = error?.response?.data?.message || error.message || "An error occurred";
-            Alert.alert("Verification Error", errorMessage);
+            showSnackbar(errorMessage);
+            // Alert.alert("Verification Error", errorMessage);
         }
+    };
+    const showSnackbar = (message, type = 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarType(type);
+        setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 3000);
     };
 
 
 
     return (
         <ImageBackground source={bg} style={styles.container}>
+            <SnackbarMessage
+                visible={snackbarVisible}
+                message={snackbarMessage}
+                type={snackbarType}
+            />
+
             <Image source={lock} style={styles.image} />
 
             <View style={styles.bottomcontainer}>

@@ -19,20 +19,21 @@ import Header from '../../../components/Header';
 import { addToFavorites, deleteFavorite, useCourseDetail } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useDispatch, useSelector } from 'react-redux';
+import { API_URL } from "@env";
 
 const { width, height } = Dimensions.get('window');
 
 const CourseEpisodesScreen = ({ route }) => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
-    const { courseId, courseTitle, courseImage } = route.params || {};
+    const { courseId, courseTitle, courseImage, instructorImage } = route.params || {};
     const { data: course, isLoading } = useCourseDetail(courseId);
     const [currentEpisode, setCurrentEpisode] = useState(null);
     const [favoriteIds, setFavoriteIds] = useState([]);
     const userId = useSelector(state => state.auth);
     const [durations, setDurations] = useState({});
     const modules = course?.courseModules || [];
-
+    console.log("Specific COurse Data", instructorImage)
     useEffect(() => {
         let isMounted = true;
         dispatch(startLoading());
@@ -209,7 +210,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                 </View> */}
                                 <View style={styles.instructorInfo}>
                                     <Image
-                                        source={course?.instructorImage ? { uri: `https://trade-sense-app-backend.onrender.com/${course.instructorImage}` } : userBlue}
+                                        source={instructorImage ? { uri: `${API_URL}/${instructorImage}` } : userBlue}
                                         style={styles.instructorImage} />
                                     <View>
                                         <Text style={styles.instructorName}>{course?.instructorName}</Text>

@@ -65,27 +65,30 @@ const WithdrawScreen = ({ navigation, route }) => {
                 {/* History Section */}
                 <Text style={styles.historyTitle}>History</Text>
                 <View style={styles.historyContainer}>
-                    {payments.map((item) => (
-                        <LinearGradient
-                            key={item._id}
-                            start={{ x: 0, y: 0.95 }}
-                            end={{ x: 1, y: 1 }}
-                            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                            style={styles.historyItem}
-                        >
-                            <View style={styles.historyItemLeft}>
-                                <Image source={cardd} style={styles.historyItemIcon} />
-                                <View>
-                                    <Text style={styles.historyItemType}>{item.status}</Text>
-                                    <Text style={styles.historyItemType2}>{formatDate(item.createdAt)}</Text>
+                    {[...payments]
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                        .map((item) => (
+
+                            <LinearGradient
+                                key={item._id}
+                                start={{ x: 0, y: 0.95 }}
+                                end={{ x: 1, y: 1 }}
+                                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                style={styles.historyItem}
+                            >
+                                <View style={styles.historyItemLeft}>
+                                    <Image source={cardd} style={styles.historyItemIcon} />
+                                    <View>
+                                        <Text style={styles.historyItemType}>{item.status}</Text>
+                                        <Text style={styles.historyItemType2}>{formatDate(item.createdAt)}</Text>
+                                    </View>
                                 </View>
-                            </View>
-                            <View style={styles.historyItemRight}>
-                                <Text style={styles.historyItemAmount}>${item.amount}</Text>
-                                <Image source={blueArrow} style={styles.historyItemArrow} />
-                            </View>
-                        </LinearGradient>
-                    ))}
+                                <View style={styles.historyItemRight}>
+                                    <Text style={styles.historyItemAmount}>${item.amount}</Text>
+                                    <Image source={blueArrow} style={styles.historyItemArrow} />
+                                </View>
+                            </LinearGradient>
+                        ))}
 
                 </View>
             </ScrollView>
@@ -140,7 +143,7 @@ const getStyles = (theme) =>
         },
         historyTitle: {
             color: theme.textColor,
-            fontSize: 16,
+            fontSize: 14,
             fontFamily: 'Inter-Regular',
             marginBottom: 15,
         },

@@ -7,7 +7,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Sound from 'react-native-sound';
 import LinearGradient from 'react-native-linear-gradient';
-
+import { API_URL } from "@env";
 import { bg, user, userBlue } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
@@ -32,7 +32,6 @@ const CourseDetailScreen = () => {
         isLoading,
         error,
     } = useCourseDetail(courseId);
-    // console.log("Course Detail Data:", course.instructorImage);
 
     useEffect(() => {
         dispatch(startLoading());
@@ -96,7 +95,7 @@ const CourseDetailScreen = () => {
                                 <View style={styles.overlayTop}>
                                     <View style={styles.instructorInfo}>
                                         <Image
-                                            source={course?.instructorImage ? { uri: `https://trade-sense-app-backend.onrender.com/${course.instructorImage}` } : userBlue}
+                                            source={course?.instructorImage ? { uri: `${API_URL}/${course.instructorImage}`} : userBlue}
                                             style={styles.instructorImage}
                                         />
                                         <View>

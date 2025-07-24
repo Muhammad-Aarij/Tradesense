@@ -13,7 +13,7 @@ const TradingJourneyChart = ({ userId }) => { // Accept userId as a prop
 
     // Use the custom hook to fetch data with the provided userId
     const { data, isLoading, isError, error } = useWeeklyProfitLoss(userId);
-    console.log("WeeklyData", data); // Corrected typo from "WeedlyData"
+    // console.log("WeeklyData", data); // Corrected typo from "WeedlyData"
 
     // Transform fetched data into the format required by LineChart
     const lineData = useMemo(() => {

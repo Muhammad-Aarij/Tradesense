@@ -72,7 +72,13 @@ const AffiliateCoursesScreen = () => {
 
                 setCheckedAffiliate(true);
             } catch (err) {
-                Alert.alert('Error', 'Could not check affiliate status');
+                setModalData({
+                    title: 'Error',
+                    message: 'Could not check affiliate status',
+                    icon: fail,
+                });
+                setModalVisible(true);
+
             } finally {
                 dispatch(stopLoading());
             }
@@ -131,7 +137,7 @@ const AffiliateCoursesScreen = () => {
                 />
             }
             {!isAffiliate &&
-                <Header  style={{ marginBottom: 35,marginTop:10, }} />
+                <Header style={{ marginBottom: 35, marginTop: 10, }} />
             }
 
             {checkedAffiliate ? (

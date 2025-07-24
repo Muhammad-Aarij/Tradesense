@@ -5,6 +5,7 @@ import { API_URL } from "@env"; // Ensure API_URL is in your .env file
 // 1. Add a new mood
 export const postMood = async ({ userId, mood }) => {
   const response = await axios.post(`${API_URL}/api/mood`, { userId, mood });
+  console.log("response from the post mood data", response.data);
   return response.data;
 };
 
@@ -12,7 +13,7 @@ export const postMood = async ({ userId, mood }) => {
 export const getLatestMood = async (userId) => {
   const response = await axios.get(`${API_URL}/api/mood/${userId}`);
   const moods = response.data;
-  console.log('Latest moods:', moods); // Debug log to check fetched moods
+  // console.log('Latest moods:', moods); // Debug log to check fetched moods
   return moods.length ? moods[moods.length - 1] : null;
 };
 
@@ -20,7 +21,7 @@ export const getLatestMood = async (userId) => {
 export const getAllMoods = async (userId) => {
   const response = await axios.get(`${API_URL}/api/mood/${userId}`);
   const moods = response.data;
-  console.log('All moods:', moods);
+  // console.log('All moods:', moods);
   return moods || [];
 };
 

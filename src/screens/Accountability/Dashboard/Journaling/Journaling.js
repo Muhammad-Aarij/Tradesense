@@ -15,10 +15,12 @@ import LinearGradient from 'react-native-linear-gradient';
 import { addBtn, back, bg } from '../../../../assets/images';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useUserMood, usePostMood, useUpdateMood, useAllMoods } from '../../../../functions/MoodApi';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import moodQuotes from './modes';
 import { useTradeRecords } from '../../../../functions/Trades';
 import TradingJourneyChart from '../../../../components/TradingJourneyChart';
+import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
+import { useHome } from '../../../../functions/homeApi';
 
 // Mood selection modal component
 const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, theme }) => {
@@ -62,14 +64,16 @@ const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, the
 const Journaling = ({ navigation }) => {
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
+    const { data: homeData, isLoading: HomeLoading } = useHome(userId);
 
     const userId = useSelector(state => state.auth.userId);
     console.log("Journaling - userId:", userId);
 
-    const { data: tradesData = [] } = useTradeRecords(userId);
-    console.log("Journaling - Trades Data:", tradesData);
-
-    const { data: moods, isLoading, isError } = useAllMoods(userId);
+    const { data: tradesData = [], isLoading: TradeLoading } = useTradeRecords(userId);
+    // console.log("Journaling - Trades Data:", tradesData);
+    // const { data: homeData, isLoading: HomeLoading } = useHome(userId);
+    const dispatch = useDispatch();
+    const { data: moods, isLoading: MoodLoading, isError } = useAllMoods(userId);
     const { data: TodayData, isLoading: todayMoodLoading, refetch: refetchTodayMood } = useUserMood(userId); // Added refetch
     const { mutate: postMood } = usePostMood();
     const { mutate: updateMood } = useUpdateMood();
@@ -77,18 +81,40 @@ const Journaling = ({ navigation }) => {
     const [selectedMood, setSelectedMood] = useState('happy');
     const [isMoodModalVisible, setIsMoodModalVisible] = useState(false); // State for modal visibility
 
+
+    useEffect(() => {
+        dispatch(startLoading());
+        if (!MoodLoading && !todayMoodLoading && !TradeLoading && !HomeLoading) {
+            dispatch(stopLoading());
+        }
+    }, [todayMoodLoading, MoodLoading, TradeLoading, HomeLoading, dispatch]);
+
+
+
     // Check if mood for today exists and show modal if not
     useEffect(() => {
-        // Only show modal if TodayData has loaded and there's no mood for today
-        if (!todayMoodLoading && !TodayData?.mood) {
-            console.log("No mood for today found.");
-            setIsMoodModalVisible(true);
-        } else if (TodayData?.mood) {
-            console.log("Today's mood already exists:", TodayData.mood);
-            setSelectedMood(TodayData.mood);
-            setIsMoodModalVisible(false); // Ensure modal is closed if mood exists
+        console.log("TodaysMood Latest", TodayData);
+
+        if (!todayMoodLoading) {
+            const moodDate = TodayData?.createdAt ? new Date(TodayData.createdAt) : null;
+            const today = new Date();
+
+            const isSameDay = moodDate &&
+                moodDate.getFullYear() === today.getFullYear() &&
+                moodDate.getMonth() === today.getMonth() &&
+                moodDate.getDate() === today.getDate();
+
+            if (!isSameDay) {
+                console.log("No mood for today found or mood is from previous day.");
+                setIsMoodModalVisible(true);
+            } else {
+                console.log("Today's mood already exists:", TodayData.mood);
+                setSelectedMood(TodayData.mood);
+                setIsMoodModalVisible(false);
+            }
         }
     }, [TodayData, todayMoodLoading]);
+
 
 
     const latestTrades = useMemo(() => {
@@ -170,7 +196,8 @@ const Journaling = ({ navigation }) => {
                     >
                         <View style={styles.card}>
                             <Text style={styles.cardTitle}>Today's Focus</Text>
-                            <Text style={styles.cardDescription}>{randomQuote}</Text>
+                            <Text style={styles.cardDescription}> {homeData?.quotation || "I execute trades with discipline and confidence."}</Text>
+
                         </View>
                     </LinearGradient>
                 </TouchableOpacity>

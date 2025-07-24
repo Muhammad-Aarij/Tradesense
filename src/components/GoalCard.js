@@ -36,12 +36,12 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
                     {dropdownVisible && (
                         <View style={styles.dropdownMenu}>
                             <TouchableOpacity style={styles.iconButton} onPress={() => { onEdit(goal); setDropdownVisible(false); }}>
-                                <Image source={editwhite} style={styles.icon} />
-                                <Text style={{ ...styles.dropdownItem, color: isDarkMode ? theme.textColor : theme.subTextColor }}>Edit</Text>
+                                <Image source={editwhite} style={{ ...styles.icon, tintColor: isDarkMode ? "black" : theme.subTextColor }} />
+                                <Text style={{ ...styles.dropdownItem, color: isDarkMode ? "black" : theme.subTextColor }}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.iconButton} onPress={() => { onDelete(goal._id); setDropdownVisible(false); }}>
-                                <Image source={deletewhite} style={styles.icon} />
-                                <Text style={styles.dropdownItem}>Delete</Text>
+                                <Image source={deletewhite} style={{ ...styles.icon, tintColor: isDarkMode ? "black" : theme.subTextColor }} />
+                                <Text style={{ ...styles.dropdownItem, color: isDarkMode ? "black" : theme.subTextColor }}>Delete</Text>
                             </TouchableOpacity>
                         </View>
                     )}

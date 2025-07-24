@@ -151,6 +151,8 @@ import twitter from './twitter.png';
 import linkedin from './linkedin.png';
 import addBtn from './addBtn.png';
 import userBlue from './userBlue.png';
+import notificationIcon from './notification.png'
+import quot from './quot.png'
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
@@ -161,5 +163,5 @@ export {
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger, dots, checkboxChecked, checkboxUnchecked,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
   audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1, logoBlack, cf1, cf2, cf3, cf4,
-  facebook, instagram, twitter, linkedin, addBtn, userBlue, cardd
+  facebook, instagram, twitter, linkedin, addBtn, userBlue, cardd, notificationIcon, quot
 };

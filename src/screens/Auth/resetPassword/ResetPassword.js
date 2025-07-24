@@ -1,63 +1,93 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, ImageBackground, ScrollView, Image } from 'react-native';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    Dimensions,
+    ImageBackground,
+} from 'react-native';
 import theme from '../../../themes/theme';
 import { resetPassword } from '../../../functions/passwordService';
 import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { bg, eyeClose } from '../../../assets/images';
-
+import ConfirmationModal from '../../../components/ConfirmationModal';
+import SnackbarMessage from '../../../functions/SnackbarMessage';
+import { fail, success, tick } from '../../../assets/images';
 
 const { width } = Dimensions.get('window');
 
 const ResetPassword = ({ navigation, route }) => {
-
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [passwordVisible2, setPasswordVisible2] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const token = route.params?.token || "";
-    console.log('====================================');
-    console.log("Token in reset Password", token);
-    console.log('====================================');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalText, setModalText] = useState('');
+    const [modalIcon, setModalcon] = useState(null);
+
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarType, setSnackbarType] = useState('error'); // 'success' or 'error'
+
     const dispatch = useDispatch();
+    const token = route.params?.token || '';
+
+    const showSnackbar = (message, type = 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarType(type);
+        setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 3000);
+    };
 
     const handleResetPassword = async () => {
         if (newPassword !== confirmPassword) {
-            alert("Passwords do not match!");
+            showSnackbar('Passwords do not match!');
             return;
         }
+
         if (!token) {
-            navigation.navigate("ForgotPassword")
+            showSnackbar('Reset token is missing. Please try again.');
+            navigation.navigate('ForgotPassword');
             return;
         }
+
         try {
             dispatch(startLoading());
             const response = await resetPassword(token, newPassword);
-            console.log("Password reset successful:", response);
             dispatch(stopLoading());
-            alert("Your password has been reset successfully!");
-            navigation.navigate("Login");
+            setModalText('Your password has been reset successfully!');
+            setModalVisible(true);
+            setModalcon(tick);
         } catch (error) {
             dispatch(stopLoading());
-            console.error("Error resetting password:", error);
-            alert("Failed to reset password. Please try again.");
+            console.error('Error resetting password:', error);
+            setModalText('Failed to reset password. Please try again.');
+            setModalcon(fail);
+            setModalVisible(true);
+        }
+    };
+
+    const handleModalClose = () => {
+        setModalVisible(false);
+        if (modalText.includes('successfully')) {
+            navigation.navigate('Login');
         }
     };
 
     return (
         <ImageBackground style={styles.container}>
-            {/* <Image source={bg} style={styles.image} /> */}
             <View style={styles.bottomcontainer}>
                 <Text style={styles.title}>Reset Password</Text>
                 <Text style={styles.subtitle}>Create your new password</Text>
+
                 <CustomInput
                     label="New Password"
                     placeholder="New Password"
                     secureTextEntry={!passwordVisible}
                     value={newPassword}
                     onChangeText={setNewPassword}
-                    // icon={passwordVisible ? eyeClose : eyeClose}
                     onIconPress={() => setPasswordVisible(!passwordVisible)}
                 />
 
@@ -67,18 +97,31 @@ const ResetPassword = ({ navigation, route }) => {
                     secureTextEntry={!passwordVisible2}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    // icon={passwordVisible2 ? eyeClose : eyeClose}
                     onIconPress={() => setPasswordVisible2(!passwordVisible2)}
                 />
+
                 <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
                     <Text style={styles.buttonText}>Continue</Text>
                 </TouchableOpacity>
+            </View>
 
+            {modalVisible &&
+                <ConfirmationModal
+                    visible={modalVisible}
+                    message={modalText}
+                    icon={modalIcon}
+                    onClose={handleModalClose}
+                />}
 
-            </View >
+            <SnackbarMessage
+                visible={snackbarVisible}
+                message={snackbarMessage}
+                type={snackbarType}
+            />
         </ImageBackground>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#010b13', alignItems: 'center', },

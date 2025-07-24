@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
-import { stopLoading } from '../redux/slice/loaderSlice';
+import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 import { API_URL } from "@env";
 
 const fetchRecommendations = async (userId) => {
@@ -16,11 +16,18 @@ export const useHome = (userId) => {
 
     return useQuery({
         queryKey: ['home', userId],
-        queryFn: () => fetchRecommendations(userId),
+        queryFn: async () => {
+            return fetchRecommendations(userId);
+        },
         enabled: !!userId,
-        onSuccess: () => dispatch(stopLoading()),
-        onError: () => dispatch(stopLoading()),
+        onSuccess: () => {
+            dispatch(stopLoading()); // ✅ Stop loading on success
+        },
+        onError: () => {
+            dispatch(stopLoading()); // ❌ Stop loading on error
+        },
         retry: 1,
         refetchOnWindowFocus: false,
     });
+
 };

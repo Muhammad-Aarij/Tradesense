@@ -2,25 +2,24 @@ import React, { useContext, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { ThemeContext } from '../context/ThemeProvider';
 
-const SnackbarMessage = ({ visible, message, type = 'success' }) => {
+const SnackbarMessage = ({ visible, message, type = 'success', position = 'bottom' }) => {
   const { theme, isDarkMode } = useContext(ThemeContext);
-  const styles = useMemo(() => getStyles(theme, isDarkMode, type), [theme, isDarkMode, type]);
+  const styles = useMemo(() => getStyles(theme, isDarkMode, type, position), [theme, isDarkMode, type, position]);
 
   if (!visible) return null;
 
   return (
     <Animated.View style={[styles.container]}>
       <Text style={styles.text}>{message}</Text>
-      {/*  */}
     </Animated.View>
   );
 };
 
-const getStyles = (theme, isDarkMode, type) =>
+const getStyles = (theme, isDarkMode, type, position) =>
   StyleSheet.create({
     container: {
       position: 'absolute',
-      bottom: 30,
+      [position]: 20, // sets either top: 30 or bottom: 30
       left: 20,
       right: 20,
       padding: 14,

@@ -44,12 +44,12 @@ const MiniPlayer = () => {
   const previousTrackId = useRef(activeTrack?.id);
   useEffect(() => {
     if (activeTrack?.id !== previousTrackId.current) {
-      console.log('=== MiniPlayer Track Change Debug ===');
-      console.log('Previous Track ID:', previousTrackId.current);
-      console.log('New Track ID:', activeTrack?.id);
-      console.log('New Track URL:', activeTrack?.url);
-      console.log('New Track Title:', activeTrack?.title);
-      console.log('=====================================');
+      // console.log('=== MiniPlayer Track Change Debug ===');
+      // console.log('Previous Track ID:', previousTrackId.current);
+      // console.log('New Track ID:', activeTrack?.id);
+      // console.log('New Track URL:', activeTrack?.url);
+      // console.log('New Track Title:', activeTrack?.title);
+      // console.log('=====================================');
 
       previousTrackId.current = activeTrack?.id;
       setVisible(true);
@@ -84,9 +84,9 @@ const MiniPlayer = () => {
                 await TrackPlayer.stop();
                 await TrackPlayer.seekTo(0);
                 // Record progress when mini player is dismissed
-                console.log('====================================');
-                console.log("Mini Player Progress",userId, activeTrack?.url, progress?.position);
-                console.log('====================================');
+                // console.log('====================================');
+                // console.log("Mini Player Progress",userId, activeTrack?.url, progress?.position);
+                // console.log('====================================');
                 if (userId && activeTrack?.url && progress?.position) {
                   recordAudioProgress({
                     userId,
@@ -143,14 +143,14 @@ const MiniPlayer = () => {
 
   const openFullPlayer = () => {
     try {
-      console.log('=== MiniPlayer Navigation Debug ===');
-      console.log('Opening full player with:');
-      console.log('AudioTitle:', activeTrack.title);
-      console.log('AudioUrl:', activeTrack.url);
-      console.log('Thumbnail:', activeTrack.artwork);
-      console.log('shouldFetchTrack: false (preserve existing playback)');
-      console.log('navigationKey: undefined (no reset)');
-      console.log('===================================');
+      // console.log('=== MiniPlayer Navigation Debug ===');
+      // console.log('Opening full player with:');
+      // console.log('AudioTitle:', activeTrack.title);
+      // console.log('AudioUrl:', activeTrack.url);
+      // console.log('Thumbnail:', activeTrack.artwork);
+      // console.log('shouldFetchTrack: false (preserve existing playback)');
+      // console.log('navigationKey: undefined (no reset)');
+      // console.log('===================================');
 
       navigation.navigate('TrackPlayer', {
         AudioTitle: activeTrack.title,
@@ -169,7 +169,7 @@ const MiniPlayer = () => {
   const secureArtwork = activeTrack.artwork?.startsWith('http://')
     ? activeTrack.artwork.replace('http://', 'https://')
     : activeTrack.artwork;
-  console.log('MiniPlayer artwork URL:', secureArtwork);
+  // console.log('MiniPlayer artwork URL:', secureArtwork);
 
   return (
     <Animated.View style={[styles.container, { transform: [{ translateY }] }]} {...panResponder.panHandlers}>

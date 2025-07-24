@@ -1,32 +1,45 @@
 import React, { useContext, memo } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { lockicon } from '../assets/images';
+import { audioNew, lockicon, videoNew } from '../assets/images';
 import { ThemeContext } from '../context/ThemeProvider';
 import OptimizedImage from './OptimizedImage';
 
-const Bundle = ({ imageSource, title, description, locked, onPress, type }) => {
+const Bundle = ({ imageSource, title, description, locked, onPress, type, duration }) => {
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.thumbnailWrapper}>
-        <OptimizedImage 
-          uri={imageSource?.uri || imageSource} 
-          style={styles.thumbnail} 
-          borderRadius={15}
+        <OptimizedImage
+          uri={imageSource?.uri || imageSource}
+          style={styles.thumbnail}
+          borderRadius={10}
           showLoadingIndicator={true}
           loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
         />
+        <View style={styles.shadowOverlay} />
+
 
         {/* Top Left - Type Label */}
-        <View style={styles.audioLabel}>
-          <Text style={styles.audioLabelText}>{type?.toUpperCase() || 'CONTENT'}</Text>
+        <View style={styles.overlayIcon}>
+          <Image
+            source={type === 'audio' ? audioNew : videoNew}
+            style={{ width: 15, height: 15, resizeMode: "contain" }}
+          />
+          <Text style={{
+            fontSize: 9,
+            fontFamily: "Inter-Medium",
+            color: 'rgba(255, 255, 255, 0.64)',
+            borderRadius: 10,
+          }}>
+            {type === 'audio' ? 'Audio' : 'Video'}
+          </Text>
         </View>
 
         {/* Bottom Left - Time */}
         <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>15 min</Text>
+          <Text style={styles.durationText}>{duration} min</Text>
         </View>
 
         {/* Lock Icon */}
@@ -55,8 +68,16 @@ const getStyles = (theme) => StyleSheet.create({
   thumbnailWrapper: {
     position: 'relative',
   },
+  shadowOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    height: "100%",
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 10,
+  },
   thumbnail: {
-    borderRadius: 15,
+    borderRadius: 10,
     width: 160,
     height: 140,
     resizeMode: 'cover',
@@ -72,6 +93,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   audioLabelText: {
     fontSize: 9,
+    textTransform: "capitalize",
     color: 'rgba(255, 255, 255, 0.7)',
     fontFamily: 'Inter-Medium',
   },
@@ -100,7 +122,7 @@ const getStyles = (theme) => StyleSheet.create({
   lockIcon: {
     width: 15,
     height: 15,
-    resizeMode:"contain",
+    resizeMode: "contain",
     tintColor: '#fff',
   },
   content: {
@@ -116,6 +138,37 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 9,
     color: theme.subTextColor || '#aaa',
     marginTop: 2,
+  },
+  overlayIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    position: 'absolute',
+    justifyContent: "center",
+    top: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+    right: 6,
+    borderWidth: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 20,
+    // padding: 4,
+  },
+  audioIcon: {
+    width: 14,
+    height: 14,
+    tintColor: '#000',
+  },
+  lockWrapper: {
+    borderWidth: 0.7,
+    borderRadius: 2,
+    padding: 5,
+    borderColor: theme.borderColor,
+  },
+  lockIcon: {
+    width: 15,
+    height: 15,
+    resizeMode: 'contain',
   },
 });
 

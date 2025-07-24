@@ -1,13 +1,17 @@
 import axios from "axios";
 import { API_URL } from "@env";
+import { getFCMToken } from "./getFCMToken";
 
 export const loginApi = async (email, password) => {
+  const token = await getFCMToken(); // ✅ Extracted function
+
   console.log("Logging in with email:", email, password);
   try {
     console.log("API URL:", API_URL);
     const response = await axios.post(`${API_URL}/api/auth/login`, {
       email,
       password,
+      fcmToken: token
     });
     console.log("Login successful:", response.data);
     return response.data;

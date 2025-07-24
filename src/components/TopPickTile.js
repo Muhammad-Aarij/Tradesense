@@ -5,7 +5,7 @@ import theme from '../themes/theme';
 import { useNavigation } from '@react-navigation/native';
 import OptimizedImage from './OptimizedImage';
 
-const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type }) => {
+const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type, duration }) => {
     const navigation = useNavigation();
     const handlePress = () => {
         if (type === 'audio') {
@@ -14,7 +14,7 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                 AudioDescr: description,
                 Thumbnail: imageSource,
                 AudioUrl: url,
-                shouldFetchTrack: false,
+                shouldFetchTrack: true,
             });
         } else if (type === 'video') {
             navigation.navigate('VideoPlayer', {
@@ -39,13 +39,14 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                 <View style={styles.shadowOverlay} />
 
                 {/* Bottom-aligned content */}
-                <View style={{marginBottom:10,
+                <View style={{
+                    marginBottom: 10,
                     flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", paddingHorizontal: 10, backgroundColor: 'rgba(0, 0, 0, 0.4)', paddingTop: 10,
                 }}>
                     <View style={styles.bottomContent}>
                         <Text style={{
-                            paddingHorizontal: 10, paddingVertical: 2, fontSize: 9, fontFamily: "Inter-Medium", color: "white", backgroundColor: 'rgba(0, 0, 0, 0.44)', borderRadius: 10,marginBottom: 5
-                        }}>15 min</Text>
+                            paddingHorizontal: 10, paddingVertical: 2, fontSize: 9, fontFamily: "Inter-Medium", color: "white", backgroundColor: 'rgba(0, 0, 0, 0.44)', borderRadius: 10, marginBottom: 5
+                        }}>{duration} min</Text>
                         <Text style={styles.title} numberOfLines={1}>{title}</Text>
                         <Text style={styles.description} numberOfLines={2}>{description}</Text>
                     </View>
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
     card: {
         width: 180,
         height: 160,
-        marginRight: 8,
+        // marginRight: 8,
         borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: '#1B1B1B',

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Alert, Platform } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Platform } from "react-native";
 import store from "./src/redux/store/store";
 import { Provider } from "react-redux";
 import AppNavContainer from "./src/navigation";
@@ -8,51 +8,62 @@ import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from "@env";
 import { ThemeProvider } from "./src/context/ThemeProvider";
 import AuthProvider from "./src/context/AuthProvider";
 import firebase from "@react-native-firebase/app";
-
 import messaging from "@react-native-firebase/messaging";
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ConfirmationModal from './src/components/ConfirmationModal';
+import { notificationIcon } from "./src/assets/images";
+import { getFCMToken } from "./src/functions/getFCMToken";
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Google Sign-In config
         GoogleSignin.configure({
           webClientId: GOOGLE_WEB_CLIENT_ID,
           iosClientId: GOOGLE_IOS_CLIENT_ID,
           scopes: ["profile", "email"],
         });
 
-        // Only initialize Firebase if properly configured
-        try {
-          // Initialize Firebase if not already initialized
-          if (!firebase.apps.length) {
-            await firebase.initializeApp();
-            console.log("✅ Firebase initialized");
-          }
-
-          // Request push notification permission
-          const authStatus = await messaging().requestPermission();
-          const enabled =
-            authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-            authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-          if (enabled) {
-            const fcmToken = await messaging().getToken();
-            console.log("✅ FCM Token:", fcmToken);
-            // You can store/send token to backend here
-          } else {
-            console.log("🚫 Notification permission not granted.");
-          }
-        } catch (firebaseError) {
-          console.warn("⚠️ Firebase not configured properly:", firebaseError.message);
-          console.warn("📝 To fix: Add GoogleService-Info.plist to iOS project");
+        if (!firebase.apps.length) {
+          await firebase.initializeApp();
+          console.log("✅ Firebase initialized");
         }
+
+        await getFCMToken(); // ✅ Extracted function
+
+
+        messaging().setBackgroundMessageHandler(async remoteMessage => {
+          console.log('📩 [Background] Message handled:', remoteMessage);
+        });
+
+        messaging().onNotificationOpenedApp(remoteMessage => {
+          console.log('📲 App opened from background by notification:', remoteMessage);
+          if (remoteMessage?.notification) {
+            setModalTitle(remoteMessage.notification.title || "Notification");
+            setModalMessage(remoteMessage.notification.body || "");
+            setModalVisible(true);
+          }
+        });
+
+        messaging()
+          .getInitialNotification()
+          .then(remoteMessage => {
+            if (remoteMessage) {
+              console.log('🚀 App opened from quit by notification:', remoteMessage);
+              setModalTitle(remoteMessage.notification.title || "Notification");
+              setModalMessage(remoteMessage.notification.body || "");
+              setModalVisible(true);
+            }
+          });
+
       } catch (error) {
-        console.error("🔥 Error during initialization:", error.message);
+        console.error("🔥 Initialization error:", error.message);
       }
     };
 
@@ -60,23 +71,14 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    // Only set up messaging listener if Firebase is available
-    let unsubscribe = () => {};
-    
-    try {
-      if (firebase.apps.length > 0) {
-        unsubscribe = messaging().onMessage(async remoteMessage => {
-          if (remoteMessage?.notification) {
-            Alert.alert(
-              remoteMessage.notification.title || "New Notification",
-              remoteMessage.notification.body || ""
-            );
-          }
-        });
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      console.log("📨 [Foreground] Notification received:", remoteMessage);
+      if (remoteMessage?.notification) {
+        setModalTitle(remoteMessage.notification.title || "Notification");
+        setModalMessage(remoteMessage.notification.body || "");
+        setModalVisible(true);
       }
-    } catch (error) {
-      console.warn("⚠️ Could not set up Firebase messaging listener:", error.message);
-    }
+    });
 
     return unsubscribe;
   }, []);
@@ -86,6 +88,14 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
+            {modalVisible &&
+              <ConfirmationModal
+                title={modalTitle}
+                message={modalMessage}
+                icon={notificationIcon}
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+              />}
             <AppNavContainer />
           </AuthProvider>
         </ThemeProvider>

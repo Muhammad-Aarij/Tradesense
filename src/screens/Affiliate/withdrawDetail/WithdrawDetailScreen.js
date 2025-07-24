@@ -1,7 +1,7 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    Image, Alert, ImageBackground
+    Image, ImageBackground
 } from 'react-native';
 import { acc, back, bg, fail, tick } from '../../../assets/images';
 import CustomInput from '../../../components/CustomInput';
@@ -83,15 +83,15 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
             });
             return;
         }
-
+        let cleanedNumber = accountNumber.replace(/-/g, "");
 
         // Proceed with withdrawal
         submitPayment(
             {
                 userId,
-                type: 'affiliate',
+                type: selectedType.toLowerCase(),
                 amount: parsedAmount,
-                accountNumber: accountNumber,
+                accountNumber: cleanedNumber,
             },
             {
                 onSuccess: () => {
@@ -281,14 +281,14 @@ const getStyles = (theme) => StyleSheet.create({
         top: 60,
         left: 0,
         width: "100%",
-        backgroundColor: theme.backgroundColor,
+        backgroundColor: theme.primaryColor,
         borderRadius: 8,
         zIndex: 10,
     },
     optionItem: {
         paddingVertical: 12,
         paddingHorizontal: 15,
-        borderBottomWidth: 0.9,
+        // borderBottomWidth: 0.9,
         borderColor: theme.borderColor,
         marginHorizontal: 10,
     },

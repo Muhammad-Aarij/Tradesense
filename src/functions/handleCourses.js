@@ -119,6 +119,7 @@ const fetchEnrolledCourses = async (studentId) => {
         averageRating: enrollment.averageRating,
         isPremium: enrollment.course.isPremium,
         instructorName: enrollment.instructor?.name,
+        instructorImage: enrollment.instructor?.profilePic,
         instructorExperienceLevel: enrollment.instructor?.experienceLevel,
         status: enrollment.status,
         duration: enrollment.course.duration,

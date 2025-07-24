@@ -1,77 +1,57 @@
-import React, { useEffect, useState, useContext, useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    Image,
-    Dimensions,
     ImageBackground,
+    ActivityIndicator
 } from 'react-native';
 import moment from 'moment';
-import { bell, check, back } from '../../assets/images'; // Use your own icon paths
 import { useNavigation } from '@react-navigation/native';
-import Header from '../../components/Header';
-import { ThemeContext } from '../../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
+import { useQuery } from '@tanstack/react-query';
 
-const { width } = Dimensions.get('window');
+import { ThemeContext } from '../../context/ThemeProvider';
+import Header from '../../components/Header';
+import { getUserNotifications } from '../../functions/notifications';
+import { useSelector } from 'react-redux';
 
-const dummyNotifications = [
-    {
-        id: '1',
-        title: 'Appointment Approved',
-        message: 'Your request for consultation with Dr. Ahsan has been approved.',
-        time: '2025-07-16T10:20:00Z',
-        read: false,
-    },
-    {
-        id: '2',
-        title: 'Affiliate Request Update',
-        message: 'Your affiliate request is still pending.',
-        time: '2025-07-15T08:10:00Z',
-        read: true,
-    },
-];
+
+// Dummy ID (replace this with real user ID from auth)
 
 const NotificationsScreen = () => {
-    const [notifications, setNotifications] = useState([]);
     const navigation = useNavigation();
     const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
 
-    useEffect(() => {
-        // Replace with real API if needed
-        setNotifications(dummyNotifications);
-    }, []);
+    const USER_ID = useSelector(state => state.auth.userObject?._id);
 
-    const markAsRead = (id) => {
-        setNotifications((prev) =>
-            prev.map((item) =>
-                item.id === id ? { ...item, read: true } : item
-            )
-        );
-    };
+    const {
+        data: notifications,
+        isLoading,
+        isError,
+        refetch,
+    } = useQuery({
+        queryKey: ['notifications', USER_ID],
+        queryFn: () => getUserNotifications(USER_ID),
+    });
 
     const renderItem = ({ item }) => (
         <TouchableOpacity
-            style={[styles.card, !item.read && styles.unread]}
-            onPress={() => markAsRead(item.id)}
+            style={[styles.card]}
             activeOpacity={0.8}
         >
             <LinearGradient
                 start={{ x: 0.0, y: 0.95 }}
                 end={{ x: 1.0, y: 1.0 }}
                 colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
-                style={{
-                    padding: 16,
-                }}
+                style={{ padding: 16 }}
             >
-
                 <View style={styles.cardHeader}>
                     <Text style={styles.title}>{item.title}</Text>
-                    <Text style={styles.time}>{moment(item.time).fromNow()}</Text>
+                    <Text style={styles.time}>{moment(item.sendAt).fromNow()}</Text>
                 </View>
                 <Text style={styles.message}>{item.message}</Text>
             </LinearGradient>
@@ -82,20 +62,27 @@ const NotificationsScreen = () => {
         <ImageBackground source={theme.bg} style={styles.container}>
             <Header title="Notifications" style={{ marginTop: 20 }} />
 
-            <FlatList
-                data={notifications}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.list}
-                ListEmptyComponent={
-                    <Text style={styles.emptyText}>No notifications</Text>
-                }
-            />
+            {isLoading ? (
+                <ActivityIndicator size="large" color="#999" style={{ marginTop: 40 }} />
+            ) : isError ? (
+                <Text style={styles.emptyText}>Failed to load notifications</Text>
+            ) : (
+                <FlatList
+                    data={notifications}
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item._id}
+                    contentContainerStyle={styles.list}
+                    ListEmptyComponent={
+                        <Text style={styles.emptyText}>No notifications</Text>
+                    }
+                    refreshing={isLoading}
+                    onRefresh={refetch}
+                />
+            )}
         </ImageBackground>
     );
 };
 
-export default NotificationsScreen;
 
 const getStyles = (theme) =>
     StyleSheet.create({
@@ -174,3 +161,4 @@ const getStyles = (theme) =>
             color: '#9CA3AF',
         },
     });
+    export default NotificationsScreen;

@@ -17,23 +17,31 @@ import { startLoading, stopLoading } from '../../redux/slice/loaderSlice';
 import { useQueryClient } from '@tanstack/react-query';
 import Header from '../../components/Header';
 import { ThemeContext } from '../../context/ThemeProvider';
+import SnackbarMessage from '../../functions/SnackbarMessage';
 
 export default function GoalContainer({ navigation }) {
-    const { theme, isDarkMode } = useContext(ThemeContext); // Use the theme context
-    const userId = useSelector(state => state.auth.userId);
-    const { data: goalsData = [], isLoading } = useGoalsByUser(userId);
+    const { theme, isDarkMode } = useContext(ThemeContext);
+    const styles = getStyles(theme);
+
+    const dispatch = useDispatch();
     const queryClient = useQueryClient();
+
+    const userObject = useSelector(state => state.auth.userObject); // ✅ full user object
+    const userId = userObject?._id;
+    const isPremium = userObject?.isPremium;
+
+    const { data: goalsData = [], isLoading } = useGoalsByUser(userId);
+
     const [selectedFilter, setSelectedFilter] = useState('All');
     const [filterDropdownVisible, setFilterDropdownVisible] = useState(false);
-    const dispatch = useDispatch();
-    console.log("Goals Data:", goalsData); // Debugging line to check fetched data
+    const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'error' }); // ✅ snackbar state
+
     const filterOptions = ['All', 'Daily', 'Weekly', 'Monthly'];
+
     useEffect(() => {
         dispatch(startLoading());
         const timeout = setTimeout(() => {
-            if (!isLoading) {
-                dispatch(stopLoading());
-            }
+            if (!isLoading) dispatch(stopLoading());
         }, 2000);
         return () => {
             clearTimeout(timeout);
@@ -41,19 +49,40 @@ export default function GoalContainer({ navigation }) {
         };
     }, [isLoading]);
 
-    const handleEdit = (goal, type) => {
+    useEffect(() => {
+        if (snackbar.visible) {
+            const timer = setTimeout(() => {
+                setSnackbar(prev => ({ ...prev, visible: false }));
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [snackbar.visible]);
+
+    const handleEdit = (goal) => {
         navigation.navigate('AddGoal', { goal });
     };
 
-    const handleDelete = async (id, type) => {
+    const handleDelete = async (id) => {
         dispatch(startLoading());
         const result = await deleteGoal(id);
         if (result.error) {
             dispatch(stopLoading());
-            console.warn(`Failed to delete ${type}:`, result.error);
+            console.warn('Failed to delete goal:', result.error);
         } else {
             dispatch(stopLoading());
             queryClient.invalidateQueries(['goals', userId]);
+        }
+    };
+
+    const handleAddGoal = () => {
+        if (!isPremium && goalsData.length >= 5) {
+            setSnackbar({
+                visible: true,
+                message: 'Free users can only add up to 5 goals.\n Upgrade to add more.',
+                type: 'error',
+            });
+        } else {
+            navigation.navigate('AddGoal');
         }
     };
 
@@ -62,8 +91,6 @@ export default function GoalContainer({ navigation }) {
         return selectedFilter.toLowerCase() === 'all' || frequency.toLowerCase() === selectedFilter.toLowerCase();
     });
 
-    const styles = getStyles(theme); // Generate themed styles
-
     return (
         <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
@@ -71,10 +98,7 @@ export default function GoalContainer({ navigation }) {
                 <View style={styles.sectionContainer}>
                     <View style={styles.sectionHeader}>
                         <View style={styles.sectionActions}>
-                            <TouchableOpacity
-                                style={styles.addSmallButton}
-                                onPress={() => navigation.navigate('AddGoal')}
-                            >
+                            <TouchableOpacity style={styles.addSmallButton} onPress={handleAddGoal}>
                                 <Text style={styles.addSmallButtonText}>+ Add Goal</Text>
                             </TouchableOpacity>
 
@@ -89,9 +113,7 @@ export default function GoalContainer({ navigation }) {
                                         style={{
                                             ...styles.dropdownArrow,
                                             tintColor: theme.textColor,
-                                            transform: [
-                                                { rotate: filterDropdownVisible ? '90deg' : '-90deg' },
-                                            ],
+                                            transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }],
                                         }}
                                     />
                                 </TouchableOpacity>
@@ -118,14 +140,14 @@ export default function GoalContainer({ navigation }) {
 
                     {filteredGoals.length > 0 ? (
                         <FlatList
-                        showsVerticalScrollIndicator={false}
+                            showsVerticalScrollIndicator={false}
                             data={filteredGoals}
                             keyExtractor={item => item._id.toString()}
                             renderItem={({ item }) => (
                                 <GoalCard
                                     goal={item}
-                                    onEdit={id => handleEdit(id)}
-                                    onDelete={id => handleDelete(id, 'Goal')}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
                                 />
                             )}
                             contentContainerStyle={{ paddingBottom: 30 }}
@@ -139,26 +161,26 @@ export default function GoalContainer({ navigation }) {
                             <Text style={styles.emptyStateSubtitle}>
                                 Start your success journey by adding your first goal
                             </Text>
-                            <TouchableOpacity
-                                style={styles.emptyStateButton}
-                                onPress={() => navigation.navigate('AddGoal')}
-                            >
+                            <TouchableOpacity style={styles.emptyStateButton} onPress={handleAddGoal}>
                                 <Text style={styles.emptyStateButtonText}>Create Your First Goal</Text>
                             </TouchableOpacity>
                         </View>
                     )}
                 </View>
+                {/* ✅ Snackbar visible */}
+                <SnackbarMessage position='top' visible={snackbar.visible} message={snackbar.message} type={snackbar.type} />
             </SafeAreaView>
         </ImageBackground>
     );
 }
+
 
 const getStyles = (theme) => StyleSheet.create({
     sectionContainer: {
         flex: 1,
         paddingHorizontal: 20,
         paddingTop: 40,
-        paddingBottom:70,
+        paddingBottom: 70,
     },
     sectionHeader: {
         marginBottom: 20,

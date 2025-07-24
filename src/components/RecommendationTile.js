@@ -8,7 +8,7 @@ import { ThemeContext } from '../../src/context/ThemeProvider';
 const { width } = Dimensions.get('window');
 const cardWidth = width * 0.42;
 
-const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url }) => {
+const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url, duration }) => {
   const navigation = useNavigation();
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -65,7 +65,7 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
           <Image
             source={type === 'audio' ? audioNew : videoNew}
             style={{ width: 15, height: 15, resizeMode: "contain" }}
-          /> 
+          />
           <Text style={{
             fontSize: 9,
             fontFamily: "Inter-Medium",

@@ -109,9 +109,9 @@ export const usePayments = (userId) => {
         queryKey: ['payments', userId],
         queryFn: () => fetchPayments(userId), // ✅ call fetchPayments with userId explicitly
         enabled: !!userId, // ✅ Only fetch if userId is available
-        staleTime: 5 * 60 * 1000,
+        staleTime: 30,
         retry: 2,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
         onSuccess: () => dispatch(stopLoading()),
         onError: () => dispatch(stopLoading()),
     });

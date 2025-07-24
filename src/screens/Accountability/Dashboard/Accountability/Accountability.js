@@ -62,6 +62,10 @@ export default function Accountability({ navigation }) {
     }
   };
 
+  const total = completedCount + remainingCount;
+  const rawPercentage = total === 0 ? 0 : (completedCount / total) * 100;
+  const percentage = isNaN(rawPercentage) ? 0 : rawPercentage;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={theme.backgroundColor} />
@@ -98,8 +102,8 @@ export default function Accountability({ navigation }) {
               <View style={styles.pieChartWrapper}>
                 <PieChart
                   data={[
-                    { value: (completedCount / (completedCount + remainingCount)) * 100, color: theme.primaryColor },
-                    { value: 100 - (completedCount / (completedCount + remainingCount)) * 100, color: theme.borderColor }
+                    { value: percentage, color: theme.primaryColor },
+                    { value: 100 - percentage, color: theme.borderColor }
                   ]}
                   radius={50}
                   donut
@@ -113,7 +117,7 @@ export default function Accountability({ navigation }) {
                       justifyContent: "center", alignItems: "center"
                     }}>
                       <Text style={{ color: theme.textColor, fontSize: 14, fontFamily: "Inter-Bold" }}>
-                        {(completedCount / (completedCount + remainingCount)) * 100}%
+                        {Math.round(percentage)}%
                       </Text>
                     </View>
                   )}
@@ -149,7 +153,7 @@ export default function Accountability({ navigation }) {
 
         <View style={styles.successTrackerList}>
           {todaysHabits.length === 0 ? (
-            <EmptyCard emoji="🌱" title="Ready to Grow?" subtitle="Start your journey by creating your first habit. Every small step counts towards your success!" theme={theme}  onPress={() => navigation.navigate("Goals")} />
+            <EmptyCard emoji="🌱" title="Ready to Grow?" subtitle="Start your journey by creating your first habit. Every small step counts towards your success!" theme={theme} onPress={() => navigation.navigate("Goals")} />
           ) : visibleHabits.length === 0 ? (
             <EmptyCard emoji="🎉" title="Congratulations!" subtitle="All your goals for today are completed. Great job staying accountable!" theme={theme} />
           ) : (
@@ -202,19 +206,19 @@ const EmptyCard = ({ emoji, title, subtitle, onPress, theme }) => (
     colors={['rgba(126, 126, 126, 0.2)', 'rgba(255,255,255,0)']}
     style={{
       padding: 25,
-      paddingVertical:40,
+      paddingVertical: 40,
       borderRadius: 12,
       // marginVertical: 16,
       alignItems: 'center',
       justifyContent: 'center',
     }}>
     <Text style={{ fontSize: 36 }}>{emoji}</Text>
-    <Text style={{ fontSize: 16, fontFamily:"Inter-SemiBold", marginTop: 10, color: theme.textColor }}>{title}</Text>
-    <Text style={{ fontSize: 12, fontFamily:"Inter-Regular", textAlign: 'center', marginTop: 5, color: theme.subTextColor }}>
+    <Text style={{ fontSize: 16, fontFamily: "Inter-SemiBold", marginTop: 10, color: theme.textColor }}>{title}</Text>
+    <Text style={{ fontSize: 12, fontFamily: "Inter-Regular", textAlign: 'center', marginTop: 5, color: theme.subTextColor }}>
       {subtitle}
     </Text>
     {onPress && (
-      <TouchableOpacity onPress={onPress} style={{ marginTop: 12, backgroundColor: '#444', padding: 10, borderRadius: 8 }}>
+      <TouchableOpacity onPress={onPress} style={{ marginTop: 12, backgroundColor: theme.primaryColor, padding: 12, paddingHorizontal: 25, borderRadius: 15 }}>
         <Text style={{ color: 'white' }}>Create Your First Goal</Text>
       </TouchableOpacity>
     )}

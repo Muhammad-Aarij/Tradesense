@@ -38,7 +38,7 @@ const PurchasedCoursesScreen = () => {
     const { data: allCourses, isLoading: isLoadingAll, error: errorAll, refetch: refetchAll } = useCourses();
 
     // console.log(studentId);
-    console.log("All COurses", allCourses);
+    console.log("All ENROLLED COurses", allCourses);
     const [refreshing, setRefreshing] = useState(false);
     const overallLoading = isLoadingEnrolled && isLoadingAll;
 
@@ -103,7 +103,8 @@ const PurchasedCoursesScreen = () => {
                             navigation.navigate('CourseEpisodesScreen', {
                                 courseId: item.data._id,
                                 courseTitle: item.data.title,
-                                courseImage: item.data.thumbnail
+                                courseImage: item.data.thumbnail,
+                                instructorImage: item.data.instructorImage
                             });
                         }}
                     />
@@ -144,14 +145,15 @@ const PurchasedCoursesScreen = () => {
                                     title={course.title}
                                     // rating={course.averageRating ?? 0}
                                     description={course.description}
-                                    profileImage={course.instructorImage}
+                                    instructorImage={course.instructorImage}
                                     duration={formatDuration(course.duration)}
                                     profileName={course.instructorName}
                                     price={`${course.price} $`}
                                     onPress={() =>
                                         navigation.navigate('CourseDetailScreen', {
                                             courseId: course._id,
-                                            courseTitle: course.title
+                                            courseTitle: course.title,
+                                            instructorImage: course.instructorImage
                                         })
                                     }
                                 />

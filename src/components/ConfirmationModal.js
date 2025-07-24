@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
         fontFamily: "Inter-Medium",
         color: "#EFEFEF",
         textAlign: "center",
-        marginBottom: 15,
+        marginBottom: 5,
     },
     message: {
         width: "80%",

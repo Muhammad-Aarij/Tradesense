@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { useTopPicks, useRecommendations, useBundles, useDailyThought } from '../../../functions/DiscoverApis';
+import { useTopPicks, useRecommendations, useBundles, useDailyThought, useMusic } from '../../../functions/DiscoverApis';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { bg, discover1, discoverLight, info, video1 } from '../../../assets/images';
 import RecommendationTile from '../../../components/RecommendationTile';
@@ -13,6 +13,7 @@ import TopPickTile from '../../../components/TopPickTile';
 import BundleTileSection from '../../../components/BundleTileSection';
 import AudioMediaTile from '../../../components/AudioMediaTile';
 import AnimatedInfoBox from '../../../components/AnimatedInfoBox';
+import { API_URL } from "@env";
 
 const { height } = Dimensions.get('window');
 
@@ -23,12 +24,13 @@ const DiscoverScreen = () => {
     const [showTopPicksInfo, setShowTopPicksInfo] = useState(false);
     const { userObject } = useSelector(state => state.auth);
     const userId = userObject?._id;
-
+    console.log(userId);
     const dispatch = useDispatch();
 
     const { data: topPicks, isLoading: loadingTop } = useTopPicks(userId);
     const { data: recommendations, isLoading: loadingRec } = useRecommendations(userId);
     const { data: bundles, isLoading: loadingBundles, error: bundlesError } = useBundles(userId);
+    const { data: music, isLoading: loadingMusic, error: MusicError } = useMusic(userId);
     const { data: dailyThought, isLoading: loadingThought } = useDailyThought();
 
     // Preload critical images when component mounts
@@ -58,10 +60,10 @@ const DiscoverScreen = () => {
 
     useEffect(() => {
         dispatch(startLoading());
-        if (!loadingTop && !loadingRec && !loadingBundles && !loadingThought) {
+        if (!loadingTop && !loadingRec && !loadingBundles && !loadingThought && !loadingMusic) {
             dispatch(stopLoading());
         }
-    }, [loadingTop, loadingRec, loadingBundles, loadingThought, dispatch]);
+    }, [loadingTop, loadingRec, loadingBundles, loadingThought, loadingMusic, dispatch]);
 
     // Memoize styles and image to prevent unnecessary re-renders
     const styles = useMemo(() => getStyles(theme), [theme]);
@@ -124,6 +126,7 @@ const DiscoverScreen = () => {
                                     type={item.type}
                                     url={item.url}
                                     lock={item.isPremium}
+                                    duration={item.duration}
                                     description={item.description}
                                     isCenter={index === selectedCard}
                                     onPress={() => handleCardPress(index)}
@@ -134,7 +137,7 @@ const DiscoverScreen = () => {
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
-                        ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+                        ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
                         initialNumToRender={3}
                         maxToRenderPerBatch={3}
                         windowSize={10}
@@ -158,11 +161,12 @@ const DiscoverScreen = () => {
                         data={topPicks || []}
                         renderItem={({ item }) => (
                             <TopPickTile
+                                imageSource={item.thumbnail}
                                 type={item.type}
                                 title={item.title}
                                 description={item.description}
-                                imageSource={item.thumbnail}
                                 locked={item.isPremium}
+                                duration={item.duration}
                                 url={item.url}
                             />
                         )}
@@ -170,7 +174,7 @@ const DiscoverScreen = () => {
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
-                        ItemSeparatorComponent={() => <View style={{ width: 8 }} />}
+                        ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
                         initialNumToRender={3}
                         maxToRenderPerBatch={3}
                         windowSize={10}
@@ -185,7 +189,7 @@ const DiscoverScreen = () => {
                     <Text style={{ color: theme.subTextColor, paddingHorizontal: 25 }}>Loading Daily Thought...</Text>
                 ) : dailyThought ? (
                     <AudioMediaTile
-                        title={dailyThought.title}
+                        title={"Daily Thoughts"}
                         title2={dailyThought.category?.toUpperCase() || 'DAILY'}
                         duration="3-10 MIN"
                         imageSource={{ uri: dailyThought.thumbnail }}
@@ -211,6 +215,7 @@ const DiscoverScreen = () => {
                                     imageSource={{ uri: item.thumbnail }}
                                     locked={item.isPremium}
                                     type={item.type}
+                                    duration={item.duration}
                                     url={item.url}
                                 />
                             )}
@@ -218,7 +223,7 @@ const DiscoverScreen = () => {
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             contentContainerStyle={{ marginLeft: 25 }}
-                            ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+                            // ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
                             initialNumToRender={3}
                             maxToRenderPerBatch={3}
                             windowSize={10}
@@ -229,6 +234,38 @@ const DiscoverScreen = () => {
                         />
                     </View>
                 ))}
+                {/* Music Section */}
+                {music && Array.isArray(music.music) && music.music.length > 0 && (
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Music for You</Text>
+                        <FlatList
+                            data={music.music}
+                            renderItem={({ item }) => (
+                                <BundleTileSection
+                                    title={item.title}
+                                    description={item.description}
+                                    imageSource={{ uri: `${API_URL}/${item.thumbnail?.replace(/\\/g, '/')}` }}
+                                    locked={item.isPremium}
+                                    type="music"
+                                    duration={item.duration}
+                                    url={`${API_URL}/${item.url?.replace(/\\/g, '/')}`}
+                                />
+                            )}
+                            keyExtractor={(item) => item._id}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ marginLeft: 25 }}
+                            initialNumToRender={3}
+                            maxToRenderPerBatch={3}
+                            windowSize={10}
+                            removeClippedSubviews={true}
+                            getItemLayout={(data, index) => (
+                                { length: 172, offset: 172 * index, index }
+                            )}
+                        />
+                    </View>
+                )}
+
 
                 {/* Animated Info Boxes */}
                 <AnimatedInfoBox

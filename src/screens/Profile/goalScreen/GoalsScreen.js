@@ -1,25 +1,36 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    ImageBackground, Image, Alert
+    ImageBackground, Image
 } from 'react-native';
 import { bg, check, tick, uncheck } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import axios from 'axios';
 import { API_URL } from '@env';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { loginUser } from '../../../redux/slice/authSlice';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import SnackbarMessage from '../../../functions/SnackbarMessage'; // ✅ Import
 
 const GoalsScreen = ({ navigation, route }) => {
     const { request, token, question: allQuestions, user } = route.params || {};
-    // const { userId } = useSelector(state => state.auth);
 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [selectedOptionsMap, setSelectedOptionsMap] = useState({});
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [snackbarVisible, setSnackbarVisible] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarType, setSnackbarType] = useState('error');
+
     const dispatch = useDispatch();
+
+    const showSnackbar = (message, type = 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarType(type);
+        setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 3000);
+    };
 
     const questions = allQuestions?.filter(
         q => q.title.toLowerCase() !== 'age' && q.title.toLowerCase() !== 'gender'
@@ -29,20 +40,15 @@ const GoalsScreen = ({ navigation, route }) => {
 
     const handleSelect = (optionId) => {
         const qId = currentQuestion._id;
-
-        // Safer way: Check if title matches and force lowercase
         const isSingleChoice = currentQuestion.title?.trim().toLowerCase() === 'trading experience';
 
         setSelectedOptionsMap(prev => {
             const selected = prev[qId] || [];
-
             let updated;
 
             if (isSingleChoice) {
-                // Only allow one option at a time
                 updated = [optionId];
             } else {
-                // Toggle selection
                 updated = selected.includes(optionId)
                     ? selected.filter(id => id !== optionId)
                     : [...selected, optionId];
@@ -51,8 +57,6 @@ const GoalsScreen = ({ navigation, route }) => {
             return { ...prev, [qId]: updated };
         });
     };
-
-
 
     const handleNext = async () => {
         const qId = currentQuestion._id;
@@ -64,10 +68,8 @@ const GoalsScreen = ({ navigation, route }) => {
         if (!isLast) {
             setCurrentIndex(prev => prev + 1);
         } else {
-            // Construct questionnaireAnswers
             const questionnaireAnswers = {};
 
-            // 1. Add goal questions
             questions.forEach(q => {
                 const selectedIds = selectedOptionsMap[q._id] || [];
                 if (selectedIds.length > 0) {
@@ -75,14 +77,12 @@ const GoalsScreen = ({ navigation, route }) => {
                 }
             });
 
-            // 2. Add gender
             if (request.gender?.questionId && request.gender?.answerId) {
                 questionnaireAnswers[request.gender.questionId] = [
                     request.gender.answerId
                 ];
             }
 
-            // 3. Add age
             if (request.ageRange?.questionId && request.ageRange?.answerId) {
                 questionnaireAnswers[request.ageRange.questionId] = [
                     request.ageRange.answerId
@@ -91,7 +91,6 @@ const GoalsScreen = ({ navigation, route }) => {
 
             const payload = { questionnaireAnswers };
 
-            console.log('Submitting Payload:', user._id, "   ", JSON.stringify(payload, null, 2));
             dispatch(startLoading());
             try {
                 const response = await axios.post(
@@ -99,14 +98,8 @@ const GoalsScreen = ({ navigation, route }) => {
                     payload,
                     { headers: { 'Content-Type': 'application/json' } }
                 );
-                console.log('====================================');
-                console.log(response);
-                console.log('====================================');
 
                 const updatedUser = response.data?.user;
-                console.log('Token:', token);
-                console.log('User Object:', updatedUser || {});
-                console.log('Theme Type:', 'dark');
 
                 await dispatch(loginUser({
                     token,
@@ -114,19 +107,15 @@ const GoalsScreen = ({ navigation, route }) => {
                     themeType: 'dark',
                 }));
 
-
                 setShowSuccessModal(true);
             } catch (err) {
                 console.error(err);
-                Alert.alert('Error', 'Failed to complete setup');
-            }
-            finally {
+                showSnackbar('Failed to complete setup. Please try again.');
+            } finally {
                 dispatch(stopLoading());
             }
         }
     };
-
-
 
     const handleCloseModal = () => {
         setShowSuccessModal(false);
@@ -145,7 +134,7 @@ const GoalsScreen = ({ navigation, route }) => {
 
     return (
         <>
-            {showSuccessModal &&
+            {showSuccessModal && (
                 <ConfirmationModal
                     visible={showSuccessModal}
                     title={"Success!"}
@@ -153,7 +142,14 @@ const GoalsScreen = ({ navigation, route }) => {
                     message={"Profile setup completed successfully"}
                     onClose={handleCloseModal}
                 />
-            }
+            )}
+
+            <SnackbarMessage
+                visible={snackbarVisible}
+                message={snackbarMessage}
+                type={snackbarType}
+            />
+
             <ImageBackground source={bg} style={styles.container}>
                 <View style={styles.wrapper}>
                     <View style={styles.header}>
@@ -177,10 +173,9 @@ const GoalsScreen = ({ navigation, route }) => {
                                         {opt.text}
                                     </Text>
                                     <Image
-                                        source={isSelected ? check : uncheck} // You can also use radio icons
+                                        source={isSelected ? check : uncheck}
                                         style={[styles.checkbox, currentQuestion.title?.toLowerCase() === 'trading experience' && { tintColor: '#FFD700' }]}
                                     />
-
                                 </TouchableOpacity>
                             );
                         })}

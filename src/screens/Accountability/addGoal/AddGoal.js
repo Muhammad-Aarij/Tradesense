@@ -13,6 +13,7 @@ import { startLoading, stopLoading } from "../../../redux/slice/loaderSlice";
 import CustomDropdown from "../../../components/CustomSelector";
 import { useQueryClient } from '@tanstack/react-query';
 import { postHabit, updateHabit } from "../../../functions/habbitFunctions";
+import SnackbarMessage from "../../../functions/SnackbarMessage";
 
 export default function AddGoal({ route, navigation }) {
   const [goalName, setGoalName] = useState("");
@@ -25,6 +26,7 @@ export default function AddGoal({ route, navigation }) {
   const queryClient = useQueryClient();
   const { theme } = useContext(ThemeContext); // Use the theme context
   const [activeDropdown, setActiveDropdown] = useState(null); // 'goalType' or 'status'
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'error' });
 
   const userId = useSelector((state) => state.auth.userId);
   const dispatch = useDispatch();
@@ -59,6 +61,22 @@ export default function AddGoal({ route, navigation }) {
   const styles = getStyles(theme); // Generate themed styles
 
   const handleSubmit = async () => {
+    if (!goalName.trim()) {
+      return setSnackbar({ visible: true, message: 'Please enter a goal name.', type: 'error' });
+    }
+    if (!goalType) {
+      return setSnackbar({ visible: true, message: 'Please select a goal type.', type: 'error' });
+    }
+    if (!status) {
+      return setSnackbar({ visible: true, message: 'Please select a status.', type: 'error' });
+    }
+    if (!description.trim()) {
+      return setSnackbar({ visible: true, message: 'Please enter a description.', type: 'error' });
+    }
+    if (!targetDate) {
+      return setSnackbar({ visible: true, message: 'Please select a target date.', type: 'error' });
+    }
+
     dispatch(startLoading());
 
     const formData = {
@@ -74,22 +92,29 @@ export default function AddGoal({ route, navigation }) {
 
     if (editingGoal) {
       result = await updateHabit(editingGoal._id, formData);
-      console.log('Updating goal:', formData);
     } else {
       result = await postHabit(formData);
-      console.log('Creating goal:', formData);
     }
 
     dispatch(stopLoading());
 
     if (result.error) {
-      console.warn(`${editingGoal ? 'Update' : 'Creation'} failed:`, result.error);
+      setSnackbar({ visible: true, message: 'Something went wrong. Please try again.', type: 'error' });
     } else {
-      console.log(`Goal ${editingGoal ? 'updated' : 'created'} successfully:`, result);
       setShowConfirmationModal(true);
       queryClient.invalidateQueries(['goals', userId]);
     }
   };
+
+
+  React.useEffect(() => {
+    if (snackbar.visible) {
+      const timer = setTimeout(() => {
+        setSnackbar({ ...snackbar, visible: false });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar]);
 
 
   React.useEffect(() => {
@@ -111,6 +136,13 @@ export default function AddGoal({ route, navigation }) {
   return (
     <ImageBackground source={theme.bg} style={styles.container}>
       <SafeAreaView style={{ flex: 1 }}>
+        <SnackbarMessage
+          visible={snackbar.visible}
+          message={snackbar.message}
+          type={snackbar.type}
+        // Auto-hide after 3s
+        />
+
         <KeyboardAvoidingView
           style={{ flex: 1 }}
         // behavior={Platform.OS === "ios" ? "padding" : "height"}

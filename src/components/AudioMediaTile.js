@@ -31,7 +31,8 @@ const AudioMediaTile = ({
           AudioDescr: description,
           Thumbnail: imageSource?.uri || imageSource,
           AudioUrl: url,
-          shouldFetchTrack: false,
+          shouldFetchTrack: true,
+
         })
       }
     >
@@ -78,11 +79,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-Regular',
     color: '#fff',
+    textTransform: "uppercase",
   },
   description: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Light-BETA',
     color: '#fff',
     marginTop: 2,
