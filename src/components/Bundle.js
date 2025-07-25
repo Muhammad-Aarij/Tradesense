@@ -39,7 +39,7 @@ const Bundle = ({ imageSource, title, description, locked, onPress, type, durati
 
         {/* Bottom Left - Time */}
         <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>{duration} min</Text>
+          <Text style={styles.durationText}>{duration} </Text>
         </View>
 
         {/* Lock Icon */}

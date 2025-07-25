@@ -4,10 +4,20 @@ import { API_URL } from "@env"; // Ensure API_URL is in your .env file
 
 // 1. Add a new mood
 export const postMood = async ({ userId, mood }) => {
-  const response = await axios.post(`${API_URL}/api/mood`, { userId, mood });
-  console.log("response from the post mood data", response.data);
-  return response.data;
+  // Corrected: Log the actual parameters being passed, not an undefined 'data' variable.
+  console.log("Calling postMoodData with userId:", userId, "and mood:", mood);
+
+  try {
+    const response = await axios.post(`${API_URL}/api/mood`, { userId, mood });
+    console.log("Response from post mood data:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error posting mood:", error.response?.data || error.message);
+    throw error; // Re-throw the error for the calling hook to handle
+  }
 };
+
+
 
 // 2. Get the latest mood entry for a user
 export const getLatestMood = async (userId) => {

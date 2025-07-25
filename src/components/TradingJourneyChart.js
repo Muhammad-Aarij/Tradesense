@@ -13,7 +13,7 @@ const TradingJourneyChart = ({ userId }) => { // Accept userId as a prop
 
     // Use the custom hook to fetch data with the provided userId
     const { data, isLoading, isError, error } = useWeeklyProfitLoss(userId);
-    // console.log("WeeklyData", data); // Corrected typo from "WeedlyData"
+    console.log("WeeklyData", data); // Corrected typo from "WeedlyData"
 
     // Transform fetched data into the format required by LineChart
     const lineData = useMemo(() => {
@@ -82,7 +82,17 @@ const TradingJourneyChart = ({ userId }) => { // Accept userId as a prop
         const interval = calculateNiceInterval(rawMinValue, rawMaxValue, numLabels - 1);
 
         let yAxisMinValue = Math.floor(rawMinValue / interval) * interval;
-        if (yAxisMinValue < 0 && rawMinValue >= 0) yAxisMinValue = 0; // Ensure min is not negative if all values are positive
+        // If all values are negative, do NOT force min to zero
+        // Only force min to zero if all values are positive
+        if (yAxisMinValue < 0 && rawMaxValue <= 0) {
+            // All values negative, keep yAxisMinValue as is
+        } else if (yAxisMinValue < 0 && rawMinValue >= 0) {
+            // All values positive, set min to zero
+            yAxisMinValue = 0;
+        } else if (yAxisMinValue > 0) {
+            // All values positive, set min to zero
+            yAxisMinValue = 0;
+        }
 
         let yAxisMaxValue = yAxisMinValue + interval * (numLabels - 1);
         while (yAxisMaxValue < rawMaxValue) {

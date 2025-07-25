@@ -14,6 +14,7 @@ import {
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
 import Orientation from 'react-native-orientation-locker';
+import TrackPlayer from 'react-native-track-player';
 import {
   next,
   repeat,
@@ -40,6 +41,8 @@ const VideoPlayerScreen = ({ route }) => {
 
   useEffect(() => {
     console.log('VideoUrl', VideoUrl);
+    // Stop any playing audio when video starts
+    TrackPlayer.stop().catch(() => {});
     const timer = setTimeout(() => {
       setPaused(false);
     }, 500);

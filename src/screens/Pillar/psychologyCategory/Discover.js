@@ -17,6 +17,7 @@ import { API_URL } from "@env";
 
 const { height } = Dimensions.get('window');
 
+
 const DiscoverScreen = () => {
     const { theme, isDarkMode } = useContext(ThemeContext);
     const [selectedCard, setSelectedCard] = useState(0);
@@ -96,6 +97,14 @@ const DiscoverScreen = () => {
     const handleCloseTopPicksInfo = useCallback(() => {
         setShowTopPicksInfo(false);
     }, []);
+
+    const formatDuration = (seconds) => {
+        if (!seconds || seconds < 60) return '1 min';
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(seconds / 3600);
+        return seconds >= 3600 ? `${hours} hour${hours > 1 ? 's' : ''}` : `${minutes} min`;
+    };
+
 
     return (
         <ImageBackground source={theme.bg} style={styles.container} resizeMode="cover">
@@ -215,7 +224,7 @@ const DiscoverScreen = () => {
                                     imageSource={{ uri: item.thumbnail }}
                                     locked={item.isPremium}
                                     type={item.type}
-                                    duration={item.duration}
+                                    duration={formatDuration(item.duration)}
                                     url={item.url}
                                 />
                             )}

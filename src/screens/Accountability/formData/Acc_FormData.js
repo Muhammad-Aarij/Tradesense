@@ -10,6 +10,7 @@ import {
   Platform,
   ImageBackground,
   Modal,
+  Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -20,9 +21,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { submitTradeForm, useSubmitTrade } from '../../../functions/Trades';
 import { useNavigation } from '@react-navigation/native';
-import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ import theme context
+import { ThemeContext } from '../../../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import DocumentPicker from 'react-native-document-picker';
+import axios from 'axios';
+import { API_URL } from "@env";
+
+
+const API_BASE_URL = API_URL;
 
 const CustomPicker = ({ label, selectedValue, onValueChange, items, styles, theme }) => (
   <View style={styles.inputGroup}>
@@ -43,14 +50,15 @@ const CustomPicker = ({ label, selectedValue, onValueChange, items, styles, them
   </View>
 );
 
-export default function Acc_FormData() {
-  const { theme, isDarkMode } = useContext(ThemeContext); // ✅ use theme
+export default function Acc_FormData({ route }) {
+  const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
-
+  const { emotion } = route.params || {};
+  console.log("Emotion", emotion);
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
-  // State
+  // State for form fields
   const [tradeDate, setTradeDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tradeType, setTradeType] = useState('Intraday');
@@ -64,9 +72,15 @@ export default function Acc_FormData() {
   const [takeProfitTarget, setTakeProfitTarget] = useState(2);
   const [actualExitPrice, setActualExitPrice] = useState('');
   const [result, setResult] = useState('Profit');
-  const [emotionalState, setEmotionalState] = useState('Calm');
+  const [emotionalState, setEmotionalState] = useState(emotion || 'Calm');
   const [reflectionNotes, setReflectionNotes] = useState('');
 
+  // State for file uploads
+  const [imageFile, setImageFile] = useState(null);
+  const [csvFile, setCsvFile] = useState(null);
+  const [uploading, setUploading] = useState(false); // To manage loading state during upload
+
+  // State for modals
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
 
@@ -74,23 +88,14 @@ export default function Acc_FormData() {
   const studentId = userData.userObject?._id;
 
   const tradeTypeOptions = [
-    { label: 'Intraday', value: 'Intraday' },
-    { label: 'Swing', value: 'Swing' },
-    { label: 'Scalp', value: 'Scalp' },
+    { label: 'Intra', value: 'intra' },
+    { label: 'Swing', value: 'swing' },
+    { label: 'Scalp', value: 'scalp' },
   ];
-  const setupNameOptions = [
-    { label: 'Reversal', value: 'Reversal' },
-    { label: 'Breakout', value: 'Breakout' },
-    { label: 'Continuation', value: 'Continuation' },
-  ];
+
   const directionOptions = [
-    { label: 'Short', value: 'Short' },
-    { label: 'Long', value: 'Long' },
-  ];
-  const takeProfitTargetOptions = [
-    { label: '1x', value: 1 },
-    { label: '2x', value: 2 },
-    { label: '3x', value: 3 },
+    { label: 'Buy', value: 'buy' },
+    { label: 'Sell', value: 'sell' },
   ];
   const resultOptions = [
     { label: 'Profit', value: 'Profit' },
@@ -98,10 +103,11 @@ export default function Acc_FormData() {
     { label: 'Breakeven', value: 'Breakeven' },
   ];
   const emotionalStateOptions = [
-    { label: 'Calm', value: 'Calm' },
-    { label: 'Excited', value: 'Excited' },
-    { label: 'Anxious', value: 'Anxious' },
-    { label: 'Frustrated', value: 'Frustrated' },
+    { label: 'Good', value: 'Good' },
+    { label: 'Cool', value: 'Cool' },
+    { label: 'Happy', value: 'Happy' },
+    { label: 'Sad', value: 'Sad' },
+    { label: 'Angry', value: 'Angry' },
   ];
 
   const onDateChange = (event, selectedDate) => {
@@ -110,41 +116,122 @@ export default function Acc_FormData() {
     setTradeDate(currentDate);
   };
 
-  const { mutate: submitTrade } = useSubmitTrade(studentId); // ✅
-  const handleSubmit = async () => {
-    const formData = {
-      tradeDate: tradeDate.toISOString().split('T')[0],
-      stockName: stock,
-      userId: studentId,
-      tradeType,
-      setupName,
-      direction,
-      entryPrice: parseFloat(entryPrice),
-      exitPrice: parseFloat(exitPrice),
-      quantity: parseInt(quantity),
-      stopLoss: parseFloat(stopLoss),
-      takeProfitTarget: Number(takeProfitTarget),
-      actualExitPrice: parseFloat(actualExitPrice),
-      result,
-      emotionalState,
-      notes: reflectionNotes,
-    };
+  const { mutate: submitTrade } = useSubmitTrade(studentId);
 
-    console.log('Form Submitted:', formData);
+  const pickImage = async () => {
     try {
-      dispatch(startLoading());
-      const response = await submitTrade(formData);
-      console.log('Trade submitted successfully:', response);
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error('Failed to submit trade:', error);
-      setShowErrorModal(true);
-    } finally {
-      dispatch(stopLoading());
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.images],
+      });
+      setImageFile(res);
+      console.log('Image picked:', res);
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled image picker');
+      } else {
+        console.error('Error picking image:', err);
+        Alert.alert('Error', 'Failed to pick image.');
+      }
     }
   };
 
+  const pickCsv = async () => {
+    try {
+      const res = await DocumentPicker.pickSingle({
+        type: [DocumentPicker.types.allFiles], // You might want to specify DocumentPicker.types.csv if available
+      });
+      setCsvFile(res);
+      console.log('CSV picked:', res);
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        console.log('User cancelled CSV picker');
+      } else {
+        console.error('Error picking CSV:', err);
+        Alert.alert('Error', 'Failed to pick CSV.');
+      }
+    }
+  };
 
+  const handleSubmit = async () => {
+    try {
+      dispatch(startLoading()); // Start global loading indicator
+      setUploading(true); // Set local uploading indicator
+
+      // let imageUrl = '';
+      // if (imageFile) {
+      //   const formData = new FormData();
+      //   formData.append('file', {
+      //     uri: imageFile.uri,
+      //     name: imageFile.name,
+      //     type: imageFile.type,
+      //   });
+
+      //   console.log('Uploading image...');
+      //   const imageRes = await axios.post(`${API_BASE_URL}/upload/image`, formData, {
+      //     headers: { 'Content-Type': 'multipart/form-data' },
+      //   });
+      //   imageUrl = imageRes?.data?.url || '';
+      //   console.log('Image upload response:', imageRes.data);
+      // }
+
+      // let csvUrl = '';
+      // if (csvFile) {
+      //   const formData = new FormData();
+      //   formData.append('file', {
+      //     uri: csvFile.uri,
+      //     name: csvFile.name,
+      //     type: csvFile.type,
+      //   });
+
+      //   console.log('Uploading CSV...');
+      //   const csvRes = await axios.post(`${API_BASE_URL}/upload/csv`, formData, {
+      //     headers: { 'Content-Type': 'multipart-data' },
+      //   });
+      //   csvUrl = csvRes?.data?.url || '';
+      //   console.log('CSV upload response:', csvRes.data);
+      // }
+
+      // Prepare the main trade form data
+      const tradeFormData = {
+        tradeDate: tradeDate.toISOString().split('T')[0],
+        stockName: stock,
+        userId: studentId,
+        tradeType,
+        setupName,
+        direction,
+        entryPrice: parseFloat(entryPrice),
+        exitPrice: parseFloat(exitPrice),
+        quantity: parseInt(quantity),
+        stopLoss: parseFloat(stopLoss),
+        takeProfitTarget: Number(takeProfitTarget),
+        actualExitPrice: parseFloat(actualExitPrice),
+        result,
+        emotionalState,
+        notes: reflectionNotes,
+        // chartImageUrl: imageUrl
+        // csvDocumentUrl: csvUrl,    
+      };
+
+      console.log('Form Submitted with files:', tradeFormData);
+      const response = await submitTrade(tradeFormData); // Use the useSubmitTrade mutation
+      console.log('Trade submitted successfully:', response);
+      setShowSuccessModal(true);
+
+    } catch (error) {
+      console.error('Failed to submit trade:', error);
+      setShowErrorModal(true);
+      // More detailed error handling
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', error.response?.data || error.message);
+        Alert.alert('Submission Error', error.response?.data?.message || 'Failed to submit trade due to a network error.');
+      } else {
+        Alert.alert('Submission Error', 'An unexpected error occurred while submitting the trade.');
+      }
+    } finally {
+      dispatch(stopLoading()); // Stop global loading indicator
+      setUploading(false); // Stop local uploading indicator
+    }
+  };
 
   return (
     <ImageBackground source={isDarkMode ? bg : null} style={styles.container}>
@@ -153,8 +240,8 @@ export default function Acc_FormData() {
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <Header title="Form Data" />
           <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
+            <Header title="Form Data" />
             {/* All Inputs */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.textColor }]}>Trade Date</Text>
@@ -172,34 +259,68 @@ export default function Acc_FormData() {
               )}
             </View>
 
-            <CustomInput label="Stock Name" value={stock} onChangeText={setStock} />
+            <CustomInput label="Product Name"
+              placeholder={"Enter Product Name"}
+              value={stock} onChangeText={setStock} />
             <CustomPicker label="Trade Type" selectedValue={tradeType} onValueChange={setTradeType} items={tradeTypeOptions} styles={styles} theme={theme} />
-            <CustomPicker label="Setup Name" selectedValue={setupName} onValueChange={setSetupName} items={setupNameOptions} styles={styles} theme={theme} />
+            <CustomInput
+              label="Setup Name"
+              placeholder={"Enter Trade Setup Name"}
+              value={setupName}
+              onChangeText={setSetupName}
+            />
             <CustomPicker label="Direction" selectedValue={direction} onValueChange={setDirection} items={directionOptions} styles={styles} theme={theme} />
 
-            <CustomInput label="Entry Price" value={entryPrice} onChangeText={setEntryPrice} keyboardType="numeric" />
-            <CustomInput label="Exit Price" value={exitPrice} onChangeText={setExitPrice} keyboardType="numeric" />
-            <CustomInput label="Quantity" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
-            <CustomInput label="Stop Loss" value={stopLoss} onChangeText={setStopLoss} keyboardType="numeric" />
-            <CustomPicker label="Take Profit Target" selectedValue={takeProfitTarget} onValueChange={setTakeProfitTarget} items={takeProfitTargetOptions} styles={styles} theme={theme} />
-            <CustomInput label="Actual Exit Price" value={actualExitPrice} onChangeText={setActualExitPrice} keyboardType="numeric" />
-            <CustomPicker label="Result" selectedValue={result} onValueChange={setResult} items={resultOptions} styles={styles} theme={theme} />
+            <CustomInput label="Entry Price" placeholder={"Enter Entry Price"} value={entryPrice} onChangeText={setEntryPrice} keyboardType="numeric" />
+            <CustomInput label="Exit Price" placeholder={"Enter Exit Price"} value={exitPrice} onChangeText={setExitPrice} keyboardType="numeric" />
+            <CustomInput label="Quantity" placeholder={"Enter Trade Quantity"} value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
+            <CustomInput label="Stop Loss" placeholder={"Stop Loss"} value={stopLoss} onChangeText={setStopLoss} keyboardType="numeric" />
+            <CustomInput
+              label="Take Profit "
+              keyboardType="numeric"
+              value={String(takeProfitTarget)}
+              onChangeText={(text) => setTakeProfitTarget((text))}
+            />
+            <CustomInput label="Actual Exit Price" placeholder={"Enter Actual Exit Price"} value={actualExitPrice} onChangeText={setActualExitPrice} keyboardType="numeric" />
+            {/* <CustomPicker label="Result" selectedValue={result} onValueChange={setResult} items={resultOptions} styles={styles} theme={theme} /> */}
             <CustomPicker label="Emotional State" selectedValue={emotionalState} onValueChange={setEmotionalState} items={emotionalStateOptions} styles={styles} theme={theme} />
             <CustomInput label="Reflection Notes" value={reflectionNotes} onChangeText={setReflectionNotes} placeholder="What happened..." isMultiline={true} />
 
             <LinearGradient
               start={{ x: 0, y: 0.95 }}
               end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 8,
+              }}
               colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}>
 
-              <TouchableOpacity style={styles.uploadButton} onPress={() => console.log('Upload chart pressed')}>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
                 <Text style={styles.uploadButtonIcon}>☁️</Text>
                 <Text style={styles.uploadButtonText}>Upload chart image or screenshot</Text>
+                {imageFile && <Text style={{ color: theme.subTextColor, marginLeft: 10 }}>{imageFile.name}</Text>}
               </TouchableOpacity>
             </LinearGradient>
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitButtonText}>Submit</Text>
+            <View style={{ height: 15, }} />
+
+            <LinearGradient
+              start={{ x: 0, y: 0.95 }}
+              end={{ x: 1, y: 1 }}
+              style={{
+                borderRadius: 8,
+              }}
+              colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}>
+              <TouchableOpacity style={styles.uploadButton} onPress={pickCsv}>
+                <View>
+                  <Text style={styles.uploadButtonIcon}>📄</Text>
+                  <Text style={styles.uploadButtonText}>Upload CSV file</Text>
+                </View>
+                {csvFile && <Text style={{ color: theme.subTextColor, marginLeft: 10 }}>{csvFile.name}</Text>}
+              </TouchableOpacity>
+            </LinearGradient>
+
+            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={uploading}>
+              <Text style={styles.submitButtonText}>{uploading ? 'Uploading...' : 'Submit'}</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -218,7 +339,7 @@ export default function Acc_FormData() {
           onClose={() => {
             if (showSuccessModal) {
               setShowSuccessModal(false);
-              navigation.goBack(); // Adjust screen name as needed
+              navigation.goBack();
             } else {
               setShowErrorModal(false);
             }
@@ -236,7 +357,7 @@ const getStyles = (theme) =>
     inputGroup: { marginBottom: 15 },
     inputLabel: {
       fontFamily: 'Inter-Medium',
-      fontSize: 13,
+      fontSize: 12,
       color: '#fff',
       marginBottom: 5,
     },
@@ -277,11 +398,12 @@ const getStyles = (theme) =>
       borderWidth: 1,
       borderColor: theme.borderColor,
       borderRadius: 8,
+      flexDirection: "column",
       paddingHorizontal: 15,
       paddingVertical: 35,
-      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      overflow: "hidden",
     },
     uploadButtonIcon: { fontSize: 20, color: theme.textColor, marginRight: 10 },
     uploadButtonText: {

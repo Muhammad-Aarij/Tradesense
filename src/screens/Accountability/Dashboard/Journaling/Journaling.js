@@ -65,12 +65,10 @@ const Journaling = ({ navigation }) => {
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
     const { data: homeData, isLoading: HomeLoading } = useHome(userId);
-
     const userId = useSelector(state => state.auth.userId);
     console.log("Journaling - userId:", userId);
 
     const { data: tradesData = [], isLoading: TradeLoading } = useTradeRecords(userId);
-    // console.log("Journaling - Trades Data:", tradesData);
     // const { data: homeData, isLoading: HomeLoading } = useHome(userId);
     const dispatch = useDispatch();
     const { data: moods, isLoading: MoodLoading, isError } = useAllMoods(userId);
@@ -80,6 +78,7 @@ const Journaling = ({ navigation }) => {
 
     const [selectedMood, setSelectedMood] = useState('happy');
     const [isMoodModalVisible, setIsMoodModalVisible] = useState(false); // State for modal visibility
+    const [isSameDay, setIsSameDay] = useState(false); // State for modal visibility
 
 
     useEffect(() => {
@@ -106,9 +105,11 @@ const Journaling = ({ navigation }) => {
 
             if (!isSameDay) {
                 console.log("No mood for today found or mood is from previous day.");
+                setIsSameDay(false);
                 setIsMoodModalVisible(true);
             } else {
                 console.log("Today's mood already exists:", TodayData.mood);
+                setIsSameDay(true);
                 setSelectedMood(TodayData.mood);
                 setIsMoodModalVisible(false);
             }
@@ -144,32 +145,41 @@ const Journaling = ({ navigation }) => {
 
     // mood options with emoji-to-value mapping
     const moodOptions = [
-        { emoji: '😀', label: 'Good', value: 'good' },
-        { emoji: '😎', label: 'Cool', value: 'cool' },
-        { emoji: '😁', label: 'Happy', value: 'happy' },
-        { emoji: '😔', label: 'Sad', value: 'sad' },
-        { emoji: '😡', label: 'Angry', value: 'angry' },
+        { emoji: '😀', label: 'Good', value: 'Good' },
+        { emoji: '😎', label: 'Cool', value: 'Cool' },
+        { emoji: '😁', label: 'Happy', value: 'Happy' },
+        { emoji: '😔', label: 'Sad', value: 'Sad' },
+        { emoji: '😡', label: 'Angry', value: 'Angry' },
     ];
 
     const handleMoodSelect = (moodValue) => {
+        console.log("Selected Mood:", moodValue, "TodayData ID:", TodayData?._id);
         setSelectedMood(moodValue);
 
-        if (TodayData?._id) {
-            updateMood({ moodId: TodayData._id, mood: moodValue }, {
-                onSuccess: () => {
-                    refetchTodayMood(); // Refetch to update UI if necessary
-                    setIsMoodModalVisible(false); // Close modal on success
+        if (isSameDay) {
+            updateMood(
+                { moodId: TodayData._id, mood: moodValue },
+                {
+                    onSuccess: () => {
+                        refetchTodayMood();
+                        setIsMoodModalVisible(false);
+                    },
                 }
-            });
+            );
         } else {
-            postMood({ userId, mood: moodValue }, {
-                onSuccess: () => {
-                    refetchTodayMood(); // Refetch to get the newly posted mood
-                    setIsMoodModalVisible(false); // Close modal on success
+            console.log("Posting the Mood", userId, moodValue);
+            postMood(
+                { userId, mood: moodValue },
+                {
+                    onSuccess: () => {
+                        refetchTodayMood();
+                        setIsMoodModalVisible(false);
+                    },
                 }
-            });
+            );
         }
     };
+
 
     const mood = selectedMood || "good"; // or any mood you prefer as default
     const randomQuote = useMemo(() => {
@@ -181,7 +191,9 @@ const Journaling = ({ navigation }) => {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
 
-            <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate("Acc_FormData")}>
+            <TouchableOpacity style={styles.addButton}
+                onPress={() => navigation.navigate('Acc_FormData', { emotion: selectedMood })}
+            >
                 <Image source={addBtn} style={{ width: 35, height: 120, resizeMode: "contain", tintColor: theme.primaryColor }}></Image>
             </TouchableOpacity>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -196,7 +208,7 @@ const Journaling = ({ navigation }) => {
                     >
                         <View style={styles.card}>
                             <Text style={styles.cardTitle}>Today's Focus</Text>
-                            <Text style={styles.cardDescription}> {homeData?.quotation || "I execute trades with discipline and confidence."}</Text>
+                            <Text style={styles.cardDescription}>{randomQuote}</Text>
 
                         </View>
                     </LinearGradient>

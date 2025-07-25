@@ -243,15 +243,14 @@ const PlayerScreen = ({ route }) => {
 
       if (needToLoad) {
         // console.log('Loading new track...');
+        //Stop current playback first
 
-        // Stop current playback first
         try {
           await TrackPlayer.stop();
           // console.log('TrackPlayer stopped');
         } catch (stopError) {
           // console.log('Stop error (might be expected):', stopError.message);
         }
-
         try {
           // console.log('About to reset TrackPlayer...');
           await TrackPlayer.reset();
