@@ -3,6 +3,7 @@ import {
     View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image,
     ImageBackground, ScrollView, Pressable, Modal, KeyboardAvoidingView, Platform,
     TouchableWithoutFeedback, Keyboard,
+    SafeAreaView,
 } from 'react-native';
 import { bg, login as userLock, G, eyeClose, applePay, tick, fail } from '../../../assets/images';
 import themeBase from '../../../themes/theme';
@@ -12,17 +13,21 @@ import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
-import { loginApi } from '../../../functions/auth';
+import { loginApi, googleLoginApi } from '../../../functions/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Snackbar from 'react-native-snackbar';
 import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from '@env';
 import ConfirmationModal from '../../../components/ConfirmationModal';
-import { getFCMToken } from '../../../functions/getFCMToken';
 
+// GoogleSignin.configure({
+//     webClientId: GOOGLE_WEB_CLIENT_ID,
+//     iosClientId: GOOGLE_IOS_CLIENT_ID,
+//     scopes: ['profile', 'email'],
+//     offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+// });
 GoogleSignin.configure({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    // androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: "719765624558-bl0hf7hi55squfiqi4eiv4ockm0css0s.apps.googleusercontent.com",
+    iosClientId: "719765624558-q8auutbabdfgqjiscmcd16vm7673h6v0.apps.googleusercontent.com",
     scopes: ['profile', 'email'],
     offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
 });
@@ -53,18 +58,34 @@ const LoginScreen = ({ navigation, route }) => {
             icon,
         });
     };
+    const isValidEmail = (email) => {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    };
 
     const handleLogin = async () => {
-
         if (!username || !password) {
-            setShowModal(true);
+            showConfirmationModal({
+                title: 'Missing Fields',
+                message: 'Please enter both email and password.',
+                icon: fail,
+            });
+            return;
+        }
+
+        if (!isValidEmail(username)) {
+            showConfirmationModal({
+                title: 'Invalid Email',
+                message: 'Please enter a valid email address.',
+                icon: fail,
+            });
             return;
         }
 
         try {
             setLoading(true);
             dispatch(startLoading());
-
+            console.log('username++++>>>>> in login', username);
             const data = await loginApi(username, password);
             const answers = data.user?.questionnaireAnswers;
             // console.log(data.user);
@@ -112,147 +133,139 @@ const LoginScreen = ({ navigation, route }) => {
         }
     };
 
-
     const googleSignIn = async () => {
         try {
-            console.log('🔍 Starting Google Sign-In process...');
-            console.log('🔍 Platform:', Platform.OS);
-            // console.log('🔍 Google Web Client ID:', GOOGLE_WEB_CLIENT_ID || 'Missing');
-            // console.log('🔍 Google iOS Client ID:', GOOGLE_IOS_CLIENT_ID || 'Missing');
-            // console.log('🔍 Google Android Client ID:', GOOGLE_ANDROID_CLIENT_ID || 'Missing');
-
-            // Check if Google Play Services is available (Android only)
-            if (Platform.OS === 'android') {
-                console.log('🔍 Checking Google Play Services...');
-                await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-            }
-
-            // Sign out first to ensure clean state
-            console.log('🔍 Signing out previous session...');
+            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
             await GoogleSignin.signOut();
-
-            // Add a small delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            console.log('🔍 Attempting Google Sign-In...');
+            await new Promise(resolve => setTimeout(resolve, 200));
             const response = await GoogleSignin.signIn();
+            console.log('Google Sign-In raw response:', JSON.stringify(response, null, 2));
+            dispatch(startLoading());
 
-            console.log('✅ Google Sign-In successful!');
-            console.log('✅ Response:', JSON.stringify(response, null, 2));
+            // Extract google user details (defensive in case structure changes)
+            const googleUser = response?.user || response?.data?.user || response;
+            console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
 
-            // Handle the successful response here
-            const { user } = response;
-            console.log('✅ User info:', {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                photo: user.photo
-            });
+            const data = await googleLoginApi(googleUser);
+            const answers = data.existingUser?.questionnaireAnswers;
 
-            // TODO: Send this data to your backend for authentication
-            showConfirmationModal({
-                title: 'Google Sign-In Success',
-                message: `Welcome ${user.name}! Google Sign-In is working. Backend integration pending.`,
-                icon: tick, // success icon
-            });
+            const isProfilingPending =
+                !answers ||
+                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
+                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
+
+            await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
+
+            if (pendingDeepLink) {
+                if (!isProfilingPending) dispatch(setProfilingDone(true));
+                navigation.replace('CourseDeepLink', {
+                    courseId: pendingDeepLink.courseId,
+                    affiliateToken: pendingDeepLink.token,
+                });
+            } else if (isProfilingPending) {
+                console.log('data.user++++>>>>> in login', data.existingUser);
+                console.log('data.token++++>>>>> in login', data.token);
+                navigation.replace("GenderScreen", {
+                    user: data.existingUser,
+                    token: data.token,
+                });
+            } else {
+                dispatch(setProfilingDone(true));
+                navigation.replace('MainFlow');
+            }
 
         } catch (error) {
-            console.error('❌ Google Sign-In Error:', error);
-            console.error('❌ Error code:', error.code);
-            console.error('❌ Error message:', error.message);
+            console.error("Google Sign-In error:", error.response.data);
 
-            let message = 'Google Sign-In failed.';
+            const message = {
+                [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in cancelled.',
+                [statusCodes.IN_PROGRESS]: 'Sign-in already in progress.',
+                [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: 'Play Services not available.',
+            }[error.code] || 'Google Sign-In failed.';
 
-            if (error.code) {
-                const errorMessages = {
-                    [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in was cancelled by user.',
-                    [statusCodes.IN_PROGRESS]: 'Sign-in is already in progress.',
-                    [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: 'Google Play Services not available.',
-                    [statusCodes.SIGN_IN_REQUIRED]: 'Sign-in is required.',
-                };
-                const message = errorMessages[error.code] || `Google Sign-In failed: ${error.message}`;
-            }
-
-            console.error('❌ Showing error to user:', message);
-
-            showConfirmationModal({
-                title: 'Google Sign-In Failed',
-                message: message,
-                icon: fail,
+            Snackbar.show({
+                text: message,
+                duration: 3000,
+                backgroundColor: '#010b13b6',
+                textColor: '#fff',
             });
+        } finally {
+            dispatch(stopLoading());
         }
     };
 
     return (
         <>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles(theme).container}>
-                    <ImageBackground source={theme.bg} style={styles(theme).container}>
-                        <Image source={userLock} style={styles(theme).image} />
+                <SafeAreaView style={{ flex: 1 }}>
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles(theme).container}>
+                        <ImageBackground source={theme.bg} style={styles(theme).container}>
+                            <Image source={userLock} style={styles(theme).image} />
 
-                        <ScrollView contentContainerStyle={styles(theme).scrollContent} style={styles(theme).bottomcontainer}>
-                            <Text style={styles(theme).title}>Login</Text>
-                            <Text style={styles(theme).subtitle}>Welcome back, we missed you</Text>
+                            <ScrollView contentContainerStyle={styles(theme).scrollContent} style={styles(theme).bottomcontainer}>
+                                <Text style={styles(theme).title}>Login</Text>
+                                <Text style={styles(theme).subtitle}>Welcome back, we missed you</Text>
 
-                            <CustomInput
-                                label="Email"
-                                placeholder="Email Address"
-                                value={username}
-                                onChangeText={setUsername}
-                            />
+                                <CustomInput
+                                    label="Email"
+                                    placeholder="Email Address"
+                                    value={username}
+                                    onChangeText={setUsername}
+                                />
 
-                            <CustomInput
-                                label="Password"
-                                placeholder="Enter your password"
-                                secureTextEntry={!passwordVisible}
-                                value={password}
-                                onChangeText={setPassword}
-                                icon={eyeClose}
-                                onIconPress={() => setPasswordVisible(!passwordVisible)}
-                            />
+                                <CustomInput
+                                    label="Password"
+                                    placeholder="Enter your password"
+                                    secureTextEntry={!passwordVisible}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    icon={eyeClose}
+                                    onIconPress={() => setPasswordVisible(!passwordVisible)}
+                                />
 
-                            <TouchableOpacity style={styles(theme).forgot} onPress={() => navigation.navigate('ForgotPassword')}>
-                                <Text style={styles(theme).forgotText}>Forgot Password?</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[styles(theme).button, { opacity: loading ? 0.7 : 1 }]}
-                                onPress={handleLogin}
-                                disabled={loading}
-                            >
-                                <Text style={styles(theme).buttonText}>{loading ? 'Signing in...' : 'Sign in'}</Text>
-                            </TouchableOpacity>
-
-                            <View style={styles(theme).orContainer}>
-                                <LinearGradient colors={['rgba(204,204,204,0.07)', 'rgba(255,255,255,0.32)']} style={styles(theme).Line} />
-                                <Text style={styles(theme).or}>or continue with</Text>
-                                <LinearGradient colors={['rgba(255,255,255,0.32)', 'rgba(204,204,204,0.07)']} style={styles(theme).Line} />
-                            </View>
-
-                            <View style={styles(theme).row}>
-                                <LinearGradient
-                                    colors={['rgba(255,255,255,0.16)', 'rgba(204,204,204,0)']}
-                                    style={styles(theme).googleBtn}
-                                >
-                                    <TouchableOpacity onPress={googleSignIn} style={styles(theme).googleBtnInner}>
-                                        <Image source={G} style={styles(theme).socialIcon} />
-                                        <Text style={styles(theme).googleText}>Continue with Google</Text>
-                                    </TouchableOpacity>
-                                </LinearGradient>
-
-                                <TouchableOpacity style={styles(theme).appleBtn}>
-                                    <Image source={applePay} style={styles(theme).socialIcon} />
+                                <TouchableOpacity style={styles(theme).forgot} onPress={() => navigation.navigate('ForgotPassword')}>
+                                    <Text style={styles(theme).forgotText}>Forgot Password?</Text>
                                 </TouchableOpacity>
-                            </View>
 
-                            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                                <Text style={styles(theme).footer}>
-                                    Don't have an account? <Text style={styles(theme).link}>Sign up here!</Text>
-                                </Text>
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </ImageBackground>
-                </KeyboardAvoidingView>
+                                <TouchableOpacity
+                                    style={[styles(theme).button, { opacity: loading ? 0.7 : 1 }]}
+                                    onPress={handleLogin}
+                                    disabled={loading}
+                                >
+                                    <Text style={styles(theme).buttonText}>{loading ? 'Signing in...' : 'Sign in'}</Text>
+                                </TouchableOpacity>
+
+                                <View style={styles(theme).orContainer}>
+                                    <LinearGradient colors={['rgba(204,204,204,0.07)', 'rgba(255,255,255,0.32)']} style={styles(theme).Line} />
+                                    <Text style={styles(theme).or}>or continue with</Text>
+                                    <LinearGradient colors={['rgba(255,255,255,0.32)', 'rgba(204,204,204,0.07)']} style={styles(theme).Line} />
+                                </View>
+
+                                <View style={styles(theme).row}>
+                                    <LinearGradient
+                                        colors={['rgba(255,255,255,0.16)', 'rgba(204,204,204,0)']}
+                                        style={styles(theme).googleBtn}
+                                    >
+                                        <TouchableOpacity onPress={googleSignIn} style={styles(theme).googleBtnInner}>
+                                            <Image source={G} style={styles(theme).socialIcon} />
+                                            <Text style={styles(theme).googleText}>Continue with Google</Text>
+                                        </TouchableOpacity>
+                                    </LinearGradient>
+
+                                    <TouchableOpacity style={styles(theme).appleBtn}>
+                                        <Image source={applePay} style={styles(theme).socialIcon} />
+                                    </TouchableOpacity>
+                                </View>
+
+                                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+                                    <Text style={styles(theme).footer}>
+                                        Don't have an account? <Text style={styles(theme).link}>Sign up here!</Text>
+                                    </Text>
+                                </TouchableOpacity>
+                            </ScrollView>
+                        </ImageBackground>
+                    </KeyboardAvoidingView>
+                </SafeAreaView>
             </TouchableWithoutFeedback>
 
             {confirmation.visible && <ConfirmationModal

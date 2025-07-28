@@ -185,7 +185,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
         const getIconSize = (routeName) => {
           switch (routeName) {
             case "More":
-              return responsiveWidth(45); // Largest for sidebar
+              return responsiveWidth(33); // Largest for sidebar
             case "Pillars": // Discover
               return responsiveWidth(30); // Large for discover
             case "Sense Ai":

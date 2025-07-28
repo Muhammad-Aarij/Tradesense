@@ -106,7 +106,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     descriptionText: {
         fontSize: responsiveFontSize(13),
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Regular",
         color: theme.textColor,
         textAlign: 'center',
         lineHeight: responsiveFontSize(20),
@@ -127,7 +127,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     sectionTitle: {
         fontSize: responsiveFontSize(16),
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         color: theme.textColor,
         textAlign: "center",
     },
@@ -143,7 +143,7 @@ const getStyles = (theme) => StyleSheet.create({
         marginBottom: responsiveHeight(20),
     },
     featureText: {
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         fontSize: responsiveFontSize(13),
         color: theme.subTextColor,
         lineHeight: responsiveFontSize(20),
@@ -157,11 +157,11 @@ const getStyles = (theme) => StyleSheet.create({
     versionText: {
         fontSize: responsiveFontSize(11),
         color: theme.subTextColor,
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         marginBottom: responsiveHeight(5),
     },
     copyrightText: {
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         fontSize: responsiveFontSize(10),
         color: theme.subTextColor,
     },

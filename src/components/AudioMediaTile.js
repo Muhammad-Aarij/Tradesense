@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     color: '#fff',
     textTransform: "uppercase",
   },
   description: {
     fontSize: 12,
-    fontFamily: 'Inter-Light-BETA',
+    fontFamily: 'Outfit-Light-BETA',
     color: '#fff',
     marginTop: 2,
   },

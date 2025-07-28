@@ -9,7 +9,8 @@ import {
     StatusBar,
     StyleSheet,
     Modal,
-    ImageBackground, // Import Modal
+    ImageBackground,
+    ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { addBtn, back, bg } from '../../../../assets/images';
@@ -20,7 +21,6 @@ import moodQuotes from './modes';
 import { useTradeRecords } from '../../../../functions/Trades';
 import TradingJourneyChart from '../../../../components/TradingJourneyChart';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
-import { useHome } from '../../../../functions/homeApi';
 
 // Mood selection modal component
 const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, theme }) => {
@@ -33,7 +33,7 @@ const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, the
             onRequestClose={onClose}
         >
             <View style={modalStyles.centeredView}>
-                <ImageBackground source={bg} imageStyle={{ resizeMode: 'cover' }} style={modalStyles.imageBg} >
+                <ImageBackground source={theme.bg} imageStyle={{ resizeMode: 'cover' }} style={modalStyles.imageBg} >
                     <View style={modalStyles.modalView}>
                         <Text style={modalStyles.modalTitle}>How are you feeling today?</Text>
                         <View style={modalStyles.moodOptionsContainer}>
@@ -48,53 +48,47 @@ const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, the
                                 </TouchableOpacity>
                             ))}
                         </View>
-                        {/* <TouchableOpacity
-                        style={modalStyles.closeButton}
-                        onPress={onClose}
-                    >
-                        <Text style={modalStyles.closeButtonText}>Close</Text>
-                    </TouchableOpacity> */}
                     </View>
                 </ImageBackground>
             </View>
-        </Modal >
+        </Modal>
     );
 };
 
 const Journaling = ({ navigation }) => {
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
-    const { data: homeData, isLoading: HomeLoading } = useHome(userId);
+    const dispatch = useDispatch();
+
+    // Get userId first before using it in other hooks
     const userId = useSelector(state => state.auth.userId);
     console.log("Journaling - userId:", userId);
 
+    // Only fetch data if userId is available
     const { data: tradesData = [], isLoading: TradeLoading } = useTradeRecords(userId);
-    // const { data: homeData, isLoading: HomeLoading } = useHome(userId);
-    const dispatch = useDispatch();
     const { data: moods, isLoading: MoodLoading, isError } = useAllMoods(userId);
-    const { data: TodayData, isLoading: todayMoodLoading, refetch: refetchTodayMood } = useUserMood(userId); // Added refetch
+    const { data: TodayData, isLoading: todayMoodLoading, refetch: refetchTodayMood } = useUserMood(userId);
+
     const { mutate: postMood } = usePostMood();
     const { mutate: updateMood } = useUpdateMood();
 
     const [selectedMood, setSelectedMood] = useState('happy');
-    const [isMoodModalVisible, setIsMoodModalVisible] = useState(false); // State for modal visibility
-    const [isSameDay, setIsSameDay] = useState(false); // State for modal visibility
+    const [isMoodModalVisible, setIsMoodModalVisible] = useState(false);
+    const [isSameDay, setIsSameDay] = useState(false);
 
-
+    // Handle loading states
     useEffect(() => {
-        dispatch(startLoading());
-        if (!MoodLoading && !todayMoodLoading && !TradeLoading && !HomeLoading) {
-            dispatch(stopLoading());
+        if (userId) {
+            dispatch(startLoading());
+            if (!MoodLoading && !todayMoodLoading && !TradeLoading) {
+                dispatch(stopLoading());
+            }
         }
-    }, [todayMoodLoading, MoodLoading, TradeLoading, HomeLoading, dispatch]);
-
-
+    }, [todayMoodLoading, MoodLoading, TradeLoading, dispatch, userId]);
 
     // Check if mood for today exists and show modal if not
     useEffect(() => {
-        console.log("TodaysMood Latest", TodayData);
-
-        if (!todayMoodLoading) {
+        if (!todayMoodLoading && userId) {
             const moodDate = TodayData?.createdAt ? new Date(TodayData.createdAt) : null;
             const today = new Date();
 
@@ -104,19 +98,15 @@ const Journaling = ({ navigation }) => {
                 moodDate.getDate() === today.getDate();
 
             if (!isSameDay) {
-                console.log("No mood for today found or mood is from previous day.");
                 setIsSameDay(false);
                 setIsMoodModalVisible(true);
             } else {
-                console.log("Today's mood already exists:", TodayData.mood);
                 setIsSameDay(true);
                 setSelectedMood(TodayData.mood);
                 setIsMoodModalVisible(false);
             }
         }
-    }, [TodayData, todayMoodLoading]);
-
-
+    }, [TodayData, todayMoodLoading, userId]);
 
     const latestTrades = useMemo(() => {
         if (!tradesData || !Array.isArray(tradesData)) return [];
@@ -124,7 +114,6 @@ const Journaling = ({ navigation }) => {
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .slice(0, 5);
     }, [tradesData]);
-
 
     const calculateMetrics = (moods) => {
         const total = moods.length;
@@ -153,7 +142,6 @@ const Journaling = ({ navigation }) => {
     ];
 
     const handleMoodSelect = (moodValue) => {
-        console.log("Selected Mood:", moodValue, "TodayData ID:", TodayData?._id);
         setSelectedMood(moodValue);
 
         if (isSameDay) {
@@ -167,7 +155,6 @@ const Journaling = ({ navigation }) => {
                 }
             );
         } else {
-            console.log("Posting the Mood", userId, moodValue);
             postMood(
                 { userId, mood: moodValue },
                 {
@@ -180,24 +167,37 @@ const Journaling = ({ navigation }) => {
         }
     };
 
-
-    const mood = selectedMood || "good"; // or any mood you prefer as default
+    const mood = selectedMood || "good";
     const randomQuote = useMemo(() => {
         const quotes = moodQuotes[mood] || ["Stay focused, stay consistent."];
         return quotes[Math.floor(Math.random() * quotes.length)];
     }, [mood]);
 
+    // Show loading if userId is not available or any query is loading
+    if (!userId || MoodLoading || todayMoodLoading || TradeLoading) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={theme.primaryColor} />
+                    <Text style={styles.loadingText}>Loading your journal...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
 
-            <TouchableOpacity style={styles.addButton}
+            <TouchableOpacity
+                style={styles.addButton}
                 onPress={() => navigation.navigate('Acc_FormData', { emotion: selectedMood })}
             >
-                <Image source={addBtn} style={{ width: 35, height: 120, resizeMode: "contain", tintColor: theme.primaryColor }}></Image>
+                <Image source={addBtn} style={{ width: 35, height: 120, resizeMode: "contain", tintColor: theme.primaryColor }} />
             </TouchableOpacity>
-            <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
+            <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
                 {/* Gradient Card */}
                 <TouchableOpacity onPress={() => navigation.navigate("Acc_FormData")}>
                     <LinearGradient
@@ -209,14 +209,11 @@ const Journaling = ({ navigation }) => {
                         <View style={styles.card}>
                             <Text style={styles.cardTitle}>Today's Focus</Text>
                             <Text style={styles.cardDescription}>{randomQuote}</Text>
-
                         </View>
                     </LinearGradient>
                 </TouchableOpacity>
 
-
                 {/* Metrics */}
-
                 {metrics && (
                     <View style={styles.metricsContainer}>
                         <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
@@ -245,8 +242,6 @@ const Journaling = ({ navigation }) => {
                     </View>
                 )}
 
-
-
                 {/* Feeling Today */}
                 <Text style={styles.sectionTitle}>How you're feeling Today?</Text>
 
@@ -270,15 +265,6 @@ const Journaling = ({ navigation }) => {
                     })}
                 </ScrollView>
 
-
-                {/* Chart Section */}
-                <View style={styles.tradesHeader}>
-                    <Text style={styles.sectionTitle}>Your Trading Journey</Text>
-                    <TouchableOpacity>
-                        <Image source={back} style={{ width: 10, height: 10, resizeMode: "contain", tintColor: "#79869B", transform: [{ rotate: "180deg" }] }} />
-                    </TouchableOpacity>
-                </View>
-
                 <TradingJourneyChart userId={userId} />
 
                 {/* Trades Section */}
@@ -293,7 +279,7 @@ const Journaling = ({ navigation }) => {
                 </View>
 
                 <View style={styles.tradesList}>
-                    {latestTrades.length > 0 ? ( // Conditional rendering for trades list
+                    {latestTrades.length > 0 ? (
                         latestTrades.map((trade, index) => {
                             const isPositive = trade.result?.toLowerCase() === 'profit';
                             return (
@@ -321,7 +307,6 @@ const Journaling = ({ navigation }) => {
                             );
                         })
                     ) : (
-                        // Empty Habits Card - displayed when no trades are available
                         <LinearGradient
                             start={{ x: 0, y: 0.95 }}
                             end={{ x: 1, y: 1 }}
@@ -348,17 +333,14 @@ const Journaling = ({ navigation }) => {
                                 </TouchableOpacity>
                             </View>
                         </LinearGradient>
-
                     )}
                 </View>
-
-
             </ScrollView>
 
             {/* Mood Selection Modal */}
             <MoodSelectionModal
                 isVisible={isMoodModalVisible}
-                onClose={() => setIsMoodModalVisible(false)} // Allow closing manually if needed
+                onClose={() => setIsMoodModalVisible(false)}
                 onSelectMood={handleMoodSelect}
                 moodOptions={moodOptions}
                 theme={theme}
@@ -367,9 +349,28 @@ const Journaling = ({ navigation }) => {
     );
 };
 
-
 const getStyles = (theme) =>
     StyleSheet.create({
+        container: {
+            flex: 1,
+            margin: 0,
+            padding: 0,
+            // backgroundColor: theme.backgroundColor || '#1A1A2E',
+        },
+        loadingContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        loadingText: {
+            color: theme.textColor,
+            fontSize: 16,
+            marginTop: 10,
+            fontFamily: 'Outfit-Regular',
+        },
+        scrollViewContent: {
+            paddingBottom: 20,
+        },
         addButton: {
             position: "absolute",
             right: -20,
@@ -416,7 +417,7 @@ const getStyles = (theme) =>
             borderWidth: 0.9,
             borderRadius: 8,
             borderColor: theme.borderColor,
-            width: '32%', // Roughly one-third
+            width: '32%',
         },
         metricPercentage: {
             color: theme.textColor,
@@ -432,7 +433,7 @@ const getStyles = (theme) =>
         sectionTitle: {
             color: theme.textColor,
             fontSize: 14,
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
         },
         daySelectorScroll: {
             marginVertical: 15,
@@ -446,12 +447,12 @@ const getStyles = (theme) =>
             marginRight: 7,
             alignItems: 'center',
             justifyContent: 'center',
-            width: 65, // Fixed width for consistent look
-            height: 90, // Fixed height
+            width: 65,
+            height: 90,
         },
         dayButtonActive: {
             borderColor: theme.primaryColor,
-            backgroundColor: 'rgba(29, 172, 255, 0.44)', // Blue for active day
+            backgroundColor: 'rgba(29, 172, 255, 0.44)',
         },
         dayButtonDate: {
             fontSize: 30,
@@ -459,7 +460,7 @@ const getStyles = (theme) =>
             marginBottom: 10,
         },
         dayButtonDateActive: {
-            color: '#000', // Emoji color might not change easily with tintColor
+            color: '#000',
         },
         dayButtonDay: {
             color: '#A0A0B0',
@@ -467,39 +468,6 @@ const getStyles = (theme) =>
         },
         dayButtonDayActive: {
             color: '#FFF',
-        },
-        chartContainer: {
-            backgroundColor: '#2C2C4A',
-            borderRadius: 15,
-            padding: 15,
-            marginBottom: 20,
-        },
-        chartPlaceholder: {
-            height: 150,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#3A3A5A', // Slightly lighter dark for chart area
-            borderRadius: 10,
-            marginBottom: 10,
-        },
-        chartPlaceholderText: {
-            color: '#A0A0B0',
-            fontSize: 16,
-        },
-        chartImage: {
-            width: '100%',
-            height: '100%',
-            resizeMode: 'cover',
-            borderRadius: 10,
-        },
-        chartLabels: {
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            paddingHorizontal: 10,
-        },
-        chartLabelText: {
-            color: '#A0A0B0',
-            fontSize: 12,
         },
         tradesHeader: {
             flexDirection: 'row',
@@ -518,15 +486,12 @@ const getStyles = (theme) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            // borderRadius: 12, // This was commented out, keeping it that way
             padding: 15,
             paddingHorizontal: 18,
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-            // borderWidth: 0.9, // This was commented out, keeping it that way
             borderColor: theme.borderColor,
         },
         tradeItemLinearGradient: {
-            overflow: "hidden", // Important for borderRadius to work with gradient
+            overflow: "hidden",
             marginBottom: 10,
             borderWidth: 0.9,
             borderColor: theme.borderColor,
@@ -541,7 +506,7 @@ const getStyles = (theme) =>
             marginTop: 3,
             color: theme.subTextColor,
             fontSize: 10,
-            fontFamily: "Inter-Regular",
+            fontFamily: "Outfit-Regular",
         },
         tradePriceContainer: {
             alignItems: 'flex-end',
@@ -549,54 +514,18 @@ const getStyles = (theme) =>
         tradePrice: {
             color: theme.textColor,
             fontSize: 15,
-            fontFamily: "Inter-Light-BETA",
+            fontFamily: "Outfit-Light-BETA",
         },
         tradeChangePositive: {
-            color: '#4CAF50', // Green for positive change
-            fontFamily: "Inter-Light-BETA",
+            color: '#4CAF50',
+            fontFamily: "Outfit-Light-BETA",
             fontSize: 11,
         },
         tradeChangeNegative: {
-            color: '#FF5252', // Red for negative change
-            fontFamily: "Inter-Light-BETA",
+            color: '#FF5252',
+            fontFamily: "Outfit-Light-BETA",
             fontSize: 11,
         },
-        bottomNav: {
-            flexDirection: 'row',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            backgroundColor: '#2C2C4A',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            paddingVertical: 10,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 3.84,
-            elevation: 5,
-        },
-        navItem: {
-            alignItems: 'center',
-            padding: 5,
-        },
-        navItemActive: {
-            backgroundColor: '#007bff',
-            borderRadius: 20,
-            paddingHorizontal: 15,
-            paddingVertical: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-        navItemActiveText: {
-            color: '#FFF',
-            fontSize: 12,
-            marginLeft: 5,
-        },
-        // Styles for the empty habits card
         emptyHabitsCard: {
             borderRadius: 16,
             borderWidth: 0.9,
@@ -631,14 +560,14 @@ const getStyles = (theme) =>
         emptyHabitsTitle: {
             color: theme.textColor,
             fontSize: 18,
-            fontFamily: 'Inter-Bold',
+            fontFamily: 'Outfit-Bold',
             marginBottom: 8,
             textAlign: 'center',
         },
         emptyHabitsSubtitle: {
             color: theme.subTextColor,
             fontSize: 14,
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
             textAlign: 'center',
             lineHeight: 20,
             paddingHorizontal: 10,
@@ -660,7 +589,7 @@ const getStyles = (theme) =>
         createHabitButtonText: {
             color: '#FFFFFF',
             fontSize: 14,
-            fontFamily: 'Inter-SemiBold',
+            fontFamily: 'Outfit-SemiBold',
             textAlign: 'center',
         },
     });
@@ -671,17 +600,15 @@ const getModalStyles = (theme) => StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark overlay
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
     },
     modalView: {
         alignItems: "center",
-        // Removed padding from here, it's now on imageBg
     },
-
     imageBg: {
         margin: 40,
         borderRadius: 20,
-        padding: 35, // Padding applied here
+        padding: 35,
         overflow: "hidden",
         shadowColor: "#000",
         shadowOffset: {
@@ -694,9 +621,7 @@ const getModalStyles = (theme) => StyleSheet.create({
         width: 'auto',
         borderWidth: 1,
         borderColor: theme.borderColor,
-
     },
-
     modalTitle: {
         marginBottom: 20,
         textAlign: "center",
@@ -716,7 +641,7 @@ const getModalStyles = (theme) => StyleSheet.create({
         marginVertical: 10,
         padding: 10,
         borderRadius: 10,
-        backgroundColor: 'rgba(255, 255, 255, 0.08)', // Slightly lighter background for options
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         borderWidth: 1,
         borderColor: theme.borderColor,
     },
@@ -727,19 +652,6 @@ const getModalStyles = (theme) => StyleSheet.create({
     moodOptionLabel: {
         color: theme.subTextColor,
         fontSize: 12,
-    },
-    closeButton: {
-        backgroundColor: theme.primaryColor, // Use theme primary color
-        borderRadius: 10,
-        padding: 12,
-        elevation: 2,
-        marginTop: 15,
-    },
-    closeButtonText: {
-        color: "white",
-        fontWeight: "bold",
-        textAlign: "center",
-        fontSize: 16,
     },
 });
 

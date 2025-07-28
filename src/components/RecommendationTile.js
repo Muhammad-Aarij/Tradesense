@@ -8,7 +8,7 @@ import { ThemeContext } from '../../src/context/ThemeProvider';
 const { width } = Dimensions.get('window');
 const cardWidth = width * 0.42;
 
-const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url, duration }) => {
+const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url, duration, pillar }) => {
   const navigation = useNavigation();
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -39,7 +39,7 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
         Thumbnail: thumbnail,
         AudioUrl: url,
         shouldFetchTrack: true,
-        navigationKey: Date.now(), // Add unique key to force new navigation
+        navigationKey: Date.now(),
       });
     } else if (type === 'video') {
       navigation.navigate('VideoPlayer', {
@@ -62,18 +62,15 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
         />
         <View style={styles.shadowOverlay} />
         <View style={styles.overlayIcon}>
-          <Image
-            source={type === 'audio' ? audioNew : videoNew}
-            style={{ width: 15, height: 15, resizeMode: "contain" }}
-          />
-          <Text style={{
-            fontSize: 9,
-            fontFamily: "Inter-Medium",
-            color: 'rgba(255, 255, 255, 0.64)',
-            borderRadius: 10,
-          }}>
-            {type === 'audio' ? 'Audio' : 'Video'}
-          </Text>
+          <View style={{ flexDirection: "row", backgroundColor: 'rgba(199, 199, 199, 0.38)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginBottom: 5, alignItems: "center", }}>
+            <Image
+              source={type === 'audio' ? audioNew : videoNew}
+              style={{ width: 10, height: 10, resizeMode: "contain", marginRight: 5, tintColor: "white" }}
+            />
+            <Text style={{
+              fontSize: 9, fontFamily: "Outfit-Medium", color: "white",
+            }}>{duration} min | {pillar}</Text>
+          </View>
         </View>
       </View>
       <View style={styles.content}>
@@ -123,16 +120,11 @@ const getStyles = (theme) => StyleSheet.create({
   },
   overlayIcon: {
     flexDirection: "row",
-    gap: 5,
     position: 'absolute',
     justifyContent: "center",
     alignItems: "center",
     bottom: 6,
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-    left: 6,
-    borderWidth: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    left: 8,
     borderRadius: 20,
     // padding: 4,
   },
@@ -156,14 +148,14 @@ const getStyles = (theme) => StyleSheet.create({
   title: {
     color: theme.textColor,
     fontSize: 11,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     paddingHorizontal: 8,
     paddingTop: 8,
   },
   descr: {
     color: theme.subTextColor,
     fontSize: 10,
-    fontFamily: 'Inter-Light-BETA',
+    fontFamily: 'Outfit-Light-BETA',
     paddingHorizontal: 8,
     paddingBottom: 6,
   },

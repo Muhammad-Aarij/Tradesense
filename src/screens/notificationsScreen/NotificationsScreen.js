@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -11,23 +11,22 @@ import {
 import moment from 'moment';
 import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query'; // Removed useMutation
 
 import { ThemeContext } from '../../context/ThemeProvider';
 import Header from '../../components/Header';
 import { getUserNotifications } from '../../functions/notifications';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { stopLoading, startLoading } from '../../redux/slice/loaderSlice';
 
-
-// Dummy ID (replace this with real user ID from auth)
 
 const NotificationsScreen = () => {
     const navigation = useNavigation();
     const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
-
+    const dispatch = useDispatch();
     const USER_ID = useSelector(state => state.auth.userObject?._id);
-
+    const queryClient = useQueryClient();
     const {
         data: notifications,
         isLoading,
@@ -38,33 +37,94 @@ const NotificationsScreen = () => {
         queryFn: () => getUserNotifications(USER_ID),
     });
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity
-            style={[styles.card]}
-            activeOpacity={0.8}
-        >
-            <LinearGradient
-                start={{ x: 0.0, y: 0.95 }}
-                end={{ x: 1.0, y: 1.0 }}
-                colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
-                style={{ padding: 16 }}
+    useEffect(() => {
+        dispatch(startLoading());
+        const timeout = setTimeout(() => {
+            if (!isLoading) dispatch(stopLoading());
+        }, 2000);
+        return () => clearTimeout(timeout);
+    }, [isLoading, dispatch]);
+
+
+    // Mark as read mutation is commented out as you don't have the function yet.
+    // When you implement markNotificationAsRead, uncomment this block.
+    /*
+    const markAsReadMutation = useMutation({
+        mutationFn: markNotificationAsRead,
+        onSuccess: () => {
+            queryClient.invalidateQueries(['notifications', USER_ID]);
+        },
+    });
+    */
+
+    const [expandedIds, setExpandedIds] = useState([]);
+    const [readIds, setReadIds] = useState([]);
+
+    const renderItem = ({ item }) => {
+        const showFullMessage = expandedIds.includes(item._id);
+        const isRead = readIds.includes(item._id) || item.isRead;
+
+        const toggleMessageVisibility = () => {
+            setExpandedIds(prev =>
+                prev.includes(item._id)
+                    ? prev.filter(id => id !== item._id)
+                    : [...prev, item._id]
+            );
+            if (!isRead) {
+                setReadIds(prev => [...prev, item._id]);
+                // Optionally: mark as read in backend here
+            }
+        };
+
+        const truncatedMessage =
+            item.message.length > 100 && !showFullMessage
+                ? `${item.message.substring(0, 100)}...`
+                : item.message;
+
+        return (
+            <TouchableOpacity
+                style={[styles.card]}
+                activeOpacity={0.8}
+                onPress={toggleMessageVisibility}
             >
-                <View style={styles.cardHeader}>
-                    <Text style={styles.title}>{item.title}</Text>
-                    <Text style={styles.time}>{moment(item.sendAt).fromNow()}</Text>
-                </View>
-                <Text style={styles.message}>{item.message}</Text>
-            </LinearGradient>
-        </TouchableOpacity>
-    );
+                <LinearGradient
+                    start={{ x: 0.0, y: 0.95 }}
+                    end={{ x: 1.0, y: 1.0 }}
+                    colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+                    style={{ padding: 16 }}
+                >
+                    <View style={styles.cardHeader}>
+                        <View style={styles.titleContainer}>
+                            {!isRead && <View style={styles.unreadDot} />}
+                            <Text style={styles.title}>{item.title}</Text>
+                        </View>
+                        <Text style={styles.time}>{moment(item.sendAt).fromNow()}</Text>
+                    </View>
+                    <Text
+                        style={styles.message}
+                        numberOfLines={!isRead && !showFullMessage ? 1 : undefined}
+                        ellipsizeMode="tail"
+                    >
+                        {item.message}
+                    </Text>
+{/* 
+                    {item.message.length > 100 && !isRead && (
+                        <Text onPress={toggleMessageVisibility} style={styles.readMoreText}>
+                            {showFullMessage ? 'Show Less' : 'Read More'}
+                        </Text>
+                    )} */}
+
+
+                </LinearGradient>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <ImageBackground source={theme.bg} style={styles.container}>
             <Header title="Notifications" style={{ marginTop: 20 }} />
 
-            {isLoading ? (
-                <ActivityIndicator size="large" color="#999" style={{ marginTop: 40 }} />
-            ) : isError ? (
+            {isError ? (
                 <Text style={styles.emptyText}>Failed to load notifications</Text>
             ) : (
                 <FlatList
@@ -93,8 +153,6 @@ const getStyles = (theme) =>
         },
         menuItemContentLinearGradient: {
             flex: 1,
-
-            // alignItems: 'center',
         },
         header: {
             flexDirection: 'row',
@@ -114,10 +172,10 @@ const getStyles = (theme) =>
             resizeMode: 'contain',
         },
         list: {
-            // paddingHorizontal: 16,
             paddingBottom: 20,
         },
         card: {
+            padding: 5,
             borderRadius: 12,
             marginBottom: 12,
             backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -125,32 +183,44 @@ const getStyles = (theme) =>
             borderColor: theme.borderColor,
             borderRadius: 9,
         },
-
         cardHeader: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             marginBottom: 8,
         },
-        icon: {
-            width: 20,
-            height: 20,
+        titleContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            maxWidth: "85%",
+            // borderWidth:2,
+        },
+        unreadDot: {
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: 'green',
             marginRight: 8,
-            tintColor: '#3B82F6',
         },
         title: {
-            fontSize: 13,
-            fontFamily: "Inter-Medium",
+            textTransform:"capitalize",
+            // maxWidth: "85%",
+            fontSize: 12,
+            fontFamily: "Outfit-Medium",
             color: theme.textColor,
         },
         message: {
-            fontSize: 12,
-            fontFamily: "Inter-Regular",
+            fontSize: 11,
+            fontFamily: "Outfit-Regular",
             color: theme.subTextColor,
-            // marginBottom: 4,
+        },
+        readMoreText: {
+            fontSize:10,
+            color: theme.primaryColor,
+            fontWeight: 'bold',
         },
         time: {
-            fontSize: 12,
+            fontSize: 9,
             color: theme.subTextColor,
             textAlign: 'right',
         },
@@ -161,4 +231,4 @@ const getStyles = (theme) =>
             color: '#9CA3AF',
         },
     });
-    export default NotificationsScreen;
+export default NotificationsScreen;

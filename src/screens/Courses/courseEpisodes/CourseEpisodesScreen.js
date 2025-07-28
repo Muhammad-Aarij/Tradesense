@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
     View,
     Text,
@@ -20,12 +20,15 @@ import { addToFavorites, deleteFavorite, useCourseDetail } from '../../../functi
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { API_URL } from "@env";
+import { ThemeContext } from '../../../context/ThemeProvider';
 
 const { width, height } = Dimensions.get('window');
 
 const CourseEpisodesScreen = ({ route }) => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
+    const { theme } = useContext(ThemeContext);
+    const styles = getStyles(theme);
     const { courseId, courseTitle, courseImage, instructorImage } = route.params || {};
     const { data: course, isLoading } = useCourseDetail(courseId);
     const [currentEpisode, setCurrentEpisode] = useState(null);
@@ -33,7 +36,7 @@ const CourseEpisodesScreen = ({ route }) => {
     const userId = useSelector(state => state.auth);
     const [durations, setDurations] = useState({});
     const modules = course?.courseModules || [];
-    console.log("Specific COurse Data", instructorImage)
+    console.log("Specific COurse Data", course)
     useEffect(() => {
         let isMounted = true;
         dispatch(startLoading());
@@ -192,7 +195,7 @@ const CourseEpisodesScreen = ({ route }) => {
 
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
+        <ImageBackground source={theme.bg} style={styles.container}>
             <SafeAreaView>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     <Header title={course?.title || courseTitle} style={{ marginBottom: 30, }} />
@@ -249,7 +252,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                         email: course?.instructorInfo,
                                         description: course?.instructorDescription,
                                         experienceLevel: course?.instructorExperienceLevel,
-                                        image: course?.instructorImage,
+                                        image: instructorImage,
                                         links: course?.instructorLinks
                                     },
                                     showInstructor: true,
@@ -268,7 +271,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                     </Text>
 
                                 </View>
-                                <TouchableOpacity
+                                {/* <TouchableOpacity
                                     style={styles.heartButton}
                                     onPress={async () => {
                                         const isFavorited = favoriteIds.includes(episode._id);
@@ -286,7 +289,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                         source={favoriteIds.includes(episode._id) ? heart : heartOutline}
                                         style={{ width: 20, height: 20 }}
                                     />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -331,16 +334,13 @@ const CourseEpisodesScreen = ({ route }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1,
-        // padding: 25,
-        // paddingTop: 20,
-        // paddingVertical: 0,
+        backgroundColor: theme.backgroundColor,
     },
     scrollContent: {
         paddingHorizontal: 25,
-        // paddingBottom: 20,
         paddingBottom: height * 0.15,
     },
     mainImageContainer: {
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     mainCourseImage: {
         width: '100%',
         height: '100%',
-        resizeMode: 'contain',
+        resizeMode: 'cover',
         position: "relative",
     },
     imgOverlay: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
         position: "absolute",
-        backgroundColor: 'rgba(31, 30, 30, 0.7)',
+        backgroundColor: theme.overlayColor || 'rgba(31, 30, 30, 0.7)',
     },
     imageOverlay: {
         position: 'absolute',
@@ -380,13 +380,13 @@ const styles = StyleSheet.create({
     timeBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(119, 119, 119, 0.66)',
+        backgroundColor: theme.badgeColor || 'rgba(119, 119, 119, 0.66)',
         borderRadius: 10,
         paddingHorizontal: 8,
         paddingVertical: 4,
     },
     timeBadgeText: {
-        color: '#FFFFFF',
+        color: theme.textColor,
         fontSize: 12,
         marginLeft: 5,
     },
@@ -406,22 +406,22 @@ const styles = StyleSheet.create({
     instructorName: {
         color: theme.primaryColor,
         fontSize: 13,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-Bold',
     },
     instructorSubtitle: {
-        color: "white",
+        color: theme.subTextColor || 'white',
         fontSize: 11,
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
     },
     courseDetails: {
         paddingHorizontal: 16,
         marginBottom: 20,
     },
     courseDescription: {
-        color: '#FFFFFF',
-        fontSize: 13,
+        color: theme.textColor,
+        fontSize: 12,
         lineHeight: 20,
-        fontFamily: "Inter-Light-BETA",
+        fontFamily: "Outfit-Light",
     },
     episodesList: {
         paddingHorizontal: 9,
@@ -438,27 +438,27 @@ const styles = StyleSheet.create({
         marginRight: 24,
     },
     episodeNumber: {
-        color: '#FFF',
-        fontSize: 19.4,
-        fontFamily: "Inter-SemiBold"
+        color: theme.textColor,
+        fontSize: 19,
+        fontFamily: "Outfit-SemiBold"
     },
     episodeInfo: {
         flex: 1,
     },
     episodeTitle: {
-        color: '#FFFFFF',
-        fontSize: 14,
-        fontFamily: "Inter-Regular"
+        color: theme.textColor,
+        fontSize: 12,
+        fontFamily: "Outfit-Regular"
     },
     episodeDuration: {
-        color: '#FFFFFF',
+        color: theme.subTextColor,
         fontSize: 12,
-        fontFamily: "Inter-Regular"
+        fontFamily: "Outfit-Regular"
     },
     miniPlayer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        backgroundColor: theme.cardBackground || 'rgba(255, 255, 255, 0.04)',
         paddingVertical: 15,
         paddingHorizontal: 25,
         position: 'absolute',
@@ -476,14 +476,14 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     miniPlayerTitle: {
-        color: '#FFFFFF',
+        color: theme.textColor,
         fontSize: 13,
-        fontFamily: "Inter-Medium"
+        fontFamily: "Outfit-Medium"
     },
     miniPlayerCourse: {
-        color: '#AAAAAA',
+        color: theme.subTextColor,
         fontSize: 11,
-        fontFamily: "Inter-Light-BETA"
+        fontFamily: "Outfit-Light-BETA"
     },
     miniPlayerPlayPauseButton: {
         padding: 5,

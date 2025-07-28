@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions,
-    Image, ImageBackground, Alert
+    Image, ImageBackground, Alert,
+    SafeAreaView
 } from 'react-native';
 import { bg, lock, tick, } from '../../../assets/images';
 import theme from '../../../themes/theme';
@@ -161,58 +162,60 @@ const EmailVerification = ({ navigation, route }) => {
 
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <SnackbarMessage
-                visible={snackbarVisible}
-                message={snackbarMessage}
-                type={snackbarType}
-            />
+        <SafeAreaView style={{ flex: 1 }}>
+            <ImageBackground source={bg} style={styles.container}>
 
-            <Image source={lock} style={styles.image} />
+                <SnackbarMessage
+                    visible={snackbarVisible}
+                    message={snackbarMessage}
+                    type={snackbarType}
+                />
 
-            <View style={styles.bottomcontainer}>
-                <Text style={styles.title}>Email Verification</Text>
-                <Text style={styles.subtitle}>
-                    Enter the verification code we just sent to your email address.
-                </Text>
-                <Text style={styles.email}>{email}</Text>
+                <Image source={lock} style={styles.image} />
 
-                <View style={styles.codeContainer}>
-                    {code.map((digit, index) => (
-                        <TextInput
-                            key={index}
-                            keyboardType="numeric"
-                            ref={ref => inputs.current[index] = ref}
-                            value={digit}
-                            onChangeText={text => handleChange(text, index)}
-                            onKeyPress={e => handleKeyPress(e, index)}
-                            maxLength={1}
-                            style={[
-                                styles.codeInput,
-                                digit !== '' ? styles.filledInput : {}, // Apply filledInput style when value exists
-                                inputs.current[index]?.isFocused?.() && { borderColor: theme.primaryColor }
-                            ]}
-                            autoFocus={index === 0}
-                            selectionColor={theme.primaryColor}
-                        />
-                    ))}
+                <View style={styles.bottomcontainer}>
+                    <Text style={styles.title}>Email Verification</Text>
+                    <Text style={styles.subtitle}>
+                        Enter the verification code we just sent to your email address.
+                    </Text>
+                    <Text style={styles.email}>{email}</Text>
+
+                    <View style={styles.codeContainer}>
+                        {code.map((digit, index) => (
+                            <TextInput
+                                key={index}
+                                keyboardType="numeric"
+                                ref={ref => inputs.current[index] = ref}
+                                value={digit}
+                                onChangeText={text => handleChange(text, index)}
+                                onKeyPress={e => handleKeyPress(e, index)}
+                                maxLength={1}
+                                style={[
+                                    styles.codeInput,
+                                    digit !== '' ? styles.filledInput : {}, // Apply filledInput style when value exists
+                                    inputs.current[index]?.isFocused?.() && { borderColor: theme.primaryColor }
+                                ]}
+                                autoFocus={index === 0}
+                                selectionColor={theme.primaryColor}
+                            />
+                        ))}
+                    </View>
+
+                    <TouchableOpacity style={styles.button} onPress={handleVerify}>
+                        <Text style={styles.buttonText}>Verify</Text>
+                    </TouchableOpacity>
+
                 </View>
 
-                <TouchableOpacity style={styles.button} onPress={handleVerify}>
-                    <Text style={styles.buttonText}>Verify</Text>
-                </TouchableOpacity>
-
-            </View>
-
-            <ConfirmationModal
-                isVisible={modalVisible}
-                icon={tick}
-                onClose={() => setModalVisible(false)}
-                title="Account Created!"
-                message="Your account has been successfully created"
-            />
-
-        </ImageBackground>
+                <ConfirmationModal
+                    isVisible={modalVisible}
+                    icon={tick}
+                    onClose={() => setModalVisible(false)}
+                    title="Account Created!"
+                    message="Your account has been successfully created"
+                />
+            </ImageBackground>
+        </SafeAreaView >
     );
 };
 const styles = StyleSheet.create({
@@ -241,21 +244,21 @@ const styles = StyleSheet.create({
     title: {
         fontSize: width * 0.07,
         color: '#EFEFEF',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         marginTop: height * 0.03,
         marginBottom: height * 0.015,
     },
     subtitle: {
         color: '#FFFFFF',
         fontSize: width * 0.035,
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
         textAlign: 'center',
         marginBottom: height * 0.015,
     },
     email: {
         color: theme.primaryColor,
         fontSize: width * 0.038,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         textAlign: 'center',
         marginBottom: height * 0.04,
     },
@@ -275,7 +278,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: width * 0.055,
         color: '#fff',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
     filledInput: {
         borderColor: theme.primaryColor,
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: width * 0.042,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
 });
 

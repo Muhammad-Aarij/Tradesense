@@ -116,13 +116,13 @@ const getStyles = (theme) =>
         balanceAmount: {
             color: theme.textColor,
             fontSize: 30,
-            fontFamily: 'Inter-Bold',
+            fontFamily: 'Outfit-Bold',
             marginBottom: 10,
         },
         balanceLabel: {
             color: theme.subTextColor,
             fontSize: 13,
-            fontFamily: 'Inter-Light-BETA',
+            fontFamily: 'Outfit-Light-BETA',
         },
         withdrawButton: {
             backgroundColor: theme.primaryColor,
@@ -135,7 +135,7 @@ const getStyles = (theme) =>
         withdrawButtonText: {
             color: '#fff',
             fontSize: 15,
-            fontFamily: 'Inter-Medium',
+            fontFamily: 'Outfit-Medium',
         },
         historyContainer: {
             marginBottom: 40,
@@ -144,7 +144,7 @@ const getStyles = (theme) =>
         historyTitle: {
             color: theme.textColor,
             fontSize: 14,
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
             marginBottom: 15,
         },
         historyItem: {
@@ -170,12 +170,12 @@ const getStyles = (theme) =>
             textTransform: "capitalize",
             color: theme.textColor,
             fontSize: 13,
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
         },
         historyItemType2: {
             color: theme.subTextColor,
             fontSize: 10,
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
         },
         historyItemRight: {
             flexDirection: 'row',
@@ -184,7 +184,7 @@ const getStyles = (theme) =>
         historyItemAmount: {
             color: theme.textColor,
             fontSize: 13,
-            fontFamily: 'Inter-Medium',
+            fontFamily: 'Outfit-Medium',
             marginRight: 10,
         },
         historyItemArrow: {

@@ -48,7 +48,7 @@ const getStyles = (theme) => StyleSheet.create({
     value: {
         textAlign: 'center',
         fontSize: scale(20),
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         color: theme.primaryColor,
     },
     biggerValue: {
@@ -56,7 +56,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     label: {
         marginTop: verticalScale(4),
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
         fontSize: scale(9),
         color: theme.textColor, // was "white"
     },

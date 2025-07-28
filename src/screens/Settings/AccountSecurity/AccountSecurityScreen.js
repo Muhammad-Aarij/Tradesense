@@ -275,7 +275,7 @@ const getStyles = (theme) =>
         securityTextContent: { flex: 1, marginRight: 10 },
         securityItemText: {
             fontSize: scale(12),
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
             color: theme.textColor,
         },
         securityItemDescription: {
@@ -344,7 +344,7 @@ const getStyles = (theme) =>
         profileButtonText: {
             fontSize: scale(13),
             color: 'white',
-            fontFamily: 'Inter-Medium',
+            fontFamily: 'Outfit-Medium',
         },
     });
 

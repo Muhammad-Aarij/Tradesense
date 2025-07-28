@@ -143,6 +143,12 @@ const MiniPlayer = () => {
 
   const openFullPlayer = () => {
     try {
+      // If the current track or navigation params contain InstructorData, block navigation or handle gracefully
+      if (activeTrack && activeTrack.InstructorData) {
+        // Option 1: Show a message (replace with your preferred UI feedback)
+        // alert('Cannot open instructor details while audio is playing.');
+        return;
+      }
       // console.log('=== MiniPlayer Navigation Debug ===');
       // console.log('Opening full player with:');
       // console.log('AudioTitle:', activeTrack.title);
@@ -278,19 +284,19 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     marginBottom: 2,
   },
   artist: {
     color: '#CCCCCC',
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontSize: 10,
+    fontFamily: 'Outfit-Regular',
   },
   playButton: {
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
     borderRadius: 20,
     backgroundColor: theme.primaryColor,
     justifyContent: 'center',

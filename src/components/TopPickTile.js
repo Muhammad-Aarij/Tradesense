@@ -5,7 +5,7 @@ import theme from '../themes/theme';
 import { useNavigation } from '@react-navigation/native';
 import OptimizedImage from './OptimizedImage';
 
-const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type, duration }) => {
+const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type, duration, pillar }) => {
     const navigation = useNavigation();
     const handlePress = () => {
         if (type === 'audio') {
@@ -35,44 +35,39 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                     showLoadingIndicator={true}
                     loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
                 />
-                {/* Bottom inset shadow */}
+                {/* Shadow Overlay - This should be *below* the content you want visible */}
                 <View style={styles.shadowOverlay} />
 
-                {/* Bottom-aligned content */}
+                {/* Bottom-aligned content - This entire View needs to be above the overlay */}
                 <View style={{
                     marginBottom: 10,
-                    flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: "100%", paddingHorizontal: 10, backgroundColor: 'rgba(0, 0, 0, 0.4)', paddingTop: 10,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                    paddingHorizontal: 10,
+                    paddingBottom: 5,
+                    zIndex: 2, // Ensure this content is above the overlay (zIndex: 1)
                 }}>
                     <View style={styles.bottomContent}>
-                        <Text style={{
-                            paddingHorizontal: 10, paddingVertical: 2, fontSize: 9, fontFamily: "Inter-Medium", color: "white", backgroundColor: 'rgba(0, 0, 0, 0.44)', borderRadius: 10, marginBottom: 5
-                        }}>{duration} min</Text>
+                        <View style={{ flexDirection: "row", backgroundColor: 'rgba(199, 199, 199, 0.38)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginBottom: 5, alignItems: "center", }}>
+                            <Image
+                                source={type === 'audio' ? audioNew : videoNew}
+                                style={{ width: 10, height: 10, resizeMode: "contain", marginRight: 5, tintColor: "white" }}
+                            />
+                            <Text style={{
+                                fontSize: 9, fontFamily: "Outfit-Medium", color: "white",
+                            }}>{duration} min | {pillar}</Text>
+                        </View>
                         <Text style={styles.title} numberOfLines={1}>{title}</Text>
                         <Text style={styles.description} numberOfLines={2}>{description}</Text>
                     </View>
-                    {/* {locked && ( */}
-                    <View style={styles.lockWrapper}>
-                        <Image source={lockicon} style={styles.lockIcon} />
-                    </View>
-                    {/* )} */}
+                    {locked && ( // Only render lockWrapper if locked is true
+                        <View style={styles.lockWrapper}>
+                            <Image source={lockicon} style={styles.lockIcon} />
+                        </View>
+                    )}
                 </View>
-
-                {/* Audio Icon Overlay */}
-                <View style={styles.overlayIcon}>
-                    <Image
-                        source={type === 'audio' ? audioNew : videoNew}
-                        style={{ width: 15, height: 15, resizeMode: "contain" }}
-                    />
-                    <Text style={{
-                        fontSize: 9,
-                        fontFamily: "Inter-Medium",
-                        color: 'rgba(255, 255, 255, 0.64)',
-                        borderRadius: 10,
-                    }}>
-                        {type === 'audio' ? 'Audio' : 'Video'}
-                    </Text>
-                </View>
-                {/* Lock Icon (only if locked) */}
             </View>
         </TouchableOpacity >
     );
@@ -85,11 +80,12 @@ const styles = StyleSheet.create({
         // marginRight: 8,
         borderRadius: 10,
         overflow: 'hidden',
-        backgroundColor: '#1B1B1B',
         borderWidth: 0.6,
+        borderColor: 'rgba(255,255,255,0.2)' // Add a default border color to see it
     },
     imageBackground: {
         flex: 1,
+        backgroundColor: '#1B1B1B',
         justifyContent: 'flex-end',
         position: 'relative',
     },
@@ -97,71 +93,45 @@ const styles = StyleSheet.create({
         resizeMode: 'cover',
     },
     shadowOverlay: {
-        position: 'absolute',
-        bottom: 0,
-        height: "100%",
-        width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.55)',
+        // zIndex: 1, // Removed this zIndex, or set to 1 if content is zIndex 2
+        borderRadius: 10,
     },
     bottomContent: {
-        // borderWidth: 2,
         width: "75%",
-        // paddingVertical: 10,
         flexDirection: "column",
         justifyContent: "flex-start",
         alignItems: "flex-start",
-        // position: 'absolute',
-        // bottom: 8,
-        // left: 8,
-        // right: 8,
-        borderRadius: 10,
+        // Positioned by parent View's flex properties
+        // zIndex: 100, // No longer needed here if parent has zIndex
     },
     title: {
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
         fontSize: 10,
         fontWeight: '600',
         color: '#fff',
         marginBottom: 5,
+        // zIndex: 100, // Redundant if parent is correctly zIndexed
     },
     description: {
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         fontSize: 9,
         color: '#fff',
-        // marginTop: 2,
     },
-    overlayIcon: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 5,
-        position: 'absolute',
-        justifyContent: "center",
-        top: 6,
-        paddingVertical: 3,
-        paddingHorizontal: 7,
-        right: 6,
-        borderWidth: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        borderRadius: 20,
-        // padding: 4,
-    },
-    audioIcon: {
-        width: 14,
-        height: 14,
-        tintColor: '#000',
-    },
+    // Removed unused overlayIcon styles and commented out block
     lockWrapper: {
         borderWidth: 0.7,
         borderRadius: 2,
         padding: 5,
-        borderColor: theme.borderColor,
+        borderColor: theme.borderColor || 'rgba(255,255,255,0.5)', // Added a fallback for theme.borderColor
+        backgroundColor: 'rgba(0,0,0,0.5)', // Added background to lock wrapper for better visibility
     },
     lockIcon: {
         width: 15,
         height: 15,
         resizeMode: 'contain',
     },
-
-
 });
 
 export default memo(TopPickTile);

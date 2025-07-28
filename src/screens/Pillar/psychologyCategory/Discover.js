@@ -14,6 +14,8 @@ import BundleTileSection from '../../../components/BundleTileSection';
 import AudioMediaTile from '../../../components/AudioMediaTile';
 import AnimatedInfoBox from '../../../components/AnimatedInfoBox';
 import { API_URL } from "@env";
+import { BackHandler, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
 
@@ -27,6 +29,7 @@ const DiscoverScreen = () => {
     const userId = userObject?._id;
     console.log(userId);
     const dispatch = useDispatch();
+    const isLoading = useSelector(state => state.loader.isLoading); // <-- Add this
 
     const { data: topPicks, isLoading: loadingTop } = useTopPicks(userId);
     const { data: recommendations, isLoading: loadingRec } = useRecommendations(userId);
@@ -65,6 +68,27 @@ const DiscoverScreen = () => {
             dispatch(stopLoading());
         }
     }, [loadingTop, loadingRec, loadingBundles, loadingThought, loadingMusic, dispatch]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                if (isLoading) {
+                    dispatch(stopLoading());
+                    return true; // prevent default back action
+                } else {
+                    BackHandler.exitApp(); // exit app
+                    return true;
+                }
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => {
+                BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+            };
+        }, [isLoading])
+    );
+
 
     // Memoize styles and image to prevent unnecessary re-renders
     const styles = useMemo(() => getStyles(theme), [theme]);
@@ -136,6 +160,8 @@ const DiscoverScreen = () => {
                                     url={item.url}
                                     lock={item.isPremium}
                                     duration={item.duration}
+                                    pillar={item.pillar}
+
                                     description={item.description}
                                     isCenter={index === selectedCard}
                                     onPress={() => handleCardPress(index)}
@@ -173,6 +199,7 @@ const DiscoverScreen = () => {
                                 imageSource={item.thumbnail}
                                 type={item.type}
                                 title={item.title}
+                                pillar={item.pillar}
                                 description={item.description}
                                 locked={item.isPremium}
                                 duration={item.duration}
@@ -281,7 +308,7 @@ const DiscoverScreen = () => {
                     isVisible={showRecommendationsInfo}
                     onClose={handleCloseRecommendationsInfo}
                     title="Top Recommendations"
-                    message="These are personalized recommendations based on your trading goals, experience level, and learning preferences. We analyze your behavior and interests to suggest the most relevant content that will help you grow as a trader."
+                    message="These are personalized recommendations based on your trading goals, experience level, and learning preferences. We analyze your behavior and Outfitests to suggest the most relevant content that will help you grow as a trader."
                     position="center"
                 />
 
@@ -313,7 +340,7 @@ const getStyles = (theme) => StyleSheet.create({
     sectionTitle: {
         color: theme.textColor,
         fontSize: 13,
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
         marginBottom: 12,
         paddingHorizontal: 25,
     },
@@ -334,7 +361,7 @@ const getStyles = (theme) => StyleSheet.create({
     titleB: {
         color: theme.textColor + 'B3', // 70% opacity
         fontSize: 30,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
 });
 

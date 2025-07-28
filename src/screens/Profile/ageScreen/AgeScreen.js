@@ -7,6 +7,7 @@ import {
     Image,
     ImageBackground,
     ScrollView,
+    SafeAreaView,
 } from 'react-native';
 import theme from '../../../themes/theme';
 import { bg, age1, age2, age3, age4, age5, age6 } from '../../../assets/images';
@@ -61,68 +62,61 @@ const AgeScreen = ({ navigation, route }) => {
     };
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <ScrollView
-                style={{ flex: 1, width: '100%' }}
-                contentContainerStyle={{
-                    flexGrow: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-                showsVerticalScrollIndicator={false}
-            >
-                <Text style={styles.title}>Age</Text>
-                <Text style={styles.subtitle}>
-                    {ageQuestion?.subTitle || 'What is your age?'}
-                </Text>
-
-                <View style={styles.optionsContainer}>
-                    {(ageQuestion?.questions || []).map((ageOption) => {
-                        const isSelected = selectedAge?._id === ageOption._id;
-                        return (
-                            <TouchableOpacity
-                                key={ageOption._id}
-                                style={[
-                                    styles.option,
-                                    isSelected && styles.selectedOption,
-                                ]}
-                                onPress={() => handleAgeSelection(ageOption)}
-                            >
-                                {ageImageMap[ageOption.text] && (
-                                    <Image
-                                        source={ageImageMap[ageOption.text]}
-                                        style={{
-                                            width: 45,
-                                            height: 45,
-                                            resizeMode: 'contain',
-                                        }}
-                                    />
-                                )}
-                                <Text
-                                    style={[
-                                        styles.optionText,
-                                        isSelected && { color: '#70C2E8' },
-                                    ]}
-                                >
-                                    {ageOption.text}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-
-                <TouchableOpacity
-                    style={[
-                        styles.button,
-                        !selectedAge && styles.disabledButton,
-                    ]}
-                    disabled={!selectedAge}
-                    onPress={handleNext}
+        <SafeAreaView style={{ flex: 1 }}>
+            <ImageBackground source={bg} style={styles.container}>
+                <ScrollView
+                    style={{ flex: 1, width: '100%' }}
+                    contentContainerStyle={{
+                        flexGrow: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <Text style={styles.buttonText}>Next</Text>
-                </TouchableOpacity>
-            </ScrollView>
-        </ImageBackground>
+                    <Text style={styles.title}>Age</Text>
+                    <Text style={styles.subtitle}>
+                        {ageQuestion?.subTitle || 'What is your age?'}
+                    </Text>
+
+                    <View style={styles.optionsContainer}>
+                        {(ageQuestion?.questions || []).map((ageOption) => {
+                            const isSelected = selectedAge?._id === ageOption._id;
+                            return (
+                                <TouchableOpacity
+                                    key={ageOption._id}
+                                    style={[
+                                        styles.option,
+                                        isSelected && styles.selectedOption,
+                                    ]}
+                                    onPress={() => handleAgeSelection(ageOption)}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.optionText,
+                                            isSelected && { color: '#70C2E8' },
+                                        ]}
+                                    >
+                                        {ageOption.text}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
+                    <TouchableOpacity
+                        style={[
+                            styles.button,
+                            !selectedAge && styles.disabledButton,
+                        ]}
+                        disabled={!selectedAge}
+                        onPress={handleNext}
+                    >
+                        <Text style={styles.buttonText}>Next</Text>
+                    </TouchableOpacity>
+                </ScrollView>
+            </ImageBackground>
+        </SafeAreaView >
+
     );
 };
 
@@ -198,4 +192,3 @@ const styles = StyleSheet.create({
 });
 
 export default AgeScreen;
- 

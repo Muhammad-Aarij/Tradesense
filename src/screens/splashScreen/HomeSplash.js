@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
         marginBottom: height * 0.05, // Space below logo
     },
     welcomeTitle: {
-        fontSize: width * 0.07, // Larger font size for main title
-        fontWeight: 'bold', // Bold as in the image
+        fontFamily: 'Outfit-SemiBold',
+        fontSize: width * 0.06, // Larger font size for main title
         color: '#FFFFFF',
         textAlign: 'center', // Aligned left
         width: '100%', // Take full width
@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
 
     },
     welcomeSubtitle: {
+        fontFamily: 'Outfit-Light',
         fontSize: width * 0.035, // Smaller font size for subtitle
         color: '#B0B0B0', // Lighter grey for subtitle
         textAlign: 'center', // Aligned left
@@ -136,19 +137,22 @@ const styles = StyleSheet.create({
         flex: 1, // Take remaining space
     },
     featureTitle: {
+        fontFamily: 'Outfit-Medium',
+        
         fontSize: width * 0.035, // Feature title size
-        fontWeight: 'bold',
         color: '#FFFFFF',
         marginBottom: height * 0.005,
     },
     featureDescription: {
+        fontFamily: 'Outfit-Light',
+
         fontSize: width * 0.031, // Feature description size
         color: '#B0B0B0',
         lineHeight: width * 0.045,
     },
     callToAction: {
         fontSize: width * 0.033, // Size for "Turn Insight Into Action"
-        fontWeight: 'bold',
+        fontFamily: 'Outfit-Medium',
         color: '#FFFFFF',
         textAlign: 'center',
         width: '100%',
@@ -165,9 +169,9 @@ const styles = StyleSheet.create({
         alignSelf: 'center', // Center the button horizontally
     },
     buttonText: {
+        fontFamily: 'Outfit-Medium',
         color: '#0A0A0A', // Dark text for white button
         fontSize: width * 0.03,
-        fontWeight: 'bold', // Bold text
     },
     Icon: {
         width: 60,

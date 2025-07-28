@@ -83,6 +83,8 @@ const getStyles = (theme) =>
             marginTop: 20,
         },
         title: {
+            fontFamily: "Outfit-Bold",
+
             height: 1,
             marginBottom: 20,
             width: 100,
@@ -108,11 +110,14 @@ const getStyles = (theme) =>
             //   borderBottomColor: theme.borderColor,
         },
         label: {
+            fontFamily: "Outfit-Regular",
             fontSize: 13,
             color: "white" || '#AAA',
         },
         value: {
             fontSize: 13,
+            fontFamily: "Outfit-Regular",
+
             color: "white",
         },
     });

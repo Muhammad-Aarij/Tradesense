@@ -84,7 +84,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     goalTitle: {
         fontSize: 14,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         color: theme.textColor,
         flex: 1,
     },
@@ -122,7 +122,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     goalProgressText: {
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         color: theme.textColor,
         marginRight: 10,
     },
@@ -159,7 +159,7 @@ const getStyles = (theme) => StyleSheet.create({
     dropdownItem: {
         color: theme.subTextColor,
         fontSize: 12,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         paddingVertical: 6,
     },
     iconContainer: {

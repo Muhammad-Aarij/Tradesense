@@ -188,21 +188,21 @@ const styles = StyleSheet.create({
         minWidth: 250,
     },
     content: {
-        padding: 20,
+        padding: 30,
         paddingBottom: 16,
     },
     title: {
-        fontSize: 18,
-        fontFamily: 'Inter-SemiBold',
+        fontSize: 14,
+        fontFamily: 'Outfit-SemiBold',
         marginBottom: 12,
         lineHeight: 24,
-        textAlign: 'center',
+        // textAlign: 'center',
     },
     message: {
-        fontSize: 14,
-        fontFamily: 'Inter-Regular',
-        lineHeight: 22,
-        textAlign: 'center',
+        fontSize: 11,
+        fontFamily: 'Outfit-Regular',
+        lineHeight: 20,
+        // textAlign: 'center',
         marginBottom: 16,
     },
     closeButton: {
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     },
     closeText: {
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         lineHeight: 20,
         textAlign: 'center',
     },

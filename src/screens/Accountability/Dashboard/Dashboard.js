@@ -16,6 +16,7 @@ import Journaling from './Journaling/Journaling';
 import { useSelector } from 'react-redux';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { useFocusEffect } from '@react-navigation/native';
+import OptimizedImage from '../../../components/OptimizedImage';
 
 const Dashboard = ({ navigation, route }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
@@ -51,9 +52,24 @@ const Dashboard = ({ navigation, route }) => {
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Image
-                source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
+              <OptimizedImage
+                uri={profilePic ? `http://13.61.22.84/${profilePic}` : null}
                 style={styles.avatar}
+                isAvatar={true}
+                username={name}
+                showInitials={true}
+                fallbackSource={userDefault}
+                borderRadius={22}
+                showLoadingIndicator={false}
+                initialsStyle={{
+                  backgroundColor: 'rgba(29, 172, 255, 0.15)',
+                  borderColor: 'rgba(29, 172, 255, 0.3)',
+                  text: {
+                    fontSize: 14,
+                    color: theme.primaryColor,
+                    fontFamily: 'Outfit-Bold',
+                  }
+                }}
               />
               <View>
                 <Text style={styles.username}>{name}</Text>
@@ -112,12 +128,12 @@ const getStyles = (theme) =>
     greeting: {
       color: theme.primaryColor,
       fontSize: 12,
-      fontFamily: 'Inter-Regular',
+      fontFamily: 'Outfit-Regular',
     },
     username: {
       color: theme.textColor,
       fontSize: 12,
-      fontFamily: 'Inter-Medium',
+      fontFamily: 'Outfit-Medium',
     },
     bellIcon: { width: 35, height: 35, resizeMode: "contain", alignSelf: 'center' },
 

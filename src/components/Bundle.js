@@ -29,7 +29,7 @@ const Bundle = ({ imageSource, title, description, locked, onPress, type, durati
           />
           <Text style={{
             fontSize: 9,
-            fontFamily: "Inter-Medium",
+            fontFamily: "Outfit-Medium",
             color: 'rgba(255, 255, 255, 0.64)',
             borderRadius: 10,
           }}>
@@ -95,7 +95,7 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 9,
     textTransform: "capitalize",
     color: 'rgba(255, 255, 255, 0.7)',
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
   },
   durationBadge: {
     position: 'absolute',
@@ -109,7 +109,7 @@ const getStyles = (theme) => StyleSheet.create({
   durationText: {
     fontSize: 9,
     color: '#fff',
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
   },
   lock: {
     position: 'absolute',

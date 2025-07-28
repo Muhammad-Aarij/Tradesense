@@ -228,8 +228,8 @@ const getStyles = (theme) => StyleSheet.create({
         opacity: 0.6,
     },
     inputLabel: {
-        fontFamily: "Inter-Medium",
-        fontSize: 13,
+        fontFamily: "Outfit-Medium",
+        fontSize: 12,
         color: theme.textColor,
         marginBottom: 5,
     },
@@ -252,7 +252,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     dropdownText: {
         color: theme.textColor,
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         fontSize: 13,
     },
     dropdownArrow: {
@@ -274,7 +274,7 @@ const getStyles = (theme) => StyleSheet.create({
         color: '#fff',
         fontSize: 14,
         // fontWeight: '600',
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
     },
     dropdownOptions: {
         position: "absolute",
@@ -295,7 +295,7 @@ const getStyles = (theme) => StyleSheet.create({
     optionText: {
         color: theme.textColor,
         fontSize: 14,
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
     },
 });
 

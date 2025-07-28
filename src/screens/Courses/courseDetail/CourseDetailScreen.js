@@ -217,12 +217,12 @@ const getStyles = (theme) => StyleSheet.create({
     },
     instructorName: {
         fontSize: 13,
-        fontFamily: 'Inter-SemiBold'
+        fontFamily: 'Outfit-SemiBold'
     },
     instructorSubtitle: {
         color: 'white',
         fontSize: 11,
-        fontFamily: 'Inter-Light-BETA'
+        fontFamily: 'Outfit-Light'
     },
     courseInfoSection: {
         marginTop: 10,
@@ -232,7 +232,7 @@ const getStyles = (theme) => StyleSheet.create({
         color: theme.textColor,
         fontSize: 13,
         lineHeight: 20,
-        fontFamily: 'Inter-Light-BETA'
+        fontFamily: 'Outfit-Light'
     },
     divider: {
         width: '100%',
@@ -259,19 +259,19 @@ const getStyles = (theme) => StyleSheet.create({
     },
     audioTitle: {
         color: theme.textColor,
-        fontSize: 14,
-        fontFamily: 'Inter-Medium'
+        fontSize: 13,
+        fontFamily: 'Outfit-Medium'
     },
     audioDuration: {
         color: theme.subTextColor,
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light',
         fontSize: 12,
         marginBottom: 10
     },
     audioDescription: {
         color: theme.subTextColor,
-        fontFamily: 'Inter-Light-BETA',
-        fontSize: 11,
+        fontFamily: 'Outfit-Light',
+        fontSize: 10,
         lineHeight: 13
     },
     buyNowButton: {
@@ -285,7 +285,7 @@ const getStyles = (theme) => StyleSheet.create({
         color: '#fff',
         fontSize: 17,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold'
+        fontFamily: 'Outfit-SemiBold'
     }
 });
 

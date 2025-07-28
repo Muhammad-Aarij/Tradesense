@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 16,
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
         color: "#EFEFEF",
         textAlign: "center",
         marginBottom: 5,
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
         color: "#EFEFEF",
         textAlign: 'center',
         marginBottom: 25,
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
     },
     button: {
         backgroundColor: theme.primaryColor,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 16,
-        fontFamily: "Inter-SemiBold",
+        fontFamily: "Outfit-SemiBold",
     },
 });
 

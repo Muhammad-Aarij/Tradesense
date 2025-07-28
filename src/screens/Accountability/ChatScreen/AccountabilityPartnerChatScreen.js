@@ -233,7 +233,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 
                                 {isBotTyping && (
                                     <View style={styles.typingIndicatorContainer}>
-                                        <View style={{...styles.partnerMessage,paddingHorizontal:10, paddingVertical:0,}}>
+                                        <View style={{ ...styles.partnerMessage, paddingHorizontal: 10, paddingVertical: 0, }}>
                                             <LottieView
                                                 ref={lottieTypingRef}
                                                 source={typing}
@@ -330,12 +330,12 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
         borderBottomColor: theme.borderColor
     },
     backButton: {
-        marginRight: 10,
+        // marginRight: 10,
         padding: 5,
     },
     backIcon: {
-        width: 20,
-        height: 20,
+        width: 10,
+        height: 10,
         resizeMode: 'contain',
         tintColor: theme.textColor,
     },
@@ -353,7 +353,7 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     },
     partnerName: {
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         color: theme.textColor,
         top: 3
     },
@@ -368,6 +368,8 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
         marginBottom: 13,
     },
     myMessage: {
+        fontFamily: 'Outfit-Medium',
+
         marginRight: 0,
         alignSelf: 'flex-end',
         backgroundColor: theme.primaryColor,
@@ -377,6 +379,8 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
         paddingVertical: 10,   // Explicit padding
     },
     partnerMessage: {
+        fontFamily: 'Outfit-Medium',
+
         alignSelf: 'flex-start',
         backgroundColor: isDarkMode ? "#FFFFFF" : theme.borderColor,
         borderRadius: 15,

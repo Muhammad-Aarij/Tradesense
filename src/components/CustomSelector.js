@@ -59,7 +59,7 @@ const CustomDropdown = ({
 
 const getStyles = (theme) => StyleSheet.create({
     label: {
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
         fontSize: 12,
         color: theme.textColor,
         marginBottom: 5,
@@ -80,7 +80,7 @@ const getStyles = (theme) => StyleSheet.create({
     selectedText: {
         color: theme.subTextColor,
         fontSize: 13,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
     dropdownOptions: {
         position: 'absolute',
@@ -100,7 +100,7 @@ const getStyles = (theme) => StyleSheet.create({
     optionText: {
         color: theme.textColor,
         fontSize: 12,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
     dropdownArrow: {
         width: 10,

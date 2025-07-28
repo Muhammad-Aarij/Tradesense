@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    ImageBackground, Image
+    ImageBackground, Image,
+    SafeAreaView
 } from 'react-native';
 import { bg, check, tick, uncheck } from '../../../assets/images';
 import theme from '../../../themes/theme';
@@ -11,7 +12,10 @@ import { useDispatch } from 'react-redux';
 import { loginUser } from '../../../redux/slice/authSlice';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import SnackbarMessage from '../../../functions/SnackbarMessage'; // ✅ Import
+import SnackbarMessage from '../../../functions/SnackbarMessage';
+import { BackHandler } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const GoalsScreen = ({ navigation, route }) => {
     const { request, token, question: allQuestions, user } = route.params || {};
@@ -35,6 +39,22 @@ const GoalsScreen = ({ navigation, route }) => {
     const questions = allQuestions?.filter(
         q => q.title.toLowerCase() !== 'age' && q.title.toLowerCase() !== 'gender'
     ) || [];
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const onBackPress = () => {
+                if (currentIndex > 0) {
+                    setCurrentIndex(prev => prev - 1);
+                    return true; // prevent default behavior (exit screen)
+                }
+                return false; // allow default (exit) if on first question
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }, [currentIndex])
+    );
 
     const currentQuestion = questions[currentIndex];
 
@@ -134,66 +154,68 @@ const GoalsScreen = ({ navigation, route }) => {
 
     return (
         <>
-            {showSuccessModal && (
-                <ConfirmationModal
-                    visible={showSuccessModal}
-                    title={"Success!"}
-                    icon={tick}
-                    message={"Profile setup completed successfully"}
-                    onClose={handleCloseModal}
+            <SafeAreaView style={{ flex: 1 }}>
+                {showSuccessModal && (
+                    <ConfirmationModal
+                        visible={showSuccessModal}
+                        title={"Success!"}
+                        icon={tick}
+                        message={"Profile setup completed successfully"}
+                        onClose={handleCloseModal}
+                    />
+                )}
+
+                <SnackbarMessage
+                    visible={snackbarVisible}
+                    message={snackbarMessage}
+                    type={snackbarType}
                 />
-            )}
 
-            <SnackbarMessage
-                visible={snackbarVisible}
-                message={snackbarMessage}
-                type={snackbarType}
-            />
+                <ImageBackground source={bg} style={styles.container}>
+                    <View style={styles.wrapper}>
+                        <View style={styles.header}>
+                            <Text style={styles.title}>{currentQuestion.title}</Text>
+                            <Text style={styles.subtitle}>{currentQuestion.subTitle}</Text>
+                        </View>
 
-            <ImageBackground source={bg} style={styles.container}>
-                <View style={styles.wrapper}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>{currentQuestion.title}</Text>
-                        <Text style={styles.subtitle}>{currentQuestion.subTitle}</Text>
+                        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                            {(currentQuestion.questions || []).map((opt) => {
+                                const isSelected = selected.includes(opt._id);
+                                return (
+                                    <TouchableOpacity
+                                        key={opt._id}
+                                        style={[styles.option, isSelected && styles.selectedOption]}
+                                        onPress={() => handleSelect(opt._id)}
+                                    >
+                                        {currentQuestion.images && opt.image && (
+                                            <Image source={{ uri: opt.image }} style={styles.optionImage} />
+                                        )}
+                                        <Text style={[styles.optionText, isSelected && { color: '#70C2E8' }]}>
+                                            {opt.text}
+                                        </Text>
+                                        <Image
+                                            source={isSelected ? check : uncheck}
+                                            style={[styles.checkbox, currentQuestion.title?.toLowerCase() === 'trading experience' && { tintColor: '#FFD700' }]}
+                                        />
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
+
+                        <View style={styles.bottomButton}>
+                            <TouchableOpacity
+                                style={[styles.button, selected.length === 0 && styles.disabledButton]}
+                                disabled={selected.length === 0}
+                                onPress={handleNext}
+                            >
+                                <Text style={styles.buttonText}>
+                                    {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-
-                    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        {(currentQuestion.questions || []).map((opt) => {
-                            const isSelected = selected.includes(opt._id);
-                            return (
-                                <TouchableOpacity
-                                    key={opt._id}
-                                    style={[styles.option, isSelected && styles.selectedOption]}
-                                    onPress={() => handleSelect(opt._id)}
-                                >
-                                    {currentQuestion.images && opt.image && (
-                                        <Image source={{ uri: opt.image }} style={styles.optionImage} />
-                                    )}
-                                    <Text style={[styles.optionText, isSelected && { color: '#70C2E8' }]}>
-                                        {opt.text}
-                                    </Text>
-                                    <Image
-                                        source={isSelected ? check : uncheck}
-                                        style={[styles.checkbox, currentQuestion.title?.toLowerCase() === 'trading experience' && { tintColor: '#FFD700' }]}
-                                    />
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </ScrollView>
-
-                    <View style={styles.bottomButton}>
-                        <TouchableOpacity
-                            style={[styles.button, selected.length === 0 && styles.disabledButton]}
-                            disabled={selected.length === 0}
-                            onPress={handleNext}
-                        >
-                            <Text style={styles.buttonText}>
-                                {currentIndex === questions.length - 1 ? 'Finish' : 'Next'}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </ImageBackground>
+                </ImageBackground>
+            </SafeAreaView>
         </>
     );
 };
@@ -218,13 +240,13 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 28,
         color: '#fff',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         marginBottom: 10
     },
     subtitle: {
         fontSize: 14,
         color: '#fff',
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
         textAlign: 'center',
         marginBottom: 20
     },
@@ -253,7 +275,7 @@ const styles = StyleSheet.create({
         width: '80%',
         color: '#fff',
         fontSize: 13,
-        fontFamily: 'Inter-Light-BETA'
+        fontFamily: 'Outfit-Light-BETA'
     },
     checkbox: {
         width: 20,
@@ -275,7 +297,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 16,
-        fontFamily: 'Inter-SemiBold'
+        fontFamily: 'Outfit-SemiBold'
     },
     center: {
         flex: 1,

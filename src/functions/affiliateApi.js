@@ -7,7 +7,7 @@ import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 export const trackAffiliateVisit = async ({ referrerUserId, courseId, type = "visited" }) => {
     try {
         console.log(`referrerUserId: ${referrerUserId}\ncourseId: ${courseId}\ntype: ${type}`);
-        const response = await axios.post(`${API_URL}/api/affiliate`, {
+        const response = await axios.post(`${API_URL}/api/affiliate/data`, {
             referrerUserId,
             courseId,
             type

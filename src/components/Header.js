@@ -64,7 +64,7 @@ const getStyles = (theme) => StyleSheet.create({
   title: {
     fontSize: 15,
     color: theme.textColor,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     position: 'absolute',
     left: 0,
     right: 0,

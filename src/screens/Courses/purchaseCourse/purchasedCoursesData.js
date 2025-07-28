@@ -17,7 +17,6 @@ import PurchasedCourseCard from './PurchaseCourseCard';
 import CourseCard from '../courseList/CourseCard';
 import { useEnrolledCourses, useCourses } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { sendAffiliateRequest } from '../../../functions/affiliateApi';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { ThemeContext } from '../../../context/ThemeProvider';
 
@@ -229,13 +228,13 @@ const styles = StyleSheet.create({
     },
     emptyStateTitle: {
         fontSize: 22,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         textAlign: 'center',
         marginBottom: 12,
     },
     emptyStateDescription: {
         fontSize: 15,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         textAlign: 'center',
         lineHeight: 22,
         marginBottom: 25,
@@ -259,7 +258,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
     sectionHeader: {
         marginTop: 20,
@@ -267,7 +266,7 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 17,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         textAlign: 'center',
         marginBottom: 20,
     },
@@ -290,7 +289,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 15,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
 });
 

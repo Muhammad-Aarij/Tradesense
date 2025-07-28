@@ -213,7 +213,7 @@ const DailyBreakdownChart = ({
                                 xAxisLabelTextStyle={{
                                     color: theme.subTextColor,
                                     fontSize: 12,
-                                    fontFamily: 'Inter-Regular',
+                                    fontFamily: 'Outfit-Regular',
                                 }}
                                 renderTooltip={(item) => (
                                     <View style={styles.tooltip}>
@@ -320,12 +320,13 @@ const getStyles = (theme) =>
         dailyBreakdownTitle: {
             color: theme.subTextColor,
             fontSize: 16,
-            fontFamily: 'Inter-SemiBold',
+            fontFamily: 'Outfit-Black',
+            marginBottom:4,
         },
         dailyBreakdownDate: {
             color: theme.subTextColor,
             fontSize: 12,
-            fontFamily: 'Inter-Light-BETA',
+            fontFamily: 'Outfit-Light',
         },
         dropdownContainer: {
             flexDirection: 'row',
@@ -362,12 +363,12 @@ const getStyles = (theme) =>
         optionText: {
             color: 'white',
             fontSize: 12,
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
         },
         dailyBreakdownFilter: {
             color: '#FFF',
             fontSize: 12,
-            fontFamily: 'Inter-Medium',
+            fontFamily: 'Outfit-Medium',
             paddingHorizontal: 8,
         },
         barChartWrapper: {
@@ -449,7 +450,7 @@ const getStyles = (theme) =>
         noDataTitle: {
             color: theme.subTextColor,
             fontSize: 18,
-            fontFamily: 'Inter-Bold',
+            fontFamily: 'Outfit-Bold',
             marginBottom: 10,
             textAlign: 'center',
             letterSpacing: 0.3,
@@ -461,7 +462,7 @@ const getStyles = (theme) =>
         noDataSubtitle: {
             color: theme.subTextColor,
             fontSize: 14,
-            fontFamily: 'Inter-Medium',
+            fontFamily: 'Outfit-Medium',
             textAlign: 'center',
             opacity: 0.9,
             marginBottom: 24,
@@ -490,7 +491,7 @@ const getStyles = (theme) =>
         motivationalText: {
             color: '#FFFFFF',
             fontSize: 13,
-            fontFamily: 'Inter-SemiBold',
+            fontFamily: 'Outfit-SemiBold',
             textAlign: 'center',
             letterSpacing: 0.2,
         },
@@ -520,7 +521,7 @@ const getStyles = (theme) =>
         noDataMessage: {
             color: theme.subTextColor,
             fontSize: 13,
-            fontFamily: 'Inter-Medium',
+            fontFamily: 'Outfit-Medium',
             textAlign: 'left',
             lineHeight: 19,
             opacity: 0.9,

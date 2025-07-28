@@ -52,7 +52,7 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
             onPress={onPress}
         >
             <View style={styles.imageWrapper}>
-                <Image source={course.instructorImage ? { uri: `${API_URL}/${course.instructorImage}` } : userBlue}
+                <Image source={course.instructorImage ? { uri: `${course.thumbnail}` } : userBlue}
                     style={styles.cardImage} />
                 {isDarkMode && <View style={styles.imgOverlay} />}
                 <View style={styles.timeOverlay}>
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 10,
         marginLeft: 4,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
     cardContent: {
         // borderWidth: 2,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 12,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         marginBottom: 2,
     },
     starContainer: {
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     cardDescription: {
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
         fontSize: 9,
         lineHeight: 12,
         marginVertical: 3,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     },
     price: {
         fontSize: 13,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
     instructorImage: {
         width: 20,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     },
     instructorName: {
         fontSize: 10,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
     urlcontainer: {
         borderWidth: 1,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     },
     url: {
         fontSize: 9,
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
         maxWidth: '75%',
     },
     icon: {

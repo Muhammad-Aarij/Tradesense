@@ -206,7 +206,7 @@ const getStyles = (theme) => StyleSheet.create({
     flex: 1,
     fontSize: responsiveFontSize(11),
     height: '100%',
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
   },
   faqListContainer: {
     gap: responsiveHeight(15),
@@ -232,7 +232,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   faqQuestion: {
     fontSize: responsiveFontSize(13),
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     flex: 1,
     marginRight: responsiveWidth(10),
   },
@@ -252,7 +252,7 @@ const getStyles = (theme) => StyleSheet.create({
   faqAnswer: {
     fontSize: responsiveFontSize(13),
     paddingTop: responsiveWidth(10),
-    fontFamily: 'Inter-Light-BETA',
+    fontFamily: 'Outfit-Light-BETA',
     lineHeight: responsiveFontSize(20),
   },
   loadingContainer: {
@@ -329,7 +329,7 @@ const getStyles = (theme) => StyleSheet.create({
   problemButtonText: {
     fontSize: responsiveFontSize(13),
     color: 'white',
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
   },
 });
 

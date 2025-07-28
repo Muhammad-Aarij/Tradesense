@@ -39,6 +39,7 @@ const CustomInput = ({
                     placeholder={placeholder}
                     placeholderTextColor={theme.subTextColor}
                     secureTextEntry={secureTextEntry}
+                    autoCapitalize="none"
                     style={[
                         styles.input,
                         {
@@ -57,7 +58,7 @@ const CustomInput = ({
                 />
                 {icon && (
                     <TouchableOpacity onPress={onIconPress} style={styles.iconButton}>
-                        <Image source={icon} style={[styles.icon,{tintColor:theme.subTextColor}]} />
+                        <Image source={icon} style={[styles.icon, { tintColor: theme.subTextColor }]} />
                     </TouchableOpacity>
                 )}
             </View>

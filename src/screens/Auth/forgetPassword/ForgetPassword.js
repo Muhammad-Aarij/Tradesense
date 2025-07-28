@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Image,
+  Image, SafeAreaView,
   ImageBackground,
   ScrollView
 } from 'react-native';
@@ -64,23 +64,26 @@ const ForgetPassword = ({ navigation }) => {
 
 
   return (
-    <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.darkBlue }]}>
-      <Image source={lock} style={styles.image} />
-      <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.darkBlue : "white" }]}>
-        <Text style={[styles.title, { color: theme.textColor }]}>Forgot Password</Text>
-        <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Enter your email address</Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.darkBlue }]}>
 
-        <CustomInput
-          placeholder="Enter your Email Address"
-          value={email}
-          onChangeText={setEmail}
-        />
+        <Image source={lock} style={styles.image} />
+        <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.darkBlue : "white" }]}>
+          <Text style={[styles.title, { color: theme.textColor }]}>Forgot Password</Text>
+          <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Enter your email address</Text>
 
-        <TouchableOpacity style={[styles.button, { backgroundColor: theme.primaryColor }]} onPress={handleVerify}>
-          <Text style={styles.buttonText}>Verify</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+          <CustomInput
+            placeholder="Enter your Email Address"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <TouchableOpacity style={[styles.button, { backgroundColor: theme.primaryColor }]} onPress={handleVerify}>
+            <Text style={styles.buttonText}>Verify</Text>
+          </TouchableOpacity>
+        </View>
+      </ImageBackground>
+    </SafeAreaView>
   );
 };
 
@@ -107,13 +110,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: width * 0.07,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Outfit-SemiBold',
     marginTop: height * 0.03,
     marginBottom: height * 0.015,
   },
   subtitle: {
     fontSize: width * 0.035,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     textAlign: 'center',
     marginBottom: height * 0.03,
   },
@@ -128,7 +131,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: width * 0.041,
     fontWeight: '600',
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Outfit-SemiBold',
   },
 });
 

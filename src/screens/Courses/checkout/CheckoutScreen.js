@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     },
     radioText: {
         color: '#FFFFFF',
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         fontSize: 14,
     },
     formContainer: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 13,
         marginBottom: 8,
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
     },
     // Removed old TextInput styles as CustomInput handles them
     rowInputs: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 15,
         fontWeight: '600',
-        fontFamily: "Inter-SemiBold",
+        fontFamily: "Outfit-SemiBold",
     },
 });
 

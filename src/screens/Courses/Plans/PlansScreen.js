@@ -146,7 +146,7 @@ const getStyles = (theme) => StyleSheet.create({
     container: { flex: 1, padding: 25, paddingTop: 0 },
     scrollContent: { paddingBottom: height * 0.1 },
     planCard: {
-        padding: 16,
+        padding: 20,
         borderRadius: 15,
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
         borderWidth: 0.9,
@@ -154,8 +154,8 @@ const getStyles = (theme) => StyleSheet.create({
         marginBottom: 25,
     },
     planCardSelected: { borderColor: theme.primaryColor },
-    planTitle: { color: theme.textColor, fontSize: 20, fontFamily: 'Inter-Bold', marginBottom: 10 },
-    planPrice: { color: theme.primaryColor, fontSize: 19, fontFamily: 'Inter-Bold', marginBottom: 15 },
+    planTitle: { color: theme.textColor, fontSize: 19, fontFamily: 'Outfit-Bold', marginBottom: 10 },
+    planPrice: { color: theme.primaryColor, fontSize: 19, fontFamily: 'Outfit-Bold', marginBottom: 15 },
     divider: {
         width: '100%',
         marginBottom: 15,
@@ -164,7 +164,7 @@ const getStyles = (theme) => StyleSheet.create({
     },
     description: {
         color: theme.textColor,
-        fontSize: 14,
+        fontSize: 13,
         marginBottom: 15,
     },
     featuresContainer: { marginBottom: 20 },
@@ -183,7 +183,7 @@ const getStyles = (theme) => StyleSheet.create({
         color: '#fff',
         fontSize: 15,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
 });
 

@@ -200,7 +200,7 @@ const Trading = ({ navigation }) => {
                                             style={{
                                                 color: isDarkMode ? '#000' : 'white',
                                                 fontSize: 15,
-                                                fontFamily: 'Inter-SemiBold',
+                                                fontFamily: 'Outfit-SemiBold',
                                             }}
                                         >
                                             {item.date}
@@ -210,7 +210,7 @@ const Trading = ({ navigation }) => {
                                         style={{
                                             color: theme.textColor,
                                             fontSize: 12,
-                                            fontFamily: 'Inter-Medium',
+                                            fontFamily: 'Outfit-Medium',
                                         }}
                                     >
                                         {item.day}
@@ -268,7 +268,7 @@ const Trading = ({ navigation }) => {
                                                         marginTop: 3,
                                                         color: theme.subTextColor,
                                                         fontSize: 10,
-                                                        fontFamily: 'Inter-Light-BETA',
+                                                        fontFamily: 'Outfit-Light-BETA',
                                                     }}
                                                 >
                                                     {trade.tradeType}
@@ -279,7 +279,7 @@ const Trading = ({ navigation }) => {
                                                     style={{
                                                         color: theme.textColor,
                                                         fontSize: 15,
-                                                        fontFamily: 'Inter-Light-BETA',
+                                                        fontFamily: 'Outfit-Light-BETA',
                                                     }}
                                                 >
                                                     {price}
@@ -288,7 +288,7 @@ const Trading = ({ navigation }) => {
                                                     style={{
                                                         color: isPositive ? '#4CAF50' : '#FF5252',
                                                         fontSize: 11,
-                                                        fontFamily: 'Inter-Light-BETA',
+                                                        fontFamily: 'Outfit-Light-BETA',
                                                     }}
                                                 >
                                                     {change} {isPositive ? '▲' : '▼'}

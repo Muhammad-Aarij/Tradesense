@@ -71,12 +71,12 @@ const TermsAndConditionsScreen = ({ navigation }) => {
                     baseStyle={{
                       color: theme.textColor,
                       fontSize: responsiveFontSize(12),
-                      fontFamily: 'Inter-Regular',
+                      fontFamily: 'Outfit-Regular',
                     }}
                     tagsStyles={{
-                      h1: { fontSize: responsiveFontSize(14), fontFamily: 'Inter-SemiBold', marginBottom: 10 },
-                      h2: { fontSize: responsiveFontSize(12), fontFamily: 'Inter-SemiBold', marginBottom: 0 },
-                      p: { marginBottom: 5, lineHeight: 20, fontFamily: 'Inter-Regular' },
+                      h1: { fontSize: responsiveFontSize(14), fontFamily: 'Outfit-SemiBold', marginBottom: 10 },
+                      h2: { fontSize: responsiveFontSize(12), fontFamily: 'Outfit-SemiBold', marginBottom: 0 },
+                      p: { marginBottom: 5, lineHeight: 20, fontFamily: 'Outfit-Regular' },
                       ul: { paddingLeft: 0, marginBottom: 10 },
                       li: { marginBottom: 5 },
                     }}
@@ -130,13 +130,13 @@ const styles = StyleSheet.create({
   },
   sectionHeading: {
     fontSize: responsiveFontSize(13),
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Outfit-SemiBold',
     marginTop: responsiveHeight(15),
     marginBottom: responsiveHeight(8),
   },
   paragraph: {
     fontSize: responsiveFontSize(12),
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     lineHeight: responsiveFontSize(20),
     marginBottom: responsiveHeight(10),
   },

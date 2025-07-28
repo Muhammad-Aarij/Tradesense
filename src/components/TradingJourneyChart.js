@@ -1,158 +1,178 @@
+
 import React, { useContext, useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    Dimensions,
+    ActivityIndicator,
+    TouchableOpacity,
+    Image,
+} from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
-import { ThemeContext } from '../context/ThemeProvider'; // Assuming you have a ThemeContext
+import { ThemeContext } from '../context/ThemeProvider';
 import { useWeeklyProfitLoss } from '../functions/Trades';
-import { trackAffiliateVisit } from '../functions/affiliateApi';
+import { back } from '../assets/images';
 
 const { width } = Dimensions.get('window');
+const CHART_HEIGHT = 220;
 
-const TradingJourneyChart = ({ userId }) => { // Accept userId as a prop
+const TradingJourneyChart = ({ userId }) => {
     const { theme } = useContext(ThemeContext);
-    const styles = useMemo(() => getStyles(theme), [theme]);
+    const styles = useMemo(() => createStyles(theme), [theme]);
 
-    // Use the custom hook to fetch data with the provided userId
+    // Guard: If userId is not valid, show a message and do not fetch data
+    if (!userId) {
+        return (
+            <View style={[styles.container, styles.center]}>
+                <Text style={styles.errorText}>User not found. Please log in again.</Text>
+            </View>
+        );
+    }
+
+    // 1. fetch P/L --------------------------------------------------------------
     const { data, isLoading, isError, error } = useWeeklyProfitLoss(userId);
-    console.log("WeeklyData", data); // Corrected typo from "WeedlyData"
+    console.log("trading chat", data);
 
-    // Transform fetched data into the format required by LineChart
-    const lineData = useMemo(() => {
-        // Ensure data is an array before attempting to sort or map
-        const actualData = data || [];
+    // 2. last-7-days series -----------------------------------------------------
+    const rawSeries = useMemo(() => {
+        const map = new Map((data || []).map(i => [
+            new Date(i.date).toISOString().split('T')[0],
+            i.amount,
+        ]));
 
-        // Create a map for quick lookup of fetched data by date
-        const dataMap = new Map();
-        actualData.forEach(item => {
-            const dateKey = new Date(item.date).toISOString().split('T')[0]; // Format 'YYYY-MM-DD'
-            dataMap.set(dateKey, item.amount);
-        });
-
-        const chartData = [];
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Normalize to start of day
+        today.setHours(0, 0, 0, 0);
 
-        // Generate data for the last 7 days
+        const out = [];
         for (let i = 6; i >= 0; i--) {
-            const date = new Date(today);
-            date.setDate(today.getDate() - i);
-            const dateKey = date.toISOString().split('T')[0];
+            const d = new Date(today);
+            d.setDate(today.getDate() - i);
+            const key = d.toISOString().split('T')[0];
+            const val = map.get(key) ?? 0;
 
-            // Get amount from fetched data or default to 0
-            const amount = dataMap.has(dateKey) ? dataMap.get(dateKey) : 0;
-
-            chartData.push({
-                value: amount,
-                label: date.toLocaleDateString('en-US', { weekday: 'short' }), // Day of the week (Mon, Tue, etc.)
-                dataPointText: `${Math.round(amount)}`, // Data point text will be rounded number
-                dateLabel: date.getDate(), // Date number (15, 16, etc.)
+            out.push({
+                trueValue: val,                           // keep original
+                label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+                dateLabel: d.getDate(),
             });
         }
-
-        return chartData;
+        return out;
     }, [data]);
 
-    // Dynamically generate Y-axis labels based on lineData
-    const yAxisLabels = useMemo(() => {
-        const numLabels = 7; // Exactly 7 Y-axis labels
+    // 3. shift upward so min → 0 -----------------------------------------------
+    const shifted = useMemo(() => {
+        if (!rawSeries.length) return [];
 
-        if (lineData.length === 0) {
-            // Default labels if no data is available yet
-            return { labels: ['0k', '3k', '6k', '9k', '12k', '15k'], min: 0, max: 15000 };
-        }
+        const rawMin = Math.min(...rawSeries.map(p => p.trueValue));
+        const offset = rawMin < 0 ? -rawMin : 0;      // ≥ 0
 
-        const values = lineData.map(item => item.value);
-        const rawMinValue = Math.min(...values);
-        const rawMaxValue = Math.max(...values);
+        return rawSeries.map(p => ({
+            ...p,
+            value: p.trueValue + offset,                // ⬆ shifted for chart
+        }));
+    }, [rawSeries]);
 
-        const calculateNiceInterval = (min, max, numDivisions) => {
-            const range = max - min || 1; // Avoid 0 range
-            const roughInterval = range / numDivisions;
-            const exponent = Math.floor(Math.log10(roughInterval));
-            const fraction = roughInterval / Math.pow(10, exponent);
+    // 4. axis labels reflecting TRUE values ------------------------------------
+    const axisInfo = useMemo(() => {
+        if (!shifted.length) return { min: 0, max: 1, labels: ['0'] };
 
-            let niceFraction;
-            if (fraction <= 1) niceFraction = 1;
-            else if (fraction <= 2) niceFraction = 2;
-            else if (fraction <= 5) niceFraction = 5;
-            else niceFraction = 10;
+        const vals = shifted.map(p => p.value);
+        const minShifted = Math.min(...vals);         // always 0
+        const maxShifted = Math.max(...vals);
 
-            return niceFraction * Math.pow(10, exponent);
-        };
+        // nice step for 7 ticks
+        const step = (() => {
+            const rough = (maxShifted || 1) / 6;
+            const pow10 = 10 ** Math.floor(Math.log10(rough));
+            const f = rough / pow10;
+            const nice = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+            return nice * pow10;
+        })();
 
-        const interval = calculateNiceInterval(rawMinValue, rawMaxValue, numLabels - 1);
+        const maxRounded = Math.ceil(maxShifted / step) * step;
 
-        let yAxisMinValue = Math.floor(rawMinValue / interval) * interval;
-        // If all values are negative, do NOT force min to zero
-        // Only force min to zero if all values are positive
-        if (yAxisMinValue < 0 && rawMaxValue <= 0) {
-            // All values negative, keep yAxisMinValue as is
-        } else if (yAxisMinValue < 0 && rawMinValue >= 0) {
-            // All values positive, set min to zero
-            yAxisMinValue = 0;
-        } else if (yAxisMinValue > 0) {
-            // All values positive, set min to zero
-            yAxisMinValue = 0;
-        }
+        const labels = Array.from({ length: 7 }, (_, i) => {
+            // convert back to TRUE values by subtracting the offset
+            const shiftedVal = minShifted + i * step; // 0, step, …
 
-        let yAxisMaxValue = yAxisMinValue + interval * (numLabels - 1);
-        while (yAxisMaxValue < rawMaxValue) {
-            yAxisMaxValue += interval;
-        }
+            const offset = Math.min(...rawSeries.map(p => p.trueValue)) < 0
+                ? Math.min(...rawSeries.map(p => p.trueValue))
+                : 0;
 
-        // Final clamp for visible chart scale
-        const labels = Array.from({ length: numLabels }, (_, i) => {
-            const labelValue = yAxisMinValue + i * interval;
-            if (isNaN(labelValue) || !isFinite(labelValue)) return '0';
-            return labelValue >= 1000
-                ? `${Math.round(labelValue / 1000)}k`
-                : `${Math.round(labelValue)}`;
+            const trueVal = shiftedVal + offset;
+
+            return trueVal >= 1000
+                ? `${Math.round(trueVal / 1000)}k`
+                : trueVal.toFixed(trueVal % 1 ? 4 : 0); // keep decimals tidy
         });
 
-        return {
-            labels,
-            min: yAxisMinValue,
-            max: yAxisMaxValue,
-        };
-    }, [lineData]);
 
+        return { min: minShifted, max: maxRounded, labels };
+    }, [shifted, rawSeries]);
+
+    // 5. states ----------------------------------------------------------------
     if (isLoading) {
         return (
-            <View style={[styles.container, styles.loadingContainer]}>
+            <View style={[styles.container, styles.center]}>
                 <ActivityIndicator size="large" color={theme.primaryColor} />
-                <Text style={styles.loadingText}>Loading trading data...</Text>
+                <Text style={styles.loadingText}>Loading trading data…</Text>
+            </View>
+        );
+    }
+    if (isError) {
+        return (
+            <View style={[styles.container, styles.center]}>
+                <Text style={styles.errorText}>
+                    {error?.message || 'Failed to fetch data. Please try again later.'}
+                </Text>
             </View>
         );
     }
 
-    if (isError) {
-        return (
-            <View style={[styles.container, styles.errorContainer]}>
-                <Text style={styles.errorText}>Error: {error?.message || 'Failed to fetch data'}</Text>
-                <Text style={styles.errorText}>Please try again later.</Text>
-            </View>
-        );
+    // 6. render -----------------------------------------------------------------
+    if (!data || data.length === 0 || !shifted || shifted.length === 0) {
+        return null; // Don't render chart for empty data
     }
+
 
     return (
         <View style={styles.container}>
+            <View style={styles.tradesHeader}>
+                <Text style={styles.sectionTitle}>Your Trading Journey</Text>
+                <TouchableOpacity>
+                    <Image
+                        source={back}
+                        style={{
+                            width: 10,
+                            height: 10,
+                            resizeMode: "contain",
+                            tintColor: "#79869B",
+                            transform: [{ rotate: "180deg" }],
+                        }}
+                    />
+                </TouchableOpacity>
+            </View>
+
             <View style={styles.chartWrapper}>
                 <LineChart
-                    data={lineData}
-                    width={width - 40} // Adjust width based on container padding (20 on each side)
-                    height={200}
-                    hideDataPoints
-                    spacing={width / 9} // Dynamic spacing between data points
-                    color={theme.primaryColor} // Line color
+                    data={shifted}
+                    width={width - 40}
+                    height={CHART_HEIGHT}
+                    spacing={width / 9}
+                    color={theme.primaryColor}
                     thickness={1}
-                    hideRules={false} // Show horizontal rules
-                    rulesColor={theme.borderColor} // Color of horizontal rules
-                    rulesThickness={0.2} // Thickness of horizontal rules
-                    xAxisColor={"transparent"}
-                    yAxisColor={"transparent"} // Set Y-axis line color
+                    hideDataPoints
+                    hideRules={false}
+                    rulesColor={theme.borderColor}
+                    rulesThickness={0.2}
+                    xAxisColor="transparent"
+                    yAxisColor="transparent"
                     xAxisLabelTextStyle={styles.xAxisLabel}
-                    minValue={yAxisLabels.min}
-                    maxValue={yAxisLabels.max}
-                    stepValue={(yAxisLabels.max - yAxisLabels.min) / (yAxisLabels.labels.length - 1)}
+                    minValue={axisInfo.min}
+                    maxValue={axisInfo.max}
+                    stepValue={(axisInfo.max - axisInfo.min) / 6}
+                    yAxisLabelTexts={axisInfo.labels}
                     yAxisTextStyle={styles.yAxisLabel}
                     howVerticalLines
                     verticalLinesColor={theme.borderColor}
@@ -164,20 +184,18 @@ const TradingJourneyChart = ({ userId }) => { // Accept userId as a prop
                     endOpacity={0}
                     pointerConfig={{
                         pointerStripUptoDataPoint: true,
-                        pointerLabelComponent: (items) => {
-                            return (
-                                <View style={styles.tooltip}>
-                                    <Text style={styles.tooltipText}>
-                                        {items[0].label} {items[0].dateLabel}
-                                    </Text>
-                                    <Text style={styles.tooltipText}>
-                                        P/L: ${Math.round(items[0].value)}
-                                    </Text>
-                                </View>
-                            );
-                        },
+                        pointerLabelComponent: items => (
+                            <View style={styles.tooltip}>
+                                <Text style={styles.tooltipText}>
+                                    {items[0].label} {items[0].dateLabel}
+                                </Text>
+                                <Text style={styles.tooltipText}>
+                                    P/L: ${items[0].trueValue.toLocaleString()}
+                                </Text>
+                            </View>
+                        ),
                     }}
-                    renderXAxisLabel={(item) => (
+                    renderXAxisLabel={item => (
                         <View style={styles.customXAxisLabel}>
                             <Text style={styles.xAxisLabelDay}>{item.label}</Text>
                             <Text style={styles.xAxisLabelDate}>{item.dateLabel}</Text>
@@ -187,91 +205,57 @@ const TradingJourneyChart = ({ userId }) => { // Accept userId as a prop
             </View>
         </View>
     );
-};
-
-const getStyles = (theme) => StyleSheet.create({
-    container: {
-        borderRadius: 8,
-        marginBottom: 10,
-    },
-    loadingContainer: {
-        minHeight: 250, // Ensure enough space for loading indicator
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: theme.cardBackground,
-    },
-    loadingText: {
-        marginTop: 10,
-        color: theme.textColor,
-        fontSize: 16,
-    },
-    errorContainer: {
-        minHeight: 250,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: theme.cardBackground,
-    },
-    errorText: {
-        color: theme.errorColor || 'red', // Assuming theme has an errorColor or default to red
-        fontSize: 16,
-        textAlign: 'center',
-        marginHorizontal: 20,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
-        paddingHorizontal: 20,
-    },
-    title: {
-        color: theme.textColor,
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    arrowIcon: {
-        width: 20,
-        height: 20,
-        tintColor: theme.textColor,
-        transform: [{ rotate: '180deg' }],
-    },
-    chartWrapper: {
-        alignItems: 'center',
-        padding: 10,
-    },
-    xAxisLabel: {
-        color: theme.subTextColor,
-        fontSize: 12,
-    },
-    yAxisLabel: {
-        color: theme.subTextColor,
-        fontSize: 12,
-    },
-    customXAxisLabel: {
-        marginBottom: 12,
-        alignItems: 'center',
-    },
-    xAxisLabelDay: {
-        color: theme.subTextColor,
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    xAxisLabelDate: {
-        color: theme.subTextColor,
-        fontSize: 10,
-    },
-    tooltip: {
-        backgroundColor: theme.primaryColor,
-        padding: 8,
-        width: 120,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    tooltipText: {
-        color: '#FFFFFF',
-        fontSize: 12,
-    },
-});
-
+}
+// styles ---------------------------------------------------------------------
+const createStyles = theme =>
+    StyleSheet.create({
+        container: { borderRadius: 8, marginBottom: 10 },
+        center: {
+            minHeight: CHART_HEIGHT,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.cardBackground,
+        },
+        sectionTitle: {
+            color: theme.textColor,
+            fontSize: 14,
+            fontFamily: 'Outfit-Regular',
+        },
+        loadingText: { marginTop: 10, color: theme.textColor, fontSize: 16 },
+        tradesHeader: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 20,
+        },
+        manageTradesText: {
+            color: theme.primaryColor,
+            fontSize: 11,
+        },
+        errorText: {
+            color: theme.errorColor || 'red',
+            fontSize: 16,
+            textAlign: 'center',
+            marginHorizontal: 20,
+        },
+        chartWrapper: { alignItems: 'center', padding: 10 },
+        xAxisLabel: { color: theme.subTextColor, fontSize: 12 },
+        yAxisLabel: { color: theme.subTextColor, fontSize: 12 },
+        customXAxisLabel: { marginBottom: 12, alignItems: 'center' },
+        xAxisLabelDay: {
+            color: theme.subTextColor,
+            fontSize: 12,
+            fontWeight: 'bold',
+        },
+        xAxisLabelDate: { color: theme.subTextColor, fontSize: 10 },
+        tooltip: {
+            backgroundColor: theme.primaryColor,
+            padding: 8,
+            width: 140,
+            borderRadius: 5,
+            alignItems: 'center',
+        },
+        tooltipText: { color: '#FFFFFF', fontSize: 12 },
+    });
 
 export default TradingJourneyChart;

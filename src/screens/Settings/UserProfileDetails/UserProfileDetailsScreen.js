@@ -166,12 +166,12 @@ const getStyles = (theme) => StyleSheet.create({
     marginTop: verticalScale(15),
     textAlign: 'center',
     fontSize: scale(16),
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     color: theme.textColor, // ✅ dynamic
   },
   profileSubtitle: {
     fontSize: scale(14),
-    fontFamily: 'Inter-Thin-BETA',
+    fontFamily: 'Outfit-Thin-BETA',
     color: theme.subTextColor ?? '#C4C7C9',
     marginTop: verticalScale(1),
     marginBottom: verticalScale(10),
@@ -188,7 +188,7 @@ const getStyles = (theme) => StyleSheet.create({
   progressTitle: {
     fontSize: scale(12),
     color: theme.textColor,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     marginVertical: verticalScale(10),
   },
   streakCardsRow: {
@@ -231,7 +231,7 @@ const getStyles = (theme) => StyleSheet.create({
   profileButtonText: {
     fontSize: scale(13),
     color: 'white',
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
   },
 });
 

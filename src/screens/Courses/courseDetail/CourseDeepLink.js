@@ -77,6 +77,7 @@ const CourseDeepLink = () => {
             courseId,
             type: 'visited',
         });
+        console.log("logs response", result);
 
         if (result.error) {
             console.warn("Affiliate visit tracking failed:", result.details || result.error);
@@ -245,21 +246,21 @@ const getStyles = (theme) => StyleSheet.create({
     },
     instructorName: {
         fontSize: 13,
-        fontFamily: 'Inter-SemiBold'
+        fontFamily: 'Outfit-SemiBold'
     },
     instructorSubtitle: {
         color: 'white',
         fontSize: 11,
-        fontFamily: 'Inter-Light-BETA'
+        fontFamily: 'Outfit-Light'
     },
     courseInfoSection: {
         marginTop: 10,
         paddingBottom: 10
     },
     courseDescription: {
-        fontSize: 13,
+        fontSize: 12,
         lineHeight: 20,
-        fontFamily: 'Inter-Light-BETA'
+        fontFamily: 'Outfit-Light'
     },
     divider: {
         width: '100%',
@@ -286,19 +287,20 @@ const getStyles = (theme) => StyleSheet.create({
     },
     audioTitle: {
         color: theme.textColor,
-        fontSize: 14,
-        fontFamily: 'Inter-Medium'
+        fontSize: 12,
+        fontFamily: 'Outfit-Medium',
+        marginBottom: 2
     },
     audioDuration: {
         color: theme.subTextColor,
-        fontFamily: 'Inter-Light-BETA',
-        fontSize: 12,
+        fontFamily: 'Outfit-Light',
+        fontSize: 10,
         marginBottom: 10
     },
     audioDescription: {
         color: theme.subTextColor,
-        fontFamily: 'Inter-Light-BETA',
-        fontSize: 13
+        fontFamily: 'Outfit-Light',
+        fontSize: 11
     },
     buyNowButton: {
         width: '100%',
@@ -311,7 +313,7 @@ const getStyles = (theme) => StyleSheet.create({
         color: '#fff',
         fontSize: 17,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold'
+        fontFamily: 'Outfit-SemiBold'
     }
 });
 

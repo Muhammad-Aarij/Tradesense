@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
   habitTitle: {
     fontSize: 15,
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
     color: '#FFFFFF',
     flex: 1,
   },
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   goalProgressText: {
     fontSize: 13,
-    fontFamily: "Inter-Medium",
+    fontFamily: "Outfit-Medium",
     color: '#FFFFFF',
     marginRight: 10,
   },

@@ -48,7 +48,7 @@ const CourseCard = ({
                 <Text style={[styles.title, { color: theme.textColor }]} numberOfLines={1}>{title}</Text>
                 <Text style={[styles.description, { color: theme.subTextColor }]} numberOfLines={2}>{description}</Text>
                 {/* <StarRating rating={rating} theme={theme} /> */}
-                <View style={{ flex: 1, }} />
+                <View style={{ flex: 1,marginBottom:10, }} />
                 <View style={styles.footer}>
                     <View style={styles.profileInfo}>
                         <Image
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 9,
         marginLeft: 4,
-        fontFamily: "Inter-Regular"
+        fontFamily: "Outfit-Regular"
     },
     content: {
         flex: 1,
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
     },
     title: {
-        fontSize: 12,
-        fontFamily: "Inter-Medium",
+        fontSize: 11,
+        fontFamily: "Outfit-Medium",
         marginBottom: 4,
         // height: 32, // ✅ fixed height for description (2 lines max)
     },
@@ -122,10 +122,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     description: {
+
         flex: 1, // this expands to fill remaining vertical space
-        fontFamily: "Inter-Light-BETA",
-        fontSize: 11,
-        lineHeight: 16,
+        fontFamily: "Outfit-Light-BETA",
+        fontSize: 10,
+        lineHeight: 13,
+        marginTop:5,
         marginBottom: 3,
     },
     footer: {
@@ -148,13 +150,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#666',
     },
     profileName: {
-        fontSize: 10,
-        fontFamily: "Inter-Medium",
+        fontSize: 8,
+        fontFamily: "Outfit-Medium",
     },
     price: {
         fontSize: 12,
         fontWeight: 'bold',
-        fontFamily: "Inter-SemiBold",
+        fontFamily: "Outfit-SemiBold",
     },
 });
 

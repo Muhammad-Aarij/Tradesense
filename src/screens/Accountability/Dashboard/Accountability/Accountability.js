@@ -14,7 +14,7 @@ import { useCreateHabitLog, useTodaysHabits, useHabitStats } from '../../../../f
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import DailyBreakdownChart from '../../../../components/DailyBreakdownChart';
 import { useQueryClient } from '@tanstack/react-query';
-import Snackbar from 'react-native-snackbar';
+import SnackbarMessage from '../../../../functions/SnackbarMessage';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -24,15 +24,23 @@ export default function Accountability({ navigation }) {
   const userId = useSelector(state => state.auth.userId);
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
-
+  const [snackbar, setSnackbar] = useState({ visible: false, message: '', type: 'error' });
   const [localHabitState, setLocalHabitState] = useState({});
   const { data: todaysHabits = [], isLoading } = useTodaysHabits(userId);
   const { data: habitStats = {}, isLoading: statsLoading } = useHabitStats(userId);
   const logHabit = useCreateHabitLog();
 
-  const visibleHabits = todaysHabits.filter(h => !(localHabitState[h._id] || h.completedToday));
+  const visibleHabits = todaysHabits;
   const completedCount = todaysHabits.filter(h => h.completedToday || localHabitState[h._id]).length;
   const remainingCount = todaysHabits.length - completedCount;
+  useEffect(() => {
+    if (snackbar.visible) {
+      const timer = setTimeout(() => {
+        setSnackbar(prev => ({ ...prev, visible: false }));
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar.visible]);
 
   useEffect(() => {
     if (isLoading || statsLoading) dispatch(startLoading());
@@ -45,7 +53,11 @@ export default function Accountability({ navigation }) {
 
   const handleLog = async (habitId) => {
     if (localHabitState[habitId] || todaysHabits.find(h => h._id === habitId)?.completedToday) {
-      Snackbar.show({ text: 'Already checked!', duration: Snackbar.LENGTH_SHORT, backgroundColor: '#FFA726' });
+      setSnackbar({
+        text: 'Already checked!',
+        visible: true,
+        type: 'error',
+      });
       return;
     }
 
@@ -56,7 +68,10 @@ export default function Accountability({ navigation }) {
       setLocalHabitState(prev => ({ ...prev, [habitId]: false }));
       Alert.alert('Error', result.error);
     } else {
-      Snackbar.show({ text: 'Goal checked!', duration: Snackbar.LENGTH_SHORT, backgroundColor: '#66BB6A' });
+      setSnackbar({
+        text: 'Goal checked!',
+        visible: true,
+      });
       await queryClient.invalidateQueries(['todaysHabits', userId]);
       await queryClient.invalidateQueries(['habitStats', userId]);
     }
@@ -116,7 +131,7 @@ export default function Accountability({ navigation }) {
                       width: 70, height: 70, borderRadius: 100,
                       justifyContent: "center", alignItems: "center"
                     }}>
-                      <Text style={{ color: theme.textColor, fontSize: 14, fontFamily: "Inter-Bold" }}>
+                      <Text style={{ color: theme.textColor, fontSize: 14, fontFamily: "Outfit-Bold" }}>
                         {Math.round(percentage)}%
                       </Text>
                     </View>
@@ -158,7 +173,7 @@ export default function Accountability({ navigation }) {
             <EmptyCard emoji="🎉" title="Congratulations!" subtitle="All your goals for today are completed. Great job staying accountable!" theme={theme} />
           ) : (
             visibleHabits.map(habit => {
-              const isChecked = localHabitState[habit._id];
+              const isChecked = localHabitState[habit._id] || habit.completedToday;
               return (
                 <LinearGradient key={habit._id}
                   start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
@@ -196,6 +211,7 @@ export default function Accountability({ navigation }) {
           )}
         </View>
       </ScrollView>
+          <SnackbarMessage position='bottom' visible={snackbar.visible} message={snackbar.text} type={snackbar.type} />
     </SafeAreaView>
   );
 }
@@ -213,8 +229,8 @@ const EmptyCard = ({ emoji, title, subtitle, onPress, theme }) => (
       justifyContent: 'center',
     }}>
     <Text style={{ fontSize: 36 }}>{emoji}</Text>
-    <Text style={{ fontSize: 16, fontFamily: "Inter-SemiBold", marginTop: 10, color: theme.textColor }}>{title}</Text>
-    <Text style={{ fontSize: 12, fontFamily: "Inter-Regular", textAlign: 'center', marginTop: 5, color: theme.subTextColor }}>
+    <Text style={{ fontSize: 16, fontFamily: "Outfit-SemiBold", marginTop: 10, color: theme.textColor }}>{title}</Text>
+    <Text style={{ fontSize: 12, fontFamily: "Outfit-Regular", textAlign: 'center', marginTop: 5, color: theme.subTextColor }}>
       {subtitle}
     </Text>
     {onPress && (
@@ -237,8 +253,8 @@ const getStyles = (theme) => StyleSheet.create({
   },
   sectionTitle: {
     color: theme.textColor,
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontSize: 13,
+    fontFamily: 'Outfit-Regular',
     marginBottom: 15,
   },
   gridContainer: {
@@ -275,7 +291,7 @@ const getStyles = (theme) => StyleSheet.create({
   gridItemValue: {
     color: theme.textColor,
     fontSize: 20,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
   },
   gridItemLabel: {
     color: theme.subTextColor,
@@ -360,19 +376,19 @@ const getStyles = (theme) => StyleSheet.create({
   dailyBreakdownTitle: {
     color: theme.subTextColor,
     fontSize: 16,
-    fontFamily: "Inter-SemiBold",
+    fontFamily: "Outfit-SemiBold",
   },
   dailyBreakdownDate: {
     color: theme.subTextColor,
     fontSize: 12,
-    fontFamily: "Inter-Light-BETA",
+    fontFamily: "Outfit-Light-BETA",
   },
   dailyBreakdownFilter: {
     borderRadius: 8,
     paddingHorizontal: 8,
     color: '#FFF',
     fontSize: 12,
-    fontFamily: "Inter-Medium",
+    fontFamily: "Outfit-Medium",
   },
   dropdownContainer: {
     flexDirection: 'row',
@@ -406,7 +422,7 @@ const getStyles = (theme) => StyleSheet.create({
   optionText: {
     color: "white",
     fontSize: 12,
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
   },
 
   dropdownArrow: {
@@ -468,7 +484,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   successTrackerTitle: {
     fontSize: 14,
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
     color: theme.textColor,
     flex: 1,
   },
@@ -523,14 +539,14 @@ const getStyles = (theme) => StyleSheet.create({
   emptyHabitsTitle: {
     color: theme.textColor,
     fontSize: 18,
-    fontFamily: 'Inter-Bold',
+    fontFamily: 'Outfit-Bold',
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyHabitsSubtitle: {
     color: theme.subTextColor,
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: 10,
@@ -552,7 +568,7 @@ const getStyles = (theme) => StyleSheet.create({
   createHabitButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Outfit-SemiBold',
     textAlign: 'center',
   },
 });

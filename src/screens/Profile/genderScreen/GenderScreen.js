@@ -8,6 +8,7 @@ import {
     ImageBackground,
     Dimensions,
     BackHandler,
+    SafeAreaView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchQuestionnaire } from '../../../functions/profiling';
@@ -84,52 +85,54 @@ const GenderScreen = ({ navigation, route }) => {
     }, []);
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <Text style={styles.title}>Gender</Text>
-            <Text style={styles.subtitle}>Select Your Gender</Text>
+        <SafeAreaView style={{ flex: 1 }}>
+            <ImageBackground source={bg} style={styles.container}>
+                <Text style={styles.title}>Gender</Text>
+                <Text style={styles.subtitle}>Select Your Gender</Text>
 
-            <View style={styles.optionsContainer}>
-                {genderQuestions.map((genderOption) => (
-                    <TouchableOpacity
-                        key={genderOption._id}
-                        style={[
-                            styles.option,
-                            selectedGender === genderOption._id && styles.selectedOption,
-                        ]}
-                        onPress={() => handleGenderSelection(genderOption, genderQuestionId)}
-                    >
-                        {genderOption.image && (
-                            <Image source={{ uri: genderOption.image }} style={styles.icon} />
-                        )}
-                        <Text
+                <View style={styles.optionsContainer}>
+                    {genderQuestions.map((genderOption) => (
+                        <TouchableOpacity
+                            key={genderOption._id}
                             style={[
-                                styles.optionText,
-                                selectedGender === genderOption._id && styles.selectedOptiontext,
+                                styles.option,
+                                selectedGender === genderOption._id && styles.selectedOption,
                             ]}
+                            onPress={() => handleGenderSelection(genderOption, genderQuestionId)}
                         >
-                            {genderOption.text}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
+                            {genderOption.image && (
+                                <Image source={{ uri: genderOption.image }} style={styles.icon} />
+                            )}
+                            <Text
+                                style={[
+                                    styles.optionText,
+                                    selectedGender === genderOption._id && styles.selectedOptiontext,
+                                ]}
+                            >
+                                {genderOption.text}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
 
-            <TouchableOpacity
-                style={[styles.button, !selectedGender && styles.disabledButton]}
-                disabled={!selectedGender}
-                onPress={() => {
-                    if (selectedGender) {
-                        navigation.navigate('AgeScreen', {
-                            request,
-                            user,
-                            token,
-                            question,
-                        });
-                    }
-                }}
-            >
-                <Text style={styles.buttonText}>Next</Text>
-            </TouchableOpacity>
-        </ImageBackground>
+                <TouchableOpacity
+                    style={[styles.button, !selectedGender && styles.disabledButton]}
+                    disabled={!selectedGender}
+                    onPress={() => {
+                        if (selectedGender) {
+                            navigation.navigate('AgeScreen', {
+                                request,
+                                user,
+                                token,
+                                question,
+                            });
+                        }
+                    }}
+                >
+                    <Text style={styles.buttonText}>Next</Text>
+                </TouchableOpacity>
+            </ImageBackground>
+        </SafeAreaView>
     );
 };
 

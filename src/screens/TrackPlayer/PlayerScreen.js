@@ -10,7 +10,8 @@ import {
   Dimensions,
   StyleSheet,
   SafeAreaView,
-  Pressable
+  Pressable,
+  ActivityIndicator
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useDispatch } from 'react-redux';
@@ -40,12 +41,17 @@ import {
   noThumbnail,
   back,
   userDefault,
-  info
+  info,
+  userBlue,
+  attention
 } from '../../assets/images';
 import theme from '../../themes/theme';
 import InstructorInfo from '../../components/InstructorInfo';
 import { useUserContext } from '../../context/UserProvider';
 import { recordAudioProgress } from '../../functions/recordAudioProgress';
+import { API_URL } from '@env';
+import OptimizedImage from '../../components/OptimizedImage';
+import AnimatedInfoBox from '../../components/AnimatedInfoBox';
 
 const { height, width } = Dimensions.get('window');
 
@@ -75,6 +81,7 @@ const PlayerScreen = ({ route }) => {
   // console.log('====================================');
   const isPlayerSetup = useRef(false);
   const [audioLoading, setAudioLoading] = useState(true);
+  const [isSeeking, setIsSeeking] = useState(false);
 
   // Add logging to debug audio URL issues
   // console.log('=== PlayerScreen Render Debug ===');
@@ -92,6 +99,7 @@ const PlayerScreen = ({ route }) => {
   const [currentRepeats, setCurrentRepeats] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const repeatOptions = [0, 1, 2, 7, 31]; // 0 means off
+  const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
 
   const track = {
     id: `${AudioTitle}-${AudioUrl}-${Date.now()}-${Math.random()}`,
@@ -112,9 +120,10 @@ const PlayerScreen = ({ route }) => {
 
   useTrackPlayerEvents([Event.PlaybackState], (event) => {
     if (event.type === Event.PlaybackState) {
-      if (event.state === PlaybackState.Buffering || event.state === PlaybackState.Loading) {
+      // Only show global loader for full track loads, not for seeking
+      if ((event.state === PlaybackState.Buffering || event.state === PlaybackState.Loading) && !isSeeking) {
         dispatch(startLoading());
-      } else if (event.state === PlaybackState.Ready || event.state === PlaybackState.Playing) {
+      } else if ((event.state === PlaybackState.Ready || event.state === PlaybackState.Playing) && !isSeeking) {
         dispatch(stopLoading());
       } else if (event.state === PlaybackState.Ended) {
         // Handle repeat when track ends
@@ -361,10 +370,23 @@ const PlayerScreen = ({ route }) => {
   }, [shouldFetchTrack, navigationKey, AudioUrl]);
 
   const togglePlayback = async () => {
+    if (isSeeking) return; // Prevent multiple clicks while seeking
+
     if (isPlaying) {
       await TrackPlayer.pause();
     } else {
       await TrackPlayer.play();
+    }
+  };
+
+  const handleSeek = async (value) => {
+    setIsSeeking(true);
+    try {
+      await TrackPlayer.seekTo(value);
+    } catch (error) {
+      console.error('Seek error:', error);
+    } finally {
+      setTimeout(() => setIsSeeking(false), 500);
     }
   };
 
@@ -401,6 +423,34 @@ const PlayerScreen = ({ route }) => {
 
       <View style={styles.blurOverlay} />
 
+      {/* Disclaimer Button to the left of Back Button */}
+      {/* <View style={{ position: 'absolute', left: 10, top: insets.top + 30, flexDirection: 'row', zIndex: 1001 }}>
+        <TouchableOpacity
+          style={{ marginRight: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20, padding: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}
+          onPress={() => setIsDisclaimerVisible(true)}
+        >
+          <Text style={{ color: '#FFF', fontSize: 12, fontWeight: 'bold' }}>Disclaimer</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.backButton]}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 5, right: 10 }}
+        >
+          <Image source={back} style={styles.backIcon} />
+        </TouchableOpacity>
+      </View> */}
+
+      <AnimatedInfoBox
+        isVisible={isDisclaimerVisible}
+        onClose={() => setIsDisclaimerVisible(false)}
+        title="Disclaimer"
+        message={
+          'This audio is for educational and informational purposes only. It is not financial advice. Please consult a professional before making any investment decisions.'
+        }
+        position="center"
+        maxWidth={width * 0.85}
+      />
+
       {/* Back Button */}
       <TouchableOpacity
         style={[styles.backButton, { top: insets.top + 30 }]}
@@ -423,16 +473,34 @@ const PlayerScreen = ({ route }) => {
 
                 <View style={styles.albumArtOverlay}>
                   <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
-                    {InstructorName &&
-                      <Image source={InstructorImage ? InstructorImage : userDefault} style={styles.artistImage} />
-                    }
+                    {/* {InstructorName && */}
+                    <OptimizedImage
+                      uri={InstructorData?.image ? `${API_URL}/${InstructorData.image}` : null}
+                      style={styles.artistImage}
+                      isAvatar={true}
+                      username={InstructorData?.name}
+                      showInitials={true}
+                      fallbackSource={userBlue}
+                      borderRadius={20}
+                      showLoadingIndicator={false}
+                      initialsStyle={{
+                        backgroundColor: 'rgba(29, 172, 255, 0.15)',
+                        borderColor: 'rgba(29, 172, 255, 0.3)',
+                        text: {
+                          fontSize: 12,
+                          color: '#1DACFF',
+                          fontFamily: 'Outfit-Bold',
+                        }
+                      }}
+                    />
+                    {/* } */}
                     <View>
-                      <Text style={styles.artistName}>{InstructorName}</Text>
-                      <Text style={styles.artistRole}>{InstructorTag}</Text>
+                      <Text style={styles.artistName}>{InstructorData?.name}</Text>
+                      <Text style={styles.artistRole}>{InstructorData?.experienceLevel}</Text>
                     </View>
                   </View>
                   <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-                    {InstructorName &&
+                    {InstructorData?.name &&
                       <Image source={info} style={{ width: 20, height: 20, tintColor: '#FFF', marginBottom: 20, marginLeft: 10, }} />
                     }
                   </TouchableOpacity>
@@ -461,7 +529,7 @@ const PlayerScreen = ({ route }) => {
               minimumValue={0}
               maximumValue={progress.duration}
               value={progress.position}
-              onSlidingComplete={async (value) => await TrackPlayer.seekTo(value)}
+              onSlidingComplete={handleSeek}
               minimumTrackTintColor={theme.primaryColor}
               maximumTrackTintColor="#898989"
               thumbTintColor={theme.primaryColor}
@@ -470,14 +538,19 @@ const PlayerScreen = ({ route }) => {
           </View>
 
           <View style={styles.controlsContainer}>
-            <TouchableOpacity style={styles.controlButton1}>
-              <Image source={shuffleIcon} style={{ ...styles.controlIcon, display: "none" }} />
+
+            <TouchableOpacity style={styles.controlButton1}  onPress={() => setIsDisclaimerVisible(true)}>
+              <Image source={attention} style={{ ...styles.controlIcon }} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToPrevious()}>
               <Image source={skip} style={styles.controlIcon} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.playPauseButton} onPress={togglePlayback}>
-              <Image source={isPlaying ? stop : playb} style={styles.playPauseIcon} />
+              {isSeeking ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Image source={isPlaying ? stop : playb} style={styles.playPauseIcon} />
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
               <Image source={next} style={styles.controlIcon} />
@@ -557,12 +630,12 @@ const styles = StyleSheet.create({
   artistName: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
   },
   artistRole: {
     color: '#CCCCCC',
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
   },
   infoContainer: {
     width: '100%',
@@ -570,13 +643,13 @@ const styles = StyleSheet.create({
   courseTitle: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     marginBottom: 5,
   },
   courseDescription: {
     color: '#FFF',
     fontSize: 12,
-    fontFamily: 'Inter-Light-BETA',
+    fontFamily: 'Outfit-Light-BETA',
     lineHeight: 18,
     marginBottom: 10,
   },
@@ -589,7 +662,7 @@ const styles = StyleSheet.create({
   progressTime: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     width: 35,
     textAlign: 'center',
   },
@@ -652,8 +725,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   backIcon: {
-    width: 15,
-    height: 15,
+    width: 10,
+    height: 10,
     tintColor: '#FFFFFF',
     resizeMode: 'contain',
   },
@@ -665,7 +738,7 @@ const styles = StyleSheet.create({
   repeatCountText: {
     color: theme.primaryColor,
     fontSize: 10,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     position: 'absolute',
     top: -8,
     right: -8,

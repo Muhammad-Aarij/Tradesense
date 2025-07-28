@@ -172,8 +172,8 @@ const styles = StyleSheet.create({
         marginBottom: 35,
     },
     avatar: { width: 45, height: 45, borderRadius: 98, marginRight: 10 },
-    greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Inter-Regular' },
-    username: { color: 'white', fontSize: 12, fontFamily: 'Inter-Medium' },
+    greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Outfit-Regular' },
+    username: { color: 'white', fontSize: 12, fontFamily: 'Outfit-Medium' },
     scrollContent: {
         paddingBottom: 20,
     },
@@ -195,13 +195,13 @@ const styles = StyleSheet.create({
     statLabel: {
         color: '#FFF', // Blue for main numbers
         fontSize: 22,
-        fontFamily: "Inter-SemiBold",
+        fontFamily: "Outfit-SemiBold",
         // marginBottom: 5,
     },
     statValue: {
         color: '#CCCCCC',
         fontSize: 10,
-        fontFamily: "Inter-Light-BETA",
+        fontFamily: "Outfit-Light-BETA",
     },
     dailyBreakdownContainer: {
         backgroundColor: '#1C2B3A',
@@ -221,12 +221,12 @@ const styles = StyleSheet.create({
     dailyBreakdownTitle: {
         color: '#FFFFFF',
         fontSize: 18,
-        fontFamily: "Inter-SemiBold",
+        fontFamily: "Outfit-SemiBold",
     },
     dailyBreakdownDate: {
         color: '#AAAAAA',
         fontSize: 12,
-        fontFamily: "Inter-Light-BETA",
+        fontFamily: "Outfit-Light-BETA",
     },
     dailyBreakdownFilter: {
         // backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         color: '#FFF',
         fontSize: 12,
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
     },
     chartContainer: {
         flexDirection: 'row',
@@ -273,13 +273,13 @@ const styles = StyleSheet.create({
     chartFooterValue: {
         color: '#FFFFFF',
         fontSize: 17,
-        fontFamily: "Inter-SemiBold",
+        fontFamily: "Outfit-SemiBold",
         marginBottom: 5,
     },
     chartFooterLabel: {
         color: '#AAAAAA',
         fontSize: 11,
-        fontFamily: "Inter-Light-BETA",
+        fontFamily: "Outfit-Light-BETA",
     },
 
 
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     optionText: {
         color: theme.darkBlue,
         fontSize: 12,
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
     },
 
     dropdownArrow: {

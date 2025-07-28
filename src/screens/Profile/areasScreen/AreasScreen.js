@@ -75,43 +75,46 @@ const AreasScreen = ({ navigation, route }) => {
 
 
     return (
-        <ImageBackground source={bg} style={styles.container}>
-            <Text style={styles.title}>Areas</Text>
-            <Text style={styles.subtitle}>Choose areas you’d like to elevate</Text>
-            <ScrollView contentContainerStyle={styles.tagsWrapper} showsVerticalScrollIndicator={false}>
-                {availableAreas.map((area) => (
-                    <TouchableOpacity
-                        key={area._id}
-                        style={[
-                            styles.tag,
-                            selectedAreas.includes(area._id) && styles.selectedTag,
-                        ]}
-                        onPress={() => toggleArea(area._id)}
-                    >
-                        {!areaImages && <Image
-                            source={selectedAreas.includes(area._id) ? check : uncheck}
-                            style={styles.checkbox}
-                        />}
-                        <Text style={[
-                            styles.tagText,
-                            selectedAreas.includes(area._id) && { color: '#70C2E8' },
-                        ]}>
-                            {area.text}
-                        </Text>
-                        {areaImages && <Image source={{ uri: area.image }} style={styles.goalIcon} />}
+        <SafeAreaView style={{ flex: 1 }}>
+
+            <ImageBackground source={bg} style={styles.container}>
+                <Text style={styles.title}>Areas</Text>
+                <Text style={styles.subtitle}>Choose areas you’d like to elevate</Text>
+                <ScrollView contentContainerStyle={styles.tagsWrapper} showsVerticalScrollIndicator={false}>
+                    {availableAreas.map((area) => (
+                        <TouchableOpacity
+                            key={area._id}
+                            style={[
+                                styles.tag,
+                                selectedAreas.includes(area._id) && styles.selectedTag,
+                            ]}
+                            onPress={() => toggleArea(area._id)}
+                        >
+                            {!areaImages && <Image
+                                source={selectedAreas.includes(area._id) ? check : uncheck}
+                                style={styles.checkbox}
+                            />}
+                            <Text style={[
+                                styles.tagText,
+                                selectedAreas.includes(area._id) && { color: '#70C2E8' },
+                            ]}>
+                                {area.text}
+                            </Text>
+                            {areaImages && <Image source={{ uri: area.image }} style={styles.goalIcon} />}
 
 
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-            <TouchableOpacity
-                style={[styles.button, selectedAreas.length === 0 && styles.disabledButton]}
-                disabled={selectedAreas.length === 0}
-                onPress={handleProfileSetup}
-            >
-                <Text style={styles.buttonText}>Next</Text>
-            </TouchableOpacity>
-        </ImageBackground>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+                <TouchableOpacity
+                    style={[styles.button, selectedAreas.length === 0 && styles.disabledButton]}
+                    disabled={selectedAreas.length === 0}
+                    onPress={handleProfileSetup}
+                >
+                    <Text style={styles.buttonText}>Next</Text>
+                </TouchableOpacity>
+            </ImageBackground>
+        </SafeAreaView>
     );
 };
 

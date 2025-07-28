@@ -235,12 +235,12 @@ const getStyles = (theme) => StyleSheet.create({
     marginTop: verticalScale(15),
     textAlign: "center",
     fontSize: scale(16),
-    fontFamily: "Inter-Medium",
+    fontFamily: "Outfit-Medium",
     color: theme.textColor,
   },
   profileSubtitle: {
     fontSize: scale(14),
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
     color: theme.subTextColor,
     marginTop: verticalScale(1),
     marginBottom: verticalScale(10),
@@ -279,7 +279,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   menuText: {
     fontSize: scale(13),
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
     color: theme.textColor,
   },
   chevronIcon: {

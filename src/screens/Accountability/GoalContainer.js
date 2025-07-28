@@ -78,8 +78,8 @@ export default function GoalContainer({ navigation }) {
         if (!isPremium && goalsData.length >= 5) {
             setSnackbar({
                 visible: true,
-                message: 'Free users can only add up to 5 goals.\n Upgrade to add more.',
                 type: 'error',
+                message: 'Free users can only add up to 5 goals.\n Upgrade to add more.',
             });
         } else {
             navigation.navigate('AddGoal');

@@ -16,10 +16,11 @@ import {
   instagram,
   linkedin,
   twitter,
-  userDefault,
+  userBlue,
 } from '../assets/images';
+import { API_URL } from "@env";
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const getSocialIcon = (platform) => {
   switch (platform) {
@@ -47,7 +48,7 @@ const InstructorInfo = ({
   position = 'center',
   maxWidth = width * 0.8,
 }) => {
-  const { theme } = useContext(ThemeContext);
+  const { theme, isDarkMode } = useContext(ThemeContext);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const slideAnim = useRef(new Animated.Value(-20)).current;
@@ -116,8 +117,8 @@ const InstructorInfo = ({
             {
               opacity: fadeAnim,
               transform: [{ scale: scaleAnim }, { translateY: slideAnim }],
-              backgroundColor: '#080E17',
-              borderColor: '#333333',
+              backgroundColor: !isDarkMode ? "white" : '#080E17',
+              // borderColor: theme.border || '#333333',
               maxWidth,
               ...getPositionStyle(),
             },
@@ -127,40 +128,43 @@ const InstructorInfo = ({
           <View style={styles.content}>
             <View style={styles.artistInfo}>
               <Image
-                source={InstructorImage ? { uri: InstructorImage } : userDefault}
+                source={InstructorImage ? { uri: `${API_URL}/${InstructorImage}` } : userBlue}
                 style={styles.artistImage}
               />
               <View>
-                <Text style={styles.artistName}>{InstructorName || 'Unknown'}</Text>
-                <Text style={styles.artistRole}>{InstructorTag || 'Instructor'}</Text>
+                <Text style={[styles.artistName, { color: theme.text }]}>
+                  {InstructorName || 'Unknown'}
+                </Text>
+                <Text style={[styles.artistRole, { color: theme.textColor || '#CCCCCC' }]}>
+                  {InstructorTag || 'Instructor'}
+                </Text>
               </View>
             </View>
 
-            <Text style={[styles.message, { color: '#CCCCCC' }]}>
+            <Text style={[styles.message, { color: theme.subTextColor || '#CCCCCC' }]}>
               {message}
             </Text>
 
             <View style={styles.socialLinksRow}>
               {Object.entries(instructorLinks).map(([platform, url]) => {
-                console.log('Platform:', platform, 'URL:', url); // 👈 Log platform and link
                 return url ? (
                   <TouchableOpacity
                     key={platform}
                     onPress={() => Linking.openURL(url)}
-                    style={styles.iconButton}
+                    style={[styles.iconButton, { backgroundColor: theme.primayColor }]}
                   >
-                    <Image source={getSocialIcon(platform)} style={styles.socialIcon} />
+                    <Image
+                      source={getSocialIcon(platform)}
+                      style={[styles.socialIcon, { tintColor: theme.primary }]}
+                    />
                   </TouchableOpacity>
                 ) : null;
               })}
             </View>
-
           </View>
 
           {/* Close Button */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeText}>Close</Text>
-          </TouchableOpacity>
+
         </Animated.View>
       </TouchableOpacity>
     </Modal>
@@ -173,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
   },
   infoBox: {
     borderRadius: 16,
@@ -183,8 +187,8 @@ const styles = StyleSheet.create({
     minWidth: 250,
   },
   content: {
-    padding: 20,
-    paddingBottom: 12,
+    padding: 30,
+    // paddingBottom: 12,
   },
   artistInfo: {
     flexDirection: 'row',
@@ -199,34 +203,31 @@ const styles = StyleSheet.create({
     backgroundColor: '#666',
   },
   artistName: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
   },
   artistRole: {
-    color: '#CCCCCC',
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Inter-Regular',
   },
   message: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    lineHeight: 22,
-    marginBottom: 16,
+    lineHeight: 18,
+    // marginBottom: 16,
   },
   socialLinksRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
+    // gap: 2,
+    // marginBottom: 20,
   },
   iconButton: {
-    padding: 5,
+    padding: 7,
   },
   socialIcon: {
     width: 35,
     height: 35,
     resizeMode: 'contain',
-    // tintColor: '#CCCCCC',
   },
   closeButton: {
     alignSelf: 'center',
@@ -234,7 +235,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     width: 200,
-    backgroundColor: '#70C2E8',
     borderWidth: 1,
     marginBottom: 20,
   },
@@ -242,7 +242,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter-Medium',
     textAlign: 'center',
-    color: '#FFFFFF',
   },
 });
 

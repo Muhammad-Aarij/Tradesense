@@ -77,6 +77,19 @@ const PlansScreenDeepLink = () => {
     const [modalIcon, setModalIcon] = useState(null);
     const { isSignedIn, userToken, isProfilingDone } = useSelector(state => state.auth);
 
+     const logVisit = async () => {
+        const result = await trackAffiliateVisit({
+            referrerUserId: affiliateCode,
+            courseId,
+            type: 'enrolled',
+        });
+
+        if (result.error) {
+            console.warn("Affiliate enrolled tracking failed:", result.details || result.error);
+        } else {
+            console.log("Affiliate enrolled successfully");
+        }
+    };
     const handleEnroll = async ({ studentId, courseId, planId }) => {
         console.log("Enrolling with:", studentId, courseId, planId);
 
@@ -125,19 +138,7 @@ const PlansScreenDeepLink = () => {
         }
     };
 
-    const logVisit = async () => {
-        const result = await trackAffiliateVisit({
-            referrerUserId: affiliateCode,
-            courseId,
-            type: 'enrolled',
-        });
-
-        if (result.error) {
-            console.warn("Affiliate enrolled tracking failed:", result.details || result.error);
-        } else {
-            console.log("Affiliate enrolled successfully");
-        }
-    };
+   
 
     const handleCloseModal = () => {
         console.log('🔐 isSignedIn:', isSignedIn);
@@ -206,8 +207,8 @@ const styles = StyleSheet.create({
         marginBottom: 25,
     },
     planCardSelected: { borderColor: theme.primaryColor },
-    planTitle: { color: '#FFFFFF', fontSize: 20, fontFamily: 'Inter-Bold', marginBottom: 10 },
-    planPrice: { color: theme.primaryColor, fontSize: 19, fontFamily: 'Inter-Bold', marginBottom: 15 },
+    planTitle: { color: '#FFFFFF', fontSize: 20, fontFamily: 'Outfit-Bold', marginBottom: 10 },
+    planPrice: { color: theme.primaryColor, fontSize: 19, fontFamily: 'Outfit-Bold', marginBottom: 15 },
     divider: {
         width: '100%',
         marginBottom: 15,
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 15,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
 });
 
