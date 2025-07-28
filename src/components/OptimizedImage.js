@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { noThumbnail } from '../assets/images';
 
-const OptimizedImage = ({ 
-  uri, 
-  style, 
+const OptimizedImage = ({
+  uri,
+  style,
   fallbackSource = noThumbnail,
   showLoadingIndicator = true,
   loadingIndicatorColor = '#6B6B6B',
@@ -13,12 +13,12 @@ const OptimizedImage = ({
   resizeMode = FastImage.resizeMode.cover,
   onLoad,
   onError,
-  // New props for avatar functionality
   isAvatar = false,
   username = '',
   showInitials = true,
   initialsStyle = {},
-  ...props 
+  secureImage = true, // ✅ NEW PROP
+  ...props
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -32,20 +32,18 @@ const OptimizedImage = ({
   const handleError = (error) => {
     setIsLoading(false);
     setHasError(true);
-    // console.log('OptimizedImage error:', error, 'URI:', uri);
     if (onError) onError(error);
   };
 
-  // Ensure HTTPS for iOS App Transport Security
-  const secureUri = uri?.startsWith('http://') ? uri.replace('http://', 'https://') : uri;
+  // ✅ Apply HTTPS only if secureImage is true
+  const secureUri = secureImage && uri?.startsWith('http://')
+    ? uri.replace('http://', 'https://')
+    : uri;
 
-  // Generate initials from username
   const getInitials = (name) => {
     if (!name || typeof name !== 'string') return '';
     const words = name.trim().split(' ');
-    if (words.length === 1) {
-      return words[0].charAt(0).toUpperCase();
-    }
+    if (words.length === 1) return words[0].charAt(0).toUpperCase();
     return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
   };
 
@@ -61,8 +59,8 @@ const OptimizedImage = ({
         onError={handleError}
         {...props}
       />
-      
-      {/* Show initials while loading or on error for avatars */}
+
+      {/* Initials fallback */}
       {isAvatar && showInitials && (isLoading || hasError) && initials && (
         <View style={[styles.initialsContainer, { borderRadius }, initialsStyle]}>
           <Text style={[styles.initialsText, initialsStyle.text]}>
@@ -70,8 +68,8 @@ const OptimizedImage = ({
           </Text>
         </View>
       )}
-      
-      {/* Show loading indicator */}
+
+      {/* Loading indicator */}
       {isLoading && showLoadingIndicator && !(isAvatar && showInitials && initials) && (
         <View style={[styles.loadingContainer, { borderRadius }]}>
           <ActivityIndicator size="small" color={loadingIndicatorColor} />
@@ -104,4 +102,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OptimizedImage; 
+export default OptimizedImage;

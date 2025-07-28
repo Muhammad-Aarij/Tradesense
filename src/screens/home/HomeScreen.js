@@ -102,6 +102,7 @@ const HomeScreen = ({ navigation }) => {
               <OptimizedImage
                 uri={profilePic ? `http://13.61.22.84/${profilePic}` : null}
                 style={styles.avatar}
+                secureImage={false}
                 isAvatar={true}
                 username={name}
                 showInitials={true}
@@ -151,7 +152,7 @@ const HomeScreen = ({ navigation }) => {
                           showLoadingIndicator
                           loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
                         />
-                        
+
 
                         {(
                           <View style={styles.bottomLeftDuration}>

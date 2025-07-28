@@ -57,6 +57,7 @@ const Dashboard = ({ navigation, route }) => {
                 style={styles.avatar}
                 isAvatar={true}
                 username={name}
+                secureImage={false}
                 showInitials={true}
                 fallbackSource={userDefault}
                 borderRadius={22}
