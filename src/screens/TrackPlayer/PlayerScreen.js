@@ -83,6 +83,7 @@ const PlayerScreen = ({ route }) => {
   const isPlayerSetup = useRef(false);
   const [audioLoading, setAudioLoading] = useState(true);
   const [isSeeking, setIsSeeking] = useState(false);
+  const [loadingTimeout, setLoadingTimeout] = useState(null);
 
   // Add logging to debug audio URL issues
   // console.log('=== PlayerScreen Render Debug ===');
@@ -124,9 +125,29 @@ const PlayerScreen = ({ route }) => {
       // Only show global loader for full track loads, not for seeking
       if ((event.state === PlaybackState.Buffering || event.state === PlaybackState.Loading) && !isSeeking) {
         dispatch(startLoading());
+        
+        // Set a 3-second timeout for loading
+        const timeout = setTimeout(() => {
+          console.log('Audio loading timeout - going back to previous screen');
+          dispatch(stopLoading());
+          navigation.goBack();
+        }, 3000);
+        
+        setLoadingTimeout(timeout);
       } else if ((event.state === PlaybackState.Ready || event.state === PlaybackState.Playing) && !isSeeking) {
+        // Clear timeout if loading completes successfully
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+          setLoadingTimeout(null);
+        }
         dispatch(stopLoading());
       } else if (event.state === PlaybackState.Ended) {
+        // Clear timeout when track ends
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+          setLoadingTimeout(null);
+        }
+        
         // Handle repeat when track ends
         if (repeatCount > 0 && currentRepeats < repeatCount) {
           handleTrackEnded();
@@ -137,6 +158,15 @@ const PlayerScreen = ({ route }) => {
       }
     }
   });
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
+    };
+  }, [loadingTimeout]);
 
   const handleTrackEnded = async () => {
     try {

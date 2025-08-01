@@ -7,7 +7,7 @@ import {
 import { bg, lock, tick, } from '../../../assets/images';
 import theme from '../../../themes/theme';
 import ConfirmationModal from '../../../components/ConfirmationModal';
-import { verifyOTP } from '../../../functions/otpService';
+import { sendOTP, verifyOTP } from '../../../functions/otpService';
 import registerUser from '../../../functions/registerUser';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
@@ -19,15 +19,59 @@ const EmailVerification = ({ navigation, route }) => {
     const email = route.params?.email || "";
     const reset = route.params?.reset || false;
     const token = route.params?.token || "";
+    // console.log("Token in the params in email verification ", token);
+
+    const [timer, setTimer] = useState(20);
     const userData = route.params?.userData || null;
     const status = route.params?.status || "";
     const dispatch = useDispatch();
+
+    const [updatedToken, setUpdatedToken] = useState(token);
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarType, setSnackbarType] = useState('error'); // or 'success'
 
     const [code, setCode] = useState(['', '', '', '']);
     const inputs = useRef([]);
+    React.useEffect(() => {
+        let interval;
+        if (timer > 0) {
+            interval = setInterval(() => {
+                setTimer(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [timer]);
+
+    const handleResendOTP = async () => {
+        setTimer(20); // Restart timer immediately for better UX
+        dispatch(startLoading());
+
+        try {
+            // Step 2: Send OTP
+            const otpResponse = await sendOTP(email, false);
+
+            // console.log("Reset email sent:", resetResponse);
+            console.log("OTP Response:", otpResponse);
+
+            dispatch(stopLoading());
+            showSnackbar("OTP has been resent", "success");
+
+            // Navigate to verification screen with updated token
+            navigation.navigate("EmailVerification", {
+                email: email,
+                status: "forget",
+                token: updatedToken,
+            });
+
+        } catch (error) {
+            dispatch(stopLoading());
+            console.error("Error during verification:", error);
+            showSnackbar("Something went wrong. Please try again.", "error");
+        }
+    };
+
+
 
     const handleChange = (text, index) => {
         if (!/^[a-zA-Z0-9]*$/.test(text)) return; // Allow only alphanumeric characters
@@ -178,7 +222,34 @@ const EmailVerification = ({ navigation, route }) => {
                     <Text style={styles.subtitle}>
                         Enter the verification code we just sent to your email address.
                     </Text>
-                    <Text style={styles.email}>{email}</Text>
+                    {/* <Text style={styles.email}>{email}</Text> */}
+
+
+                    <View style={{
+                        flexDirection: "row", gap: 2,
+                    }}>
+                        <Text style={styles.subtitle}>
+                            Didn't receive the OTP ?
+                        </Text>
+
+                        <TouchableOpacity
+                            onPress={handleResendOTP}
+                            disabled={timer > 0} // Disable button during countdown
+                        >
+                            <Text
+                                style={[
+                                    styles.subtitle,
+                                    {
+                                        textDecorationLine: "underline",
+                                        color: timer > 0 ? "#999" : theme.primaryColor, // Gray when disabled
+                                    },
+                                ]}
+                            >
+                                {timer > 0 ? `Resend in ${timer}s` : "Resend OTP"}
+                            </Text>
+                        </TouchableOpacity>
+
+                    </View>
 
                     <View style={styles.codeContainer}>
                         {code.map((digit, index) => (
@@ -266,6 +337,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
+        marginTop: 20,
         marginBottom: height * 0.03,
         gap: width * 0.025,
     },

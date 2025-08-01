@@ -23,9 +23,12 @@ import {
   user,
   shuffleIcon,
   playb,
-  noThumbnail
+  noThumbnail,
+  back
 } from '../../assets/images';
 import theme from '../../themes/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 const { height } = Dimensions.get('window');
 
@@ -38,15 +41,17 @@ const VideoPlayerScreen = ({ route }) => {
   const [progress, setProgress] = useState({ currentTime: 0, duration: 0 });
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
 
   useEffect(() => {
     console.log('VideoUrl', VideoUrl);
     // Stop any playing audio when video starts
-    TrackPlayer.stop().catch(() => {});
+    TrackPlayer.stop().catch(() => { });
     const timer = setTimeout(() => {
       setPaused(false);
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -110,6 +115,14 @@ const VideoPlayerScreen = ({ route }) => {
   return (
     <ImageBackground source={{ uri: Thumbnail ?? noThumbnail }} style={styles.container}>
       <View style={styles.blurOverlay} />
+      {/* Back Button */}
+      <TouchableOpacity
+        style={[styles.backButton, { top: insets.top + 30 }]}
+        onPress={() => navigation.goBack()}
+        hitSlop={{ top: 10, bottom: 10, left: 5, right: 10 }}
+      >
+        <Image source={back} style={styles.backIcon} />
+      </TouchableOpacity>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         <View style={styles.albumArtContainer}>
@@ -178,13 +191,13 @@ const VideoPlayerScreen = ({ route }) => {
         </View>
 
         <View style={styles.controlsContainer}>
-          <TouchableOpacity 
-            style={styles.controlButton1} 
+          <TouchableOpacity
+            style={styles.controlButton1}
             onPress={() => setMuted(!muted)}
           >
-            <Image 
-              source={shuffleIcon} 
-              style={[styles.controlIcon, { opacity: muted ? 0.5 : 1 }]} 
+            <Image
+              source={shuffleIcon}
+              style={[styles.controlIcon, { opacity: muted ? 0.5 : 1 }]}
             />
           </TouchableOpacity>
 
@@ -192,14 +205,14 @@ const VideoPlayerScreen = ({ route }) => {
             <Image source={skip} style={styles.controlIcon} />
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.playPauseButton, { opacity: videoLoaded ? 1 : 0.5 }]} 
+          <TouchableOpacity
+            style={[styles.playPauseButton, { opacity: videoLoaded ? 1 : 0.5 }]}
             onPress={togglePlayback}
             disabled={!videoLoaded}
           >
-            <Image 
-              source={paused ? playb : stop} 
-              style={styles.playPauseIcon} 
+            <Image
+              source={paused ? playb : stop}
+              style={styles.playPauseIcon}
             />
           </TouchableOpacity>
 
@@ -219,7 +232,7 @@ const VideoPlayerScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems:"center",
+    alignItems: "center",
     justifyContent: "center",
     padding: 30,
     paddingBottom: 0,
@@ -231,7 +244,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: 'center',
     justifyContent: "center",
-    flex:1,
+    flex: 1,
     // borderWidth:3,
     // borderColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -369,6 +382,27 @@ const styles = StyleSheet.create({
   playPauseIcon: {
     width: 20,
     height: 20,
+    tintColor: '#FFFFFF',
+    resizeMode: 'contain',
+  },
+
+
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    zIndex: 1000,
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  backIcon: {
+    width: 10,
+    height: 10,
     tintColor: '#FFFFFF',
     resizeMode: 'contain',
   },

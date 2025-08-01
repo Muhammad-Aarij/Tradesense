@@ -289,7 +289,9 @@ const getStyles = (theme) => StyleSheet.create({
         color: theme.textColor,
         fontSize: 12,
         fontFamily: 'Outfit-Medium',
-        marginBottom: 2
+        marginBottom: 2,
+        textTransform: "capitalize",
+
     },
     audioDuration: {
         color: theme.subTextColor,

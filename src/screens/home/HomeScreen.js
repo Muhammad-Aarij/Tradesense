@@ -405,7 +405,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
 
-          <DailyBreakdownChart />
+          <DailyBreakdownChart navigation={navigation} />
           {/* <TopBreakdownChart /> */}
         </ScrollView>
       </SafeAreaView>

@@ -11,7 +11,9 @@ const { height, width } = Dimensions.get('window');
 
 export default function HomeSplash({ navigation }) {
     const dispatch = useDispatch();
-    const { isSignedIn, userToken, isProfilingDone } = useSelector(state => state.auth);
+    const { isSignedIn, userToken, userObject } = useSelector(state => state.auth);
+    const name = useSelector((state) => state.auth.userObject?.name);
+
     const isLoading = useSelector(state => state.loading);
 
     const [welcomeData, setWelcomeData] = useState(null);
@@ -49,7 +51,7 @@ export default function HomeSplash({ navigation }) {
         <ImageBackground source={bg} style={styles.container}>
             <SafeAreaView style={styles.safeArea}>
                 <Image source={logoWhite} style={styles.logo} />
-                <Text style={styles.welcomeTitle}>{welcomeData.title.replace('{{user}}', 'Alwin')}</Text>
+                <Text style={styles.welcomeTitle}>{welcomeData.title.replace('{{user}}', name)}</Text>
                 <Text style={styles.welcomeSubtitle}>{welcomeData.description}</Text>
 
                 <View style={styles.featureList}>
@@ -138,7 +140,7 @@ const styles = StyleSheet.create({
     },
     featureTitle: {
         fontFamily: 'Outfit-Medium',
-        
+
         fontSize: width * 0.035, // Feature title size
         color: '#FFFFFF',
         marginBottom: height * 0.005,

@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView
+    View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView,
+    Touchable
 } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { ThemeContext } from '../context/ThemeProvider';
@@ -16,6 +17,7 @@ const DailyBreakdownChart = ({
     title = "Daily Breakdown",
     defaultFilter = 'Daily',
     type = 'habit',
+    navigation, // Add navigation prop
 }) => {
     const { theme } = useContext(ThemeContext);
     const scrollRef = useRef(null);
@@ -237,7 +239,17 @@ const DailyBreakdownChart = ({
                             <View style={styles.decorativeCircle1} />
                             <View style={styles.decorativeCircle2} />
 
-                            <View style={styles.noDataContentContainer}>
+                            <TouchableOpacity
+                                style={styles.noDataContentContainer}
+                                onPress={() => {
+                                    if (type === 'affiliate') {
+                                        navigation?.navigate('Goals');
+                                    } else {
+                                        navigation?.navigate('Goals');
+                                    }
+                                }}
+                                activeOpacity={0.7}
+                            >
                                 <View
                                     style={styles.noDataIconContainer}
                                 >
@@ -263,7 +275,7 @@ const DailyBreakdownChart = ({
 
                                 {/* <View style={styles.inspirationalContainer}>
                                     <LinearGradient
-                                        start={{ x: 0, y: 0 }} 
+                                        start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 0 }}
                                         colors={[theme.primaryColor + '80', theme.primaryColor + '40']}
                                         style={styles.motivationalBadge}>
@@ -289,12 +301,25 @@ const DailyBreakdownChart = ({
                                         }
                                     </Text>
                                 </View>
-                            </View>
+
+                                <TouchableOpacity
+                                    style={styles.submitButton}
+                                    onPress={() => {
+                                        type === "affiliate"
+                                            ? navigation.navigate("CoursesStack")
+                                            : navigation.navigate("AddGoal");
+                                    }}
+                                >
+                                    <  Text style={styles.submitButtonText}>
+                                        Start Now
+                                    </Text>
+                                </TouchableOpacity>
+                            </TouchableOpacity>
                         </LinearGradient>
                     </View>
                 )}
             </View>
-        </LinearGradient>
+        </LinearGradient >
     );
 };
 
@@ -321,7 +346,7 @@ const getStyles = (theme) =>
             color: theme.subTextColor,
             fontSize: 16,
             fontFamily: 'Outfit-Black',
-            marginBottom:4,
+            marginBottom: 4,
         },
         dailyBreakdownDate: {
             color: theme.subTextColor,
@@ -397,7 +422,8 @@ const getStyles = (theme) =>
         },
         noDataContentContainer: {
             alignItems: 'center',
-            paddingVertical: 40,
+            paddingTop: 40,
+            paddingBottom: 20,
             paddingHorizontal: 20,
             minHeight: 280,
         },
@@ -490,7 +516,7 @@ const getStyles = (theme) =>
         },
         motivationalText: {
             color: '#FFFFFF',
-            fontSize: 13,
+            fontSize: 12,
             fontFamily: 'Outfit-SemiBold',
             textAlign: 'center',
             letterSpacing: 0.2,
@@ -527,6 +553,19 @@ const getStyles = (theme) =>
             opacity: 0.9,
             flex: 1,
             letterSpacing: 0.1,
+        },
+        submitButton: {
+            backgroundColor: theme.primaryColor,
+            width: "50%",
+            padding: 12,
+            borderRadius: 14,
+            marginTop: 20,
+            alignItems: "center",
+        },
+        submitButtonText: {
+            color: "#fff",
+            fontSize: 13,
+            fontFamily: "Outfit-SemiBold",
         },
     });
 

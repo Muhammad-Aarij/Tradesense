@@ -200,7 +200,7 @@ const AffiliateCoursesScreen = () => {
                                     </LinearGradient>
                                 </View>
 
-                                <DailyBreakdownChart type='affiliate' />
+                                <DailyBreakdownChart type='affiliate' navigation={navigation} />
                             </>
                         )}
                         renderItem={renderItem}

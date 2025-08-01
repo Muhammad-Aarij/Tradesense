@@ -196,7 +196,7 @@ const PurchasedCoursesScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingBottom: height * 0.11,
+        // paddingBottom: height * 0.11,
     },
     listContent: {
         paddingHorizontal: 20,
@@ -227,13 +227,13 @@ const styles = StyleSheet.create({
         fontSize: 36,
     },
     emptyStateTitle: {
-        fontSize: 22,
+        fontSize: 18,
         fontFamily: 'Outfit-SemiBold',
         textAlign: 'center',
         marginBottom: 12,
     },
     emptyStateDescription: {
-        fontSize: 15,
+        fontSize: 12,
         fontFamily: 'Outfit-Regular',
         textAlign: 'center',
         lineHeight: 22,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     },
     exploreButtonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 13,
         fontWeight: '600',
         fontFamily: 'Outfit-SemiBold',
     },

@@ -34,6 +34,7 @@ const ResetPassword = ({ navigation, route }) => {
 
     const dispatch = useDispatch();
     const token = route.params?.token || '';
+    console.log("Token in the params", token);
 
     const showSnackbar = (message, type = 'error') => {
         setSnackbarMessage(message);
@@ -57,6 +58,8 @@ const ResetPassword = ({ navigation, route }) => {
         try {
             dispatch(startLoading());
             const response = await resetPassword(token, newPassword);
+            console.log("Token in the Reset ", token);
+            console.log("Reset Response", response.data);
             dispatch(stopLoading());
             setModalText('Your password has been reset successfully!');
             setModalVisible(true);

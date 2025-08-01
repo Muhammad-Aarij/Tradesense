@@ -147,12 +147,13 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        fontFamily: 'Inter-SemiBold',
+        marginBottom:5,
+        fontFamily: 'Outfit-Medium',
         color: '#FFFFFF',
     },
     subtitle: {
-        fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontSize: 11,
+        fontFamily: 'Outfit-Regular',
         color: '#FFFFFF',
         marginBottom: 20,
     },
@@ -186,13 +187,13 @@ const styles = StyleSheet.create({
     },
     optionText: {
         color: '#FFFFFF',
-        fontSize: 16,
-        fontFamily: 'Inter-Medium',
+        fontSize: 13,
+        fontFamily: 'Outfit-Regular',
     },
     selectedOptiontext: {
         color: theme.primaryColor,
-        fontSize: 16,
-        fontFamily: 'Inter-Medium',
+        fontSize: 14,
+        fontFamily: 'Outfit-Regular',
     },
     button: {
         backgroundColor: theme.primaryColor,
@@ -208,8 +209,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
 });
 

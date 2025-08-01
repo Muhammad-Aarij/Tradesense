@@ -14,6 +14,7 @@ const { width: screenWidth } = Dimensions.get('window'); // Renamed to avoid cla
 const TopBreakdownChart = ({
     title = "Performance Overview", // Default title
     defaultFilter = 'Daily',
+    navigation, // Add navigation prop
 }) => {
     const { theme } = useContext(ThemeContext);
 
@@ -405,7 +406,11 @@ const TopBreakdownChart = ({
                             <View style={styles.decorativeCircle1} />
                             <View style={styles.decorativeCircle2} />
 
-                            <View style={styles.noDataContentContainer}>
+                            <TouchableOpacity 
+                                style={styles.noDataContentContainer}
+                                onPress={() => navigation?.navigate('Acc_FormData')}
+                                activeOpacity={0.7}
+                            >
                                 <View
                                     style={styles.noDataIconContainer}
                                 >
@@ -434,7 +439,7 @@ const TopBreakdownChart = ({
                                         Plant the seeds of success with your first habit today
                                     </Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         </LinearGradient>
                     </View>
                 )}

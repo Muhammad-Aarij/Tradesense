@@ -152,7 +152,7 @@ export default function Accountability({ navigation }) {
           </View>
         </LinearGradient>
 
-        <DailyBreakdownChart />
+        <DailyBreakdownChart navigation={navigation} />
 
         {/* Success Tracker */}
         <View style={styles.successTrackerHeader}>

@@ -283,7 +283,8 @@ const getStyles = (theme) => StyleSheet.create({
     audioTitle: {
         color: theme.textColor,
         fontSize: 13,
-        fontFamily: 'Outfit-Medium'
+        fontFamily: 'Outfit-Medium',
+        textTransform: "capitalize",
     },
     audioDuration: {
         color: theme.subTextColor,
@@ -296,7 +297,7 @@ const getStyles = (theme) => StyleSheet.create({
         fontFamily: 'Outfit-Light',
         fontSize: 10,
         lineHeight: 13,
-        textTransform: "capitalize",
+        textTransform: "none",
     },
     buyNowButton: {
         width: '100%',

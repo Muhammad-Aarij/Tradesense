@@ -26,6 +26,7 @@ const AgeScreen = ({ navigation, route }) => {
     const [selectedAge, setSelectedAge] = useState(null);
     const [ageQuestion, setAgeQuestion] = useState(null);
 
+    console.log("Age Questions ", ageQuestion);
     useEffect(() => {
         if (Array.isArray(question)) {
             const ageObj = question.find((item) =>
@@ -81,6 +82,7 @@ const AgeScreen = ({ navigation, route }) => {
                     <View style={styles.optionsContainer}>
                         {(ageQuestion?.questions || []).map((ageOption) => {
                             const isSelected = selectedAge?._id === ageOption._id;
+                            console.log(ageOption.image)
                             return (
                                 <TouchableOpacity
                                     key={ageOption._id}
@@ -90,6 +92,7 @@ const AgeScreen = ({ navigation, route }) => {
                                     ]}
                                     onPress={() => handleAgeSelection(ageOption)}
                                 >
+                                    <Image style={{ width: 38, height: 40, resizeMode: "contain" }} source={{ uri: ageOption.image }} />
                                     <Text
                                         style={[
                                             styles.optionText,
@@ -130,13 +133,14 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-Medium',
         color: '#FFFFFF',
         marginTop: 50,
+        marginBottom: 5,
     },
     subtitle: {
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         color: '#FFFFFF',
         marginBottom: 20,
         textAlign: 'center',
@@ -152,9 +156,9 @@ const styles = StyleSheet.create({
     option: {
         width: '100%',
         backgroundColor: '#0d151e',
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         borderRadius: 8,
-        paddingVertical: 13,
+        paddingVertical: 10,
         borderWidth: 0.8,
         borderColor: theme.borderColor,
         flexDirection: 'row',
@@ -166,10 +170,10 @@ const styles = StyleSheet.create({
         borderColor: theme.primaryColor,
     },
     optionText: {
-        fontSize: 18,
+        fontSize: 14,
         color: '#FFFFFF',
-        fontFamily: 'Inter-Medium',
-        marginLeft: 13,
+        fontFamily: 'Outfit-Medium',
+        marginLeft: 5,
     },
     button: {
         backgroundColor: theme.primaryColor,
@@ -186,8 +190,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
 });
 

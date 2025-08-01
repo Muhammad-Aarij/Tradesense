@@ -60,7 +60,9 @@ const GoalsScreen = ({ navigation, route }) => {
 
     const handleSelect = (optionId) => {
         const qId = currentQuestion._id;
-        const isSingleChoice = currentQuestion.title?.trim().toLowerCase() === 'trading experience' || "rate your current trading consistency";
+        const isSingleChoice =
+            currentQuestion.title?.trim().toLowerCase() === 'trading experience' ||
+            currentQuestion.title?.trim().toLowerCase() === 'rate your current trading consistency';
 
         setSelectedOptionsMap(prev => {
             const selected = prev[qId] || [];

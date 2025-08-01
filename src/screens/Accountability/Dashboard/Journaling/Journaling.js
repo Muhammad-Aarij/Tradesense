@@ -396,7 +396,12 @@ const Journaling = ({ navigation }) => {
                             <TouchableOpacity
                                 key={index}
                                 style={[styles.dayButton, isActive && styles.dayButtonActive]}
-                                onPress={() => handleMoodSelect(item.value)}
+                                // onPress={() => handleMoodSelect(item.value)}
+                                onLongPress={() => {
+                                    // Long press to change mood without modal
+                                    handleMoodSelect(item.value);
+                                }}
+                                delayLongPress={1000}
                             >
                                 <Text style={[styles.dayButtonDate, isActive && styles.dayButtonDateActive]}>
                                     {item.emoji}

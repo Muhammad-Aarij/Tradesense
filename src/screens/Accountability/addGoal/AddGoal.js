@@ -297,7 +297,7 @@ const getStyles = (theme) => StyleSheet.create({
     color: "#fff",
     fontSize: 17,
     fontWeight: "600",
-    fontFamily: "Inter-SemiBold",
+    fontFamily: "Outfit-SemiBold",
   },
 });
 
