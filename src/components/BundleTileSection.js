@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Bundle from './Bundle';
 
-const BundleTileSection = ({ title, description, imageSource, locked, type, url, duration }) => {
+const BundleTileSection = ({ title, description, imageSource, locked, type, url, duration,pillar }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -30,6 +30,7 @@ const BundleTileSection = ({ title, description, imageSource, locked, type, url,
       description={description}
       imageSource={imageSource}
       locked={locked}
+      pillar={pillar}
       duration={duration}
       type={type}
       onPress={handlePress}

@@ -43,7 +43,8 @@ import {
   userDefault,
   info,
   userBlue,
-  attention
+  attention,
+  louise
 } from '../../assets/images';
 import theme from '../../themes/theme';
 import InstructorInfo from '../../components/InstructorInfo';
@@ -475,12 +476,16 @@ const PlayerScreen = ({ route }) => {
                   <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
                     {/* {InstructorName && */}
                     <OptimizedImage
-                      uri={InstructorData?.image ? `${API_URL}/${InstructorData.image}` : null}
+                      uri={
+                        InstructorData?.image?.trim()
+                          ? `${API_URL}/${InstructorData.image}`
+                          : null
+                      }
                       style={styles.artistImage}
                       isAvatar={true}
                       username={InstructorData?.name}
                       showInitials={true}
-                      fallbackSource={userBlue}
+                      fallbackSource={louise}
                       borderRadius={20}
                       showLoadingIndicator={false}
                       initialsStyle={{
@@ -490,12 +495,15 @@ const PlayerScreen = ({ route }) => {
                           fontSize: 12,
                           color: '#1DACFF',
                           fontFamily: 'Outfit-Bold',
-                        }
+                        },
                       }}
                     />
+
                     {/* } */}
                     <View>
-                      <Text style={styles.artistName}>{InstructorData?.name}</Text>
+                      <Text style={styles.artistName}>
+                        {InstructorData?.name?.trim() ? InstructorData.name : "Louise Nonweiler"}
+                      </Text>
                       <Text style={styles.artistRole}>{InstructorData?.experienceLevel}</Text>
                     </View>
                   </View>
@@ -539,7 +547,7 @@ const PlayerScreen = ({ route }) => {
 
           <View style={styles.controlsContainer}>
 
-            <TouchableOpacity style={styles.controlButton1}  onPress={() => setIsDisclaimerVisible(true)}>
+            <TouchableOpacity style={styles.controlButton1} onPress={() => setIsDisclaimerVisible(true)}>
               <Image source={attention} style={{ ...styles.controlIcon }} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToPrevious()}>

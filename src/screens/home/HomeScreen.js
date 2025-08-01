@@ -20,6 +20,7 @@ import {
   bellWhite,
   audioNew,
   videoNew,
+  louise,
   quot,
 } from '../../assets/images';
 import { ThemeContext } from '../../context/ThemeProvider';
@@ -30,6 +31,9 @@ import { useHome } from '../../functions/homeApi';
 import moment from 'moment';
 import DailyBreakdownChart from '../../components/DailyBreakdownChart';
 import OptimizedImage from '../../components/OptimizedImage';
+import { getUserNotifications } from '../../functions/notifications';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import ProfileImage from '../../components/ProfileImage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -45,6 +49,16 @@ const HomeScreen = ({ navigation }) => {
   const userId = useSelector((state) => state.auth.userObject?._id);
   const name = useSelector((state) => state.auth.userObject?.name);
 
+  const queryClient = useQueryClient();
+  const {
+    data: notifications,
+    isLoadingNotifications,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ['notifications', userId],
+    queryFn: () => getUserNotifications(userId),
+  });
   const { data: homeData } = useHome(userId);
   const logs = homeData?.logs ?? [];
   const currentDayIndex = moment().day(); // Get current day index (0 for Sunday, 1 for Monday, etc.)
@@ -99,26 +113,15 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.header}>
             {/* Make sure `profilePic` is a string or undefined */}
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <OptimizedImage
-                uri={profilePic ? `http://13.61.22.84/${profilePic}` : null}
-                style={styles.avatar}
-                secureImage={false}
-                isAvatar={true}
-                username={name}
-                showInitials={true}
-                fallbackSource={userDefault}
+              <ProfileImage
+                uri={profilePic ? `${profilePic}` : null}
+                name={name}
+                size={44}
                 borderRadius={22}
-                showLoadingIndicator={false}
-                initialsStyle={{
-                  backgroundColor: 'rgba(29, 172, 255, 0.15)',
-                  borderColor: 'rgba(29, 172, 255, 0.3)',
-                  text: {
-                    fontSize: 14,
-                    color: theme.primaryColor,
-                    fontFamily: 'Outfit-Bold',
-                  }
-                }}
+                style={{ marginRight: 10 }}
+                textStyle={{ fontSize: 14, color: theme.primaryColor }}
               />
+
               <View>
                 <Text style={styles.username}>{safeText(name)}</Text>
                 <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
@@ -428,7 +431,7 @@ const getStyles = (theme) =>
     avatar: { width: 40, height: 40, borderRadius: 98, marginRight: 10 },
     bell: { width: 35, height: 35, resizeMode: 'contain', alignSelf: 'center' },
     greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Inter-Regular' },
-    username: { color: theme.textColor, fontSize: 11, fontFamily: 'Inter-Medium' },
+    username: { color: theme.textColor, fontSize: 11, fontFamily: 'Inter-Medium', textTransform: "capitalize" },
     section: {
       width: '100%',
       borderRadius: 10,
@@ -520,8 +523,8 @@ const getStyles = (theme) =>
     },
     tagIcon: {
       tintColor: "white",
-      width: 13,
-      height: 13,
+      width: 11,
+      height: 11,
       resizeMode: 'contain',
     },
     bottomLeftDuration: {
@@ -529,7 +532,7 @@ const getStyles = (theme) =>
       bottom: 6,
       left: 6,
       flexDirection: "row",
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 6,

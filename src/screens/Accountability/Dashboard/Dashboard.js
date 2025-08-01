@@ -17,6 +17,7 @@ import { useSelector } from 'react-redux';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { useFocusEffect } from '@react-navigation/native';
 import OptimizedImage from '../../../components/OptimizedImage';
+import ProfileImage from '../../../components/ProfileImage';
 
 const Dashboard = ({ navigation, route }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
@@ -52,25 +53,13 @@ const Dashboard = ({ navigation, route }) => {
           {/* Header */}
           <View style={styles.header}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <OptimizedImage
-                uri={profilePic ? `http://13.61.22.84/${profilePic}` : null}
-                style={styles.avatar}
-                isAvatar={true}
-                username={name}
-                secureImage={false}
-                showInitials={true}
-                fallbackSource={userDefault}
+              <ProfileImage
+                uri={profilePic ? `${profilePic}` : null}
+                name={name}
+                size={44}
                 borderRadius={22}
-                showLoadingIndicator={false}
-                initialsStyle={{
-                  backgroundColor: 'rgba(29, 172, 255, 0.15)',
-                  borderColor: 'rgba(29, 172, 255, 0.3)',
-                  text: {
-                    fontSize: 14,
-                    color: theme.primaryColor,
-                    fontFamily: 'Outfit-Bold',
-                  }
-                }}
+                style={{ marginRight: 10 }}
+                textStyle={{ fontSize: 14, color: theme.primaryColor }}
               />
               <View>
                 <Text style={styles.username}>{name}</Text>
@@ -126,15 +115,13 @@ const getStyles = (theme) =>
       borderRadius: 88,
       marginRight: 10,
     },
-    greeting: {
-      color: theme.primaryColor,
-      fontSize: 12,
-      fontFamily: 'Outfit-Regular',
-    },
+    greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Inter-Regular' },
+
     username: {
       color: theme.textColor,
       fontSize: 12,
       fontFamily: 'Outfit-Medium',
+      textTransform: "capitalize",
     },
     bellIcon: { width: 35, height: 35, resizeMode: "contain", alignSelf: 'center' },
 

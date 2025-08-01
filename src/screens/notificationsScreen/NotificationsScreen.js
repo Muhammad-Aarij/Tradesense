@@ -21,7 +21,6 @@ import { stopLoading, startLoading } from '../../redux/slice/loaderSlice';
 
 
 const NotificationsScreen = () => {
-    const navigation = useNavigation();
     const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
     const dispatch = useDispatch();

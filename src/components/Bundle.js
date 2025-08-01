@@ -4,7 +4,7 @@ import { audioNew, lockicon, videoNew } from '../assets/images';
 import { ThemeContext } from '../context/ThemeProvider';
 import OptimizedImage from './OptimizedImage';
 
-const Bundle = ({ imageSource, title, description, locked, onPress, type, duration }) => {
+const Bundle = ({ imageSource, title, description, locked, onPress, type, duration, pillar }) => {
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
 
@@ -20,26 +20,16 @@ const Bundle = ({ imageSource, title, description, locked, onPress, type, durati
         />
         <View style={styles.shadowOverlay} />
 
-
-        {/* Top Left - Type Label */}
-        <View style={styles.overlayIcon}>
-          <Image
-            source={type === 'audio' ? audioNew : videoNew}
-            style={{ width: 15, height: 15, resizeMode: "contain" }}
-          />
-          <Text style={{
-            fontSize: 9,
-            fontFamily: "Outfit-Medium",
-            color: 'rgba(255, 255, 255, 0.64)',
-            borderRadius: 10,
-          }}>
-            {type === 'audio' ? 'Audio' : 'Video'}
-          </Text>
-        </View>
-
-        {/* Bottom Left - Time */}
-        <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>{duration} </Text>
+        <View style={styles.bottomContent}>
+          <View style={{ flexDirection: "row", backgroundColor: 'rgba(199, 199, 199, 0.38)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, marginBottom: 5, alignItems: "center", }}>
+            <Image
+              source={type === 'audio' ? audioNew : videoNew}
+              style={{ width: 10, height: 10, resizeMode: "contain", marginRight: 5, tintColor: "white" }}
+            />
+            <Text style={{
+              fontSize: 9, fontFamily: "Outfit-Medium", color: "white",
+            }}>{duration}  | {pillar}</Text>
+          </View>
         </View>
 
         {/* Lock Icon */}
@@ -68,9 +58,18 @@ const getStyles = (theme) => StyleSheet.create({
   thumbnailWrapper: {
     position: 'relative',
   },
+  bottomContent: {
+    position: "absolute",
+    bottom: 5,
+    left: 7,
+    width: "85%",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
+  },
   shadowOverlay: {
     position: 'absolute',
-    bottom: 0,
+    // bottom: 0,
     height: "100%",
     width: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.4)',

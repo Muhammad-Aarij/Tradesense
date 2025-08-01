@@ -211,7 +211,7 @@ export default function Accountability({ navigation }) {
           )}
         </View>
       </ScrollView>
-          <SnackbarMessage position='bottom' visible={snackbar.visible} message={snackbar.text} type={snackbar.type} />
+          <SnackbarMessage visible={snackbar.visible} message={snackbar.text} type={snackbar.type} />
     </SafeAreaView>
   );
 }

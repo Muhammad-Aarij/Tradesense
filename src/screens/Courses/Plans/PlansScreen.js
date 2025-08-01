@@ -1,16 +1,16 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
-    Dimensions, SafeAreaView
+    Dimensions, SafeAreaView, Alert, ActivityIndicator
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { bg, CheckMark, tick } from '../../../assets/images';
+import { bg, CheckMark, tick, fail } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import ConfirmationModal from '../../../components/ConfirmationModal';
-import { enrollInCourse } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { useSubscriptionContext } from '../../../context/SubscriptionProvider';
 
 const { height } = Dimensions.get('window');
 
@@ -23,11 +23,12 @@ const PlanCard = ({
     studentId,
     onPress,
     isSelected,
-    onEnroll,
+    onPurchase,
     styles,
-    theme // ✅ receive theme here
-
-}) => (
+    theme,
+    isLoading = false,
+    packageeToPurchase = null
+}) =>
     <TouchableOpacity
         style={[styles.planCard, isSelected && styles.planCardSelected]}
         onPress={onPress}
@@ -38,7 +39,6 @@ const PlanCard = ({
             <Text style={styles.planPrice}>${price}</Text>
         </View>
         <View style={styles.divider} />
-        {/* <Text style={styles.description}>{description}</Text> */}
         <View style={styles.featuresContainer}>
             <View style={styles.featuresContainer}>
                 {description
@@ -56,17 +56,21 @@ const PlanCard = ({
                         );
                     })}
             </View>
-
         </View>
 
         <TouchableOpacity
-            style={styles.checkoutButton}
-            onPress={() => onEnroll({ studentId, courseId, planId })}
+            style={[styles.checkoutButton, isLoading && styles.checkoutButtonDisabled]}
+            onPress={() => onPurchase(packageeToPurchase)}
+            disabled={isLoading || !packageeToPurchase}
         >
-            <Text style={styles.checkoutButtonText}>Join</Text>
+            {isLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+            ) : (
+                <Text style={styles.checkoutButtonText}>Subscribe Now</Text>
+            )}
         </TouchableOpacity>
     </TouchableOpacity>
-);
+;
 
 const PlansScreen = () => {
     const { theme } = useContext(ThemeContext);
@@ -76,37 +80,113 @@ const PlansScreen = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const { plans = [], Courseid: courseId } = route.params || {};
-    console.log(plans);
+    
     const userData = useSelector(state => state.auth);
     const studentId = userData.userObject?._id;
 
     const [selectedPlanId, setSelectedPlanId] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalMessage, setModalMessage] = useState('');
+    const [modalIcon, setModalIcon] = useState(null);
+    const [purchasingPlanId, setPurchasingPlanId] = useState(null);
 
-    const handleEnroll = async ({ studentId, courseId, planId }) => {
+    // RevenueCat subscription context
+    const { 
+        offerings, 
+        isLoading: subscriptionLoading, 
+        purchasepackagee, 
+        isSubscribed 
+    } = useSubscriptionContext();
+
+    // Map plans to RevenueCat packagees
+    const [planTopackageeMap, setPlanTopackageeMap] = useState({});
+
+    useEffect(() => {
+        if (offerings && offerings.current) {
+            const mapping = {};
+            plans.forEach(plan => {
+                // Try to find matching packagee by plan name or ID
+                const packagee = offerings.current.availablepackagees.find(pkg => 
+                    pkg.identifier === plan._id || 
+                    pkg.product.identifier === plan._id ||
+                    pkg.product.title.toLowerCase().includes(plan.name.toLowerCase())
+                );
+                if (packagee) {
+                    mapping[plan._id] = packagee;
+                }
+            });
+            setPlanTopackageeMap(mapping);
+        }
+    }, [offerings, plans]);
+
+    const handlePurchase = async (packageeToPurchase) => {
+        if (!packageeToPurchase) {
+            Alert.alert('Error', 'Subscription packagee not available');
+            return;
+        }
+
         try {
-            console.log(planId);
+            setPurchasingPlanId(packageeToPurchase.identifier);
             dispatch(startLoading());
-            await enrollInCourse({ studentId, courseId, plan: planId });
-            dispatch(stopLoading());
+
+            await purchasepackagee(packageeToPurchase);
+            
+            setModalTitle('Subscription Successful');
+            setModalMessage('You have been successfully subscribed to this plan.');
+            setModalIcon(tick);
             setModalVisible(true);
         } catch (error) {
+            console.error('Purchase error:', error);
+            
+            let errorMessage = 'Something went wrong. Please try again.';
+            if (error.userCancelled) {
+                errorMessage = 'Purchase was cancelled.';
+            } else if (error.code === 'PURCHASE_CANCELLED_ERROR') {
+                errorMessage = 'Purchase was cancelled.';
+            } else if (error.code === 'NETWORK_ERROR') {
+                errorMessage = 'Network error. Please check your connection.';
+            }
+
+            setModalTitle('Purchase Failed');
+            setModalMessage(errorMessage);
+            setModalIcon(fail);
+            setModalVisible(true);
+        } finally {
+            setPurchasingPlanId(null);
             dispatch(stopLoading());
-            console.error('Enrollment error:', error);
         }
     };
 
     const handleCloseModal = () => {
         setModalVisible(false);
-        navigation.navigate('PurchasedCoursesScreen');
+        if (modalIcon === tick) {
+            // Navigate to purchased courses on successful subscription
+            navigation.navigate('PurchasedCoursesScreen');
+        }
     };
+
+    if (subscriptionLoading) {
+        return (
+            <ImageBackground source={theme.bg || bg} style={styles.container}>
+                <Header title={'Memberships'} />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={theme.primaryColor} />
+                    <Text style={[styles.loadingText, { color: theme.textColor }]}>
+                        Loading subscription options...
+                    </Text>
+                </View>
+            </ImageBackground>
+        );
+    }
 
     return (
         <>
             {modalVisible && (
                 <ConfirmationModal
-                    title={'Course Purchased Successfully'}
-                    icon={tick}
+                    title={modalTitle}
+                    description={modalMessage}
+                    icon={modalIcon}
                     onClose={handleCloseModal}
                 />
             )}
@@ -115,26 +195,39 @@ const PlansScreen = () => {
                 <Header title={'Memberships'} />
                 <SafeAreaView>
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        {plans.map((plan) => (
-                            <PlanCard
-                                key={plan._id}
-                                title={plan.name}
-                                price={plan.price}
-                                description={plan.description}
-                                planId={plan._id}
-                                courseId={courseId}
-                                studentId={studentId}
-                                onPress={() => {
-                                    setSelectedPlanId(plan._id);
-                                    console.log(plan._id);
-                                }}
-                                isSelected={selectedPlanId === plan._id}
-                                onEnroll={handleEnroll}
-                                styles={styles}
-                                theme={theme} // ✅ pass theme to fix tintColor
-
-                            />
-                        ))}
+                        {plans.map((plan) => {
+                            const packageeToPurchase = planTopackageeMap[plan._id];
+                            const isPurchasing = purchasingPlanId === plan._id;
+                            
+                            return (
+                                <PlanCard
+                                    key={plan._id}
+                                    title={plan.name}
+                                    price={packageeToPurchase ? packageeToPurchase.product.priceString : plan.price}
+                                    description={plan.description}
+                                    planId={plan._id}
+                                    courseId={courseId}
+                                    studentId={studentId}
+                                    onPress={() => {
+                                        setSelectedPlanId(plan._id);
+                                    }}
+                                    isSelected={selectedPlanId === plan._id}
+                                    onPurchase={handlePurchase}
+                                    styles={styles}
+                                    theme={theme}
+                                    isLoading={isPurchasing}
+                                    packageeToPurchase={packageeToPurchase}
+                                />
+                            );
+                        })}
+                        
+                        {plans.length === 0 && (
+                            <View style={styles.noPlansContainer}>
+                                <Text style={[styles.noPlansText, { color: theme.textColor }]}>
+                                    No subscription plans available at the moment.
+                                </Text>
+                            </View>
+                        )}
                     </ScrollView>
                 </SafeAreaView>
             </ImageBackground>
@@ -145,6 +238,29 @@ const PlansScreen = () => {
 const getStyles = (theme) => StyleSheet.create({
     container: { flex: 1, padding: 25, paddingTop: 0 },
     scrollContent: { paddingBottom: height * 0.1 },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20
+    },
+    loadingText: {
+        marginTop: 15,
+        fontSize: 16,
+        textAlign: 'center'
+    },
+    noPlansContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 50
+    },
+    noPlansText: {
+        fontSize: 16,
+        textAlign: 'center',
+        lineHeight: 24
+    },
     planCard: {
         padding: 20,
         borderRadius: 15,
@@ -178,6 +294,9 @@ const getStyles = (theme) => StyleSheet.create({
         borderRadius: 11,
         marginTop: 20,
         alignItems: 'center',
+    },
+    checkoutButtonDisabled: {
+        backgroundColor: theme.borderColor,
     },
     checkoutButtonText: {
         color: '#fff',

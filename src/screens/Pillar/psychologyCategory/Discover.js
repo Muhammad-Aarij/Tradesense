@@ -159,7 +159,7 @@ const DiscoverScreen = () => {
                                     type={item.type}
                                     url={item.url}
                                     lock={item.isPremium}
-                                    duration={item.duration}
+                                    duration={formatDuration(item.duration)}
                                     pillar={item.pillar}
 
                                     description={item.description}
@@ -202,7 +202,7 @@ const DiscoverScreen = () => {
                                 pillar={item.pillar}
                                 description={item.description}
                                 locked={item.isPremium}
-                                duration={item.duration}
+                                duration={formatDuration(item.duration)}
                                 url={item.url}
                             />
                         )}
@@ -247,6 +247,7 @@ const DiscoverScreen = () => {
                             renderItem={({ item }) => (
                                 <BundleTileSection
                                     title={item.title}
+                                    pillar={item.pillar}
                                     description={item.description}
                                     imageSource={{ uri: item.thumbnail }}
                                     locked={item.isPremium}
@@ -258,7 +259,7 @@ const DiscoverScreen = () => {
                             keyExtractor={(item) => item._id}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ marginLeft: 25 }}
+                            contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }}
                             // ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
                             initialNumToRender={3}
                             maxToRenderPerBatch={3}

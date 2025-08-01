@@ -67,15 +67,15 @@ const AboutTrader365Screen = ({ navigation }) => {
 
                     </ScrollView>
                 </View>
-            </SafeAreaView>
 
-            {/* Footer Info */}
-            <View style={styles.footerInfo}>
-                <Text style={styles.versionText}>App Version: 1.0.1.20230520</Text>
-                <Text style={styles.copyrightText}>
-                    © {new Date().getFullYear()} Trader365. All rights reserved.
-                </Text>
-            </View>
+                {/* Footer Info */}
+                <View style={styles.footerInfo}>
+                    <Text style={styles.versionText}>App Version: 1.0.1.20230520</Text>
+                    <Text style={styles.copyrightText}>
+                        © {new Date().getFullYear()} Trader365. All rights reserved.
+                    </Text>
+                </View>
+            </SafeAreaView>
         </ImageBackground>
     );
 };
@@ -152,6 +152,7 @@ const getStyles = (theme) => StyleSheet.create({
         position: "relative",
         bottom: 20,
         alignItems: 'center',
+        paddingTop: responsiveHeight(30),
         marginTop: responsiveHeight(30),
     },
     versionText: {

@@ -252,9 +252,9 @@ const LoginScreen = ({ navigation, route }) => {
                                         </TouchableOpacity>
                                     </LinearGradient>
 
-                                    <TouchableOpacity style={styles(theme).appleBtn}>
+                                    {/* <TouchableOpacity style={styles(theme).appleBtn}>
                                         <Image source={applePay} style={styles(theme).socialIcon} />
-                                    </TouchableOpacity>
+                                    </TouchableOpacity> */}
                                 </View>
 
                                 <TouchableOpacity onPress={() => navigation.navigate('Signup')}>

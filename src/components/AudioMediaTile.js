@@ -32,7 +32,7 @@ const AudioMediaTile = ({
           Thumbnail: imageSource?.uri || imageSource,
           AudioUrl: url,
           shouldFetchTrack: true,
-
+          navigationKey: Date.now(),
         })
       }
     >

@@ -285,7 +285,7 @@ export default function Acc_FormData({ route }) {
             {/* <CustomPicker label="Result" selectedValue={result} onValueChange={setResult} items={resultOptions} styles={styles} theme={theme} /> */}
             <CustomPicker label="Emotional State" selectedValue={emotionalState} onValueChange={setEmotionalState} items={emotionalStateOptions} styles={styles} theme={theme} />
             <CustomInput label="Reflection Notes" value={reflectionNotes} onChangeText={setReflectionNotes} placeholder="What happened..." isMultiline={true} />
-
+{/* 
             <LinearGradient
               start={{ x: 0, y: 0.95 }}
               end={{ x: 1, y: 1 }}
@@ -317,7 +317,7 @@ export default function Acc_FormData({ route }) {
                 </View>
                 {csvFile && <Text style={{ color: theme.subTextColor, marginLeft: 10 }}>{csvFile.name}</Text>}
               </TouchableOpacity>
-            </LinearGradient>
+            </LinearGradient> */}
 
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={uploading}>
               <Text style={styles.submitButtonText}>{uploading ? 'Uploading...' : 'Submit'}</Text>

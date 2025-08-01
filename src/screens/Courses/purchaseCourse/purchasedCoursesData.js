@@ -178,7 +178,7 @@ const PurchasedCoursesScreen = () => {
             <SafeAreaView style={{ flex: 1 }}>
                 <FlatList
                     ListHeaderComponent={() => (
-                        <Header title="My Courses" style={{ marginBottom: 35 }} />
+                        <Header title="My Courses" onPress={() => { navigation.navigate("More") }} style={{ marginBottom: 35 }} />
                     )}
                     data={flatListData}
                     renderItem={renderItem}

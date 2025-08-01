@@ -16,6 +16,29 @@ export const submitTradeForm = async (tradeData) => {
     }
 };
 
+// Upload CSV file for trading data
+export const uploadTradesCSV = async (userId, file) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', {
+            uri: file.uri,
+            type: file.type || 'text/csv',
+            name: file.name || 'trades.csv',
+        });
+
+        const response = await axios.post(`${API_URL}/api/trading-form/upload-trades/${userId}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error('CSV upload failed:', error.response?.data || error.message);
+        throw error;
+    }
+};
+
 // Fetch all trade records for a user
 export const fetchTradeRecords = async (userId) => {
     const { data } = await axios.get(`${API_URL}/api/trading-form/${userId}`);
@@ -49,6 +72,7 @@ export const fetchWeeklyProfitLoss = async (userId) => {
     const data = await response.json();
     return data.data;
 };
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
 import { stopLoading } from '../redux/slice/loaderSlice';
@@ -76,6 +100,21 @@ export const useWeeklyProfitLoss = (userId) => {
         queryFn: () => fetchWeeklyProfitLoss(userId),
         enabled: !!userId,
         refetchOnWindowFocus: false,
+    });
+};
+
+// Custom hook to upload CSV
+export const useUploadTradesCSV = (userId) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (file) => uploadTradesCSV(userId, file),
+        onSuccess: () => {
+            if (userId) {
+                queryClient.invalidateQueries({ queryKey: ['tradeRecords', userId] });
+                queryClient.invalidateQueries({ queryKey: ['weeklyProfitLoss', userId] });
+            }
+        },
     });
 };
 

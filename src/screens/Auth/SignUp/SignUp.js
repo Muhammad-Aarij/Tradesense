@@ -327,9 +327,9 @@ const SignUp = ({ navigation }) => {
                                     </TouchableOpacity>
                                 </LinearGradient>
 
-                                <TouchableOpacity style={styles.appleBtn}>
+                                {/* <TouchableOpacity style={styles.appleBtn}>
                                     <Image source={applePay} style={styles.socialIcon} />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
 
                             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -360,6 +360,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
+        paddingBottom: 40,
         alignItems: 'center',
     },
     bottomcontainer: {
@@ -425,11 +426,13 @@ const styles = StyleSheet.create({
     },
     googleBtn: {
         flexDirection: 'row',
+        width:"100%",
+        justifyContent:"center",
         borderWidth: 0.3,
         borderColor: '#B6B6B6',
         borderRadius: width * 0.035,
         alignItems: 'center',
-        paddingVertical: height * 0.018,
+        paddingVertical: height * 0.025,
         paddingHorizontal: width * 0.1,
     },
     googleBtnInner: {

@@ -60,7 +60,7 @@ const GoalsScreen = ({ navigation, route }) => {
 
     const handleSelect = (optionId) => {
         const qId = currentQuestion._id;
-        const isSingleChoice = currentQuestion.title?.trim().toLowerCase() === 'trading experience';
+        const isSingleChoice = currentQuestion.title?.trim().toLowerCase() === 'trading experience' || "rate your current trading consistency";
 
         setSelectedOptionsMap(prev => {
             const selected = prev[qId] || [];
@@ -238,15 +238,15 @@ const styles = StyleSheet.create({
     },
     title: {
         textAlign: 'center',
-        fontSize: 28,
+        fontSize: 22,
         color: '#fff',
         fontFamily: 'Outfit-SemiBold',
-        marginBottom: 10
+        marginBottom: 20
     },
     subtitle: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#fff',
-        fontFamily: 'Outfit-Light-BETA',
+        fontFamily: 'Outfit-Light',
         textAlign: 'center',
         marginBottom: 20
     },

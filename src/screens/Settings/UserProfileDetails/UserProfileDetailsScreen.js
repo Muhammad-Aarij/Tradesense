@@ -10,6 +10,7 @@ import {
   ImageBackground,
   Dimensions,
 } from 'react-native';
+import OptimizedImage from '../../../components/OptimizedImage';
 import { userProfile, userT, userDefault } from '../../../assets/images';
 import Header from '../../../components/Header';
 import GradientStatCard from './GradientStatCard';
@@ -17,6 +18,7 @@ import { useSelector } from 'react-redux';
 import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ Correct theme context
 import { useAffiliateStats } from '../../../functions/affiliateApi';
 import { useHabitStats } from '../../../functions/habbitFunctions';
+import ProfileImage from '../../../components/ProfileImage';
 const { width, height } = Dimensions.get('window');
 
 const scale = (size) => (width / 375) * size;
@@ -26,6 +28,7 @@ const UserProfileDetailsScreen = () => {
   const { theme } = useContext(ThemeContext); // ✅ use dynamic theme
   const styles = getStyles(theme);
   const profilePic = useSelector(state => state.auth.userObject?.profilePic);
+  console.log("P", profilePic);
   const name = useSelector(state => state.auth.userObject?.name);
   const userId = useSelector(state => state.auth.userId);
   const { data: affiliateStats = { enrolled: 0, money: 0, visited: 0 } } = useAffiliateStats(userId);
@@ -62,9 +65,13 @@ const UserProfileDetailsScreen = () => {
             {/* Profile Card */}
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
-                <Image
-                  source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
+                <ProfileImage 
+                  uri={profilePic ? `${profilePic}` : null}
+                  name={name}
+                  size={55}
+                  borderRadius={22}
                   style={styles.avatar}
+                  textStyle={{ fontSize: 14, color: theme.primaryColor }}
                 />
               </View>
               <View style={styles.profileInfo}>
@@ -149,8 +156,8 @@ const getStyles = (theme) => StyleSheet.create({
     height: scale(100),
     borderRadius: scale(105),
     borderWidth: 2,
-    borderColor: 'transparent',
-    backgroundColor: 'white',
+    // borderColor: 'transparent',
+    // backgroundColor: 'white',
   },
   avatarWrapper: {
     padding: scale(4),

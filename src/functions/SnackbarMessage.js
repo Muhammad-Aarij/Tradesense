@@ -1,50 +1,42 @@
-import React, { useContext, useMemo } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useContext } from 'react';
+import Snackbar from 'react-native-snackbar';
 import { ThemeContext } from '../context/ThemeProvider';
 
-const SnackbarMessage = ({ visible, message, type = 'success', position = 'bottom' }) => {
+const SnackbarMessage = ({
+  visible,
+  message,
+  type = 'success',
+  duration = Snackbar.LENGTH_SHORT, // Default duration
+}) => {
   const { theme, isDarkMode } = useContext(ThemeContext);
-  const styles = useMemo(() => getStyles(theme, isDarkMode, type, position), [theme, isDarkMode, type, position]);
 
-  if (!visible) return null;
+  useEffect(() => {
+    if (visible && message) {
+      Snackbar.show({
+        text: message,
+        duration,
+        // fontFamily:"Oufit-Bold",
+        backgroundColor:
+          type === 'error'
+            ? '#F44336'
+            : type === 'message'
+            ? isDarkMode
+              ? '#FFFFFF'
+              : theme.darkBlue
+            : '#4CAF50',
+        textColor:
+          type === 'message'
+            ? isDarkMode
+              ? theme.darkBlue
+              : '#FFFFFF'
+            : '#FFFFFF',
+      });
+    } else {
+      Snackbar.dismiss();
+    }
+  }, [visible, message, type, isDarkMode, theme, duration]);
 
-  return (
-    <Animated.View style={[styles.container]}>
-      <Text style={styles.text}>{message}</Text>
-    </Animated.View>
-  );
+  return null; // Nothing to render
 };
-
-const getStyles = (theme, isDarkMode, type, position) =>
-  StyleSheet.create({
-    container: {
-      position: 'absolute',
-      [position]: 20, // sets either top: 30 or bottom: 30
-      left: 20,
-      right: 20,
-      padding: 14,
-      borderRadius: 10,
-      zIndex: 1000,
-      backgroundColor:
-        type === 'message'
-          ? isDarkMode
-            ? '#FFFFFF'
-            : theme.darkBlue
-          : type === 'error'
-          ? '#F44336'
-          : '#4CAF50',
-    },
-    text: {
-      color:
-        type === 'message'
-          ? isDarkMode
-            ? theme.darkBlue
-            : '#FFFFFF'
-          : '#FFFFFF',
-      fontSize: 12,
-      fontFamily: 'Inter-Regular',
-      textAlign: 'center',
-    },
-  });
 
 export default SnackbarMessage;

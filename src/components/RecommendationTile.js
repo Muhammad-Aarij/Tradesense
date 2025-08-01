@@ -39,7 +39,7 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
         Thumbnail: thumbnail,
         AudioUrl: url,
         shouldFetchTrack: true,
-        navigationKey: Date.now(),
+        navigationKey: Date.now(), 
       });
     } else if (type === 'video') {
       navigation.navigate('VideoPlayer', {
@@ -69,7 +69,7 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
             />
             <Text style={{
               fontSize: 9, fontFamily: "Outfit-Medium", color: "white",
-            }}>{duration} min | {pillar}</Text>
+            }}>{duration} | {pillar}</Text>
           </View>
         </View>
       </View>

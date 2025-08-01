@@ -7,16 +7,19 @@ import { ThemeContext } from '../context/ThemeProvider';
 import { useDispatch } from 'react-redux';
 import { openSidebar } from '../redux/slice/loaderSlice';
 
-const Header = ({ title, addpadding, style }) => {
+const Header = ({ title, addpadding, style, onPress }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { theme } = useContext(ThemeContext); // ✅ Use theme from context
+  const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
+
+  // ✅ Use custom onPress if passed, otherwise fallback to navigation.goBack
+  const handleBackPress = onPress || (() => navigation.goBack());
 
   return (
     <View style={[styles.header, style]}>
       <TouchableOpacity
-        onPress={() => navigation.goBack()}
+        onPress={handleBackPress}
         style={[styles.backButtonTouchable, addpadding ? { paddingLeft: 10 } : null]}
         hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
       >
@@ -30,11 +33,11 @@ const Header = ({ title, addpadding, style }) => {
         </LinearGradient>
       </TouchableOpacity>
 
-      {/* Centered Title */}
       <Text style={styles.title}>{title}</Text>
     </View>
   );
 };
+
 
 const getStyles = (theme) => StyleSheet.create({
   header: {

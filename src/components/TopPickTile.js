@@ -57,7 +57,7 @@ const TopPickTile = ({ imageSource, title, description, locked, onPress, url, ty
                             />
                             <Text style={{
                                 fontSize: 9, fontFamily: "Outfit-Medium", color: "white",
-                            }}>{duration} min | {pillar}</Text>
+                            }}>{duration} | {pillar}</Text>
                         </View>
                         <Text style={styles.title} numberOfLines={1}>{title}</Text>
                         <Text style={styles.description} numberOfLines={2}>{description}</Text>
@@ -134,4 +134,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default memo(TopPickTile);
+export default memo(TopPickTile); 

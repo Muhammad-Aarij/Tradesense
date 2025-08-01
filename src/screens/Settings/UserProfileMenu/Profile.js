@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
   SafeAreaView, Dimensions, ImageBackground, Alert
 } from 'react-native';
+import OptimizedImage from '../../../components/OptimizedImage';
 import axios from 'axios';
 import {
   back, bg, camera, userDefault,
@@ -16,6 +17,7 @@ import ConfirmationModal from '../../../components/ConfirmationModal';
 import { API_URL } from '@env';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
+import ProfileImage from '../../../components/ProfileImage';
 
 const { width, height } = Dimensions.get('window');
 const scale = size => (width / 375) * size;
@@ -155,9 +157,13 @@ const UserProfileMenuScreen = ({ navigation }) => {
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
-                <Image
-                  source={profilePic ? { uri: `http://13.61.22.84/${profilePic}` } : userDefault}
+                <ProfileImage
+                  uri={profilePic ? `${profilePic}` : null}
+                  name={name}
+                  size={55}
+                  borderRadius={22}
                   style={styles.avatar}
+                  textStyle={{ fontSize: 14, color: theme.primaryColor }}
                 />
                 <TouchableOpacity onPress={openGallery} style={styles.cameraIconWrapper}>
                   <Image source={camera} style={styles.cameraIcon} />
@@ -213,9 +219,9 @@ const getStyles = (theme) => StyleSheet.create({
     height: scale(100),
     resizeMode: "cover",
     borderRadius: scale(105),
-    borderWidth: scale(4),
-    borderColor: 'transparent',
-    backgroundColor: 'white',
+    borderWidth: scale(1),
+    // borderColor: 'transparent',
+    // backgroundColor: 'white',
   },
   cameraIconWrapper: {
     position: 'absolute',
@@ -238,11 +244,13 @@ const getStyles = (theme) => StyleSheet.create({
     fontFamily: "Outfit-Medium",
     color: theme.textColor,
   },
+  greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Inter-Regular' },
+
   profileSubtitle: {
-    fontSize: scale(14),
+    fontSize: scale(12),
     fontFamily: "Outfit-Regular",
-    color: theme.subTextColor,
-    marginTop: verticalScale(1),
+    color: theme.primaryColor,
+    marginTop: verticalScale(5),
     marginBottom: verticalScale(10),
   },
   menuItemsContainer: {

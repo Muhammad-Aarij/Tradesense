@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import {
     View, Text, Image, StyleSheet, ScrollView, TouchableOpacity,
-    Dimensions, ImageBackground, SafeAreaView
+    Dimensions, ImageBackground, SafeAreaView, ActivityIndicator
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
@@ -14,6 +14,7 @@ import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useCourseDetail } from '../../../functions/handleCourses';
 import Loader from '../../../components/loader';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import { useSubscriptionContext } from '../../../context/SubscriptionProvider';
 
 const { width } = Dimensions.get('window');
 
@@ -26,6 +27,9 @@ const CourseDetailScreen = () => {
     const styles = getStyles(theme);
     const [durations, setDurations] = useState({});
     const { courseId, courseTitle, affiliateToken } = route.params || {};
+
+    // RevenueCat subscription context
+    const { isSubscribed, isLoading: subscriptionLoading } = useSubscriptionContext();
 
     const {
         data: course,
@@ -77,6 +81,24 @@ const CourseDetailScreen = () => {
         );
     }
 
+    const handleBuyPress = () => {
+        // Check if user is already subscribed
+        if (isSubscribed) {
+            // If subscribed, navigate to course content
+            navigation.navigate('CourseEpisodesScreen', {
+                courseId: course?.Courseid || courseId,
+                courseTitle: course?.title || courseTitle
+            });
+        } else {
+            // If not subscribed, navigate to subscription plans
+            navigation.navigate('PlansScreen', {
+                plans: course?.plans || [],
+                Courseid: course?.Courseid || courseId,
+                affiliateToken: affiliateToken || null
+            });
+        }
+    };
+
     return (
         <>
             {isLoading && <Loader />}
@@ -95,7 +117,7 @@ const CourseDetailScreen = () => {
                                 <View style={styles.overlayTop}>
                                     <View style={styles.instructorInfo}>
                                         <Image
-                                            source={course?.instructorImage ? { uri: `${API_URL}/${course.instructorImage}`} : userBlue}
+                                            source={course?.instructorImage ? { uri: `${API_URL}/${course.instructorImage}` } : userBlue}
                                             style={styles.instructorImage}
                                         />
                                         <View>
@@ -135,15 +157,16 @@ const CourseDetailScreen = () => {
 
                         <TouchableOpacity
                             style={[styles.buyNowButton, { backgroundColor: theme.primaryColor }]}
-                            onPress={() =>
-                                navigation.navigate('PlansScreen', {
-                                    plans: course?.plans || [],
-                                    Courseid: course?.Courseid || courseId,
-                                    affiliateToken: affiliateToken || null
-                                })
-                            }
+                            onPress={handleBuyPress}
+                            disabled={subscriptionLoading}
                         >
-                            <Text style={styles.buyNowButtonText}>Buy Now</Text>
+                            {subscriptionLoading ? (
+                                <ActivityIndicator color="#fff" size="small" />
+                            ) : (
+                                <Text style={styles.buyNowButtonText}>
+                                    {isSubscribed ? 'Access Course' : 'Buy Now'}
+                                </Text>
+                            )}
                         </TouchableOpacity>
                     </ScrollView>
                 </SafeAreaView>
@@ -272,7 +295,8 @@ const getStyles = (theme) => StyleSheet.create({
         color: theme.subTextColor,
         fontFamily: 'Outfit-Light',
         fontSize: 10,
-        lineHeight: 13
+        lineHeight: 13,
+        textTransform: "capitalize",
     },
     buyNowButton: {
         width: '100%',

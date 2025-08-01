@@ -11,16 +11,20 @@ import {
     Modal,
     ImageBackground,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { addBtn, back, bg } from '../../../../assets/images';
+import { addBtn, back, bg, colorBg, fail, tick } from '../../../../assets/images';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useUserMood, usePostMood, useUpdateMood, useAllMoods } from '../../../../functions/MoodApi';
 import { useDispatch, useSelector } from 'react-redux';
 import moodQuotes from './modes';
-import { useTradeRecords } from '../../../../functions/Trades';
+import { useTradeRecords, useUploadTradesCSV } from '../../../../functions/Trades';
 import TradingJourneyChart from '../../../../components/TradingJourneyChart';
 import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
+import DocumentPicker from 'react-native-document-picker';
+import ConfirmationModal from '../../../../components/ConfirmationModal';
+import SnackbarMessage from '../../../../functions/SnackbarMessage';
 
 // Mood selection modal component
 const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, theme }) => {
@@ -68,6 +72,20 @@ const Journaling = ({ navigation }) => {
     const { data: tradesData = [], isLoading: TradeLoading } = useTradeRecords(userId);
     const { data: moods, isLoading: MoodLoading, isError } = useAllMoods(userId);
     const { data: TodayData, isLoading: todayMoodLoading, refetch: refetchTodayMood } = useUserMood(userId);
+    const uploadCSV = useUploadTradesCSV(userId);
+
+    const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+    const [confirmationTitle, setConfirmationTitle] = useState('');
+    const [confirmationMessage, setConfirmationMessage] = useState('');
+    const [icon, setIcon] = useState(null);
+
+    const [snackbar, setSnackbar] = React.useState({
+        visible: false,
+        message: '',
+        type: '', // e.g., 'success' or 'error'
+    });
+
+    const [showExtraButtons, setShowExtraButtons] = useState(false);
 
     const { mutate: postMood } = usePostMood();
     const { mutate: updateMood } = useUpdateMood();
@@ -141,6 +159,16 @@ const Journaling = ({ navigation }) => {
         { emoji: '😡', label: 'Angry', value: 'Angry' },
     ];
 
+    React.useEffect(() => {
+        if (snackbar.visible) {
+            const timer = setTimeout(() => {
+                setSnackbar((prev) => ({ ...prev, visible: false }));
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [snackbar.visible]);
+
     const handleMoodSelect = (moodValue) => {
         setSelectedMood(moodValue);
 
@@ -151,8 +179,22 @@ const Journaling = ({ navigation }) => {
                     onSuccess: () => {
                         refetchTodayMood();
                         setIsMoodModalVisible(false);
+                        setSnackbar({
+                            visible: true,
+                            message: 'Mood updated successfully',
+                            type: 'success',
+                        });
+                    },
+                    onError: (error) => {
+                        console.error('Failed to update mood:', error);
+                        setSnackbar({
+                            visible: true,
+                            message: 'Failed to update mood. Please try again.',
+                            type: 'error',
+                        });
                     },
                 }
+
             );
         } else {
             postMood(
@@ -162,18 +204,67 @@ const Journaling = ({ navigation }) => {
                         refetchTodayMood();
                         setIsMoodModalVisible(false);
                     },
+                    onError: (error) => {
+                        console.error('Failed to save mood:', error);
+                        setSnackbar({
+                            visible: true,
+                            message: 'Failed to save mood.\n Please try again.',
+                            type: 'error',
+                        });
+                    },
                 }
             );
         }
     };
 
-    const mood = selectedMood || "good";
-    const randomQuote = useMemo(() => {
-        const quotes = moodQuotes[mood] || ["Stay focused, stay consistent."];
-        return quotes[Math.floor(Math.random() * quotes.length)];
-    }, [mood]);
+    const handleCSVUpload = async () => {
+        try {
+            const result = await DocumentPicker.pick({
+                type: [DocumentPicker.types.csv, DocumentPicker.types.allFiles],
+            });
 
-    // Show loading if userId is not available or any query is loading
+            if (result && result[0]) {
+                dispatch(startLoading());
+                const file = result[0];
+                console.log('Selected file:', file);
+
+                uploadCSV.mutate(file, {
+                    onSuccess: (data) => {
+                        console.log('CSV upload successful:', data);
+                        setConfirmationTitle('Success');
+                        setIcon(tick);
+                        setConfirmationMessage('CSV file uploaded successfully!');
+                        setIsConfirmationVisible(true);
+                        setShowExtraButtons(false);
+                        dispatch(stopLoading());
+                    },
+                    onError: (error) => {
+                        console.error('CSV upload failed:', error);
+                        setIcon(fail);
+                        setConfirmationTitle('Upload Failed');
+                        setConfirmationMessage('Failed to upload CSV file. Please try again.');
+                        setIsConfirmationVisible(true);
+                        dispatch(stopLoading());
+                    },
+                });
+            }
+        } catch (err) {
+            if (!DocumentPicker.isCancel(err)) {
+                console.error('Document picker error:', err);
+                setConfirmationTitle('Error');
+                setConfirmationMessage('Failed to select file. Please try again.');
+                setIcon(fail);
+                setIsConfirmationVisible(true);
+            }
+        }
+    };
+
+
+    const randomQuote = useMemo(() => {
+        const quotes = moodQuotes[selectedMood.toLowerCase()] || moodQuotes.happy;
+        return quotes[Math.floor(Math.random() * quotes.length)];
+    }, [selectedMood]);
+
     if (!userId || MoodLoading || todayMoodLoading || TradeLoading) {
         return (
             <SafeAreaView style={styles.container}>
@@ -190,27 +281,80 @@ const Journaling = ({ navigation }) => {
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
 
-            <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => navigation.navigate('Acc_FormData', { emotion: selectedMood })}
-            >
-                <Image source={addBtn} style={{ width: 35, height: 120, resizeMode: "contain", tintColor: theme.primaryColor }} />
-            </TouchableOpacity>
+            {snackbar.visible && (
+                <SnackbarMessage
+                    message={snackbar.message}
+                    type={snackbar.type}
+                    visible={snackbar.visible}
+                />
+            )}
+
+
+
+            {isConfirmationVisible && <ConfirmationModal
+                isVisible={isConfirmationVisible}
+                title={confirmationTitle}
+                message={confirmationMessage}
+                onClose={() => setIsConfirmationVisible(false)}
+            />}
+
+            {showExtraButtons && (
+                <View style={styles.overlayBackground} />
+            )}
+
+            {/* Floating Button Container - Fixed Position */}
+            <View style={styles.floatingButtonContainer}>
+                {/* Add Data Button (Top Left of Add Button) */}
+
+                {showExtraButtons && (
+                    <TouchableOpacity
+                        style={styles.extraButtonTop}
+                        onPress={() => {
+                            setShowExtraButtons(false);
+                            navigation.navigate('Acc_FormData', { emotion: selectedMood });
+                        }}
+                    >
+                        <Text style={styles.extraButtonText}>Add Data</Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Upload CSV Button (Bottom Left of Add Button) */}
+                {showExtraButtons && (
+                    <TouchableOpacity
+                        style={styles.extraButtonBottom}
+                        onPress={handleCSVUpload}
+                    >
+                        <Text style={styles.extraButtonText}>Upload CSV</Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Floating Plus Button */}
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => setShowExtraButtons(!showExtraButtons)}
+                >
+                    <Image
+                        source={addBtn}
+                        style={styles.addButtonImage}
+                    />
+                </TouchableOpacity>
+            </View>
 
             <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
                 {/* Gradient Card */}
-                <TouchableOpacity onPress={() => navigation.navigate("Acc_FormData")}>
-                    <LinearGradient
-                        start={{ x: 0, y: 0.95 }}
-                        end={{ x: 1, y: 1 }}
-                        colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                <TouchableOpacity >
+                    <ImageBackground
+                        source={colorBg}
+                        // start={{ x: 0, y: 0.95 }}
+                        // end={{ x: 1, y: 1 }}
+                        // colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                         style={styles.cardLinearGradient}
                     >
                         <View style={styles.card}>
                             <Text style={styles.cardTitle}>Today's Focus</Text>
                             <Text style={styles.cardDescription}>{randomQuote}</Text>
                         </View>
-                    </LinearGradient>
+                    </ImageBackground>
                 </TouchableOpacity>
 
                 {/* Metrics */}
@@ -265,6 +409,7 @@ const Journaling = ({ navigation }) => {
                     })}
                 </ScrollView>
 
+                {/* Trading Journey Chart - Wrapped in error boundary */}
                 <TradingJourneyChart userId={userId} />
 
                 {/* Trades Section */}
@@ -297,9 +442,8 @@ const Journaling = ({ navigation }) => {
                                         </View>
                                         <View style={styles.tradePriceContainer}>
                                             <Text style={styles.tradePrice}>${trade.exitPrice}</Text>
-                                            <Text
-                                                style={isPositive ? styles.tradeChangePositive : styles.tradeChangeNegative}>
-                                                {trade.result} {isPositive ? '▲' : '▼'}
+                                            <Text style={isPositive ? styles.tradeChangePositive : styles.tradeChangeNegative}>
+                                                {trade.result || 'N/A'}
                                             </Text>
                                         </View>
                                     </View>
@@ -307,32 +451,32 @@ const Journaling = ({ navigation }) => {
                             );
                         })
                     ) : (
-                        <LinearGradient
-                            start={{ x: 0, y: 0.95 }}
-                            end={{ x: 1, y: 1 }}
-                            colors={['rgba(126, 126, 126, 0.2)', 'rgba(255,255,255,0)']}
-                            style={styles.emptyHabitsCard}
-                        >
-                            <View style={styles.emptyHabitsContent}>
+                        <View style={styles.emptyHabitsCard}>
+                            <LinearGradient
+                                start={{ x: 0, y: 0.95 }}
+                                end={{ x: 1, y: 1 }}
+                                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                style={styles.emptyHabitsContent}
+                            >
                                 <View style={styles.emptyHabitsIconContainer}>
                                     <View style={styles.emptyHabitsIcon}>
-                                        <Text style={styles.emptyHabitsIconText}>📈</Text>
+                                        <Text style={styles.emptyHabitsIconText}>📊</Text>
                                     </View>
                                 </View>
                                 <View style={styles.emptyHabitsTextContainer}>
                                     <Text style={styles.emptyHabitsTitle}>No Trades Yet</Text>
                                     <Text style={styles.emptyHabitsSubtitle}>
-                                        Start exploring the market and make your first trade. Every decision shapes your trading journey!
+                                        Start tracking your trading journey by adding your first trade
                                     </Text>
                                 </View>
                                 <TouchableOpacity
                                     style={styles.createHabitButton}
-                                    onPress={() => navigation.navigate("Acc_FormData")}
+                                    onPress={() => navigation.navigate('Acc_FormData')}
                                 >
-                                    <Text style={styles.createHabitButtonText}>Start Trading</Text>
+                                    <Text style={styles.createHabitButtonText}>Add Your First Trade</Text>
                                 </TouchableOpacity>
-                            </View>
-                        </LinearGradient>
+                            </LinearGradient>
+                        </View>
                     )}
                 </View>
             </ScrollView>
@@ -351,12 +495,14 @@ const Journaling = ({ navigation }) => {
 
 const getStyles = (theme) =>
     StyleSheet.create({
+
         container: {
             flex: 1,
-            margin: 0,
-            padding: 0,
-            // backgroundColor: theme.backgroundColor || '#1A1A2E',
+            // margin: 0,
+            // padding: 0,
+            // position: "relative",
         },
+
         loadingContainer: {
             flex: 1,
             justifyContent: 'center',
@@ -369,15 +515,9 @@ const getStyles = (theme) =>
             fontFamily: 'Outfit-Regular',
         },
         scrollViewContent: {
-            paddingBottom: 20,
+            paddingBottom: 120, // Add extra padding to prevent overlap with floating button
         },
-        addButton: {
-            position: "absolute",
-            right: -20,
-            top: 300,
-            resizeMode: "contain",
-            zIndex: 1000,
-        },
+
         card: {
             backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderWidth: 0.9,
@@ -388,6 +528,7 @@ const getStyles = (theme) =>
         cardLinearGradient: {
             borderWidth: 0.9,
             borderRadius: 8,
+            overflow: "hidden",
             borderColor: theme.borderColor,
             marginBottom: 15,
         },
@@ -559,14 +700,14 @@ const getStyles = (theme) =>
         },
         emptyHabitsTitle: {
             color: theme.textColor,
-            fontSize: 18,
+            fontSize: 14,
             fontFamily: 'Outfit-Bold',
             marginBottom: 8,
             textAlign: 'center',
         },
         emptyHabitsSubtitle: {
             color: theme.subTextColor,
-            fontSize: 14,
+            fontSize: 12,
             fontFamily: 'Outfit-Regular',
             textAlign: 'center',
             lineHeight: 20,
@@ -592,6 +733,90 @@ const getStyles = (theme) =>
             fontFamily: 'Outfit-SemiBold',
             textAlign: 'center',
         },
+        overlayBackground: {
+            ...StyleSheet.absoluteFillObject, // spread this object properly
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999, // high zIndex to be on top
+        },
+
+
+        floatingButtonContainer: {
+            position: 'absolute',
+            right: -33,
+            top: 200,
+            zIndex: 1000,
+            // alignItems: 'center',
+        },
+
+        extraButtonTop: {
+            position: 'absolute',
+            bottom: 80,
+            right: 80,
+
+            width: 80,
+            height: 80,
+            borderRadius: 200,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: theme.primaryColor,
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            elevation: 3,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            textAlign: "center",
+        },
+
+        extraButtonBottom: {
+            textAlign: "center",
+            justifyContent: "center",
+            alignItems: "center",
+            position: 'absolute',
+            top: 80,
+            right: 80,
+            backgroundColor: theme.primaryColor,
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            width: 80,
+            height: 80,
+            borderRadius: 200,
+            elevation: 3,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+        },
+
+        extraButtonText: {
+            color: '#fff',
+            fontSize: 13,
+            fontFamily: 'Outfit-Regular',
+            fontWeight: '500',
+            zIndex: 1000,
+        },
+
+        addButton: {
+            // width: 60,
+            // height: 60,
+            // borderRadius: 30,
+            // backgroundColor: theme.primaryColor,
+            justifyContent: 'center',
+            alignItems: 'center',
+            // elevation: 5,
+            // shadowColor: theme.primaryColor,
+            // shadowOffset: { width: 0, height: 2 },
+            // shadowOpacity: 0.3,
+            // shadowRadius: 4,
+        },
+        addButtonImage: {
+            width: 65,
+            height: 105,
+            resizeMode: 'contain',
+            tintColor: '#fff',
+        },
+
     });
 
 // Styles for the MoodSelectionModal
