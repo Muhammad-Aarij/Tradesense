@@ -68,7 +68,7 @@ const ProfileImage = ({
             {secureUri && (
                 <FastImage
                     source={{
-                        uri: `http://13.61.22.84/${uri}`
+                        uri: `${uri}`
                     }}
                     style={StyleSheet.absoluteFillObject}
                     resizeMode={FastImage.resizeMode.cover}

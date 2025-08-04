@@ -50,9 +50,12 @@ export default function HomeSplash({ navigation }) {
     return (
         <ImageBackground source={bg} style={styles.container}>
             <SafeAreaView style={styles.safeArea}>
+                {/* <View style = {{paddingHorizontal: 30, flex: 1}}>  */}
                 <Image source={logoWhite} style={styles.logo} />
                 <Text style={styles.welcomeTitle}>{welcomeData.title.replace('{{user}}', name)}</Text>
-                <Text style={styles.welcomeSubtitle}>{welcomeData.description}</Text>
+                <View style = {{paddingHorizontal: 30}}>
+                    <Text style={styles.welcomeSubtitle}>{welcomeData.description}</Text>
+                </View>
 
                 <View style={styles.featureList}>
                     {welcomeData.features?.map((feature, index) => (
@@ -75,6 +78,7 @@ export default function HomeSplash({ navigation }) {
                 <TouchableOpacity style={styles.button} onPress={handleGetStarted}>
                     <Text style={styles.buttonText}>GET STARTED</Text>
                 </TouchableOpacity>
+                {/* </View> */}
             </SafeAreaView>
         </ImageBackground>
     );
@@ -110,19 +114,18 @@ const styles = StyleSheet.create({
         textAlign: 'center', // Aligned left
         width: '100%', // Take full width
         marginBottom: height * 0.02,
-
     },
     welcomeSubtitle: {
         fontFamily: 'Outfit-Light',
         fontSize: width * 0.035, // Smaller font size for subtitle
         color: '#B0B0B0', // Lighter grey for subtitle
         textAlign: 'center', // Aligned left
-        width: '100%', // Take full width
+        // width: '100%', // Take full width
         lineHeight: width * 0.055, // Adjusted line height
         marginBottom: height * 0.05, // Space below subtitle
     },
     featureList: {
-        width: '100%',
+        width: '85%',
         marginBottom: height * 0.05,
     },
     featureItem: {

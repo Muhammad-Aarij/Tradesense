@@ -85,8 +85,8 @@ const GenderScreen = ({ navigation, route }) => {
     }, []);
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <ImageBackground source={bg} style={styles.container}>
+        <ImageBackground source={bg} style={{flex: 1}}>
+        <SafeAreaView style={styles.container}>
                 <Text style={styles.title}>Gender</Text>
                 <Text style={styles.subtitle}>Select Your Gender</Text>
 
@@ -131,8 +131,8 @@ const GenderScreen = ({ navigation, route }) => {
                 >
                     <Text style={styles.buttonText}>Next</Text>
                 </TouchableOpacity>
-            </ImageBackground>
-        </SafeAreaView>
+            </SafeAreaView>
+        </ImageBackground>
     );
 };
 

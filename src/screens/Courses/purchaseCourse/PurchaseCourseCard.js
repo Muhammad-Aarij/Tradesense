@@ -13,6 +13,8 @@ import Share from 'react-native-share';
 import { API_URL } from "@env";
 import { copy, play, send, user, userBlue, userDefault } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import OptimizedImage from '../../../components/OptimizedImage';
+import ProfileImage from '../../../components/ProfileImage';
 
 const { width } = Dimensions.get('window');
 
@@ -52,8 +54,12 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
             onPress={onPress}
         >
             <View style={styles.imageWrapper}>
-                <Image source={course.instructorImage ? { uri: `${course.thumbnail}` } : userBlue}
-                    style={styles.cardImage} />
+                <OptimizedImage 
+                    uri={course.thumbnail}
+                    style={styles.cardImage}
+                    fallbackSource={userBlue}
+                    resizeMode="cover"
+                />
                 {isDarkMode && <View style={styles.imgOverlay} />}
                 <View style={styles.timeOverlay}>
                     <Image source={play} style={styles.playIcon} />
@@ -112,8 +118,13 @@ const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = tr
                 </View>
                 <View style={styles.instructorInfo}>
                     <View style={{ flexDirection: 'row' }}>
-                        <Image source={course.instructorImage ? { uri: `${API_URL}/${course.instructorImage}` } : userBlue}
-                            style={styles.instructorImage} />
+                        <ProfileImage 
+                            uri={course.instructorImage}
+                            name={course.instructorName}
+                            size={20}
+                            borderRadius={10}
+                            style={styles.instructorImage}
+                        />
                         <View>
                             <Text style={[styles.instructorName, { color: theme.primaryColor }]}>
                                 {course.instructorName || 'Instructor'}

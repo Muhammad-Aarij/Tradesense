@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TouchableWithoutFeedback } from 'react-native';
 import { bell, calendar, deletewhite, dots, editwhite } from '../assets/images';
 import { ThemeContext } from '../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,61 +20,78 @@ const GoalCard = ({ goal, onEdit, onDelete }) => {
     };
 
     return (
-        <LinearGradient
-            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-            start={{ x: 0, y: 0.95 }}
-            end={{ x: 1, y: 1 }} style={styles.cardContainer}>
-            <View style={styles.headerRow}>
-                <Text style={styles.goalTitle}>{goal.title}</Text>
-                <View style={styles.iconContainer}>
-                    <TouchableOpacity
-                        onPress={() => setDropdownVisible(!dropdownVisible)}
-                    >
-                        <Image source={dots} style={styles.icon} />
-                    </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+            <LinearGradient
+                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                start={{ x: 0, y: 0.95 }}
+                end={{ x: 1, y: 1 }} style={styles.cardContainer}>
+            <View style={styles.cardContainerInner}>
+                <View style={styles.headerRow}>
+                    <Text style={styles.goalTitle}>{goal.title}</Text>
+                    <View style={styles.iconContainer}>
+                        <TouchableOpacity
+                            style={styles.dotsButton}
+                            onPress={(e) => {
+                                e.stopPropagation();
+                                setDropdownVisible(!dropdownVisible);
+                            }}
+                        >
+                            <Image source={dots} style={styles.icon} />
+                        </TouchableOpacity>
 
-                    {dropdownVisible && (
-                        <View style={styles.dropdownMenu}>
-                            <TouchableOpacity style={styles.iconButton} onPress={() => { onEdit(goal); setDropdownVisible(false); }}>
-                                <Image source={editwhite} style={{ ...styles.icon, tintColor: isDarkMode ? "black" : theme.subTextColor }} />
-                                <Text style={{ ...styles.dropdownItem, color: isDarkMode ? "black" : theme.subTextColor }}>Edit</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.iconButton} onPress={() => { onDelete(goal._id); setDropdownVisible(false); }}>
-                                <Image source={deletewhite} style={{ ...styles.icon, tintColor: isDarkMode ? "black" : theme.subTextColor }} />
-                                <Text style={{ ...styles.dropdownItem, color: isDarkMode ? "black" : theme.subTextColor }}>Delete</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
-
-            </View>
-            <Text style={styles.goalDescription}>{goal.description}</Text>
-            <View style={styles.progressSection}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <View style={{ flexDirection: 'row', gap: 7 }}>
-                        <Image source={calendar} style={styles.icon} />
-                        <Text style={styles.goalDescription}>
-                            {formatDate(goal.updatedAt)} / {formatDate(goal.targetDate)}
-                        </Text>
+                        {dropdownVisible && (
+                            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+                                <View style={styles.dropdownMenu}>
+                                <TouchableOpacity style={styles.iconButton} onPress={() => { onEdit(goal); setDropdownVisible(false); }}>
+                                    <Image source={editwhite} style={{ ...styles.icon, tintColor: isDarkMode ? "black" : theme.subTextColor }} />
+                                    <Text style={{ ...styles.dropdownItem, color: isDarkMode ? "black" : theme.subTextColor }}>Edit</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.iconButton} onPress={() => { onDelete(goal._id); setDropdownVisible(false); }}>
+                                    <Image source={deletewhite} style={{ ...styles.icon, tintColor: isDarkMode ? "black" : theme.subTextColor }} />
+                                    <Text style={{ ...styles.dropdownItem, color: isDarkMode ? "black" : theme.subTextColor }}>Delete</Text>
+                                </TouchableOpacity>
+                            </View>
+                            </TouchableWithoutFeedback>
+                        )}
                     </View>
-                    <Text style={styles.goalProgressText}>{goal.progress ?? 0}%</Text>
+
                 </View>
-                <View style={styles.progressBarBackground}>
-                    <View style={[styles.progressBarFill, { width: `${goal.progress || 0}%` }]} />
+                <Text style={styles.goalDescription}>{goal.description}</Text>
+                <View style={styles.progressSection}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={{ flexDirection: 'row', gap: 7 }}>
+                            <Image source={calendar} style={styles.icon} />
+                            <Text style={styles.goalDescription}>
+                                {formatDate(goal.updatedAt)} / {formatDate(goal.targetDate)}
+                            </Text>
+                        </View>
+                        <Text style={styles.goalProgressText}>{goal.progress ?? 0}%</Text>
+                    </View>
+                    <View style={styles.progressBarBackground}>
+                        <View style={[styles.progressBarFill, { width: `${goal.progress || 0}%` }]} />
+                    </View>
                 </View>
             </View>
         </LinearGradient>
+        </TouchableWithoutFeedback>
     );
 };
 
 const getStyles = (theme) => StyleSheet.create({
     cardContainer: {
         // backgroundColor: theme.transparentBg,
+        // borderWidth: 1.3,
+        // borderColor: theme.borderColor,
+        borderRadius: 8,
+        marginVertical: 8,
+    },
+    cardContainerInner: {
+        // backgroundColor: theme.transparentBg,
         borderWidth: 1.3,
         borderColor: theme.borderColor,
         borderRadius: 8,
         padding: 15,
-        marginVertical: 8,
+        // marginVertical: 8,
     },
     headerRow: {
         flexDirection: 'row',
@@ -165,6 +182,10 @@ const getStyles = (theme) => StyleSheet.create({
     iconContainer: {
         flexDirection: 'row',
         position: 'relative', // required for absolute dropdown inside
+    },
+    dotsButton: {
+        padding: 10, // Increase touch area
+        margin: -5, // Compensate for padding to maintain visual position
     },
 
 

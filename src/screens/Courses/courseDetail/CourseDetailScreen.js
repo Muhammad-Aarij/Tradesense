@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import {
-    View, Text, Image, StyleSheet, ScrollView, TouchableOpacity,
+    View, Text, StyleSheet, ScrollView, TouchableOpacity,
     Dimensions, ImageBackground, SafeAreaView, ActivityIndicator
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -10,11 +10,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import { API_URL } from "@env";
 import { bg, user, userBlue } from '../../../assets/images';
 import Header from '../../../components/Header';
+import OptimizedImage from '../../../components/OptimizedImage';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useCourseDetail } from '../../../functions/handleCourses';
 import Loader from '../../../components/loader';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { useSubscriptionContext } from '../../../context/SubscriptionProvider';
 
 const { width } = Dimensions.get('window');
 
@@ -27,9 +27,6 @@ const CourseDetailScreen = () => {
     const styles = getStyles(theme);
     const [durations, setDurations] = useState({});
     const { courseId, courseTitle, affiliateToken } = route.params || {};
-
-    // RevenueCat subscription context
-    const { isSubscribed, isLoading: subscriptionLoading } = useSubscriptionContext();
 
     const {
         data: course,
@@ -82,21 +79,12 @@ const CourseDetailScreen = () => {
     }
 
     const handleBuyPress = () => {
-        // Check if user is already subscribed
-        if (isSubscribed) {
-            // If subscribed, navigate to course content
-            navigation.navigate('CourseEpisodesScreen', {
-                courseId: course?.Courseid || courseId,
-                courseTitle: course?.title || courseTitle
-            });
-        } else {
-            // If not subscribed, navigate to subscription plans
-            navigation.navigate('PlansScreen', {
-                plans: course?.plans || [],
-                Courseid: course?.Courseid || courseId,
-                affiliateToken: affiliateToken || null
-            });
-        }
+        // Navigate to subscription plans
+        navigation.navigate('PlansScreen', {
+            plans: course?.plans || [],
+            Courseid: course?.Courseid || courseId,
+            affiliateToken: affiliateToken || null
+        });
     };
 
     return (
@@ -107,7 +95,13 @@ const CourseDetailScreen = () => {
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         <Header title={course?.title || courseTitle} style={{ marginBottom: 25 }} />
                         <View style={styles.mainImageContainer}>
-                            <Image source={{ uri: course?.thumbnail }} style={styles.mainCourseImage} />
+                            <OptimizedImage 
+                                uri={course?.thumbnail} 
+                                style={styles.mainCourseImage}
+                                fallbackSource={bg}
+                                showLoadingIndicator={true}
+                                loadingIndicatorColor={theme.primaryColor}
+                            />
                             {/* Gradient overlay */}
                             <LinearGradient
                                 colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.9)']}
@@ -116,9 +110,13 @@ const CourseDetailScreen = () => {
                             <View style={styles.imageOverlay}>
                                 <View style={styles.overlayTop}>
                                     <View style={styles.instructorInfo}>
-                                        <Image
-                                            source={course?.instructorImage ? { uri: `${API_URL}/${course.instructorImage}` } : userBlue}
+                                        <OptimizedImage
+                                            uri={course?.instructorImage}
                                             style={styles.instructorImage}
+                                            fallbackSource={userBlue}
+                                            isAvatar={true}
+                                            username={course?.instructorName || 'Instructor'}
+                                            showInitials={true}
                                         />
                                         <View>
                                             <Text style={[styles.instructorName, { color: theme.primaryColor }]}>
@@ -144,6 +142,7 @@ const CourseDetailScreen = () => {
                                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                                     colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                     key={module._id} style={styles.audioItem}>
+                                        <View style = {styles.audioItemInner}>
                                     <View style={styles.audioLeft}>
                                         <Text style={styles.audioTitle}>{module.title}</Text>
                                     </View>
@@ -151,6 +150,7 @@ const CourseDetailScreen = () => {
                                         {formatDuration(module.duration)}
                                     </Text>
                                     <Text style={styles.audioDescription}>{module.description}</Text>
+                                    </View>
                                 </LinearGradient>
                             ))}
                         </View>
@@ -158,13 +158,13 @@ const CourseDetailScreen = () => {
                         <TouchableOpacity
                             style={[styles.buyNowButton, { backgroundColor: theme.primaryColor }]}
                             onPress={handleBuyPress}
-                            disabled={subscriptionLoading}
+                            disabled={isLoading}
                         >
-                            {subscriptionLoading ? (
+                            {isLoading ? (
                                 <ActivityIndicator color="#fff" size="small" />
                             ) : (
                                 <Text style={styles.buyNowButtonText}>
-                                    {isSubscribed ? 'Access Course' : 'Buy Now'}
+                                    Buy Now
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -268,6 +268,9 @@ const getStyles = (theme) => StyleSheet.create({
         gap: 10
     },
     audioItem: {
+        borderRadius: 10,
+    },
+    audioItemInner: {
         padding: 14,
         paddingVertical: 16,
         borderRadius: 10,

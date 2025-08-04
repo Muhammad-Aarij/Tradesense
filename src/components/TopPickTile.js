@@ -5,9 +5,16 @@ import theme from '../themes/theme';
 import { useNavigation } from '@react-navigation/native';
 import OptimizedImage from './OptimizedImage';
 
-const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type, duration, pillar }) => {
+const TopPickTile = ({ imageSource, title, description, locked, onPress, url, type, duration, pillar, onPremiumPress }) => {
     const navigation = useNavigation();
     const handlePress = () => {
+        if (locked) {
+            // Show premium modal if content is locked
+            if (onPremiumPress) {
+                onPremiumPress();
+            }
+            return;
+        }
         if (type === 'audio') {
             navigation.navigate('TrackPlayer', {
                 AudioTitle: title,

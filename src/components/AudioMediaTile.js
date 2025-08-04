@@ -19,22 +19,33 @@ const AudioMediaTile = ({
   description,
   url,
   locked = false,
+  onPremiumPress,
 }) => {
   const navigation = useNavigation();
+
+  const handlePress = () => {
+    if (locked) {
+      // Show premium modal if content is locked
+      if (onPremiumPress) {
+        onPremiumPress();
+      }
+      return;
+    }
+
+    navigation.navigate('TrackPlayer', {
+      AudioTitle: title,
+      AudioDescr: description,
+      Thumbnail: imageSource?.uri || imageSource,
+      AudioUrl: url,
+      shouldFetchTrack: true,
+      navigationKey: Date.now(),
+    });
+  };
 
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() =>
-        navigation.navigate('TrackPlayer', {
-          AudioTitle: title,
-          AudioDescr: description,
-          Thumbnail: imageSource?.uri || imageSource,
-          AudioUrl: url,
-          shouldFetchTrack: true,
-          navigationKey: Date.now(),
-        })
-      }
+      onPress={handlePress}
     >
       <ImageBackground
         source={m}

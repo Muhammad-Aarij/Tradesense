@@ -21,6 +21,8 @@ import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { API_URL } from "@env";
 import { ThemeContext } from '../../../context/ThemeProvider';
+import OptimizedImage from '../../../components/OptimizedImage';
+import ProfileImage from '../../../components/ProfileImage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -200,9 +202,11 @@ const CourseEpisodesScreen = ({ route }) => {
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     <Header title={course?.title || courseTitle} style={{ marginBottom: 30, }} />
                     <View style={styles.mainImageContainer}>
-                        <Image
-                            source={courseImage ? { uri: courseImage } : mountain}
+                        <OptimizedImage
+                            uri={courseImage}
                             style={styles.mainCourseImage}
+                            fallbackSource={mountain}
+                            resizeMode="cover"
                         />
                         <View style={styles.imgOverlay} />
                         <View style={styles.imageOverlay}>
@@ -212,12 +216,16 @@ const CourseEpisodesScreen = ({ route }) => {
                                     <Text style={styles.timeBadgeText}>15min</Text>
                                 </View> */}
                                 <View style={styles.instructorInfo}>
-                                    <Image
-                                        source={instructorImage ? { uri: `${API_URL}/${instructorImage}` } : userBlue}
-                                        style={styles.instructorImage} />
+                                    <ProfileImage
+                                        uri={instructorImage}
+                                        name={course?.instructorName}
+                                        size={40}
+                                        borderRadius={20}
+                                        style={styles.instructorImage}
+                                    />
                                     <View>
                                         <Text style={styles.instructorName}>{course?.instructorName}</Text>
-                                        <Text style={styles.instructorSubtitle}>{course?.instructorExperienceLevel}</Text>
+                                        {/* <Text style={styles.instructorSubtitle}>{course?.instructorExperienceLevel}</Text> */}
                                     </View>
                                 </View>
                             </View>

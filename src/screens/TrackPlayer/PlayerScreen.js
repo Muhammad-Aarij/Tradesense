@@ -131,7 +131,7 @@ const PlayerScreen = ({ route }) => {
           console.log('Audio loading timeout - going back to previous screen');
           dispatch(stopLoading());
           navigation.goBack();
-        }, 3000);
+        }, 7000);
         
         setLoadingTimeout(timeout);
       } else if ((event.state === PlaybackState.Ready || event.state === PlaybackState.Playing) && !isSeeking) {
@@ -196,7 +196,8 @@ const PlayerScreen = ({ route }) => {
 
   const getRepeatButtonText = () => {
     if (repeatCount === 0) return '';
-    return repeatCount.toString();
+    const remainingRepeats = repeatCount - currentRepeats;
+    return remainingRepeats > 0 ? remainingRepeats.toString() : '';
   };
 
   const setupPlayer = async () => {
@@ -395,8 +396,7 @@ const PlayerScreen = ({ route }) => {
       // console.log('========================');
       // Remove these lines so loader is only stopped by playback state events
       // dispatch(stopLoading());
-      // Reset repeat state on cleanup
-      setCurrentRepeats(0);
+      // Don't reset repeat state on cleanup to preserve the current state
     };
   }, [shouldFetchTrack, navigationKey, AudioUrl]);
 
@@ -593,14 +593,14 @@ const PlayerScreen = ({ route }) => {
             <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
               <Image source={next} style={styles.controlIcon} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton1} onPress={toggleRepeat}>
-              <View style={styles.repeatButtonContainer}>
-                <Image source={repeat} style={[styles.controlIcon, { tintColor: repeatCount > 0 ? theme.primaryColor : '#FFFFFF' }]} />
-                {repeatCount > 0 && (
-                  <Text style={styles.repeatCountText}>{getRepeatButtonText()}</Text>
-                )}
-              </View>
-            </TouchableOpacity>
+                         <TouchableOpacity style={styles.controlButton1} onPress={toggleRepeat}>
+               <View style={styles.repeatButtonContainer}>
+                 <Image source={repeat} style={[styles.controlIcon, { tintColor: repeatCount > 0 ? theme.primaryColor : '#FFFFFF' }]} />
+                 {repeatCount > 0 && getRepeatButtonText() && (
+                   <Text style={styles.repeatCountText}>{getRepeatButtonText()}</Text>
+                 )}
+               </View>
+             </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>

@@ -12,7 +12,7 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CustomInput from '../../../components/CustomInput';
 import { bg, fail, tick } from '../../../assets/images';
@@ -31,24 +31,68 @@ import { API_URL } from "@env";
 
 const API_BASE_URL = API_URL;
 
-const CustomPicker = ({ label, selectedValue, onValueChange, items, styles, theme }) => (
-  <View style={styles.inputGroup}>
-    <Text style={[styles.inputLabel, { color: theme.textColor }]}>{label}</Text>
-    <View style={[styles.pickerContainer, { borderColor: theme.borderColor }]}>
-      <Picker
-        selectedValue={selectedValue}
-        onValueChange={onValueChange}
-        style={[{ fontSize: 12, }, { color: theme.textColor }]}
-        itemStyle={[styles.pickerItem, { fontSize: 6, }]}
-        dropdownIconColor={theme.textColor}
+const CustomPicker = ({ label, selectedValue, onValueChange, items, styles, theme, isDarkMode }) => {
+  const [showPicker, setShowPicker] = useState(false);
+  const selectedItem = items.find(item => item.value === selectedValue);
+
+  return (
+    <View style={styles.inputGroup}>
+      <Text style={[styles.inputLabel, { color: theme.textColor }]}>{label}</Text>
+      <TouchableOpacity
+        style={[styles.pickerContainer, { borderColor: theme.borderColor }]}
+        onPress={() => setShowPicker(true)}
       >
-        {items.map((item, index) => (
-          <Picker.Item key={index} label={item.label} value={item.value} />
-        ))}
-      </Picker>
+        <Text style={[styles.pickerText, { color: theme.textColor }]}>
+          {selectedItem ? selectedItem.label : 'Select an option'}
+        </Text>
+        <Text style={[styles.pickerArrow, { color: theme.textColor }]}>▼</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={showPicker}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.pickerModal, { backgroundColor: isDarkMode ? '#000000' : '#FFFFFF' }]}>
+            <View style={styles.pickerHeader}>
+              <Text style={[styles.pickerHeaderText, { color: theme.textColor }]}>{label}</Text>
+              <TouchableOpacity onPress={() => setShowPicker(false)}>
+                <Text style={[styles.pickerDoneButton, { color: theme.primaryColor }]}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.pickerOptionsContainer}>
+              {items.map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.pickerOption,
+                    selectedValue === item.value && styles.pickerOptionSelected
+                  ]}
+                  onPress={() => {
+                    onValueChange(item.value);
+                    setShowPicker(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.pickerOptionText,
+                    { color: selectedValue === item.value ? theme.primaryColor : theme.textColor }
+                  ]}>
+                    {item.label}
+                  </Text>
+                  {selectedValue === item.value && (
+                    <Text style={[styles.pickerCheckmark, { color: theme.primaryColor }]}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
-  </View>
-);
+  );
+};
 
 export default function Acc_FormData({ route }) {
   const { theme, isDarkMode } = useContext(ThemeContext);
@@ -111,9 +155,20 @@ export default function Acc_FormData({ route }) {
   ];
 
   const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || tradeDate;
-    setShowDatePicker(Platform.OS === 'ios');
-    setTradeDate(currentDate);
+    if (Platform.OS === 'ios') {
+      // On iOS, the picker stays visible until user taps "Done"
+      if (event.type === 'dismissed') {
+        setShowDatePicker(false);
+      } else {
+        setTradeDate(selectedDate || tradeDate);
+      }
+    } else {
+      // On Android, hide the picker after selection
+      setShowDatePicker(false);
+      if (selectedDate) {
+        setTradeDate(selectedDate);
+      }
+    }
   };
 
   const { mutate: submitTrade } = useSubmitTrade(studentId);
@@ -239,37 +294,64 @@ export default function Acc_FormData({ route }) {
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
-          <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.formContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          >
             <Header title="Form Data" />
             {/* All Inputs */}
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.textColor }]}>Trade Date</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerInput}>
+              <TouchableOpacity onPress={() => {
+                if (showDatePicker) {
+                  // If picker is already open, close it
+                  setShowDatePicker(false);
+                } else {
+                  // If picker is closed, open it
+                  setShowDatePicker(true);
+                }
+              }} style={styles.datePickerInput}>
                 <Text style={styles.textInputContent}>{tradeDate.toLocaleDateString()}</Text>
               </TouchableOpacity>
               {showDatePicker && (
-                <DateTimePicker
-                  testID="datePicker"
-                  value={tradeDate}
-                  mode="date"
-                  display="default"
-                  onChange={onDateChange}
-                />
+                <>
+                  <DateTimePicker
+                    testID="datePicker"
+                    value={tradeDate}
+                    mode="date"
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onDateChange}
+                  />
+                  {Platform.OS === 'ios' && (
+                    <View style={styles.iosPickerButtons}>
+                      <TouchableOpacity
+                        style={styles.iosPickerButton}
+                        onPress={() => setShowDatePicker(false)}
+                      >
+                        <Text style={[styles.iosPickerButtonText, { color: theme.primaryColor }]}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </>
               )}
             </View>
 
             <CustomInput label="Product Name"
               placeholder={"Enter Product Name"}
               value={stock} onChangeText={setStock} />
-            <CustomPicker label="Trade Type" selectedValue={tradeType} onValueChange={setTradeType} items={tradeTypeOptions} styles={styles} theme={theme} />
+            <CustomPicker label="Trade Type" selectedValue={tradeType} onValueChange={setTradeType} items={tradeTypeOptions} styles={styles} theme={theme} isDarkMode={isDarkMode} />
             <CustomInput
               label="Setup Name"
               placeholder={"Enter Trade Setup Name"}
               value={setupName}
               onChangeText={setSetupName}
             />
-            <CustomPicker label="Direction" selectedValue={direction} onValueChange={setDirection} items={directionOptions} styles={styles} theme={theme} />
+            <CustomPicker label="Direction" selectedValue={direction} onValueChange={setDirection} items={directionOptions} styles={styles} theme={theme} isDarkMode={isDarkMode} />
 
             <CustomInput label="Entry Price" placeholder={"Enter Entry Price"} value={entryPrice} onChangeText={setEntryPrice} keyboardType="numeric" />
             <CustomInput label="Exit Price" placeholder={"Enter Exit Price"} value={exitPrice} onChangeText={setExitPrice} keyboardType="numeric" />
@@ -283,9 +365,9 @@ export default function Acc_FormData({ route }) {
             />
             <CustomInput label="Actual Exit Price" placeholder={"Enter Actual Exit Price"} value={actualExitPrice} onChangeText={setActualExitPrice} keyboardType="numeric" />
             {/* <CustomPicker label="Result" selectedValue={result} onValueChange={setResult} items={resultOptions} styles={styles} theme={theme} /> */}
-            <CustomPicker label="Emotional State" selectedValue={emotionalState} onValueChange={setEmotionalState} items={emotionalStateOptions} styles={styles} theme={theme} />
+            <CustomPicker label="Emotional State" selectedValue={emotionalState} onValueChange={setEmotionalState} items={emotionalStateOptions} styles={styles} theme={theme} isDarkMode={isDarkMode} />
             <CustomInput label="Reflection Notes" value={reflectionNotes} onChangeText={setReflectionNotes} placeholder="What happened..." isMultiline={true} />
-{/* 
+            {/* 
             <LinearGradient
               start={{ x: 0, y: 0.95 }}
               end={{ x: 1, y: 1 }}
@@ -353,7 +435,7 @@ export default function Acc_FormData({ route }) {
 const getStyles = (theme) =>
   StyleSheet.create({
     container: { flex: 1, padding: 25, paddingVertical: 0 },
-    formContainer: { paddingBottom: 40 },
+    formContainer: { paddingBottom: 100 }, // Add extra padding to ensure content is not hidden behind keyboard
     inputGroup: { marginBottom: 15 },
     inputLabel: {
       fontFamily: 'Inter-Medium',
@@ -384,15 +466,73 @@ const getStyles = (theme) =>
       borderColor: theme.borderColor,
       borderRadius: 8,
       paddingHorizontal: 15,
-      overflow: 'hidden',
-    },
-    picker: {
       height: 55,
-      color: '#fff',
-      fontFamily: 'Inter-Regular',
-      fontSize: 10,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
-    pickerItem: { color: '#fff' },
+    pickerText: {
+      fontFamily: 'Inter-Regular',
+      fontSize: 12,
+      flex: 1,
+    },
+    pickerArrow: {
+      fontSize: 12,
+      marginLeft: 10,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'flex-end',
+    },
+    pickerModal: {
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingBottom: 30,
+      maxHeight: '70%',
+    },
+    pickerHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255,255,255,0.1)',
+    },
+    pickerHeaderText: {
+      fontSize: 18,
+      fontFamily: 'Inter-SemiBold',
+      fontWeight: '600',
+    },
+    pickerDoneButton: {
+      fontSize: 16,
+      fontFamily: 'Inter-Medium',
+      fontWeight: '600',
+    },
+    pickerOptionsContainer: {
+      paddingVertical: 10,
+    },
+    pickerOption: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 15,
+      borderBottomWidth: 1,
+      borderBottomColor: 'rgba(255,255,255,0.05)',
+    },
+    pickerOptionSelected: {
+      backgroundColor: 'rgba(255,255,255,0.05)',
+    },
+    pickerOptionText: {
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+    },
+    pickerCheckmark: {
+      fontSize: 18,
+      fontFamily: 'Inter-Bold',
+    },
     uploadButton: {
       backgroundColor: 'rgba(255,255,255,0.06)',
       borderWidth: 1,
@@ -456,5 +596,27 @@ const getStyles = (theme) =>
       color: '#fff',
       fontSize: 15,
       fontFamily: 'Inter-SemiBold',
+    },
+    iosPickerButtons: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      backgroundColor: 'rgba(255, 255, 255, 0.06)',
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+      borderLeftWidth: 0.9,
+      borderRightWidth: 0.9,
+      borderBottomWidth: 0.9,
+      borderColor: theme.borderColor,
+    },
+    iosPickerButton: {
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+    },
+    iosPickerButtonText: {
+      fontSize: 16,
+      fontFamily: "Inter-Medium",
+      fontWeight: "600",
     },
   });

@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useContext, useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { play, userBlue } from '../../../assets/images';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { API_URL } from "@env";
+import ProfileImage from '../../../components/ProfileImage';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 20 * 2 - 15) / 2;
@@ -34,11 +35,30 @@ const CourseCard = ({
     onPress
 }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
+    const [imageLoading, setImageLoading] = useState(true);
+    const [imageError, setImageError] = useState(false);
 
     return (
         <TouchableOpacity style={[styles.card, { borderColor: theme.borderColor, }]} onPress={onPress}>
             <View style={styles.imageWrapper}>
-                <Image source={imageSource} style={styles.cardImage} />
+                <Image 
+                    source={imageError ? userBlue : imageSource} 
+                    style={styles.cardImage}
+                    onLoadStart={() => setImageLoading(true)}
+                    onLoad={() => setImageLoading(false)}
+                    onError={() => {
+                        setImageLoading(false);
+                        setImageError(true);
+                    }}
+                />
+                
+                {/* Loading Overlay */}
+                {imageLoading && (
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="small" color={theme.primaryColor} />
+                    </View>
+                )}
+                
                 <View style={styles.timeOverlay}>
                     <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
                     <Text style={styles.timeText}>{duration}</Text>
@@ -51,9 +71,13 @@ const CourseCard = ({
                 <View style={{ flex: 1,marginBottom:10, }} />
                 <View style={styles.footer}>
                     <View style={styles.profileInfo}>
-                        <Image
-                            source={instructorImage ? { uri: `${API_URL}/${instructorImage}` } : userBlue}
-                            style={styles.profileImage} />
+                        <ProfileImage
+                            uri={instructorImage}
+                            name={profileName}
+                            size={20}
+                            borderRadius={10}
+                            style={styles.profileImage}
+                        />
                         <View>
                             <Text style={[styles.profileName, { color: theme.primaryColor }]}>{profileName}</Text>
                         </View>
@@ -82,6 +106,17 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 8,
     },
     timeOverlay: {
         position: 'absolute',

@@ -239,15 +239,14 @@ const DailyBreakdownChart = ({
                             <View style={styles.decorativeCircle1} />
                             <View style={styles.decorativeCircle2} />
 
-                            <TouchableOpacity
+                            <View
                                 style={styles.noDataContentContainer}
-                                onPress={() => {
-                                    if (type === 'affiliate') {
-                                        navigation?.navigate('Goals');
-                                    } else {
-                                        navigation?.navigate('Goals');
-                                    }
-                                }}
+
+                                // onPress={() => {
+                                //     type === "affiliate"
+                                //         ? navigation.navigate("CoursesStack")
+                                //         : navigation.navigate("AddGoal");
+                                // }}
                                 activeOpacity={0.7}
                             >
                                 <View
@@ -314,7 +313,7 @@ const DailyBreakdownChart = ({
                                         Start Now
                                     </Text>
                                 </TouchableOpacity>
-                            </TouchableOpacity>
+                            </View>
                         </LinearGradient>
                     </View>
                 )}

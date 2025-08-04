@@ -10,6 +10,7 @@ import {
     Alert,
     Pressable,
     Image,
+    SafeAreaView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -127,6 +128,7 @@ const AffiliateCoursesScreen = () => {
 
     return (
         <ImageBackground source={theme.bg || bg} style={styles.container}>
+            <SafeAreaView style={{ flex: 1 }}>
             {modalVisible &&
                 <ConfirmationModal
                     visible={modalVisible}
@@ -136,6 +138,7 @@ const AffiliateCoursesScreen = () => {
                     onClose={() => setModalVisible(false)}
                 />
             }
+
             {!isAffiliate &&
                 <Header style={{ marginBottom: 35, marginTop: 10, }} />
             }
@@ -157,10 +160,12 @@ const AffiliateCoursesScreen = () => {
                                             colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                             style={styles.statCard}
                                         >
+                                            <View style = {styles.statCardInner}>
                                             <Text style={styles.statLabel}>${affiliateStats?.money?.toFixed(2) || '0.00'}</Text>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: "100%", }}>
                                                 <Text style={styles.statValue}>Available Balance</Text>
                                                 <Image source={back} style={{ width: 10, height: 10, tintColor: theme.textColor, resizeMode: "contain", transform: [{ rotate: '180deg' }] }} />
+                                            </View>
                                             </View>
                                         </LinearGradient>
                                     </Pressable>
@@ -171,12 +176,14 @@ const AffiliateCoursesScreen = () => {
                                         colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                         style={styles.statCard}
                                     >
+                                        <View style = {styles.statCardInner}>
                                         <Text style={styles.statLabel}>
                                             {affiliateStats?.enrolled && affiliateStats?.visited
                                                 ? ((affiliateStats.enrolled / affiliateStats.visited) * 100).toFixed(1)
                                                 : '0'}%
                                         </Text>
                                         <Text style={styles.statValue}>Conversion Rate</Text>
+                                        </View>
                                     </LinearGradient>
 
                                     <LinearGradient
@@ -185,8 +192,10 @@ const AffiliateCoursesScreen = () => {
                                         colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                         style={styles.statCard}
                                     >
+                                        <View style = {styles.statCardInner}>
                                         <Text style={styles.statLabel}>{affiliateStats?.visited || 0}</Text>
                                         <Text style={styles.statValue}>Views</Text>
+                                        </View>
                                     </LinearGradient>
 
                                     <LinearGradient
@@ -195,12 +204,14 @@ const AffiliateCoursesScreen = () => {
                                         colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                         style={styles.statCard}
                                     >
+                                        <View style = {styles.statCardInner}>
                                         <Text style={styles.statLabel}>{affiliateStats?.enrolled || 0}</Text>
                                         <Text style={styles.statValue}>Conversions</Text>
+                                        </View>
                                     </LinearGradient>
                                 </View>
 
-                                <DailyBreakdownChart type='affiliate' navigation={navigation} />
+                                <DailyBreakdownChart type='affiliate' />
                             </>
                         )}
                         renderItem={renderItem}
@@ -264,6 +275,7 @@ const AffiliateCoursesScreen = () => {
 
 
 
+            </SafeAreaView>
         </ImageBackground>
     );
 };
@@ -272,22 +284,29 @@ const getStyles = (theme) => StyleSheet.create({
     container: { flex: 1, backgroundColor: '#08131F', padding: 25, paddingTop: 5 },
     listContainer: { paddingBottom: 120, marginBottom: 100 },
     messageContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-    messageText: { color: '#FFF', fontSize: 14, fontFamily: 'Outfit-Regular', marginBottom: 20, textAlign: 'center' },
+    messageText: { color: '#FFF', fontSize: 14, fontFamily: 'Inter-Regular', marginBottom: 20, textAlign: 'center' },
     requestButton: { backgroundColor: theme.primaryColor, paddingVertical: 12, paddingHorizontal: 25, borderRadius: 28 },
-    requestButtonText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Regular' },
+    requestButtonText: { color: '#FFF', fontSize: 12, fontFamily: 'Inter-Regular' },
     statsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     statCard: {
+        // borderWidth: 0.9,
+        // borderRadius: 8,
+        width: (width - 65) / 2,
+        marginBottom: 16,
+        alignItems: 'flex-start',
+    },
+    statCardInner: {
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
         borderWidth: 0.9,
         borderColor: theme.borderColor,
         borderRadius: 8,
         width: (width - 65) / 2,
         padding: 15,
-        marginBottom: 16,
+        // marginBottom: 16,
         alignItems: 'flex-start',
     },
-    statLabel: { color: theme.textColor, fontSize: 20, fontFamily: 'Outfit-SemiBold' },
-    statValue: { color: theme.subTextColor, fontSize: 10, fontFamily: 'Outfit-Light-BETA' },
+    statLabel: { color: theme.textColor, fontSize: 20, fontFamily: 'Inter-SemiBold' },
+    statValue: { color: theme.subTextColor, fontSize: 10, fontFamily: 'Inter-Light-BETA' },
     noDataContainer: {
         marginTop: width * 0.3,
         alignSelf: "center",
@@ -357,7 +376,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataTitle: {
         color: theme.subTextColor,
         fontSize: 18,
-        fontFamily: 'Outfit-Bold',
+        fontFamily: 'Inter-Bold',
         marginBottom: 10,
         textAlign: 'center',
         letterSpacing: 0.3,
@@ -369,7 +388,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataSubtitle: {
         color: theme.subTextColor,
         fontSize: 14,
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
         textAlign: 'center',
         opacity: 0.9,
         marginBottom: 24,
@@ -398,7 +417,7 @@ const getStyles = (theme) => StyleSheet.create({
     motivationalText: {
         color: '#FFFFFF',
         fontSize: 13,
-        fontFamily: 'Outfit-SemiBold',
+        fontFamily: 'Inter-SemiBold',
         textAlign: 'center',
         letterSpacing: 0.2,
     },
@@ -429,7 +448,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataMessage: {
         color: theme.subTextColor,
         fontSize: 13,
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
         textAlign: 'left',
         lineHeight: 19,
         opacity: 0.9,

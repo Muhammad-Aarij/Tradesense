@@ -14,8 +14,9 @@ import female from './female.png';
 import health from './health.png';
 import hearts from './hearts.png';
 import lock from './lock.png';
+import locked from './locked.png';
 import male from './male.png';
-import third from './third.png';
+// import third from './third.png';
 import tick from './tick.png';
 import trophy from './trophy.png';
 import wallet from './wallet.png';
@@ -159,7 +160,7 @@ import colorBg from './colorBg.png'
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
-  lock, male, third, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
+  lock, locked, male, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
   check, uncheck, home, care, video, book, user, scholar, graph, bell, bellWhite, circle, wave, play, playb, back, mountain, acc, fail,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next, d, cwhite, cblue,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,

@@ -40,3 +40,38 @@ export const googleLoginApi = async (googleUser) => {
   return response.data; // Contains token and user
 };
 
+export const appleLoginApi = async (appleUser) => {
+  console.log("Apple login api response:", appleUser);
+  
+  // Extract name from Apple user data
+  const givenName = appleUser.givenName || appleUser.fullName?.givenName || 'Apple';
+  const familyName = appleUser.familyName || appleUser.fullName?.familyName || 'User';
+  
+  // Create name field - if both are empty, use "Apple User" as default
+  let name = '';
+  if (givenName && familyName) {
+    name = `${givenName} ${familyName}`;
+  } else if (givenName) {
+    name = givenName;
+  } else if (familyName) {
+    name = familyName;
+  } else {
+    name = 'Apple User'; // Default name when no name is provided
+  }
+  
+  const payload = {
+    email: appleUser.email,
+    profilePic: null,
+    firstName: givenName,
+    lastName: familyName,
+    phone: '', // optional
+  };
+  try {
+    const response = await axios.post(`${API_URL}/api/auth/register/google`, payload);
+    console.log("Apple login api response:", response.data);
+    return response.data; // Contains token and user
+  } catch (error) {
+    console.error("Apple login api error:", error.response.data);
+    throw error;
+  }
+};

@@ -1,9 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
     View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Image,
     ImageBackground, ScrollView, Pressable, Modal, KeyboardAvoidingView, Platform,
     TouchableWithoutFeedback, Keyboard,
-    SafeAreaView,
 } from 'react-native';
 import { bg, login as userLock, G, eyeClose, applePay, tick, fail } from '../../../assets/images';
 import themeBase from '../../../themes/theme';
@@ -13,11 +12,14 @@ import CustomInput from '../../../components/CustomInput';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
-import { loginApi, googleLoginApi } from '../../../functions/auth';
+import { loginApi, googleLoginApi, appleLoginApi } from '../../../functions/auth';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Snackbar from 'react-native-snackbar';
 import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID, GOOGLE_ANDROID_CLIENT_ID } from '@env';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
+import { decode as atob } from 'base-64';
+
 
 // GoogleSignin.configure({
 //     webClientId: GOOGLE_WEB_CLIENT_ID,
@@ -58,27 +60,17 @@ const LoginScreen = ({ navigation, route }) => {
             icon,
         });
     };
-    const isValidEmail = (email) => {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    };
+
+    // useEffect(() => {
+    //     dispatch(startLoading());
+    //     return () => {
+    //         dispatch(stopLoading());
+    //     };
+    // }, []);
 
     const handleLogin = async () => {
         if (!username || !password) {
-            showConfirmationModal({
-                title: 'Missing Fields',
-                message: 'Please enter both email and password.',
-                icon: fail,
-            });
-            return;
-        }
-
-        if (!isValidEmail(username)) {
-            showConfirmationModal({
-                title: 'Invalid Email',
-                message: 'Please enter a valid email address.',
-                icon: fail,
-            });
+            setShowModal(true);
             return;
         }
 
@@ -145,7 +137,7 @@ const LoginScreen = ({ navigation, route }) => {
             // Extract google user details (defensive in case structure changes)
             const googleUser = response?.user || response?.data?.user || response;
             console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
-
+            
             const data = await googleLoginApi(googleUser);
             const answers = data.existingUser?.questionnaireAnswers;
 
@@ -194,78 +186,187 @@ const LoginScreen = ({ navigation, route }) => {
         }
     };
 
+    async function AppleLogin() {
+        try {
+            const authRes = await appleAuth.performRequest({
+                requestedOperation: appleAuth.Operation.LOGIN,
+                requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+            });
+
+            console.log('Apple login response:', authRes);
+
+            const credentialState = await appleAuth.getCredentialStateForUser(authRes.user);
+            console.log('Credential state:', credentialState);
+
+            if (authRes.identityToken) {
+                console.log('Apple login successful - proceeding with identity token');
+                const jwtParts = authRes.identityToken.split('.');
+                if (jwtParts.length === 3) {
+                    try {
+                        const base64Payload = jwtParts[1].replace(/-/g, '+').replace(/_/g, '/');
+                        const paddedPayload = base64Payload.padEnd(
+                            base64Payload.length + (4 - (base64Payload.length % 4)) % 4,
+                            '='
+                        );
+
+                        const decodedData = atob(paddedPayload);
+                        const payload = JSON.parse(decodedData);
+
+                        console.log('Decoded JWT payload:', payload);
+
+                        // Extract email and user ID from JWT or authRes
+                        const email = payload.email || authRes.email;
+                        const userId = payload.sub;
+
+                        console.log('Extracted email:', email);
+                        console.log('Extracted user ID:', userId);
+
+                        // Store the email in the authRes object for use in SocialLogin
+                        authRes.email = email;
+
+                        // Store user information in AsyncStorage
+                        try {
+                            const data = await appleLoginApi(authRes);
+                            const answers = data.existingUser?.questionnaireAnswers;
+                
+                            const isProfilingPending =
+                                !answers ||
+                                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
+                                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
+                
+                            await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
+                
+                            if (pendingDeepLink) {
+                                if (!isProfilingPending) dispatch(setProfilingDone(true));
+                                navigation.replace('CourseDeepLink', {
+                                    courseId: pendingDeepLink.courseId,
+                                    affiliateToken: pendingDeepLink.token,
+                                });
+                            } else if (isProfilingPending) {
+                                console.log('data.user++++>>>>> in login', data.existingUser);
+                                console.log('data.token++++>>>>> in login', data.token);
+                                navigation.replace("GenderScreen", {
+                                    user: data.existingUser,
+                                    token: data.token,
+                                });
+                            } else {
+                                dispatch(setProfilingDone(true));
+                                navigation.replace('MainFlow');
+                            }
+                        } catch (storageError) {
+                            console.error('Error saving Apple user data to AsyncStorage:', storageError);
+                        }
+                    } catch (decodeError) {
+                        console.error('Error decoding JWT:', decodeError);
+                        // Use email from authRes if JWT decoding fails
+                        if (authRes.email) {
+                            console.log('Using email from authRes:', authRes.email);
+                        }
+                    }
+                }
+
+                // Proceed with social login if we have identity token (works on both simulator and device)
+                // await SocialLogin('apple', authRes);
+
+            } else {
+                // Only show error if we don't have identity token
+                console.log('No identity token received - authentication failed');
+                throw new Error('Apple authentication failed - no identity token');
+            }
+
+            // setAppleData(authRes);
+
+            if (authRes.email) {
+                try {
+                    // await AsyncStorage.setItem('appleData', authRes.email);
+                    console.log('JSON data', authRes.email);
+                } catch (error) {
+                    console.error('Error saving data to Async Storage:', error);
+                }
+            }
+        } catch (error) {
+            console.error('Apple login error:', error);
+            Snackbar.show({
+                text: 'Apple login failed',
+                duration: 3000,
+                backgroundColor: colours.error,
+                textColor: colours.black,
+            });
+        } 
+    }
+
     return (
         <>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <SafeAreaView style={{ flex: 1 }}>
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles(theme).container}>
-                        <ImageBackground source={theme.bg} style={styles(theme).container}>
-                            <Image source={userLock} style={styles(theme).image} />
+                <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles(theme).container}>
+                    <ImageBackground source={theme.bg} style={styles(theme).container}>
+                        <Image source={userLock} style={styles(theme).image} />
 
-                            <ScrollView contentContainerStyle={styles(theme).scrollContent} style={styles(theme).bottomcontainer}>
-                                <Text style={styles(theme).title}>Login</Text>
-                                <Text style={styles(theme).subtitle}>Welcome back, we missed you</Text>
+                        <ScrollView contentContainerStyle={styles(theme).scrollContent} style={styles(theme).bottomcontainer}>
+                            <Text style={styles(theme).title}>Login</Text>
+                            <Text style={styles(theme).subtitle}>Welcome back, we missed you</Text>
 
-                                <CustomInput
-                                    label="Email"
-                                    placeholder="Email Address"
-                                    value={username}
-                                    onChangeText={setUsername}
-                                />
+                            <CustomInput
+                                label="Email"
+                                placeholder="Email Address"
+                                value={username}
+                                onChangeText={setUsername}
+                            />
 
-                                <CustomInput
-                                    label="Password"
-                                    placeholder="Enter your password"
-                                    secureTextEntry={!passwordVisible}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    icon={eyeClose}
-                                    onIconPress={() => setPasswordVisible(!passwordVisible)}
-                                />
+                            <CustomInput
+                                label="Password"
+                                placeholder="Enter your password"
+                                secureTextEntry={!passwordVisible}
+                                value={password}
+                                onChangeText={setPassword}
+                                icon={eyeClose}
+                                onIconPress={() => setPasswordVisible(!passwordVisible)}
+                            />
 
-                                <TouchableOpacity style={styles(theme).forgot} onPress={() => navigation.navigate('ForgotPassword')}>
-                                    <Text style={styles(theme).forgotText}>Forgot Password?</Text>
-                                </TouchableOpacity>
+                            <TouchableOpacity style={styles(theme).forgot} onPress={() => navigation.navigate('ForgotPassword')}>
+                                <Text style={styles(theme).forgotText}>Forgot Password?</Text>
+                            </TouchableOpacity>
 
-                                <TouchableOpacity
-                                    style={[styles(theme).button, { opacity: loading ? 0.7 : 1 }]}
-                                    onPress={handleLogin}
-                                    disabled={loading}
+                            <TouchableOpacity
+                                style={[styles(theme).button, { opacity: loading ? 0.7 : 1 }]}
+                                onPress={handleLogin}
+                                disabled={loading}
+                            >
+                                <Text style={styles(theme).buttonText}>{loading ? 'Signing in...' : 'Sign in'}</Text>
+                            </TouchableOpacity>
+
+                            <View style={styles(theme).orContainer}>
+                                <LinearGradient colors={['rgba(204,204,204,0.07)', 'rgba(255,255,255,0.32)']} style={styles(theme).Line} />
+                                <Text style={styles(theme).or}>or continue with</Text>
+                                <LinearGradient colors={['rgba(255,255,255,0.32)', 'rgba(204,204,204,0.07)']} style={styles(theme).Line} />
+                            </View>
+
+                            <View style={styles(theme).row}>
+                                <LinearGradient
+                                    colors={['rgba(255,255,255,0.16)', 'rgba(204,204,204,0)']}
+                                    style={styles(theme).googleBtn}
                                 >
-                                    <Text style={styles(theme).buttonText}>{loading ? 'Signing in...' : 'Sign in'}</Text>
+                                    <TouchableOpacity onPress={googleSignIn} style={styles(theme).googleBtnInner}>
+                                        <Image source={G} style={styles(theme).socialIcon} />
+                                        <Text style={styles(theme).googleText}>Continue with Google</Text>
+                                    </TouchableOpacity>
+                                </LinearGradient>
+
+                                <TouchableOpacity 
+                                onPress={AppleLogin}
+                                style={styles(theme).appleBtn}>
+                                    <Image source={applePay} style={styles(theme).socialIcon} />
                                 </TouchableOpacity>
+                            </View>
 
-                                <View style={styles(theme).orContainer}>
-                                    <LinearGradient colors={['rgba(204,204,204,0.07)', 'rgba(255,255,255,0.32)']} style={styles(theme).Line} />
-                                    <Text style={styles(theme).or}>or continue with</Text>
-                                    <LinearGradient colors={['rgba(255,255,255,0.32)', 'rgba(204,204,204,0.07)']} style={styles(theme).Line} />
-                                </View>
-
-                                <View style={styles(theme).row}>
-                                    <LinearGradient
-                                        colors={['rgba(255,255,255,0.16)', 'rgba(204,204,204,0)']}
-                                        style={styles(theme).googleBtn}
-                                    >
-                                        <TouchableOpacity onPress={googleSignIn} style={styles(theme).googleBtnInner}>
-                                            <Image source={G} style={styles(theme).socialIcon} />
-                                            <Text style={styles(theme).googleText}>Continue with Google</Text>
-                                        </TouchableOpacity>
-                                    </LinearGradient>
-
-                                    {/* <TouchableOpacity style={styles(theme).appleBtn}>
-                                        <Image source={applePay} style={styles(theme).socialIcon} />
-                                    </TouchableOpacity> */}
-                                </View>
-
-                                <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-                                    <Text style={styles(theme).footer}>
-                                        Don't have an account? <Text style={styles(theme).link}>Sign up here!</Text>
-                                    </Text>
-                                </TouchableOpacity>
-                            </ScrollView>
-                        </ImageBackground>
-                    </KeyboardAvoidingView>
-                </SafeAreaView>
+                            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+                                <Text style={styles(theme).footer}>
+                                    Don't have an account? <Text style={styles(theme).link}>Sign up here!</Text>
+                                </Text>
+                            </TouchableOpacity>
+                        </ScrollView>
+                    </ImageBackground>
+                </KeyboardAvoidingView>
             </TouchableWithoutFeedback>
 
             {confirmation.visible && <ConfirmationModal

@@ -63,8 +63,8 @@ const AgeScreen = ({ navigation, route }) => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <ImageBackground source={bg} style={styles.container}>
+        <ImageBackground source={bg} style={{flex: 1}}>
+            <SafeAreaView style={styles.container}>
                 <ScrollView
                     style={{ flex: 1, width: '100%' }}
                     contentContainerStyle={{
@@ -117,8 +117,8 @@ const AgeScreen = ({ navigation, route }) => {
                         <Text style={styles.buttonText}>Next</Text>
                     </TouchableOpacity>
                 </ScrollView>
-            </ImageBackground>
-        </SafeAreaView >
+            </SafeAreaView >
+        </ImageBackground>
 
     );
 };

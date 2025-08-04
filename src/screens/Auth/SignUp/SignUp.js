@@ -10,7 +10,6 @@ import {
     ScrollView,
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
 } from 'react-native';
 import { bg, G, eyeClose, secureUser, applePay, tick } from '../../../assets/images';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,12 +18,21 @@ import { sendOTP } from '../../../functions/otpService';
 import validateUser from '../../../functions/validateUser';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { loginUser, setProfilingDone } from '../../../redux/slice/authSlice';
+import { googleLoginApi, appleLoginApi } from '../../../functions/auth';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import Snackbar from 'react-native-snackbar';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import ConfirmationModal from '../../../components/ConfirmationModal';
-import { setProfilingDone } from '../../../redux/slice/authSlice';
-import { googleLoginApi } from '../../../functions/auth';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
-import SnackbarMessage from '../../../functions/SnackbarMessage';
+import { appleAuth } from '@invertase/react-native-apple-authentication';
+import { decode as atob } from 'base-64';
+
+GoogleSignin.configure({
+    webClientId: "719765624558-bl0hf7hi55squfiqi4eiv4ockm0css0s.apps.googleusercontent.com",
+    iosClientId: "719765624558-q8auutbabdfgqjiscmcd16vm7673h6v0.apps.googleusercontent.com",
+    scopes: ['profile', 'email'],
+    offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+});
 
 const { width, height } = Dimensions.get('window');
 
@@ -45,86 +53,6 @@ const SignUp = ({ navigation }) => {
     const [modalMessage, setModalMessage] = useState('');
     const [modalIcon, setModalIcon] = useState(null);
 
-    const [snackbarVisible, setSnackbarVisible] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
-    const [snackbarType, setSnackbarType] = useState('error');
-
-    const showSnackbar = (message, type = 'error') => {
-        setSnackbarMessage(message);
-        setSnackbarType(type);
-        setSnackbarVisible(true);
-        setTimeout(() => setSnackbarVisible(false), 3000);
-    };
-
-
-    GoogleSignin.configure({
-        webClientId: "719765624558-bl0hf7hi55squfiqi4eiv4ockm0css0s.apps.googleusercontent.com",
-        iosClientId: "719765624558-q8auutbabdfgqjiscmcd16vm7673h6v0.apps.googleusercontent.com",
-        scopes: ['profile', 'email'],
-        offlineAccess: true,
-    });
-
-    const googleSignIn = async () => {
-        try {
-            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-            await GoogleSignin.signOut();
-            await new Promise(resolve => setTimeout(resolve, 200));
-            const response = await GoogleSignin.signIn();
-            console.log('Google Sign-In raw response:', JSON.stringify(response, null, 2));
-            dispatch(startLoading());
-
-            // Extract google user details (defensive in case structure changes)
-            const googleUser = response?.user || response?.data?.user || response;
-            console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
-
-            const data = await googleLoginApi(googleUser);
-            const answers = data.existingUser?.questionnaireAnswers;
-
-            const isProfilingPending =
-                !answers ||
-                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
-                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
-
-            await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
-
-            if (pendingDeepLink) {
-                if (!isProfilingPending) dispatch(setProfilingDone(true));
-                navigation.replace('CourseDeepLink', {
-                    courseId: pendingDeepLink.courseId,
-                    affiliateToken: pendingDeepLink.token,
-                });
-            } else if (isProfilingPending) {
-                console.log('data.user++++>>>>> in login', data.existingUser);
-                console.log('data.token++++>>>>> in login', data.token);
-                navigation.replace("GenderScreen", {
-                    user: data.existingUser,
-                    token: data.token,
-                });
-            } else {
-                dispatch(setProfilingDone(true));
-                navigation.replace('MainFlow');
-            }
-
-        } catch (error) {
-            console.error("Google Sign-In error:", error.response.data);
-
-            const message = {
-                [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in cancelled.',
-                [statusCodes.IN_PROGRESS]: 'Sign-in already in progress.',
-                [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: 'Play Services not available.',
-            }[error.code] || 'Google Sign-In failed.';
-
-            Snackbar.show({
-                text: message,
-                duration: 3000,
-                backgroundColor: '#010b13b6',
-                textColor: '#fff',
-            });
-        } finally {
-            dispatch(stopLoading());
-        }
-    };
-
     const showConfirmationModal = ({ title, message, icon }) => {
         setModalTitle(title);
         setModalMessage(message);
@@ -132,41 +60,22 @@ const SignUp = ({ navigation }) => {
         setModalVisible(true);
     };
 
-    const isValidEmail = (email) => {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    };
-
-    const isValidNumber = (number) => {
-        const regex = /^[0-9]{10,15}$/; // adjust length based on your needs
-        return regex.test(number);
-    };
-
-
     const handleSignUp = async () => {
-        if (!name || !phone || !email || !password || !confirmPassword) {
-            showSnackbar("Please fill all fields.");
-            return;
-        }
-
-        if (!/^\d{10,15}$/.test(phone)) {
-            showSnackbar("Phone number must be 10 to 15 digits.");
-            return;
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            showSnackbar("Invalid email format.");
-            return;
-        }
-
-        if (password.length < 6) {
-            showSnackbar("Password must be at least 6 characters.");
-            return;
-        }
-
         if (password !== confirmPassword) {
-            showSnackbar("Passwords do not match.");
+            showConfirmationModal({
+                title: 'Password Mismatch',
+                message: 'Passwords do not match!',
+                icon: tick.fail,
+            });
+            return;
+        }
+
+        if (!name || !phone || !email || !password) {
+            showConfirmationModal({
+                title: 'Missing Fields',
+                message: 'Please fill in all fields',
+                icon: tick.fail,
+            });
             return;
         }
 
@@ -210,6 +119,7 @@ const SignUp = ({ navigation }) => {
                 return;
             }
 
+            // Send OTP if validation passes
             const response = await sendOTP(email, true);
             dispatch(stopLoading());
 
@@ -237,110 +147,259 @@ const SignUp = ({ navigation }) => {
         }
     };
 
+    const googleSignIn = async () => {
+        try {
+            await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+            await GoogleSignin.signOut();
+            await new Promise(resolve => setTimeout(resolve, 200));
+            const response = await GoogleSignin.signIn();
+            console.log('Google Sign-In raw response:', JSON.stringify(response, null, 2));
+            dispatch(startLoading());
+
+            // Extract google user details (defensive in case structure changes)
+            const googleUser = response?.user || response?.data?.user || response;
+            console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
+            
+            const data = await googleLoginApi(googleUser);
+            const answers = data.existingUser?.questionnaireAnswers;
+
+            const isProfilingPending =
+                !answers ||
+                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
+                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
+
+            await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
+
+            if (isProfilingPending) {
+                console.log('data.user++++>>>>> in login', data.existingUser);
+                console.log('data.token++++>>>>> in login', data.token);
+                navigation.replace("GenderScreen", {
+                    user: data.existingUser,
+                    token: data.token,
+                });
+            } else {
+                dispatch(setProfilingDone(true));
+                navigation.replace('MainFlow');
+            }
+
+        } catch (error) {
+            console.error("Google Sign-In error:", error.response?.data);
+
+            const message = {
+                [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in cancelled.',
+                [statusCodes.IN_PROGRESS]: 'Sign-in already in progress.',
+                [statusCodes.PLAY_SERVICES_NOT_AVAILABLE]: 'Play Services not available.',
+            }[error.code] || 'Google Sign-In failed.';
+
+            Snackbar.show({
+                text: message,
+                duration: 3000,
+                backgroundColor: '#010b13b6',
+                textColor: '#fff',
+            });
+        } finally {
+            dispatch(stopLoading());
+        }
+    };
+
+    async function AppleLogin() {
+        try {
+            const authRes = await appleAuth.performRequest({
+                requestedOperation: appleAuth.Operation.LOGIN,
+                requestedScopes: [appleAuth.Scope.EMAIL, appleAuth.Scope.FULL_NAME],
+            });
+
+            console.log('Apple login response:', authRes);
+
+            const credentialState = await appleAuth.getCredentialStateForUser(authRes.user);
+            console.log('Credential state:', credentialState);
+
+            if (authRes.identityToken) {
+                console.log('Apple login successful - proceeding with identity token');
+                const jwtParts = authRes.identityToken.split('.');
+                if (jwtParts.length === 3) {
+                    try {
+                        const base64Payload = jwtParts[1].replace(/-/g, '+').replace(/_/g, '/');
+                        const paddedPayload = base64Payload.padEnd(
+                            base64Payload.length + (4 - (base64Payload.length % 4)) % 4,
+                            '='
+                        );
+
+                        const decodedData = atob(paddedPayload);
+                        const payload = JSON.parse(decodedData);
+
+                        console.log('Decoded JWT payload:', payload);
+
+                        // Extract email and user ID from JWT or authRes
+                        const email = payload.email || authRes.email;
+                        const userId = payload.sub;
+
+                        console.log('Extracted email:', email);
+                        console.log('Extracted user ID:', userId);
+
+                        // Store the email in the authRes object for use in SocialLogin
+                        authRes.email = email;
+
+                        // Store user information in AsyncStorage
+                        try {
+                            const data = await appleLoginApi(authRes);
+                            const answers = data.existingUser?.questionnaireAnswers;
+                
+                            const isProfilingPending =
+                                !answers ||
+                                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
+                                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
+                
+                            await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
+                
+                            if (isProfilingPending) {
+                                console.log('data.user++++>>>>> in signup', data.existingUser);
+                                console.log('data.token++++>>>>> in signup', data.token);
+                                navigation.replace("GenderScreen", {
+                                    user: data.existingUser,
+                                    token: data.token,
+                                });
+                            } else {
+                                dispatch(setProfilingDone(true));
+                                navigation.replace('MainFlow');
+                            }
+                        } catch (storageError) {
+                            console.error('Error saving Apple user data to AsyncStorage:', storageError);
+                        }
+                    } catch (decodeError) {
+                        console.error('Error decoding JWT:', decodeError);
+                        // Use email from authRes if JWT decoding fails
+                        if (authRes.email) {
+                            console.log('Using email from authRes:', authRes.email);
+                        }
+                    }
+                }
+
+                // Proceed with social login if we have identity token (works on both simulator and device)
+                // await SocialLogin('apple', authRes);
+
+            } else {
+                // Only show error if we don't have identity token
+                console.log('No identity token received - authentication failed');
+                throw new Error('Apple authentication failed - no identity token');
+            }
+
+            // setAppleData(authRes);
+
+            if (authRes.email) {
+                try {
+                    // await AsyncStorage.setItem('appleData', authRes.email);
+                    console.log('JSON data', authRes.email);
+                } catch (error) {
+                    console.error('Error saving data to Async Storage:', error);
+                }
+            }
+        } catch (error) {
+            console.error('Apple login error:', error);
+            Snackbar.show({
+                text: 'Apple login failed',
+                duration: 3000,
+                backgroundColor: '#010b13b6',
+                textColor: '#fff',
+            });
+        } 
+    }
 
     return (
         <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.bg }]}>
-            <SafeAreaView style={{ flex: 1 }}>
-                {modalVisible &&
-                    <ConfirmationModal
-                        visible={modalVisible}
-                        title={modalTitle}
-                        message={modalMessage}
-                        icon={modalIcon}
-                        onClose={() => setModalVisible(false)}
-                    />}
+            {modalVisible &&
+                <ConfirmationModal
+                    visible={modalVisible}
+                    title={modalTitle}
+                    message={modalMessage}
+                    icon={modalIcon}
+                    onClose={() => setModalVisible(false)}
+                />}
 
-                <SnackbarMessage
-                    visible={snackbarVisible}
-                    message={snackbarMessage}
-                    type={snackbarType}
-                />
+            <KeyboardAvoidingView
+                style={styles.keyboardAvoiding}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                    <Image source={secureUser} style={styles.image} />
 
+                    <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.isDarkMode : 'white' }]}>
+                        <Text style={[styles.title, { color: theme.textColor }]}>Register Now</Text>
+                        <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Create a new account</Text>
 
-                <KeyboardAvoidingView
-                    style={styles.keyboardAvoiding}
-                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                >
-                    <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        <Image source={secureUser} style={styles.image} />
+                        <CustomInput label="Full Name" placeholder="Enter Full Name" value={name} onChangeText={setFullName} />
+                        <CustomInput label="Phone" placeholder="Enter Phone Number" value={phone} onChangeText={setPhone} />
+                        <CustomInput label="Email" placeholder="Email Address" value={email} onChangeText={setEmail} />
 
-                        <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.isDarkMode : 'white' }]}>
-                            <Text style={[styles.title, { color: theme.textColor }]}>Register Now</Text>
-                            <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Create a new account</Text>
+                        <CustomInput
+                            label="Password"
+                            placeholder="Password"
+                            secureTextEntry={!passwordVisible}
+                            value={password}
+                            onChangeText={setPassword}
+                            icon={eyeClose}
+                            onIconPress={() => setPasswordVisible(!passwordVisible)}
+                        />
 
-                            <CustomInput label="Full Name" placeholder="Enter Full Name" value={name} onChangeText={setFullName} />
-                            <CustomInput label="Phone" placeholder="Enter Phone Number" value={phone} onChangeText={setPhone} />
-                            <CustomInput label="Email" placeholder="Email Address" value={email} onChangeText={setEmail} />
+                        <CustomInput
+                            label="Confirm Password"
+                            placeholder="Confirm Password"
+                            secureTextEntry={!passwordVisible2}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            icon={eyeClose}
+                            onIconPress={() => setPasswordVisible2(!passwordVisible2)}
+                        />
 
-                            <CustomInput
-                                label="Password"
-                                placeholder="Password"
-                                secureTextEntry={!passwordVisible}
-                                value={password}
-                                onChangeText={setPassword}
-                                icon={eyeClose}
-                                onIconPress={() => setPasswordVisible(!passwordVisible)}
+                        <TouchableOpacity
+                            style={[styles.button, { backgroundColor: theme.primaryColor }]}
+                            onPress={handleSignUp}
+                        >
+                            <Text style={styles.buttonText}>Sign Up</Text>
+                        </TouchableOpacity>
+
+                        <View style={styles.orContainer}>
+                            <LinearGradient
+                                start={{ x: 0.0, y: 0.95 }}
+                                end={{ x: 1.0, y: 1.0 }}
+                                colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
+                                style={styles.Line}
                             />
-
-                            <CustomInput
-                                label="Confirm Password"
-                                placeholder="Confirm Password"
-                                secureTextEntry={!passwordVisible2}
-                                value={confirmPassword}
-                                onChangeText={setConfirmPassword}
-                                icon={eyeClose}
-                                onIconPress={() => setPasswordVisible2(!passwordVisible2)}
+                            <Text style={[styles.or, { color: theme.subTextColor }]}>Or continue with</Text>
+                            <LinearGradient
+                                colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
+                                style={styles.Line}
                             />
+                        </View>
 
-                            <TouchableOpacity
-                                style={[styles.button, { backgroundColor: theme.primaryColor }]}
-                                onPress={handleSignUp}
+                        <View style={styles.socialRow}>
+                            <LinearGradient
+                                start={{ x: 0.0, y: 0.95 }}
+                                end={{ x: 1.0, y: 1.0 }}
+                                colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
+                                style={styles.googleBtn}
                             >
-                                <Text style={styles.buttonText}>Sign Up</Text>
-                            </TouchableOpacity>
+                                <TouchableOpacity onPress={googleSignIn} style={styles.googleBtnInner}>
+                                    <Image source={G} style={styles.socialIcon} />
+                                    <Text style={[styles.googleText, { color: theme.textColor }]}>Continue with Google</Text>
+                                </TouchableOpacity>
+                            </LinearGradient>
 
-                            <View style={styles.orContainer}>
-                                <LinearGradient
-                                    start={{ x: 0.0, y: 0.95 }}
-                                    end={{ x: 1.0, y: 1.0 }}
-                                    colors={['rgba(204, 204, 204, 0.07)', 'rgba(255, 255, 255, 0.32)']}
-                                    style={styles.Line}
-                                />
-                                <Text style={[styles.or, { color: theme.subTextColor }]}>Or continue with</Text>
-                                <LinearGradient
-                                    colors={['rgba(255, 255, 255, 0.32)', 'rgba(204, 204, 204, 0.07)']}
-                                    style={styles.Line}
-                                />
-                            </View>
-
-                            <View style={styles.socialRow}>
-                                <LinearGradient
-                                    start={{ x: 0.0, y: 0.95 }}
-                                    end={{ x: 1.0, y: 1.0 }}
-                                    colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
-                                    style={styles.googleBtn}
-                                >
-                                    <TouchableOpacity onPress={googleSignIn} style={styles.googleBtnInner}
-                                    >
-                                        <Image source={G} style={styles.socialIcon} />
-                                        <Text style={[styles.googleText, { color: theme.textColor }]}>Continue with Google</Text>
-                                    </TouchableOpacity>
-                                </LinearGradient>
-
-                                {/* <TouchableOpacity style={styles.appleBtn}>
-                                    <Image source={applePay} style={styles.socialIcon} />
-                                </TouchableOpacity> */}
-                            </View>
-
-                            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                                <Text style={[styles.footer, { color: theme.subTextColor }]}>
-                                    Already have an account? <Text style={[styles.link, { color: theme.primaryColor }]}>Sign In</Text>
-                                </Text>
+                            <TouchableOpacity 
+                                onPress={AppleLogin}
+                                style={styles.appleBtn}>
+                                <Image source={applePay} style={styles.socialIcon} />
                             </TouchableOpacity>
                         </View>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </SafeAreaView >
+
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                            <Text style={[styles.footer, { color: theme.subTextColor }]}>
+                                Already have an account? <Text style={[styles.link, { color: theme.primaryColor }]}>Sign In</Text>
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </ImageBackground>
     );
 };
@@ -360,7 +419,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingBottom: 40,
         alignItems: 'center',
     },
     bottomcontainer: {
@@ -380,14 +438,14 @@ const styles = StyleSheet.create({
         marginTop: height * 0.04,
     },
     title: {
-        fontSize: width * 0.06,
-        fontFamily: 'Outfit-SemiBold',
+        fontSize: width * 0.07,
+        fontFamily: 'Inter-SemiBold',
         marginTop: height * 0.03,
         marginBottom: height * 0.01,
     },
     subtitle: {
-        fontSize: width * 0.03,
-        fontFamily: 'Outfit-Medium',
+        fontSize: width * 0.032,
+        fontFamily: 'Inter-Medium',
         width: width * 0.5,
         textAlign: 'center',
         marginBottom: height * 0.025,
@@ -401,9 +459,9 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#fff',
-        fontSize: width * 0.035,
+        fontSize: width * 0.04,
         fontWeight: '600',
-        fontFamily: 'Outfit-SemiBold',
+        fontFamily: 'Inter-SemiBold',
     },
     orContainer: {
         marginVertical: height * 0.035,
@@ -417,7 +475,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ccc',
     },
     or: {
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
         fontSize: width * 0.03,
         marginHorizontal: width * 0.025,
     },
@@ -426,28 +484,27 @@ const styles = StyleSheet.create({
     },
     googleBtn: {
         flexDirection: 'row',
-        width:"100%",
-        justifyContent:"center",
         borderWidth: 0.3,
         borderColor: '#B6B6B6',
         borderRadius: width * 0.035,
-        alignItems: 'center',
-        paddingVertical: height * 0.025,
-        paddingHorizontal: width * 0.1,
+        // alignItems: 'center',
+       
     },
     googleBtnInner: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingVertical: height * 0.018,
+        paddingHorizontal: width * 0.1,
     },
     googleText: {
         marginLeft: width * 0.025,
         fontSize: width * 0.032,
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
     },
     appleBtn: {
         marginLeft: width * 0.015,
         borderWidth: 2,
-        borderColor: '#003145',
+        borderColor: '#fff',
         height: width * 0.15,
         width: width * 0.15,
         borderRadius: 100,
@@ -462,12 +519,12 @@ const styles = StyleSheet.create({
     },
     footer: {
         marginTop: height * 0.04,
-        // marginBottom: height * 0.05,
-        fontFamily: 'Outfit-Medium',
+        marginBottom: height * 0.05,
+        fontFamily: 'Inter-Medium',
         fontSize: width * 0.03,
     },
     link: {
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
     },
 });
 

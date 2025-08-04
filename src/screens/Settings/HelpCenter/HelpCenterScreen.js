@@ -78,6 +78,7 @@ const HelpCenterScreen = ({ navigation }) => {
               colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
               style={styles.searchBarContainer}
             >
+              <View style = {styles.searchBarContainerInner}>
               <Image source={searchMf} style={styles.searchIcon} />
               <TextInput
                 style={[styles.searchInput, { color: theme.textColor }]}
@@ -86,6 +87,7 @@ const HelpCenterScreen = ({ navigation }) => {
                 value={searchText}
                 onChangeText={setSearchText}
               />
+              </View>
             </LinearGradient>
 
             {/* FAQ List */}
@@ -191,9 +193,15 @@ const getStyles = (theme) => StyleSheet.create({
     borderWidth: 0.9,
     borderColor: theme.borderColor,
     borderRadius: responsiveWidth(8),
-    paddingHorizontal: responsiveWidth(15),
     height: responsiveHeight(55),
     marginVertical: responsiveHeight(20),
+  },
+  searchBarContainerInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: responsiveWidth(15),
+
   },
   searchIcon: {
     width: responsiveWidth(20),
@@ -206,7 +214,7 @@ const getStyles = (theme) => StyleSheet.create({
     flex: 1,
     fontSize: responsiveFontSize(11),
     height: '100%',
-    fontFamily: 'Outfit-Regular',
+    fontFamily: 'Inter-Regular',
   },
   faqListContainer: {
     gap: responsiveHeight(15),
@@ -232,7 +240,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   faqQuestion: {
     fontSize: responsiveFontSize(13),
-    fontFamily: 'Outfit-Regular',
+    fontFamily: 'Inter-Regular',
     flex: 1,
     marginRight: responsiveWidth(10),
   },
@@ -252,7 +260,7 @@ const getStyles = (theme) => StyleSheet.create({
   faqAnswer: {
     fontSize: responsiveFontSize(13),
     paddingTop: responsiveWidth(10),
-    fontFamily: 'Outfit-Light-BETA',
+    fontFamily: 'Inter-Light-BETA',
     lineHeight: responsiveFontSize(20),
   },
   loadingContainer: {
@@ -329,7 +337,7 @@ const getStyles = (theme) => StyleSheet.create({
   problemButtonText: {
     fontSize: responsiveFontSize(13),
     color: 'white',
-    fontFamily: 'Outfit-Medium',
+    fontFamily: 'Inter-Medium',
   },
 });
 

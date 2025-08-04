@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useTopPicks, useRecommendations, useBundles, useDailyThought, useMusic } from '../../../functions/DiscoverApis';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { bg, discover1, discoverLight, info, video1 } from '../../../assets/images';
+import { bg, discover1, discoverLight, info, video1, locked } from '../../../assets/images';
 import RecommendationTile from '../../../components/RecommendationTile';
 import TopPickTile from '../../../components/TopPickTile';
 import BundleTileSection from '../../../components/BundleTileSection';
@@ -16,6 +16,7 @@ import AnimatedInfoBox from '../../../components/AnimatedInfoBox';
 import { API_URL } from "@env";
 import { BackHandler, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const { height } = Dimensions.get('window');
 
@@ -30,6 +31,7 @@ const DiscoverScreen = () => {
     console.log(userId);
     const dispatch = useDispatch();
     const isLoading = useSelector(state => state.loader.isLoading); // <-- Add this
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
     const { data: topPicks, isLoading: loadingTop } = useTopPicks(userId);
     const { data: recommendations, isLoading: loadingRec } = useRecommendations(userId);
@@ -37,6 +39,7 @@ const DiscoverScreen = () => {
     const { data: music, isLoading: loadingMusic, error: MusicError } = useMusic(userId);
     const { data: dailyThought, isLoading: loadingThought } = useDailyThought();
 
+    console.log("remcomed", recommendations);
     // Preload critical images when component mounts
     useEffect(() => {
         if (recommendations && recommendations.length > 0) {
@@ -133,6 +136,16 @@ const DiscoverScreen = () => {
     return (
         <ImageBackground source={theme.bg} style={styles.container} resizeMode="cover">
             <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
+                {showPremiumModal && (
+                    <ConfirmationModal
+                        title={"Unlock Premium Content"}
+                        message={"Subscribe to access all guided sessions, expert talks, and exclusive audio and video experiences."}
+                        icon={locked}
+                        buttonText="Subscribe Now"
+                        onClose={() => setShowPremiumModal(false)} // make sure modal has an onClose prop
+                    />
+                )}
+
                 {/* Header Image */}
                 <View style={{ position: 'relative', height: height / 2.8 }}>
                     <Image source={topImage} style={styles.topImg} />
@@ -161,9 +174,9 @@ const DiscoverScreen = () => {
                                     lock={item.isPremium}
                                     duration={formatDuration(item.duration)}
                                     pillar={item.pillar}
-
                                     description={item.description}
                                     isCenter={index === selectedCard}
+                                    onPremiumPress={() => setShowPremiumModal(true)}
                                     onPress={() => handleCardPress(index)}
                                 />
                             );
@@ -204,6 +217,7 @@ const DiscoverScreen = () => {
                                 locked={item.isPremium}
                                 duration={formatDuration(item.duration)}
                                 url={item.url}
+                                onPremiumPress={() => setShowPremiumModal(true)}
                             />
                         )}
                         keyExtractor={(item) => item._id}
@@ -231,9 +245,10 @@ const DiscoverScreen = () => {
                         imageSource={{ uri: dailyThought.thumbnail }}
                         description={dailyThought.description}
                         locked={dailyThought.isPremium}
-                        onPress={() => {
-                            console.log('Play:', dailyThought.url);
-                        }}
+                        url={dailyThought.url}
+                    // onPress={() => {
+                    //     console.log('Play:', dailyThought.url);
+                    // }}
                     />
                 ) : null}
 
@@ -254,6 +269,7 @@ const DiscoverScreen = () => {
                                     type={item.type}
                                     duration={formatDuration(item.duration)}
                                     url={item.url}
+                                    onPremiumPress={() => setShowPremiumModal(true)}
                                 />
                             )}
                             keyExtractor={(item) => item._id}
@@ -281,11 +297,13 @@ const DiscoverScreen = () => {
                                 <BundleTileSection
                                     title={item.title}
                                     description={item.description}
-                                    imageSource={{ uri: `${API_URL}/${item.thumbnail?.replace(/\\/g, '/')}` }}
+                                    imageSource={{ uri: `${item.thumbnail}` }}
                                     locked={item.isPremium}
-                                    type="music"
-                                    duration={item.duration}
-                                    url={`${API_URL}/${item.url?.replace(/\\/g, '/')}`}
+                                    pillar={item.pillar}
+                                    type="audio"
+                                    duration={formatDuration(item.duration)}
+                                    url={`${item.url}`}
+                                    onPremiumPress={() => setShowPremiumModal(true)}
                                 />
                             )}
                             keyExtractor={(item) => item._id}

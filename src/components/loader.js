@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Video from 'react-native-video';
 import trader365Logo from '../assets/trader365Logo.mp4';
+import theme from '../themes/theme';
 
 export default function Loader() {
   const [loadingText, setLoadingText] = useState('Loading');
@@ -19,20 +20,35 @@ export default function Loader() {
 
   return (
     <View style={[StyleSheet.absoluteFillObject, styles.container]}>
-      <View style={styles.modalView}>
+      <View style={{ backgroundColor: 'black', width: 80, height: 80, justifyContent: 'center', alignItems: 'center', borderColor: theme.primaryColor, borderWidth: 1, borderRadius: 10 }}>
         <Video
           source={trader365Logo}
-          style={{ width: 100, height: 100 }}
+          style={{ width: 70, height: 70 }}
           resizeMode="contain"
           repeat={true}
           muted={true}
-          rate={1}
+          rate={2.3}
         />
-        {/* <Text style={styles.modalText}>{loadingText}</Text> */}
       </View>
+      {/* <Text style={styles.modalText}>{loadingText}</Text> */}
     </View>
   );
 }
 
 
-const styles = StyleSheet.create({ container: { justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.75)', zIndex: 10, }, modalText: { textAlign: 'center', fontWeight: 'bold', color: 'black', marginTop: 10, fontSize: 16, width: 110, }, modalView: { alignItems: 'center', width: 100, height: 100, backgroundColor: 'black', borderRadius: 100, }, });
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    zIndex: 10,
+  },
+  modalText: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+    color: 'black',
+    marginTop: 10,
+    fontSize: 16,
+    width: 110,
+  },
+});

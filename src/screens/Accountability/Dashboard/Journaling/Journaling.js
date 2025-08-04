@@ -279,6 +279,43 @@ const Journaling = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            {/* Floating Button Container - Fixed Position */}
+            <View style={styles.floatingButtonContainer}>
+                {/* Add Data Button (Top Left of Add Button) */}
+
+                {showExtraButtons && (
+                    <TouchableOpacity
+                        style={styles.extraButtonTop}
+                        onPress={() => {
+                            setShowExtraButtons(false);
+                            navigation.navigate('Acc_FormData', { emotion: selectedMood });
+                        }}
+                    >
+                        <Text style={styles.extraButtonText}>Add Trade</Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Upload CSV Button (Bottom Left of Add Button) */}
+                {showExtraButtons && (
+                    <TouchableOpacity
+                        style={styles.extraButtonBottom}
+                        onPress={handleCSVUpload}
+                    >
+                        <Text style={styles.extraButtonText}>Import CSV</Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Floating Plus Button */}
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => setShowExtraButtons(!showExtraButtons)}
+                >
+                    <Image
+                        source={addBtn}
+                        style={styles.addButtonImage}
+                    />
+                </TouchableOpacity>
+            </View>
             <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
 
             {snackbar.visible && (
@@ -302,43 +339,7 @@ const Journaling = ({ navigation }) => {
                 <View style={styles.overlayBackground} />
             )}
 
-            {/* Floating Button Container - Fixed Position */}
-            <View style={styles.floatingButtonContainer}>
-                {/* Add Data Button (Top Left of Add Button) */}
 
-                {showExtraButtons && (
-                    <TouchableOpacity
-                        style={styles.extraButtonTop}
-                        onPress={() => {
-                            setShowExtraButtons(false);
-                            navigation.navigate('Acc_FormData', { emotion: selectedMood });
-                        }}
-                    >
-                        <Text style={styles.extraButtonText}>Add Data</Text>
-                    </TouchableOpacity>
-                )}
-
-                {/* Upload CSV Button (Bottom Left of Add Button) */}
-                {showExtraButtons && (
-                    <TouchableOpacity
-                        style={styles.extraButtonBottom}
-                        onPress={handleCSVUpload}
-                    >
-                        <Text style={styles.extraButtonText}>Upload CSV</Text>
-                    </TouchableOpacity>
-                )}
-
-                {/* Floating Plus Button */}
-                <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => setShowExtraButtons(!showExtraButtons)}
-                >
-                    <Image
-                        source={addBtn}
-                        style={styles.addButtonImage}
-                    />
-                </TouchableOpacity>
-            </View>
 
             <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
                 {/* Gradient Card */}
@@ -463,23 +464,25 @@ const Journaling = ({ navigation }) => {
                                 colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                 style={styles.emptyHabitsContent}
                             >
-                                <View style={styles.emptyHabitsIconContainer}>
-                                    <View style={styles.emptyHabitsIcon}>
-                                        <Text style={styles.emptyHabitsIconText}>📊</Text>
+                                <View style={{ padding: 24, alignItems: 'center', borderRadius: 13 }}>
+                                    <View style={styles.emptyHabitsIconContainer}>
+                                        <View style={styles.emptyHabitsIcon}>
+                                            <Text style={styles.emptyHabitsIconText}>📊</Text>
+                                        </View>
                                     </View>
+                                    <View style={styles.emptyHabitsTextContainer}>
+                                        <Text style={styles.emptyHabitsTitle}>No Trades Yet</Text>
+                                        <Text style={styles.emptyHabitsSubtitle}>
+                                            Start tracking your trading journey by adding your first trade
+                                        </Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        style={styles.createHabitButton}
+                                        onPress={() => navigation.navigate('Acc_FormData')}
+                                    >
+                                        <Text style={styles.createHabitButtonText}>Add Your First Trade</Text>
+                                    </TouchableOpacity>
                                 </View>
-                                <View style={styles.emptyHabitsTextContainer}>
-                                    <Text style={styles.emptyHabitsTitle}>No Trades Yet</Text>
-                                    <Text style={styles.emptyHabitsSubtitle}>
-                                        Start tracking your trading journey by adding your first trade
-                                    </Text>
-                                </View>
-                                <TouchableOpacity
-                                    style={styles.createHabitButton}
-                                    onPress={() => navigation.navigate('Acc_FormData')}
-                                >
-                                    <Text style={styles.createHabitButtonText}>Add Your First Trade</Text>
-                                </TouchableOpacity>
                             </LinearGradient>
                         </View>
                     )}
@@ -680,8 +683,6 @@ const getStyles = (theme) =>
             marginBottom: 15,
         },
         emptyHabitsContent: {
-            alignItems: 'center',
-            padding: 24,
             borderRadius: 13,
             backgroundColor: 'rgba(255, 255, 255, 0.03)',
         },
@@ -755,15 +756,16 @@ const getStyles = (theme) =>
 
         extraButtonTop: {
             position: 'absolute',
-            bottom: 80,
-            right: 80,
-
+            bottom: 65,
+            right: 60,
             width: 80,
             height: 80,
             borderRadius: 200,
+            backgroundColor: theme.primaryLight || 'rgba(15, 66, 96, 0.9)',
+            borderWidth: 0.9,
+            borderColor: theme.primaryColor,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: theme.primaryColor,
             paddingVertical: 8,
             paddingHorizontal: 14,
             elevation: 3,
@@ -779,9 +781,11 @@ const getStyles = (theme) =>
             justifyContent: "center",
             alignItems: "center",
             position: 'absolute',
-            top: 80,
-            right: 80,
-            backgroundColor: theme.primaryColor,
+            top: 65,
+            right: 60,
+            backgroundColor: theme.primaryLight || 'rgba(15, 66, 96, 0.9)',
+            borderWidth: 0.9,
+            borderColor: theme.primaryColor,
             paddingVertical: 8,
             paddingHorizontal: 14,
             width: 80,
@@ -800,6 +804,7 @@ const getStyles = (theme) =>
             fontFamily: 'Outfit-Regular',
             fontWeight: '500',
             zIndex: 1000,
+            textAlign: 'center',
         },
 
         addButton: {

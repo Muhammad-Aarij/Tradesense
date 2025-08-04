@@ -156,24 +156,25 @@ const GoalsScreen = ({ navigation, route }) => {
 
     return (
         <>
-            <SafeAreaView style={{ flex: 1 }}>
-                {showSuccessModal && (
-                    <ConfirmationModal
-                        visible={showSuccessModal}
-                        title={"Success!"}
-                        icon={tick}
-                        message={"Profile setup completed successfully"}
-                        onClose={handleCloseModal}
-                    />
-                )}
 
-                <SnackbarMessage
-                    visible={snackbarVisible}
-                    message={snackbarMessage}
-                    type={snackbarType}
+            {showSuccessModal && (
+                <ConfirmationModal
+                    visible={showSuccessModal}
+                    title={"Success!"}
+                    icon={tick}
+                    message={"Profile setup completed successfully"}
+                    onClose={handleCloseModal}
                 />
+            )}
 
-                <ImageBackground source={bg} style={styles.container}>
+            <SnackbarMessage
+                visible={snackbarVisible}
+                message={snackbarMessage}
+                type={snackbarType}
+            />
+
+            <ImageBackground source={bg} style={{ flex: 1 }}>
+                <SafeAreaView style={styles.container}>
                     <View style={styles.wrapper}>
                         <View style={styles.header}>
                             <Text style={styles.title}>{currentQuestion.title}</Text>
@@ -216,8 +217,9 @@ const GoalsScreen = ({ navigation, route }) => {
                             </TouchableOpacity>
                         </View>
                     </View>
-                </ImageBackground>
-            </SafeAreaView>
+                </SafeAreaView>
+
+            </ImageBackground>
         </>
     );
 };

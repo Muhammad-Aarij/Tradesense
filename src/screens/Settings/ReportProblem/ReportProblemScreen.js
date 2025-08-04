@@ -111,6 +111,7 @@ const ReportProblemScreen = () => {
         colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
         style={[styles.dropdownButton, { borderColor: theme.borderColor }]}
       >
+        <View style = {styles.dropdownButtonInner}> 
         <TouchableOpacity
           onPress={toggleVisibility}
           style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
@@ -121,6 +122,7 @@ const ReportProblemScreen = () => {
             style={[styles.dropdownArrowIcon, isVisible && { transform: [{ rotate: '270deg' }] }]}
           />
         </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {isVisible && (
@@ -219,13 +221,14 @@ const ReportProblemScreen = () => {
             />
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.textColor }]}>Describes the Issue?</Text>
+              <Text style={[styles.inputLabel, { color: theme.textColor }]}>Describe the Issue</Text>
               <LinearGradient
                 start={{ x: 0.0, y: 0.95 }}
                 end={{ x: 1.0, y: 1.0 }}
                 colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
                 style={[styles.textInput, styles.multilineTextInput, { borderColor: theme.borderColor }]}
               >
+                <View style = {styles.textInputInner}>
                 <TextInput
                   placeholder="Start typing..."
                   placeholderTextColor={theme.subTextColor}
@@ -236,6 +239,7 @@ const ReportProblemScreen = () => {
                   style={{ color: theme.textColor, fontSize: 12, flex: 1, fontFamily: 'Inter-Regular' }}
                   textAlignVertical="top"
                 />
+                </View>
               </LinearGradient>
             </View>
 
@@ -247,6 +251,7 @@ const ReportProblemScreen = () => {
                 colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
                 style={[styles.textInput, { borderColor: theme.borderColor }]}
               >
+                <View style = {styles.textInputInner}>
                 <TextInput
                   placeholder="Auto-filled (e.g., iPhone 13, iOS 17.5, App v1.0.0)"
                   placeholderTextColor={theme.subTextColor}
@@ -254,6 +259,7 @@ const ReportProblemScreen = () => {
                   onChangeText={setDeviceInfo}
                   style={{ color: theme.textColor, fontSize: 12, flex: 1, fontFamily: 'Inter-Regular' }}
                 />
+                </View>
               </LinearGradient>
             </View>
 
@@ -280,7 +286,7 @@ const ReportProblemScreen = () => {
 
       {!isKeyboardVisible &&
         <View style={styles.absoluteFooter}>
-          <View style={[styles.footerWrapper, { borderColor: theme.borderColor }]}>
+          {/* <View style={[styles.footerWrapper, { borderColor: theme.borderColor }]}>
             <LinearGradient
               start={{ x: 0.0, y: 0.95 }}
               end={{ x: 1.0, y: 1.0 }}
@@ -292,7 +298,7 @@ const ReportProblemScreen = () => {
                 <Text style={styles.profileButtonText}>Report a Problem</Text>
               </TouchableOpacity>
             </LinearGradient>
-          </View>
+          </View> */}
         </View>}
     </ImageBackground>
   );
@@ -311,6 +317,11 @@ const styles = StyleSheet.create({
   dropdownButton: {
     borderWidth: 0.9,
     borderRadius: 8,
+    // paddingHorizontal: responsiveWidth(15),
+    height: responsiveHeight(50),
+    // justifyContent: 'center',
+  },
+  dropdownButtonInner: {
     paddingHorizontal: responsiveWidth(15),
     height: responsiveHeight(50),
     justifyContent: 'center',
@@ -347,13 +358,17 @@ const styles = StyleSheet.create({
   textInput: {
     borderWidth: 0.9,
     borderRadius: 8,
+    // paddingHorizontal: responsiveWidth(15),
+    height: responsiveHeight(50),
+    // justifyContent: 'center',
+  },
+  textInputInner: {
     paddingHorizontal: responsiveWidth(15),
     height: responsiveHeight(50),
     justifyContent: 'center',
   },
   multilineTextInput: {
     height: responsiveHeight(120),
-    paddingTop: responsiveHeight(10),
   },
   buttonContainer: {
     flexDirection: 'row',

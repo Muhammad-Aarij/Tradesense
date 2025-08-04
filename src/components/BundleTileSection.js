@@ -2,10 +2,17 @@ import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Bundle from './Bundle';
 
-const BundleTileSection = ({ title, description, imageSource, locked, type, url, duration,pillar }) => {
+const BundleTileSection = ({ title, description, imageSource, locked, type, url, duration, pillar, onPremiumPress }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
+    if (locked) {
+      // Show premium modal if content is locked
+      if (onPremiumPress) {
+        onPremiumPress();
+      }
+      return;
+    }
     if (type === 'audio') {
       navigation.navigate('TrackPlayer', {
         AudioTitle: title,

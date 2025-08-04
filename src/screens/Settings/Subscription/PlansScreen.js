@@ -7,6 +7,8 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { API_URL } from "@env"; // Ensure you have API_URL set in your .env file
+import Purchases from 'react-native-purchases';
+import { Platform } from 'react-native';
 
 import { bg, CheckMark, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
@@ -79,36 +81,101 @@ const PlansScreen = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    // useEffect(() => {
+    //     const fetchPlans = async () => {
+    //         try {
+    //             dispatch(startLoading());
+    //             const response = await axios.get(`${API_URL}/api/plans?category=plans`);
+    //             setPlans(response.data || []);
+    //         } catch (error) {
+    //             console.error('Failed to fetch plans:', error);
+    //         } finally {
+    //             dispatch(stopLoading());
+    //         }
+    //     };
+
+    //     fetchPlans();
+
+    //     return () => {
+    //         dispatch(stopLoading()); // Optional: only needed if you want to ensure cleanup
+    //     };
+    // }, []);
+
     useEffect(() => {
-        const fetchPlans = async () => {
+        const fetchRevenueCatPlans = async () => {
             try {
                 dispatch(startLoading());
-                const response = await axios.get(`${API_URL}/api/plans?category=plans`);
-                setPlans(response.data || []);
+
+                // Initialize RevenueCat
+                await Purchases.configure({
+                    apiKey: Platform.select({
+                        ios: 'appl_oUpJQhOOMgTrruGSdHIbPStHUNm',
+                        android: 'goog_NoUVHlSMLZnJLTGBDglGNAvuYyK',
+                    }),
+                    appUserID: studentId ?? null,
+                });
+
+                const offerings = await Purchases.getOfferings();
+
+                if (offerings.current && offerings.current.availablePackages.length > 0) {
+                    const mappedPlans = offerings.current.availablePackages.map((pkg) => ({
+                        id: pkg.identifier,
+                        title: pkg.product.title,
+                        description: pkg.product.description,
+                        price: pkg.product.priceString,
+                        package: pkg, // Store original package for purchase
+                    }));
+
+                    setPlans(mappedPlans);
+                } else {
+                    setPlans([]);
+                }
+
             } catch (error) {
-                console.error('Failed to fetch plans:', error);
+                console.error('Failed to fetch offerings:', error);
             } finally {
                 dispatch(stopLoading());
             }
         };
 
-        fetchPlans();
+        fetchRevenueCatPlans();
 
         return () => {
-            dispatch(stopLoading()); // Optional: only needed if you want to ensure cleanup
+            dispatch(stopLoading());
         };
     }, []);
 
-    const handleEnroll = async ({ studentId, courseId, planId }) => {
-        // try {
-        //   dispatch(startLoading());
-        //   await enrollInCourse({ studentId, courseId, plan: planId });
-        //   dispatch(stopLoading());
-        //   setModalVisible(true);
-        // } catch (error) {
-        //   dispatch(stopLoading());
-        //   console.error('Enrollment error:', error);
-        // }
+    // const handleEnroll = async ({ studentId, courseId, planId }) => {
+    //     // try {
+    //     //   dispatch(startLoading());
+    //     //   await enrollInCourse({ studentId, courseId, plan: planId });
+    //     //   dispatch(stopLoading());
+    //     //   setModalVisible(true);
+    //     // } catch (error) {
+    //     //   dispatch(stopLoading());
+    //     //   console.error('Enrollment error:', error);
+    //     // }
+    // };
+
+    const handleEnroll = async ({ packagee }) => {
+        try {
+            dispatch(startLoading());
+
+            const { customerInfo } = await Purchases.purchasePackage(packagee);
+
+            const isEntitled = customerInfo.entitlements.active["Premium Courses Access"]; 
+
+            if (isEntitled) {
+                setModalVisible(true); // show success modal
+            }
+
+        } catch (error) {
+            if (!error.userCancelled) {
+                console.error('Purchase failed:', error);
+            }
+        } finally {
+            dispatch(stopLoading());
+        }
     };
 
     const handleCloseModal = () => {
@@ -138,20 +205,21 @@ const PlansScreen = () => {
                         ) : (
                             plans.map((plan) => (
                                 <PlanCard
-                                    key={plan._id}
-                                    title={plan.name}
+                                    key={plan.id}
+                                    title={plan.title}
                                     price={plan.price}
                                     description={plan.description}
-                                    planId={plan._id}
+                                    planId={plan.id}
                                     courseId={courseId}
                                     studentId={studentId}
-                                    onPress={() => setSelectedPlanId(plan._id)}
-                                    isSelected={selectedPlanId === plan._id}
-                                    onEnroll={handleEnroll}
+                                    onPress={() => setSelectedPlanId(plan.id)}
+                                    isSelected={selectedPlanId === plan.id}
+                                    onEnroll={() => handleEnroll({ packagee: plan.package })}
                                     styles={styles}
                                     theme={theme}
                                 />
                             ))
+
                         )}
                     </ScrollView>
                 </SafeAreaView>

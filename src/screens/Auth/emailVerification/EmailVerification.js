@@ -81,6 +81,9 @@ const EmailVerification = ({ navigation, route }) => {
 
         if (text && index < 3) {
             inputs.current[index + 1].focus();
+        } else if (text && index === 3) {
+            // When the last digit is entered, dismiss keyboard
+            inputs.current[index].blur();
         }
     };
 
@@ -206,8 +209,8 @@ const EmailVerification = ({ navigation, route }) => {
 
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
             <ImageBackground source={bg} style={styles.container}>
+        <SafeAreaView style={{ flex: 1, alignItems: 'center' }}>
 
                 <SnackbarMessage
                     visible={snackbarVisible}
@@ -272,9 +275,11 @@ const EmailVerification = ({ navigation, route }) => {
                         ))}
                     </View>
 
+                    {/* <View style = {{width: '100%'}}> */}
                     <TouchableOpacity style={styles.button} onPress={handleVerify}>
                         <Text style={styles.buttonText}>Verify</Text>
                     </TouchableOpacity>
+                    {/* </View> */}
 
                 </View>
 
@@ -285,8 +290,8 @@ const EmailVerification = ({ navigation, route }) => {
                     title="Account Created!"
                     message="Your account has been successfully created"
                 />
-            </ImageBackground>
         </SafeAreaView >
+            </ImageBackground>
     );
 };
 const styles = StyleSheet.create({
@@ -362,6 +367,7 @@ const styles = StyleSheet.create({
         borderRadius: width * 0.035,
         marginTop: height * 0.03,
         alignItems: 'center',
+        paddingHorizontal: width * 0.25,
     },
     buttonText: {
         color: '#fff',

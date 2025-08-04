@@ -1,7 +1,7 @@
-import React, { useContext, useMemo, useState, useEffect } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
-    Dimensions, SafeAreaView, Alert, ActivityIndicator
+    Dimensions, SafeAreaView, Alert
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,7 +10,7 @@ import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { useSubscriptionContext } from '../../../context/SubscriptionProvider';
+import { enrollInCourse } from '../../../functions/handleCourses';
 
 const { height } = Dimensions.get('window');
 
@@ -23,12 +23,10 @@ const PlanCard = ({
     studentId,
     onPress,
     isSelected,
-    onPurchase,
+    onEnroll,
     styles,
-    theme,
-    isLoading = false,
-    packageeToPurchase = null
-}) =>
+    theme
+}) => (
     <TouchableOpacity
         style={[styles.planCard, isSelected && styles.planCardSelected]}
         onPress={onPress}
@@ -40,37 +38,30 @@ const PlanCard = ({
         </View>
         <View style={styles.divider} />
         <View style={styles.featuresContainer}>
-            <View style={styles.featuresContainer}>
-                {description
-                    .replace('Plan includes :', '') // remove leading label
-                    .split('\n') // split by newlines
-                    .map((line, index) => {
-                        const trimmed = line.trim();
-                        if (!trimmed) return null; // skip empty lines
+            {description
+                .replace('Plan includes :', '') // remove leading label
+                .split('\n') // split by newlines
+                .map((line, index) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return null; // skip empty lines
 
-                        return (
-                            <View key={index} style={styles.featureItem}>
-                                <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
-                                <Text style={styles.featureText}>{trimmed}</Text>
-                            </View>
-                        );
-                    })}
-            </View>
+                    return (
+                        <View key={index} style={styles.featureItem}>
+                            <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
+                            <Text style={styles.featureText}>{trimmed}</Text>
+                        </View>
+                    );
+                })}
         </View>
 
         <TouchableOpacity
-            style={[styles.checkoutButton, isLoading && styles.checkoutButtonDisabled]}
-            onPress={() => onPurchase(packageeToPurchase)}
-            disabled={isLoading || !packageeToPurchase}
+            style={styles.checkoutButton}
+            onPress={() => onEnroll({ studentId, courseId, planId })}
         >
-            {isLoading ? (
-                <ActivityIndicator color="#fff" size="small" />
-            ) : (
-                <Text style={styles.checkoutButtonText}>Subscribe Now</Text>
-            )}
+            <Text style={styles.checkoutButtonText}>Join</Text>
         </TouchableOpacity>
     </TouchableOpacity>
-;
+);
 
 const PlansScreen = () => {
     const { theme } = useContext(ThemeContext);
@@ -89,71 +80,50 @@ const PlansScreen = () => {
     const [modalTitle, setModalTitle] = useState('');
     const [modalMessage, setModalMessage] = useState('');
     const [modalIcon, setModalIcon] = useState(null);
-    const [purchasingPlanId, setPurchasingPlanId] = useState(null);
 
-    // RevenueCat subscription context
-    const { 
-        offerings, 
-        isLoading: subscriptionLoading, 
-        purchasepackagee, 
-        isSubscribed 
-    } = useSubscriptionContext();
-
-    // Map plans to RevenueCat packagees
-    const [planTopackageeMap, setPlanTopackageeMap] = useState({});
-
-    useEffect(() => {
-        if (offerings && offerings.current) {
-            const mapping = {};
-            plans.forEach(plan => {
-                // Try to find matching packagee by plan name or ID
-                const packagee = offerings.current.availablepackagees.find(pkg => 
-                    pkg.identifier === plan._id || 
-                    pkg.product.identifier === plan._id ||
-                    pkg.product.title.toLowerCase().includes(plan.name.toLowerCase())
-                );
-                if (packagee) {
-                    mapping[plan._id] = packagee;
-                }
-            });
-            setPlanTopackageeMap(mapping);
-        }
-    }, [offerings, plans]);
-
-    const handlePurchase = async (packageeToPurchase) => {
-        if (!packageeToPurchase) {
-            Alert.alert('Error', 'Subscription packagee not available');
-            return;
-        }
+    const handleEnroll = async ({ studentId, courseId, planId }) => {
+        console.log("Enrolling with:", studentId, courseId, planId);
 
         try {
-            setPurchasingPlanId(packageeToPurchase.identifier);
             dispatch(startLoading());
 
-            await purchasepackagee(packageeToPurchase);
-            
-            setModalTitle('Subscription Successful');
-            setModalMessage('You have been successfully subscribed to this plan.');
-            setModalIcon(tick);
-            setModalVisible(true);
-        } catch (error) {
-            console.error('Purchase error:', error);
-            
-            let errorMessage = 'Something went wrong. Please try again.';
-            if (error.userCancelled) {
-                errorMessage = 'Purchase was cancelled.';
-            } else if (error.code === 'PURCHASE_CANCELLED_ERROR') {
-                errorMessage = 'Purchase was cancelled.';
-            } else if (error.code === 'NETWORK_ERROR') {
-                errorMessage = 'Network error. Please check your connection.';
+            const result = await enrollInCourse({
+                studentId,
+                courseId,
+                plan: planId,
+            });
+
+            if (result && result._id) {
+                setModalTitle('Course Purchased Successfully');
+                setModalMessage('You have been successfully enrolled in this course.');
+                setModalIcon(tick);
+                setModalVisible(true);
+            } else if (result?.message === 'Enrollment already exists') {
+                setModalTitle('Already Enrolled');
+                setModalMessage('You are already enrolled in this course.');
+                setModalIcon(fail);
+                setModalVisible(true);
+            } else {
+                console.warn("Enrollment failed: ", result);
+                setModalIcon(fail);
+                setModalTitle('Error');
+                setModalMessage('Something went wrong. Please try again.');
+                setModalVisible(true);
             }
 
-            setModalTitle('Purchase Failed');
-            setModalMessage(errorMessage);
-            setModalIcon(fail);
+        } catch (error) {
+            console.error('Enrollment error:', error);
+            if (error?.response?.data?.message === 'Enrollment already exists') {
+                setModalTitle('Already Enrolled');
+                setModalMessage('You are already enrolled in this course.');
+                setModalIcon(fail);
+            } else {
+                setModalTitle('Error');
+                setModalMessage('Something went wrong. Please try again.');
+                setModalIcon(fail);
+            }
             setModalVisible(true);
         } finally {
-            setPurchasingPlanId(null);
             dispatch(stopLoading());
         }
     };
@@ -161,24 +131,10 @@ const PlansScreen = () => {
     const handleCloseModal = () => {
         setModalVisible(false);
         if (modalIcon === tick) {
-            // Navigate to purchased courses on successful subscription
+            // Navigate to purchased courses on successful enrollment
             navigation.navigate('PurchasedCoursesScreen');
         }
     };
-
-    if (subscriptionLoading) {
-        return (
-            <ImageBackground source={theme.bg || bg} style={styles.container}>
-                <Header title={'Memberships'} />
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={theme.primaryColor} />
-                    <Text style={[styles.loadingText, { color: theme.textColor }]}>
-                        Loading subscription options...
-                    </Text>
-                </View>
-            </ImageBackground>
-        );
-    }
 
     return (
         <>
@@ -195,31 +151,28 @@ const PlansScreen = () => {
                 <Header title={'Memberships'} />
                 <SafeAreaView>
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        {plans.map((plan) => {
-                            const packageeToPurchase = planTopackageeMap[plan._id];
-                            const isPurchasing = purchasingPlanId === plan._id;
-                            
-                            return (
-                                <PlanCard
-                                    key={plan._id}
-                                    title={plan.name}
-                                    price={packageeToPurchase ? packageeToPurchase.product.priceString : plan.price}
-                                    description={plan.description}
-                                    planId={plan._id}
-                                    courseId={courseId}
-                                    studentId={studentId}
-                                    onPress={() => {
-                                        setSelectedPlanId(plan._id);
-                                    }}
-                                    isSelected={selectedPlanId === plan._id}
-                                    onPurchase={handlePurchase}
-                                    styles={styles}
-                                    theme={theme}
-                                    isLoading={isPurchasing}
-                                    packageeToPurchase={packageeToPurchase}
-                                />
-                            );
-                        })}
+                        {plans.map((plan) => (
+                            <PlanCard
+                                key={plan._id}
+                                title={plan.name}
+                                price={plan.price}
+                                description={plan.description}
+                                planId={plan._id}
+                                courseId={courseId}
+                                studentId={studentId}
+                                onPress={() => setSelectedPlanId(plan._id)}
+                                isSelected={selectedPlanId === plan._id}
+                                onEnroll={() =>
+                                    handleEnroll({
+                                        studentId,
+                                        courseId,
+                                        planId: plan._id,
+                                    })
+                                }
+                                styles={styles}
+                                theme={theme}
+                            />
+                        ))}
                         
                         {plans.length === 0 && (
                             <View style={styles.noPlansContainer}>
@@ -238,17 +191,6 @@ const PlansScreen = () => {
 const getStyles = (theme) => StyleSheet.create({
     container: { flex: 1, padding: 25, paddingTop: 0 },
     scrollContent: { paddingBottom: height * 0.1 },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 20
-    },
-    loadingText: {
-        marginTop: 15,
-        fontSize: 16,
-        textAlign: 'center'
-    },
     noPlansContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -294,9 +236,6 @@ const getStyles = (theme) => StyleSheet.create({
         borderRadius: 11,
         marginTop: 20,
         alignItems: 'center',
-    },
-    checkoutButtonDisabled: {
-        backgroundColor: theme.borderColor,
     },
     checkoutButtonText: {
         color: '#fff',

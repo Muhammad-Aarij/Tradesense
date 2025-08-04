@@ -221,13 +221,13 @@ const EmptyCard = ({ emoji, title, subtitle, onPress, theme }) => (
     start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
     colors={['rgba(126, 126, 126, 0.2)', 'rgba(255,255,255,0)']}
     style={{
-      padding: 25,
-      paddingVertical: 40,
+  
       borderRadius: 12,
       // marginVertical: 16,
       alignItems: 'center',
       justifyContent: 'center',
     }}>
+      <View style={{ padding: 25, paddingVertical: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}>
     <Text style={{ fontSize: 36 }}>{emoji}</Text>
     <Text style={{ fontSize: 16, fontFamily: "Outfit-SemiBold", marginTop: 10, color: theme.textColor }}>{title}</Text>
     <Text style={{ fontSize: 12, fontFamily: "Outfit-Regular", textAlign: 'center', marginTop: 5, color: theme.subTextColor }}>
@@ -238,6 +238,7 @@ const EmptyCard = ({ emoji, title, subtitle, onPress, theme }) => (
         <Text style={{ color: 'white' }}>Create Your First Goal</Text>
       </TouchableOpacity>
     )}
+    </View>
   </LinearGradient>
 );
 

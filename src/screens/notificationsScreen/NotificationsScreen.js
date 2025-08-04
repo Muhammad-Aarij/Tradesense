@@ -6,7 +6,8 @@ import {
     FlatList,
     TouchableOpacity,
     ImageBackground,
-    ActivityIndicator
+    ActivityIndicator,
+    SafeAreaView
 } from 'react-native';
 import moment from 'moment';
 import { useNavigation } from '@react-navigation/native';
@@ -90,29 +91,30 @@ const NotificationsScreen = () => {
                     start={{ x: 0.0, y: 0.95 }}
                     end={{ x: 1.0, y: 1.0 }}
                     colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
-                    style={{ padding: 16 }}
+                    style={{}}
                 >
-                    <View style={styles.cardHeader}>
-                        <View style={styles.titleContainer}>
-                            {!isRead && <View style={styles.unreadDot} />}
-                            <Text style={styles.title}>{item.title}</Text>
+                    <View style={{ padding: 16 }}>
+                        <View style={styles.cardHeader}>
+                            <View style={styles.titleContainer}>
+                                {!isRead && <View style={styles.unreadDot} />}
+                                <Text style={styles.title}>{item.title}</Text>
+                            </View>
+                            <Text style={styles.time}>{moment(item.sendAt).fromNow()}</Text>
                         </View>
-                        <Text style={styles.time}>{moment(item.sendAt).fromNow()}</Text>
-                    </View>
-                    <Text
-                        style={styles.message}
-                        numberOfLines={!isRead && !showFullMessage ? 1 : undefined}
-                        ellipsizeMode="tail"
-                    >
-                        {item.message}
-                    </Text>
-{/* 
+                        <Text
+                            style={styles.message}
+                            numberOfLines={!isRead && !showFullMessage ? 1 : undefined}
+                            ellipsizeMode="tail"
+                        >
+                            {item.message}
+                        </Text>
+                        {/* 
                     {item.message.length > 100 && !isRead && (
                         <Text onPress={toggleMessageVisibility} style={styles.readMoreText}>
                             {showFullMessage ? 'Show Less' : 'Read More'}
                         </Text>
                     )} */}
-
+                    </View>
 
                 </LinearGradient>
             </TouchableOpacity>
@@ -121,23 +123,25 @@ const NotificationsScreen = () => {
 
     return (
         <ImageBackground source={theme.bg} style={styles.container}>
-            <Header title="Notifications" style={{ marginTop: 20 }} />
+            <SafeAreaView style={{ flex: 1 }}>
+                <Header title="Notifications" style={{ marginTop: 20 }} />
 
-            {isError ? (
-                <Text style={styles.emptyText}>Failed to load notifications</Text>
-            ) : (
-                <FlatList
-                    data={notifications}
-                    renderItem={renderItem}
-                    keyExtractor={(item) => item._id}
-                    contentContainerStyle={styles.list}
-                    ListEmptyComponent={
-                        <Text style={styles.emptyText}>No notifications</Text>
-                    }
-                    refreshing={isLoading}
-                    onRefresh={refetch}
-                />
-            )}
+                {isError ? (
+                    <Text style={styles.emptyText}>Failed to load notifications</Text>
+                ) : (
+                    <FlatList
+                        data={notifications}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item._id}
+                        contentContainerStyle={styles.list}
+                        ListEmptyComponent={
+                            <Text style={styles.emptyText}>No notifications</Text>
+                        }
+                        refreshing={isLoading}
+                        onRefresh={refetch}
+                    />
+                )}
+            </SafeAreaView>
         </ImageBackground>
     );
 };
@@ -202,7 +206,7 @@ const getStyles = (theme) =>
             marginRight: 8,
         },
         title: {
-            textTransform:"capitalize",
+            textTransform: "capitalize",
             // maxWidth: "85%",
             fontSize: 12,
             fontFamily: "Outfit-Medium",
@@ -214,7 +218,7 @@ const getStyles = (theme) =>
             color: theme.subTextColor,
         },
         readMoreText: {
-            fontSize:10,
+            fontSize: 10,
             color: theme.primaryColor,
             fontWeight: 'bold',
         },

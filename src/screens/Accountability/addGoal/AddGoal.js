@@ -49,13 +49,30 @@ export default function AddGoal({ route, navigation }) {
 
   // Date picker handlers
   const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || targetDate;
-    setShowDatePicker(Platform.OS === "ios"); // On iOS, keep showing until done button is pressed
-    setTargetDate(currentDate);
+    if (Platform.OS === 'ios') {
+      // On iOS, the picker stays visible until user taps "Done"
+      if (event.type === 'dismissed') {
+        setShowDatePicker(false);
+      } else {
+        setTargetDate(selectedDate || targetDate);
+      }
+    } else {
+      // On Android, hide the picker after selection
+      setShowDatePicker(false);
+      if (selectedDate) {
+        setTargetDate(selectedDate);
+      }
+    }
   };
 
   const handleDatePress = () => {
-    setShowDatePicker(true);
+    if (showDatePicker) {
+      // If picker is already open, close it
+      setShowDatePicker(false);
+    } else {
+      // If picker is closed, open it
+      setShowDatePicker(true);
+    }
   };
 
   const styles = getStyles(theme); // Generate themed styles
@@ -145,12 +162,19 @@ export default function AddGoal({ route, navigation }) {
 
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-        // behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
         >
           {/* Header */}
           <Header title={editingGoal ? "Edit Goal" : "Add New Goal"} style={{ marginBottom: 35 }} />
 
-          <ScrollView contentContainerStyle={styles.formContainer} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            contentContainerStyle={styles.formContainer} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          >
             {/* Goal Name */}
             <CustomInput
               label="Goal Name"
@@ -167,8 +191,29 @@ export default function AddGoal({ route, navigation }) {
                 <Image style={{ width: 20, height: 20, tintColor: theme.subTextColor }} source={calendar} />
               </TouchableOpacity>
               {showDatePicker && (
-                <DateTimePicker testID="datePicker" minimumDate={new Date()}
-                  value={targetDate} mode="date" display="default" onChange={onDateChange} />
+                <>
+                  <DateTimePicker 
+                    testID="datePicker" 
+                    minimumDate={new Date()}
+                    value={targetDate} 
+                    mode="date" 
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'} 
+                    onChange={onDateChange}
+                    textColor={theme.textColor}
+                    accentColor={theme.primaryColor}
+                    themeVariant="dark"
+                  />
+                  {Platform.OS === 'ios' && (
+                    <View style={styles.iosPickerButtons}>
+                      <TouchableOpacity 
+                        style={styles.iosPickerButton} 
+                        onPress={() => setShowDatePicker(false)}
+                      >
+                        <Text style={[styles.iosPickerButtonText, { color: theme.primaryColor }]}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </>
               )}
             </View>
 
@@ -236,7 +281,7 @@ const getStyles = (theme) => StyleSheet.create({
 
   },
   formContainer: {
-    // paddingBottom: 40,
+    paddingBottom: 100, // Add extra padding to ensure content is not hidden behind keyboard
   },
   inputGroup: {
     marginBottom: 15,
@@ -298,6 +343,28 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 17,
     fontWeight: "600",
     fontFamily: "Outfit-SemiBold",
+  },
+  iosPickerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    borderLeftWidth: 0.9,
+    borderRightWidth: 0.9,
+    borderBottomWidth: 0.9,
+    borderColor: theme.borderColor,
+  },
+  iosPickerButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+  },
+  iosPickerButtonText: {
+    fontSize: 16,
+    fontFamily: "Inter-Medium",
+    fontWeight: "600",
   },
 });
 

@@ -1,7 +1,7 @@
 import React, { useState, useContext, useMemo } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    Image, ImageBackground, Dimensions,
+    Image, ImageBackground, Dimensions, SafeAreaView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../../../components/Header';
@@ -39,13 +39,16 @@ const WithdrawScreen = ({ navigation, route }) => {
             />
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                <SafeAreaView>
                 <Header title="Withdraw" style={{ marginTop: 10, marginBottom: 20 }} />
 
                 {/* Available Balance */}
                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                     colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']} style={styles.balanceContainer}>
+                    <View style = {styles.balanceContainerInner}>
                     <Text style={styles.balanceAmount}>${totalAmount}</Text>
                     <Text style={styles.balanceLabel}>Available Balance</Text>
+                    </View>
                 </LinearGradient>
 
                 {/* Withdraw Button */}
@@ -76,6 +79,7 @@ const WithdrawScreen = ({ navigation, route }) => {
                                 colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                 style={styles.historyItem}
                             >
+                                <View style = {styles.historyItemInner}>
                                 <View style={styles.historyItemLeft}>
                                     <Image source={cardd} style={styles.historyItemIcon} />
                                     <View>
@@ -87,11 +91,14 @@ const WithdrawScreen = ({ navigation, route }) => {
                                     <Text style={styles.historyItemAmount}>${item.amount}</Text>
                                     <Image source={blueArrow} style={styles.historyItemArrow} />
                                 </View>
+                                </View>
                             </LinearGradient>
                         ))}
 
                 </View>
+            </SafeAreaView>
             </ScrollView>
+
         </ImageBackground>
     );
 };
@@ -105,14 +112,18 @@ const getStyles = (theme) =>
         },
         scrollContent: {},
         balanceContainer: {
+            borderRadius: 14,
+            marginTop: 20,
+        },
+        balanceContainerInner: {
             backgroundColor: 'rgba(255, 255, 255, 0.06)',
             borderWidth: 0.9,
             borderColor: theme.borderColor,
             padding: 27,
             borderRadius: 14,
             alignItems: 'center',
-            marginTop: 20,
         },
+
         balanceAmount: {
             color: theme.textColor,
             fontSize: 30,
@@ -148,6 +159,9 @@ const getStyles = (theme) =>
             marginBottom: 15,
         },
         historyItem: {
+            borderRadius: 8,
+        },
+        historyItemInner: {
             flexDirection: 'row',
             justifyContent: 'space-between',
             backgroundColor: 'rgba(255, 255, 255, 0.06)',

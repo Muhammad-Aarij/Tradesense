@@ -107,9 +107,10 @@ const UserProfileDetailsScreen = () => {
               <GradientStatCard
                 value={
                   affiliateStats.visited
-                    ? affiliateStats.enrolled / affiliateStats.visited
+                    ? (affiliateStats.enrolled / affiliateStats.visited).toFixed(2)
                     : 0
                 }
+                isPercent={true}
                 label="Conversion Rate"
               />
             </View>

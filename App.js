@@ -7,17 +7,55 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from "@env";
 import { ThemeProvider } from "./src/context/ThemeProvider";
 import AuthProvider from "./src/context/AuthProvider";
-import { SubscriptionProvider } from "./src/context/SubscriptionProvider";
 import firebase from "@react-native-firebase/app";
 import messaging from "@react-native-firebase/messaging";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ConfirmationModal from './src/components/ConfirmationModal';
 import { notificationIcon } from "./src/assets/images";
 import { getFCMToken } from "./src/functions/getFCMToken";
+import Purchases from 'react-native-purchases';
 
 const queryClient = new QueryClient();
 
 const App = () => {
+
+  // import Purchases from 'react-native-purchases';
+  // import { Platform } from "react-native";
+
+  
+  useEffect(() => {
+    const setupRevenueCat = async () => {
+      // ✅ Enable debug logs first
+      Purchases.setDebugLogsEnabled(true);
+
+      // ✅ Then configure RevenueCat
+      await Purchases.configure({
+        apiKey: Platform.select({
+          ios: 'appl_oUpJQhOOMgTrruGSdHIbPStHUNm',
+          android: 'goog_NoUVHlSMLZnJLTGBDglGNAvuYyK',
+        }),
+        // Optional: appUserID: 'user_id_123'
+      });
+
+      // (Optional) Fetch customer info
+      const customerInfo = await Purchases.getCustomerInfo();
+      console.log('RevenueCat Entitlements:', customerInfo.entitlements.active);
+    };
+
+    setupRevenueCat();
+  }, []);
+
+
+
+
+  // Purchases.configure({
+  //   apiKey: Platform.select({
+
+  //   }),
+  //   appUserID: null, // or pass your custom user ID
+  // });
+
+
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
@@ -89,17 +127,15 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <SubscriptionProvider>
-              {modalVisible &&
-                <ConfirmationModal
-                  title={modalTitle}
-                  message={modalMessage}
-                  icon={notificationIcon}
-                  visible={modalVisible}
-                  onClose={() => setModalVisible(false)}
-                />}
-              <AppNavContainer />
-            </SubscriptionProvider>
+            {modalVisible &&
+              <ConfirmationModal
+                title={modalTitle}
+                message={modalMessage}
+                icon={notificationIcon}
+                visible={modalVisible}
+                onClose={() => setModalVisible(false)}
+              />}
+            <AppNavContainer />
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

@@ -18,6 +18,7 @@ import { API_URL } from '@env';
 import LinearGradient from 'react-native-linear-gradient';
 import { launchImageLibrary } from 'react-native-image-picker';
 import ProfileImage from '../../../components/ProfileImage';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
 const { width, height } = Dimensions.get('window');
 const scale = size => (width / 375) * size;
@@ -42,34 +43,42 @@ const UserProfileMenuScreen = ({ navigation }) => {
   };
 
   const openGallery = () => {
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.8,
-      },
-      async (response) => {
-        if (response.didCancel) return;
-        if (response.errorCode) {
-          console.error('ImagePicker Error:', response.errorMessage);
-          Alert.alert('Error', 'Could not open image picker');
-          return;
-        }
+    try {
+      dispatch(startLoading());
+      launchImageLibrary(
+        {
+          mediaType: 'photo',
+          quality: 0.8,
+        },
+        async (response) => {
+          if (response.didCancel) return;
+          if (response.errorCode) {
+            console.error('ImagePicker Error:', response.errorMessage);
+            Alert.alert('Error', 'Could not open image picker');
+            return;
+          }
 
-        if (response.assets && response.assets.length > 0) {
-          const image = response.assets[0];
-          const file = {
-            uri: image.uri,
-            type: image.type,
-            name: image.fileName || 'profile.jpg',
-          };
-          uploadProfileImage(file);
+          if (response.assets && response.assets.length > 0) {
+            const image = response.assets[0];
+            const file = {
+              uri: image.uri,
+              type: image.type,
+              name: image.fileName || 'profile.jpg',
+            };
+            uploadProfileImage(file);
+          }
         }
-      }
-    );
+      );
+      dispatch(stopLoading());
+    }
+    catch (e) {
+      dispatch(stopLoading());
+    }
   };
 
   const uploadProfileImage = async (image) => {
     try {
+      dispatch(startLoading());
       const formData = new FormData();
       formData.append('file', {
         uri: image.uri,
@@ -85,8 +94,8 @@ const UserProfileMenuScreen = ({ navigation }) => {
 
       console.log('📦 Upload response:', res.data);
 
-      if (res.status === 200 && res.data?.file?.path) {
-        const uploadedPath = res.data.file.path;
+      if (res.status === 200 && res.data?.s3Url) {
+        const uploadedPath = res.data.s3Url;
 
         // ✅ Send the uploaded path to update the profile
         const updateRes = await axios.post(`${API_URL}/api/auth/profile-pic`, {
@@ -100,7 +109,7 @@ const UserProfileMenuScreen = ({ navigation }) => {
         dispatch(setProfilePic(uploadedPath));
 
         // ✅ Set image for UI
-        const fullUrl = uploadedPath.startsWith('http')
+        const fullUrl = uploadedPath.startsWith('https')
           ? uploadedPath
           : `${API_URL}/${uploadedPath.replace(/\\/g, '/')}`;
 
@@ -121,6 +130,9 @@ const UserProfileMenuScreen = ({ navigation }) => {
         success: false,
         message: 'Failed to upload profile picture. Please try again.',
       });
+    }
+    finally {
+      dispatch(stopLoading());
     }
   };
 

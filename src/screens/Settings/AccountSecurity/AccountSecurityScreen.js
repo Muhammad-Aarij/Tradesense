@@ -118,6 +118,7 @@ const AccountSecurityScreen = () => {
             colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
             style={styles.securityItem}
         >
+            <View style = {styles.securityItemInner}>
             <View style={styles.securityTextContent}>
                 <Text style={styles.securityItemText}>{text}</Text>
                 {description && <Text style={styles.securityItemDescription}>{description}</Text>}
@@ -128,6 +129,7 @@ const AccountSecurityScreen = () => {
                 onValueChange={onToggle}
                 value={isEnabled}
             />
+            </View>
         </LinearGradient>
     );
 
@@ -139,6 +141,7 @@ const AccountSecurityScreen = () => {
                 colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
                 style={styles.securityItem}
             >
+                <View style = {styles.securityItemInner}>
                 <Text style={styles.securityItemText}>{text}</Text>
                 <Image
                     source={back}
@@ -149,6 +152,7 @@ const AccountSecurityScreen = () => {
                         transform: [{ rotate: "270deg" }],
                     }}
                 />
+                </View>
             </LinearGradient>
         </TouchableOpacity>
     );
@@ -176,12 +180,12 @@ const AccountSecurityScreen = () => {
                                 isEnabled={theme.mode === 'dark'}
                                 onToggle={toggleTheme}
                             />
-                            <ToggleItem
+                            {/* <ToggleItem
                                 text="Factor Authentication"
                                 description="Enable 2FA"
                                 isEnabled={isFactorAuthEnabled}
                                 onToggle={() => setIsFactorAuthEnabled(prev => !prev)}
-                            />
+                            /> */}
                             <LinkItem
                                 text={showChangePassword ? 'Hide Password Fields' : 'Change Password'}
                                 onPress={() => setShowChangePassword(prev => !prev)}
@@ -230,7 +234,7 @@ const AccountSecurityScreen = () => {
                 </View>
             </SafeAreaView>
 
-            {!isKeyboardVisible && (
+            {/* {!isKeyboardVisible && (
                 <View style={styles.absoluteFooter}>
                     <LinearGradient
                         start={{ x: 0, y: 0.95 }}
@@ -244,7 +248,7 @@ const AccountSecurityScreen = () => {
                         </TouchableOpacity>
                     </LinearGradient>
                 </View>
-            )}
+            )} */}
 
         </ImageBackground>
     );
@@ -260,10 +264,19 @@ const getStyles = (theme) =>
             borderColor: theme.borderColor,
             borderWidth: 1,
             borderRadius: scale(12),
+         
+        },
+        securityItemInner: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
             height: 65,
+            paddingHorizontal: 18,
+        },
+        securityItemInner2: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             paddingHorizontal: 18,
         },
         securityItem2: {
@@ -275,7 +288,7 @@ const getStyles = (theme) =>
         securityTextContent: { flex: 1, marginRight: 10 },
         securityItemText: {
             fontSize: scale(12),
-            fontFamily: 'Outfit-Regular',
+            fontFamily: 'Inter-Regular',
             color: theme.textColor,
         },
         securityItemDescription: {
@@ -344,7 +357,7 @@ const getStyles = (theme) =>
         profileButtonText: {
             fontSize: scale(13),
             color: 'white',
-            fontFamily: 'Outfit-Medium',
+            fontFamily: 'Inter-Medium',
         },
     });
 

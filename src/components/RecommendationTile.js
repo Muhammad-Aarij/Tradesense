@@ -8,7 +8,7 @@ import { ThemeContext } from '../../src/context/ThemeProvider';
 const { width } = Dimensions.get('window');
 const cardWidth = width * 0.42;
 
-const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url, duration, pillar }) => {
+const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail, url, duration, pillar, onPremiumPress }) => {
   const navigation = useNavigation();
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -22,6 +22,14 @@ const RecommendationTile = ({ title, description, type, onPress, lock, thumbnail
   // console.log('================================');
 
   const handlePress = () => {
+    if (lock) {
+      // Show premium modal if content is locked
+      if (onPremiumPress) {
+        onPremiumPress();
+      }
+      return;
+    }
+
     if (type === 'audio') {
       console.log('=== Audio Navigation Debug ===');
       console.log('Navigating to TrackPlayer with:');

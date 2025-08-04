@@ -1,7 +1,7 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    Image, ImageBackground
+    Image, ImageBackground, SafeAreaView
 } from 'react-native';
 import { acc, back, bg, fail, tick } from '../../../assets/images';
 import CustomInput from '../../../components/CustomInput';
@@ -140,6 +140,7 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
         <ImageBackground source={theme.bg} style={styles.container}>
             <SnackbarMessage visible={snackbar.visible} message={snackbar.message} type={snackbar.type} />
 
+            <SafeAreaView>
             <Header title="Withdraw" style={{ marginBottom: 20, }} />
             {confirmation.visible && (
                 <ConfirmationModal
@@ -147,7 +148,9 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
                     title={confirmation.title}
                     message={confirmation.message}
                     icon={confirmation.icon}
-                    onClose={() => setConfirmation(prev => ({ ...prev, visible: false }))}
+                    onClose={() => {setConfirmation(prev => ({ ...prev, visible: false }));
+                        navigation.goBack();
+                    }}
                 />
             )}
 
@@ -204,6 +207,7 @@ const WithdrawDetailScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
 
             </ScrollView>
+            </SafeAreaView>
         </ImageBackground>
     );
 };
