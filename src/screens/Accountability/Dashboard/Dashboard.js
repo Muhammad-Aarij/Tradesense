@@ -18,6 +18,7 @@ import { ThemeContext } from '../../../context/ThemeProvider';
 import { useFocusEffect } from '@react-navigation/native';
 import OptimizedImage from '../../../components/OptimizedImage';
 import ProfileImage from '../../../components/ProfileImage';
+import ScrollToTopWrapper from '../../../components/ScrollToTopWrapper';
 
 const Dashboard = ({ navigation, route }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
@@ -47,50 +48,52 @@ const Dashboard = ({ navigation, route }) => {
 
   return (
     <ImageBackground source={theme.bg} style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
-        <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <ProfileImage
-                uri={profilePic ? `${profilePic}` : null}
-                name={name}
-                size={44}
-                borderRadius={22}
-                style={{ marginRight: 10 }}
-                textStyle={{ fontSize: 14, color: theme.primaryColor }}
-              />
-              <View>
-                <Text style={styles.username}>{name}</Text>
-                <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
+        <ScrollToTopWrapper>
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <ProfileImage
+                  uri={profilePic ? `${profilePic}` : null}
+                  name={name}
+                  size={44}
+                  borderRadius={22}
+                  style={{ marginRight: 10 }}
+                  textStyle={{ fontSize: 14, color: theme.primaryColor }}
+                />
+                <View>
+                  <Text style={styles.username}>{name}</Text>
+                  <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
+                </View>
               </View>
-            </View>
-            <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
-              <Image source={isDarkMode ? bell : bellWhite} style={styles.bellIcon} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Tabs */}
-          <View style={styles.tabsContainer}>
-            {['Accountability', 'Journaling'].map(tab => (
-              <TouchableOpacity
-                key={tab}
-                style={activeTab === tab ? styles.activeTab : styles.inactiveTab}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text style={activeTab === tab ? styles.activeTabText : styles.inactiveTabText}>
-                  {tab}
-                </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+                <Image source={isDarkMode ? bell : bellWhite} style={styles.bellIcon} />
               </TouchableOpacity>
-            ))}
-          </View>
+            </View>
 
-          {/* Content */}
-          {activeTab === 'Accountability'
-            ? <Accountability navigation={navigation} />
-            : <Journaling navigation={navigation} />}
-        </ScrollView>
+            {/* Tabs */}
+            <View style={styles.tabsContainer}>
+              {['Accountability', 'Journaling'].map(tab => (
+                <TouchableOpacity
+                  key={tab}
+                  style={activeTab === tab ? styles.activeTab : styles.inactiveTab}
+                  onPress={() => setActiveTab(tab)}
+                >
+                  <Text style={activeTab === tab ? styles.activeTabText : styles.inactiveTabText}>
+                    {tab}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Content */}
+            {activeTab === 'Accountability'
+              ? <Accountability navigation={navigation} />
+              : <Journaling navigation={navigation} />}
+          </ScrollView>
+        </ScrollToTopWrapper>
       </SafeAreaView>
     </ImageBackground>
   );

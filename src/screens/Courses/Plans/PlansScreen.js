@@ -148,8 +148,8 @@ const PlansScreen = () => {
             )}
 
             <ImageBackground source={theme.bg || bg} style={styles.container}>
-                <Header title={'Memberships'} />
                 <SafeAreaView>
+                <Header title={'Memberships'} />
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         {plans.map((plan) => (
                             <PlanCard

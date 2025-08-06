@@ -18,7 +18,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Header from '../../components/Header';
 import { ThemeContext } from '../../context/ThemeProvider';
 import SnackbarMessage from '../../functions/SnackbarMessage';
-
+import { checkSubscriptionStatus } from '../../functions/checkSubscriptionStatus';
 export default function GoalContainer({ navigation }) {
     const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = getStyles(theme);
@@ -74,17 +74,36 @@ export default function GoalContainer({ navigation }) {
         }
     };
 
-    const handleAddGoal = () => {
-        if (!isPremium && goalsData.length >= 5) {
+
+const handleAddGoal = async () => {
+    dispatch(startLoading());
+
+    try {
+        const isSubscribed = await checkSubscriptionStatus(); // check live status
+        const canAddMore = isSubscribed || goalsData.length < 5;
+
+        if (!canAddMore) {
             setSnackbar({
                 visible: true,
                 type: 'error',
-                message: 'Free users can only add up to 5 goals.\n Upgrade to add more.',
+                message: 'Free users can only add up to 5 goals.\nUpgrade to add more.',
             });
         } else {
             navigation.navigate('AddGoal');
         }
-    };
+
+    } catch (error) {
+        console.error("Error checking subscription in GoalContainer:", error);
+        setSnackbar({
+            visible: true,
+            type: 'error',
+            message: 'Could not verify subscription. Try again later.',
+        });
+    } finally {
+        dispatch(stopLoading());
+    }
+};
+
 
     const filteredGoals = goalsData.filter(goal => {
         const frequency = goal.type || '';

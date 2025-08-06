@@ -7,18 +7,19 @@ const { width, height } = Dimensions.get('window');
 const scale = size => (width / 375) * size;
 const verticalScale = size => (height / 812) * size;
 
-const GradientStatCard = ({ value, label, style,isPercent,   bigger = false }) => {
+const GradientStatCard = ({ value, label, style, isPercent, bigger = false }) => {
     const { theme } = useContext(ThemeContext); // ✅ use theme dynamically
     const styles = getStyles(theme);
 
     return (
         <LinearGradient
-            start={{ x: 0.0, y: 0.95 }} end={{ x: 1.0, y: 1.0 }}
-            colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
+            start={{ x: 0, y: 0.2 }}
+            end={{ x: 0.5, y: 0.5 }}
+            colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
             style={styles.cardLinearGradient}>
-                <View style = {[styles.card, style]}>
-            <Text style={[styles.value, bigger && styles.biggerValue]}>{isPercent ? `${value}%` : value}</Text>
-            <Text style={styles.label}>{label}</Text>
+            <View style={[styles.card, style]}>
+                <Text style={[styles.value, bigger && styles.biggerValue]}>{isPercent ? `${value}%` : value}</Text>
+                <Text style={styles.label}>{label}</Text>
             </View>
         </LinearGradient>
     );

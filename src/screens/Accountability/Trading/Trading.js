@@ -10,13 +10,14 @@ import {
     StyleSheet,
     Modal,
     FlatList,
+    Image,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import TradeBottomSheet from '../../../components/TradeBottomSheet';
-import { bg } from '../../../assets/images';
+import { addBtn, bg } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { useTradeRecords } from '../../../functions/Trades';
@@ -26,6 +27,7 @@ const Trading = ({ navigation }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
     const scrollRef = useRef(null);
+    const [showExtraButtons, setShowExtraButtons] = useState(false);
 
     const userData = useSelector((state) => state.auth);
     const userId = userData?.userObject?._id;
@@ -80,10 +82,91 @@ const Trading = ({ navigation }) => {
         return () => clearTimeout(timeout);
     }, [selectedMonth]);
 
+    const handleCSVUpload = async () => {
+        try {
+            const result = await DocumentPicker.pick({
+                type: [DocumentPicker.types.csv, DocumentPicker.types.allFiles],
+            });
+
+            if (result && result[0]) {
+                dispatch(startLoading());
+                const file = result[0];
+                console.log('Selected file:', file);
+
+                uploadCSV.mutate(file, {
+                    onSuccess: (data) => {
+                        console.log('CSV upload successful:', data);
+                        setConfirmationTitle('Success');
+                        setIcon(tick);
+                        setConfirmationMessage('CSV file uploaded successfully!');
+                        setIsConfirmationVisible(true);
+                        setShowExtraButtons(false);
+                        dispatch(stopLoading());
+                    },
+                    onError: (error) => {
+                        console.error('CSV upload failed:', error);
+                        setIcon(fail);
+                        setConfirmationTitle('Upload Failed');
+                        setConfirmationMessage('Failed to upload CSV file. Please try again.');
+                        setIsConfirmationVisible(true);
+                        dispatch(stopLoading());
+                    },
+                });
+            }
+        } catch (err) {
+            if (!DocumentPicker.isCancel(err)) {
+                console.error('Document picker error:', err);
+                setConfirmationTitle('Error');
+                setConfirmationMessage('Failed to select file. Please try again.');
+                setIcon(fail);
+                setIsConfirmationVisible(true);
+            }
+        }
+    };
+
 
     return (
         <ImageBackground source={theme.bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
+                {showExtraButtons && (
+                    <View style={styles.overlayBackground} />
+                )}
+                <View style={styles.floatingButtonContainer}>
+                    {/* Add Data Button (Top Left of Add Button) */}
+
+                    {showExtraButtons && (
+                        <TouchableOpacity
+                            style={styles.extraButtonTop}
+                            onPress={() => {
+                                setShowExtraButtons(false);
+                                navigation.navigate('Acc_FormData', { emotion: selectedMood });
+                            }}
+                        >
+                            <Text style={styles.extraButtonText}>Add Trade</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* Upload CSV Button (Bottom Left of Add Button) */}
+                    {showExtraButtons && (
+                        <TouchableOpacity
+                            style={styles.extraButtonBottom}
+                            onPress={handleCSVUpload}
+                        >
+                            <Text style={styles.extraButtonText}>Import CSV</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* Floating Plus Button */}
+                    <TouchableOpacity
+                        style={styles.addButton}
+                        onPress={() => setShowExtraButtons(!showExtraButtons)}
+                    >
+                        <Image
+                            source={addBtn}
+                            style={styles.addButtonImage}
+                        />
+                    </TouchableOpacity>
+                </View>
                 <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
                 <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
                     <Header title="Trades" style={{ marginBottom: 20 }} />
@@ -312,6 +395,92 @@ const getStyles = (theme) =>
     StyleSheet.create({
         container: { flex: 1 },
         scrollViewContent: { paddingHorizontal: 20, paddingBottom: 100 },
+        floatingButtonContainer: {
+            position: 'absolute',
+            right: -10,
+            top: 300,
+            zIndex: 100000,
+            // alignItems: 'center',
+        },
+        overlayBackground: {
+            width: "100%",
+            height: "100%",
+            ...StyleSheet.absoluteFillObject, // spread this object properly
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999, // high zIndex to be on top
+        },
+        extraButtonTop: {
+            position: 'absolute',
+            bottom: 65,
+            right: 60,
+            width: 80,
+            height: 80,
+            borderRadius: 200,
+            backgroundColor: theme.primaryLight || 'rgba(15, 66, 96, 0.9)',
+            borderWidth: 0.9,
+            borderColor: theme.primaryColor,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            elevation: 3,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            textAlign: "center",
+        },
+
+        extraButtonBottom: {
+            textAlign: "center",
+            justifyContent: "center",
+            alignItems: "center",
+            position: 'absolute',
+            top: 65,
+            right: 60,
+            backgroundColor: theme.primaryLight || 'rgba(15, 66, 96, 0.9)',
+            borderWidth: 0.9,
+            borderColor: theme.primaryColor,
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            width: 80,
+            height: 80,
+            borderRadius: 200,
+            elevation: 3,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+        },
+
+        extraButtonText: {
+            color: '#fff',
+            fontSize: 13,
+            fontFamily: 'Outfit-Regular',
+            fontWeight: '500',
+            zIndex: 1000,
+            textAlign: 'center',
+        },
+
+        addButton: {
+            // width: 60,
+            // height: 60,
+            // borderRadius: 30,
+            // backgroundColor: theme.primaryColor,
+            justifyContent: 'center',
+            alignItems: 'center',
+            // elevation: 5,
+            // shadowColor: theme.primaryColor,
+            // shadowOffset: { width: 0, height: 2 },
+            // shadowOpacity: 0.3,
+            // shadowRadius: 4,
+        },
+        addButtonImage: {
+            width: 65,
+            height: 105,
+            resizeMode: 'contain',
+            tintColor: '#fff',
+        },
     });
 
 export default Trading;

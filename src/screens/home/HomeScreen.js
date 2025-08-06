@@ -34,6 +34,7 @@ import OptimizedImage from '../../components/OptimizedImage';
 import { getUserNotifications } from '../../functions/notifications';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ProfileImage from '../../components/ProfileImage';
+import ScrollToTopWrapper from '../../components/ScrollToTopWrapper';
 
 const { width, height } = Dimensions.get('window');
 
@@ -108,308 +109,308 @@ const HomeScreen = ({ navigation }) => {
   return (
     <ImageBackground source={theme?.bg} style={styles.container1}>
       <SafeAreaView>
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
-          {/* Header */}
-          <View style={styles.header}>
-            {/* Make sure `profilePic` is a string or undefined */}
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <ProfileImage
-                uri={profilePic ? `${profilePic}` : null}
-                name={name}
-                size={44}
-                borderRadius={22}
-                style={{ marginRight: 10 }}
-                textStyle={{ fontSize: 14, color: theme.primaryColor }}
-              />
+        <ScrollToTopWrapper>
+          <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+            {/* Header */}
+            <View style={styles.header}>
+              {/* Make sure `profilePic` is a string or undefined */}
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ProfileImage
+                  uri={profilePic ? `${profilePic}` : null}
+                  name={name}
+                  size={44}
+                  borderRadius={22}
+                  style={{ marginRight: 10 }}
+                  textStyle={{ fontSize: 14, color: theme.primaryColor }}
+                />
 
-              <View>
-                <Text style={styles.username}>{safeText(name)}</Text>
-                <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
-              </View>
-            </View>
-            <Pressable onPress={() => navigation.navigate('Notifications')}>
-              <Image source={isDarkMode ? bell : bellWhite} style={styles.bell} />
-            </Pressable>
-          </View>
-
-          <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
-            {/* LEFT COLUMN */}
-            <View style={{ flexDirection: 'column', width: '47%' }}>
-              {/* Mindfulness & Motivation */}
-              <LinearGradient
-                start={{ x: 0, y: 0.95 }}
-                end={{ x: 1, y: 1 }}
-                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                style={styles.linearGradient}
-              >
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Mindfulness & Motivation</Text>
-
-                  {!!audio?.thumbnail && (
-                    <View style={styles.cardImage}>
-                      <View style={styles.imageBackground}>
-                        <OptimizedImage
-                          uri={audio.thumbnail}
-                          style={{ ...StyleSheet.absoluteFillObject, borderRadius: 10 }}
-                          borderRadius={10}
-                          showLoadingIndicator
-                          loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
-                        />
-
-
-                        {(
-                          <View style={styles.bottomLeftDuration}>
-                            <Image source={audioNew} style={styles.tagIcon} />
-                            {!!audio?.duration
-                              && <Text style={styles.durationText}>
-                                {formatDuration(audio.duration)}
-                              </Text>
-                            }
-                            {!!audio?.pillar && <Text style={styles.durationText}>
-                              | {(audio.pillar)}
-                            </Text>}
-
-                          </View>
-                        )}
-
-                        <TouchableOpacity
-                          style={StyleSheet.absoluteFill}
-                          onPress={() =>
-                            navigation.navigate('TrackPlayer', {
-                              shouldFetchTrack: true,
-                              navigationKey: Date.now(),
-                              AudioTitle: safeText(audio?.title),
-                              AudioDescr: safeText(audio?.description),
-                              Thumbnail: audio?.thumbnail,
-                              AudioUrl: audio?.url,
-                            })
-                          }
-                        />
-                      </View>
-                    </View>
-                  )}
-
-                  {!!audio?.title && (
-                    <Text style={styles.playButtonText}>{safeText(audio.title)}</Text>
-                  )}
+                <View>
+                  <Text style={styles.username}>{safeText(name)}</Text>
+                  <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
                 </View>
-              </LinearGradient>
+              </View>
+              <Pressable onPress={() => navigation.navigate('Notifications')}>
+                <Image source={isDarkMode ? bell : bellWhite} style={styles.bell} />
+              </Pressable>
+            </View>
 
-              {/* Personalized Affirmations */}
-              <LinearGradient
-                start={{ x: 0, y: 0.95 }}
-                end={{ x: 1, y: 1 }}
-                colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                style={styles.linearGradient}
-              >
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Personalized Affirmations</Text>
-                  {!!video?.thumbnail && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        navigation.navigate('VideoPlayer', {
-                          VideoTitle: safeText(video?.title),
-                          VideoDescr: safeText(video?.description),
-                          Thumbnail: video?.thumbnail,
-                          VideoUrl: video?.url,
-                        });
-                      }}
-                    >
-                      <View style={styles.imageBackground}>
-                        <OptimizedImage
-                          uri={video?.thumbnail}
-                          style={styles.cardImage}
-                          borderRadius={10}
-                          showLoadingIndicator={true}
-                          loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
-                        />
-                        {/* <View style={styles.topRightTag}>
+            <View style={{ flexDirection: 'row', width: '100%', gap: 10 }}>
+              {/* LEFT COLUMN */}
+              <View style={{ flexDirection: 'column', width: '47%' }}>
+                {/* Mindfulness & Motivation */}
+                <LinearGradient
+                  start={{ x: 0, y: 0.95 }}
+                  end={{ x: 1, y: 1 }}
+                  colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                  style={styles.linearGradient}
+                >
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Mindfulness & Motivation</Text>
+
+                    {!!audio?.thumbnail && (
+                      <View style={styles.cardImage}>
+                        <View style={styles.imageBackground}>
+                          <OptimizedImage
+                            uri={audio.thumbnail}
+                            style={{ ...StyleSheet.absoluteFillObject, borderRadius: 10 }}
+                            borderRadius={10}
+                            showLoadingIndicator
+                            loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
+                          />
+
+
+                          {(
+                            <View style={styles.bottomLeftDuration}>
+                              <Image source={audioNew} style={styles.tagIcon} />
+                              {!!audio?.duration
+                                && <Text style={styles.durationText}>
+                                  {formatDuration(audio.duration)}
+                                </Text>
+                              }
+                              {!!audio?.pillar && <Text style={styles.durationText}>
+                                | {(audio.pillar)}
+                              </Text>}
+
+                            </View>
+                          )}
+
+                          <TouchableOpacity
+                            style={StyleSheet.absoluteFill}
+                            onPress={() =>
+                              navigation.navigate('TrackPlayer', {
+                                shouldFetchTrack: true,
+                                navigationKey: Date.now(),
+                                AudioTitle: safeText(audio?.title),
+                                AudioDescr: safeText(audio?.description),
+                                Thumbnail: audio?.thumbnail,
+                                AudioUrl: audio?.url,
+                              })
+                            }
+                          />
+                        </View>
+                      </View>
+                    )}
+
+                    {!!audio?.title && (
+                      <Text style={styles.playButtonText}>{safeText(audio.title)}</Text>
+                    )}
+                  </View>
+                </LinearGradient>
+
+                {/* Personalized Affirmations */}
+                <LinearGradient
+                  start={{ x: 0, y: 0.95 }}
+                  end={{ x: 1, y: 1 }}
+                  colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                  style={styles.linearGradient}
+                >
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Personalized Affirmations</Text>
+                    {!!video?.thumbnail && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          navigation.navigate('VideoPlayer', {
+                            VideoTitle: safeText(video?.title),
+                            VideoDescr: safeText(video?.description),
+                            Thumbnail: video?.thumbnail,
+                            VideoUrl: video?.url,
+                          });
+                        }}
+                      >
+                        <View style={styles.imageBackground}>
+                          <OptimizedImage
+                            uri={video?.thumbnail}
+                            style={styles.cardImage}
+                            borderRadius={10}
+                            showLoadingIndicator={true}
+                            loadingIndicatorColor="rgba(255, 255, 255, 0.7)"
+                          />
+                          {/* <View style={styles.topRightTag}>
                           <Text style={styles.tagText}>Video</Text>
                         </View> */}
 
-                        {(
-                          <View style={styles.bottomLeftDuration}>
-                            <Image source={videoNew} style={styles.tagIcon} />
-                            {!!video?.duration
-                              && <Text style={styles.durationText}>
-                                {formatDuration(video.duration)}
-                              </Text>
-                            }
-                            {!!video?.pillar && <Text style={styles.durationText}>
-                              | {(video.pillar)}
-                            </Text>}
+                          {(
+                            <View style={styles.bottomLeftDuration}>
+                              <Image source={videoNew} style={styles.tagIcon} />
+                              {!!video?.duration
+                                && <Text style={styles.durationText}>
+                                  {formatDuration(video.duration)}
+                                </Text>
+                              }
+                              {!!video?.pillar && <Text style={styles.durationText}>
+                                | {(video.pillar)}
+                              </Text>}
 
-                          </View>
+                            </View>
+                          )}
+                        </View>
+                        {!!video?.title && (
+                          <Text style={styles.playButtonText}>{safeText(video.title)}</Text>
                         )}
-                      </View>
-                      {!!video?.title && (
-                        <Text style={styles.playButtonText}>{safeText(video.title)}</Text>
-                      )}
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </LinearGradient>
-            </View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </LinearGradient>
+              </View>
 
-            {/* RIGHT COLUMN */}
-            <View style={{ flexDirection: 'column', width: '50%' }}>
-              {/* Quote */}
-              <ImageBackground source={quot} style={styles.linearGradient}
-              >
-                <View style={{ ...styles.section, flexDirection: 'row', alignItems: 'center' }}>
-                  <Text style={styles.sectionTitle2}>{quotation}</Text>
-                </View>
-              </ImageBackground>
-
-              {/* Accountability */}
-              <TouchableOpacity onPress={() => navigation.navigate('Accountability')}>
-                <LinearGradient
-                  start={{ x: 0, y: 0.95 }}
-                  end={{ x: 1, y: 1 }}
-                  colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                  style={styles.linearGradient}
+              {/* RIGHT COLUMN */}
+              <View style={{ flexDirection: 'column', width: '50%' }}>
+                {/* Quote */}
+                <ImageBackground source={quot} style={styles.linearGradient}
                 >
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Accountability</Text>
+                  <View style={{ ...styles.section, flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={styles.sectionTitle2}>{quotation}</Text>
+                  </View>
+                </ImageBackground>
 
-                    <View style={styles.goalProgress}>
-                      {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => {
-                        const sizes = [10.5, 12, 14, 15, 14, 12, 10.5]; // custom font sizes
+                {/* Accountability */}
+                <TouchableOpacity onPress={() => navigation.navigate('Accountability')}>
+                  <LinearGradient
+                    start={{ x: 0, y: 0.95 }}
+                    end={{ x: 1, y: 1 }}
+                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                    style={styles.linearGradient}
+                  >
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Accountability</Text>
 
-                        return (
-                          <View key={day + index} style={styles.dayContainer}>
-                            <View
-                              style={{
-                                height: 20, // fixed height for alignment
-                                justifyContent: 'flex-end',
-                                marginBottom: 10,
-                                alignItems: 'center',
-                              }}
-                            >
-                              <Text
+                      <View style={styles.goalProgress}>
+                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => {
+                          const sizes = [10.5, 12, 14, 15, 14, 12, 10.5]; // custom font sizes
+
+                          return (
+                            <View key={day + index} style={styles.dayContainer}>
+                              <View
+                                style={{
+                                  height: 20, // fixed height for alignment
+                                  justifyContent: 'flex-end',
+                                  marginBottom: 10,
+                                  alignItems: 'center',
+                                }}
+                              >
+                                <Text
+                                  style={[
+                                    styles.weekdays,
+                                    {
+                                      fontSize: sizes[index],
+                                      lineHeight: sizes[index] + 2, // prevent clipping
+                                    },
+                                  ]}
+                                >
+                                  {day}
+                                </Text>
+                              </View>
+
+                              <View
                                 style={[
-                                  styles.weekdays,
+                                  styles.weekDots,
                                   {
-                                    fontSize: sizes[index],
-                                    lineHeight: sizes[index] + 2, // prevent clipping
+                                    backgroundColor: isDayCompleted(index) ? '#70C2E8' : '#AAA',
+                                  },
+                                  currentDayIndex === index && {
+                                    borderWidth: 2.5,
+                                    borderColor: theme.primaryColor,
+                                    backgroundColor: 'transparent',
                                   },
                                 ]}
-                              >
-                                {day}
-                              </Text>
+                              />
+
+
+
                             </View>
-
-                            <View
-                              style={[
-                                styles.weekDots,
-                                {
-                                  backgroundColor: isDayCompleted(index) ? '#70C2E8' : '#AAA',
-                                },
-                                currentDayIndex === index && {
-                                  borderWidth: 2.5,
-                                  borderColor: theme.primaryColor,
-                                  backgroundColor: 'transparent',
-                                },
-                              ]}
-                            />
+                          );
+                        })}
+                      </View>
 
 
-
-                          </View>
-                        );
-                      })}
-                    </View>
-
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Text style={[styles.playButtonText, { marginTop: 0 }]}>
-                        Daily Goal Progress
-                      </Text>
-                      <Image
-                        source={back}
+                      <View
                         style={{
-                          width: 10,
-                          height: 10,
-                          resizeMode: 'contain',
-                          transform: [{ rotate: '180deg' }],
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
                         }}
-                      />
+                      >
+                        <Text style={[styles.playButtonText, { marginTop: 0 }]}>
+                          Daily Goal Progress
+                        </Text>
+                        <Image
+                          source={back}
+                          style={{
+                            width: 10,
+                            height: 10,
+                            resizeMode: 'contain',
+                            transform: [{ rotate: '180deg' }],
+                          }}
+                        />
+                      </View>
                     </View>
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
 
 
-              {/* Trading Journal */}
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('Accountability', {
-                    screen: 'AccountabilityDashboard',
-                    goJournaling: true,
-                  })
-                }
-              >
-                <LinearGradient
-                  start={{ x: 0, y: 0.95 }}
-                  end={{ x: 1, y: 1 }}
-                  colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                  style={styles.linearGradient}
+                {/* Trading Journal */}
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('Accountability', {
+                      screen: 'AccountabilityDashboard',
+                      goJournaling: true,
+                    })
+                  }
                 >
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Trading Journal</Text>
-                    <Image
-                      source={graph}
-                      style={[
-                        styles.cardImage,
-                        {
-                          height: 67,
-                          resizeMode: 'contain',
-                          borderBottomWidth: 2,
-                          borderColor: theme.borderColor,
-                        },
-                      ]}
-                    />
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginTop: 10,
-                        borderTopWidth: 0.5,
-                        paddingTop: 6,
-                        borderColor: '#AAA',
-                      }}
-                    >
-                      <Text style={[styles.playButtonText, { marginTop: 0 }]}>
-                        Track Your Trades
-                      </Text>
+                  <LinearGradient
+                    start={{ x: 0, y: 0.95 }}
+                    end={{ x: 1, y: 1 }}
+                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                    style={styles.linearGradient}
+                  >
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitle}>Trading Journal</Text>
                       <Image
-                        source={back}
-                        style={{
-                          width: 10,
-                          height: 10,
-                          resizeMode: 'contain',
-                          transform: [{ rotate: '180deg' }],
-                        }}
+                        source={graph}
+                        style={[
+                          styles.cardImage,
+                          {
+                            height: 67,
+                            resizeMode: 'contain',
+                          },
+                        ]}
                       />
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginTop: 10,
+                          borderTopWidth: 0.5,
+                          paddingTop: 6,
+                          borderColor: '#AAA',
+                        }}
+                      >
+                        <Text style={[styles.playButtonText, { marginTop: 0 }]}>
+                          Track Your Trades
+                        </Text>
+                        <Image
+                          source={back}
+                          style={{
+                            width: 10,
+                            height: 10,
+                            resizeMode: 'contain',
+                            transform: [{ rotate: '180deg' }],
+                          }}
+                        />
+                      </View>
                     </View>
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
-          <DailyBreakdownChart navigation={navigation} />
-          {/* <TopBreakdownChart /> */}
-        </ScrollView>
+            <DailyBreakdownChart navigation={navigation} />
+            {/* <TopBreakdownChart /> */}
+          </ScrollView>
+        </ScrollToTopWrapper>
       </SafeAreaView>
-    </ImageBackground>
+    </ImageBackground >
   );
 };
 

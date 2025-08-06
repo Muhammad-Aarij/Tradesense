@@ -17,6 +17,8 @@ import { API_URL } from "@env";
 import { BackHandler, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import ConfirmationModal from '../../../components/ConfirmationModal';
+import { checkSubscriptionStatus } from '../../../functions/checkSubscriptionStatus';
+import ScrollToTopWrapper from '../../../components/ScrollToTopWrapper';
 
 const { height } = Dimensions.get('window');
 
@@ -39,7 +41,22 @@ const DiscoverScreen = () => {
     const { data: music, isLoading: loadingMusic, error: MusicError } = useMusic(userId);
     const { data: dailyThought, isLoading: loadingThought } = useDailyThought();
 
-    console.log("remcomed", recommendations);
+    const [isSubscribed, setIsSubscribed] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchSubStatus = async () => {
+                const status = await checkSubscriptionStatus();
+                console.log('Status of the User Subscription', status);
+                setIsSubscribed(status);
+            };
+
+            fetchSubStatus();
+        }, [])
+    );
+
+
+    // console.log("remcomed", recommendations);
     // Preload critical images when component mounts
     useEffect(() => {
         if (recommendations && recommendations.length > 0) {
@@ -135,210 +152,213 @@ const DiscoverScreen = () => {
 
     return (
         <ImageBackground source={theme.bg} style={styles.container} resizeMode="cover">
-            <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
-                {showPremiumModal && (
-                    <ConfirmationModal
-                        title={"Unlock Premium Content"}
-                        message={"Subscribe to access all guided sessions, expert talks, and exclusive audio and video experiences."}
-                        icon={locked}
-                        buttonText="Subscribe Now"
-                        onClose={() => setShowPremiumModal(false)} // make sure modal has an onClose prop
-                    />
-                )}
+            <ScrollToTopWrapper>
 
-                {/* Header Image */}
-                <View style={{ position: 'relative', height: height / 2.8 }}>
-                    <Image source={topImage} style={styles.topImg} />
-                    <View style={styles.centeredOverlay}>
-                        <Text style={styles.titleB}>Discover</Text>
-                    </View>
-                </View>
-
-                {/* Recommendations */}
-                <View style={styles.section}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                        <Text style={[styles.sectionTitle, { marginBottom: 0, paddingHorizontal: 0, paddingLeft: 25, }]}>Top Recommendations</Text>
-                        <TouchableOpacity onPress={handleRecommendationsInfo}>
-                            <Image source={info} style={{ width: 20, height: 20, resizeMode: "contain", marginLeft: 10 }} />
-                        </TouchableOpacity>
-                    </View>
-                    <FlatList
-                        data={recommendations || []}
-                        renderItem={({ item, index }) => {
-                            return (
-                                <RecommendationTile
-                                    thumbnail={item.thumbnail}
-                                    title={item.title}
-                                    type={item.type}
-                                    url={item.url}
-                                    lock={item.isPremium}
-                                    duration={formatDuration(item.duration)}
-                                    pillar={item.pillar}
-                                    description={item.description}
-                                    isCenter={index === selectedCard}
-                                    onPremiumPress={() => setShowPremiumModal(true)}
-                                    onPress={() => handleCardPress(index)}
-                                />
-                            );
-                        }}
-                        keyExtractor={(item) => item._id}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
-                        ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
-                        initialNumToRender={3}
-                        maxToRenderPerBatch={3}
-                        windowSize={10}
-                        removeClippedSubviews={true}
-                        getItemLayout={(data, index) => (
-                            { length: 192, offset: 192 * index, index }
-                        )}
-                    />
-
-                </View>
-
-                {/* Top Picks Section */}
-                <View style={styles.section}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                        <Text style={[styles.sectionTitle, { marginBottom: 0, paddingHorizontal: 0, paddingLeft: 25, }]}>Top Picks for you</Text>
-                        <TouchableOpacity onPress={handleTopPicksInfo}>
-                            <Image source={info} style={{ width: 20, height: 20, resizeMode: "contain", marginLeft: 10 }} />
-                        </TouchableOpacity>
-                    </View>
-                    <FlatList
-                        data={topPicks || []}
-                        renderItem={({ item }) => (
-                            <TopPickTile
-                                imageSource={item.thumbnail}
-                                type={item.type}
-                                title={item.title}
-                                pillar={item.pillar}
-                                description={item.description}
-                                locked={item.isPremium}
-                                duration={formatDuration(item.duration)}
-                                url={item.url}
-                                onPremiumPress={() => setShowPremiumModal(true)}
-                            />
-                        )}
-                        keyExtractor={(item) => item._id}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
-                        ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
-                        initialNumToRender={3}
-                        maxToRenderPerBatch={3}
-                        windowSize={10}
-                        removeClippedSubviews={true}
-                        getItemLayout={(data, index) => (
-                            { length: 188, offset: 188 * index, index }
-                        )}
-                    />
-                </View>
-
-                {loadingThought ? (
-                    <Text style={{ color: theme.subTextColor, paddingHorizontal: 25 }}>Loading Daily Thought...</Text>
-                ) : dailyThought ? (
-                    <AudioMediaTile
-                        title={"Daily Thoughts"}
-                        title2={dailyThought.category?.toUpperCase() || 'DAILY'}
-                        duration="3-10 MIN"
-                        imageSource={{ uri: dailyThought.thumbnail }}
-                        description={dailyThought.description}
-                        locked={dailyThought.isPremium}
-                        url={dailyThought.url}
-                    // onPress={() => {
-                    //     console.log('Play:', dailyThought.url);
-                    // }}
-                    />
-                ) : null}
-
-
-                {/* Bundles */}
-                {filteredBundles.map((bundle) => (
-                    <View key={bundle.goal} style={styles.section}>
-                        <Text style={styles.sectionTitle}>{bundle.goal}</Text>
-                        <FlatList
-                            data={bundle.resources}
-                            renderItem={({ item }) => (
-                                <BundleTileSection
-                                    title={item.title}
-                                    pillar={item.pillar}
-                                    description={item.description}
-                                    imageSource={{ uri: item.thumbnail }}
-                                    locked={item.isPremium}
-                                    type={item.type}
-                                    duration={formatDuration(item.duration)}
-                                    url={item.url}
-                                    onPremiumPress={() => setShowPremiumModal(true)}
-                                />
-                            )}
-                            keyExtractor={(item) => item._id}
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }}
-                            // ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
-                            initialNumToRender={3}
-                            maxToRenderPerBatch={3}
-                            windowSize={10}
-                            removeClippedSubviews={true}
-                            getItemLayout={(data, index) => (
-                                { length: 172, offset: 172 * index, index }
-                            )}
+                <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false}>
+                    {showPremiumModal && (
+                        <ConfirmationModal
+                            title={"Unlock Premium Content"}
+                            message={"Subscribe to access all guided sessions, expert talks, and exclusive audio and video experiences."}
+                            icon={locked}
+                            buttonText="Subscribe Now"
+                            onClose={() => setShowPremiumModal(false)} // make sure modal has an onClose prop
                         />
+                    )}
+
+                    {/* Header Image */}
+                    <View style={{ position: 'relative', height: height / 2.8 }}>
+                        <Image source={topImage} style={styles.topImg} />
+                        <View style={styles.centeredOverlay}>
+                            <Text style={styles.titleB}>Discover</Text>
+                        </View>
                     </View>
-                ))}
-                {/* Music Section */}
-                {music && Array.isArray(music.music) && music.music.length > 0 && (
+
+                    {/* Recommendations */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Music for You</Text>
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}  onPress={handleTopPicksInfo} >
+                            <Text style={[styles.sectionTitle, { marginBottom: 0, paddingHorizontal: 0, paddingLeft: 25, }]}>Top Recommendations</Text>
+                            <TouchableOpacity onPress={handleRecommendationsInfo}>
+                                <Image source={info} style={{ width: 20, height: 20, resizeMode: "contain", marginLeft: 10, tintColor: theme.primaryColor }} />
+                            </TouchableOpacity>
+                        </TouchableOpacity>
                         <FlatList
-                            data={music.music}
+                            data={recommendations || []}
+                            renderItem={({ item, index }) => {
+                                return (
+                                    <RecommendationTile
+                                        thumbnail={item.thumbnail}
+                                        title={item.title}
+                                        type={item.type}
+                                        url={item.url}
+                                        lock={item.isPremium && !isSubscribed}
+                                        duration={formatDuration(item.duration)}
+                                        pillar={item.pillar}
+                                        description={item.description}
+                                        isCenter={index === selectedCard}
+                                        onPremiumPress={() => setShowPremiumModal(true)}
+                                        onPress={() => handleCardPress(index)}
+                                    />
+                                );
+                            }}
+                            keyExtractor={(item) => item._id}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
+                            ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+                            initialNumToRender={3}
+                            maxToRenderPerBatch={3}
+                            windowSize={10}
+                            removeClippedSubviews={true}
+                            getItemLayout={(data, index) => (
+                                { length: 192, offset: 192 * index, index }
+                            )}
+                        />
+
+                    </View>
+
+                    {/* Top Picks Section */}
+                    <View style={styles.section}>
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }} onPress={handleTopPicksInfo} >
+                            <Text style={[styles.sectionTitle, { marginBottom: 0, paddingHorizontal: 0, paddingLeft: 25, }]}>Top Picks for you</Text>
+                            <TouchableOpacity onPress={handleTopPicksInfo} >
+                                <Image source={info} style={{ width: 20, height: 20, resizeMode: "contain", marginLeft: 10, tintColor: theme.primaryColor }} />
+                            </TouchableOpacity>
+                        </TouchableOpacity>
+                        <FlatList
+                            data={topPicks || []}
                             renderItem={({ item }) => (
-                                <BundleTileSection
+                                <TopPickTile
+                                    imageSource={item.thumbnail}
+                                    type={item.type}
                                     title={item.title}
-                                    description={item.description}
-                                    imageSource={{ uri: `${item.thumbnail}` }}
-                                    locked={item.isPremium}
                                     pillar={item.pillar}
-                                    type="audio"
+                                    description={item.description}
+                                    locked={item.isPremium && !isSubscribed}
                                     duration={formatDuration(item.duration)}
-                                    url={`${item.url}`}
+                                    url={item.url}
                                     onPremiumPress={() => setShowPremiumModal(true)}
                                 />
                             )}
                             keyExtractor={(item) => item._id}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ marginLeft: 25 }}
+                            contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }} // 👈 Add this
+                            ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
                             initialNumToRender={3}
                             maxToRenderPerBatch={3}
                             windowSize={10}
                             removeClippedSubviews={true}
                             getItemLayout={(data, index) => (
-                                { length: 172, offset: 172 * index, index }
+                                { length: 188, offset: 188 * index, index }
                             )}
                         />
                     </View>
-                )}
+
+                    {loadingThought ? (
+                        <Text style={{ color: theme.subTextColor, paddingHorizontal: 25 }}>Loading Daily Thought...</Text>
+                    ) : dailyThought ? (
+                        <AudioMediaTile
+                            title={"Daily Thoughts"}
+                            title2={dailyThought.category?.toUpperCase() || 'DAILY'}
+                            duration="3-10 MIN"
+                            imageSource={{ uri: dailyThought.thumbnail }}
+                            description={dailyThought.description}
+                            locked={dailyThought.isPremium}
+                            url={dailyThought.url}
+                        // onPress={() => {
+                        //     console.log('Play:', dailyThought.url);
+                        // }}
+                        />
+                    ) : null}
 
 
-                {/* Animated Info Boxes */}
-                <AnimatedInfoBox
-                    isVisible={showRecommendationsInfo}
-                    onClose={handleCloseRecommendationsInfo}
-                    title="Top Recommendations"
-                    message="These are personalized recommendations based on your trading goals, experience level, and learning preferences. We analyze your behavior and Outfitests to suggest the most relevant content that will help you grow as a trader."
-                    position="center"
-                />
+                    {/* Bundles */}
+                    {filteredBundles.map((bundle) => (
+                        <View key={bundle.goal} style={styles.section}>
+                            <Text style={styles.sectionTitle}>{bundle.goal}</Text>
+                            <FlatList
+                                data={bundle.resources}
+                                renderItem={({ item }) => (
+                                    <BundleTileSection
+                                        title={item.title}
+                                        pillar={item.pillar}
+                                        description={item.description}
+                                        imageSource={{ uri: item.thumbnail }}
+                                        locked={item.isPremium && !isSubscribed}
+                                        type={item.type}
+                                        duration={formatDuration(item.duration)}
+                                        url={item.url}
+                                        onPremiumPress={() => setShowPremiumModal(true)}
+                                    />
+                                )}
+                                keyExtractor={(item) => item._id}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={{ marginLeft: 25, paddingRight: 55 }}
+                                // ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
+                                initialNumToRender={3}
+                                maxToRenderPerBatch={3}
+                                windowSize={10}
+                                removeClippedSubviews={true}
+                                getItemLayout={(data, index) => (
+                                    { length: 172, offset: 172 * index, index }
+                                )}
+                            />
+                        </View>
+                    ))}
+                    {/* Music Section */}
+                    {music && Array.isArray(music.music) && music.music.length > 0 && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Music for You</Text>
+                            <FlatList
+                                data={music.music}
+                                renderItem={({ item }) => (
+                                    <BundleTileSection
+                                        title={item.title}
+                                        description={item.description}
+                                        imageSource={{ uri: `${item.thumbnail}` }}
+                                        locked={item.isPremium && !isSubscribed}
+                                        pillar={item.pillar}
+                                        type="audio"
+                                        duration={formatDuration(item.duration)}
+                                        url={`${item.url}`}
+                                        onPremiumPress={() => setShowPremiumModal(true)}
+                                    />
+                                )}
+                                keyExtractor={(item) => item._id}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={{ marginLeft: 25 }}
+                                initialNumToRender={3}
+                                maxToRenderPerBatch={3}
+                                windowSize={10}
+                                removeClippedSubviews={true}
+                                getItemLayout={(data, index) => (
+                                    { length: 172, offset: 172 * index, index }
+                                )}
+                            />
+                        </View>
+                    )}
 
-                <AnimatedInfoBox
-                    isVisible={showTopPicksInfo}
-                    onClose={handleCloseTopPicksInfo}
-                    title="Top Picks for You"
-                    message="Curated content handpicked by our expert team specifically for your trading journey. These picks represent the highest quality resources that align with your current skill level and learning objectives."
-                    position="center"
-                />
-            </ScrollView>
+
+                    {/* Animated Info Boxes */}
+                    <AnimatedInfoBox
+                        isVisible={showRecommendationsInfo}
+                        onClose={handleCloseRecommendationsInfo}
+                        title="Top Recommendations"
+                        message="These are personalized recommendations based on your trading goals, experience level, and learning preferences. We analyze your behavior and Outfitests to suggest the most relevant content that will help you grow as a trader."
+                        position="center"
+                    />
+
+                    <AnimatedInfoBox
+                        isVisible={showTopPicksInfo}
+                        onClose={handleCloseTopPicksInfo}
+                        title="Top Picks for You"
+                        message="Curated content handpicked by our expert team specifically for your trading journey. These picks represent the highest quality resources that align with your current skill level and learning objectives."
+                        position="center"
+                    />
+                </ScrollView>
+            </ScrollToTopWrapper>
         </ImageBackground>
     );
 };

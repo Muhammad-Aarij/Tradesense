@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
     View,
     Text,
@@ -7,70 +7,82 @@ import {
     StyleSheet,
     Dimensions,
     Modal,
+    Platform,
 } from 'react-native';
 import { ThemeContext } from '../context/ThemeProvider';
-import { useContext } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
-const AnimatedInfoBox = ({ 
-    isVisible, 
-    onClose, 
-    title, 
-    message, 
+const AnimatedInfoBox = ({
+    isVisible,
+    onClose,
+    title,
+    message,
     position = 'center', // 'right', 'left', 'center'
-    maxWidth = width * 0.8 
+    maxWidth = width * 0.8,
 }) => {
-    const { theme } = useContext(ThemeContext);
+    const { theme, isDarkMode } = useContext(ThemeContext);
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.8)).current;
     const slideAnim = useRef(new Animated.Value(-20)).current;
 
     useEffect(() => {
         if (isVisible) {
-            // Reset animations
-            fadeAnim.setValue(0);
-            scaleAnim.setValue(0.8);
-            slideAnim.setValue(-20);
+            if (Platform.OS === 'android') {
+                // Reset animations
+                fadeAnim.setValue(0);
+                scaleAnim.setValue(0.8);
+                slideAnim.setValue(-20);
 
-            // Start animations
-            Animated.parallel([
-                Animated.timing(fadeAnim, {
-                    toValue: 1,
-                    duration: 300,
-                    useNativeDriver: true,
-                }),
-                Animated.spring(scaleAnim, {
-                    toValue: 1,
-                    tension: 100,
-                    friction: 8,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(slideAnim, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }),
-            ]).start();
+                Animated.parallel([
+                    Animated.timing(fadeAnim, {
+                        toValue: 1,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.spring(scaleAnim, {
+                        toValue: 1,
+                        tension: 100,
+                        friction: 8,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(slideAnim, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                ]).start();
+            } else {
+                // Instantly show on iOS
+                fadeAnim.setValue(1);
+                scaleAnim.setValue(1);
+                slideAnim.setValue(0);
+            }
         } else {
-            // Hide animations
-            Animated.parallel([
-                Animated.timing(fadeAnim, {
-                    toValue: 0,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(scaleAnim, {
-                    toValue: 0.8,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(slideAnim, {
-                    toValue: -20,
-                    duration: 200,
-                    useNativeDriver: true,
-                }),
-            ]).start();
+            if (Platform.OS === 'android') {
+                Animated.parallel([
+                    Animated.timing(fadeAnim, {
+                        toValue: 0,
+                        duration: 200,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(scaleAnim, {
+                        toValue: 0.8,
+                        duration: 200,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(slideAnim, {
+                        toValue: -20,
+                        duration: 200,
+                        useNativeDriver: true,
+                    }),
+                ]).start();
+            } else {
+                // Instantly hide on iOS
+                fadeAnim.setValue(0);
+                scaleAnim.setValue(0.8);
+                slideAnim.setValue(-20);
+            }
         }
     }, [isVisible]);
 
@@ -109,32 +121,30 @@ const AnimatedInfoBox = ({
                                 { scale: scaleAnim },
                                 { translateY: slideAnim }
                             ],
-                            backgroundColor: '#000000',
+                            backgroundColor: isDarkMode ? '#000000' : "#FFFFFF",
                             borderColor: '#333333',
                             maxWidth,
                             ...getPositionStyle(),
                         }
                     ]}
                 >
-                    {/* Content */}
                     <View style={styles.content}>
                         {title && (
                             <Text style={[
                                 styles.title,
-                                { color: '#FFFFFF' }
+                                { color: theme.textColor }
                             ]}>
                                 {title}
                             </Text>
                         )}
                         <Text style={[
                             styles.message,
-                            { color: '#CCCCCC' }
+                            { color: theme.subTextColor }
                         ]}>
                             {message}
                         </Text>
                     </View>
 
-                    {/* Close button */}
                     <TouchableOpacity
                         style={styles.closeButton}
                         onPress={onClose}
@@ -153,18 +163,6 @@ const AnimatedInfoBox = ({
     );
 };
 
-const getArrowPosition = (position) => {
-    switch (position) {
-        case 'left':
-            return { left: 20, transform: [{ rotate: '45deg' }] };
-        case 'center':
-            return { alignSelf: 'center', transform: [{ rotate: '45deg' }] };
-        case 'right':
-        default:
-            return { right: 20, transform: [{ rotate: '45deg' }] };
-    }
-};
-
 const styles = StyleSheet.create({
     overlay: {
         flex: 1,
@@ -177,10 +175,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         borderWidth: 1,
         shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 8,
-        },
+        shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.5,
         shadowRadius: 12,
         elevation: 12,
@@ -196,13 +191,11 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit-SemiBold',
         marginBottom: 12,
         lineHeight: 24,
-        // textAlign: 'center',
     },
     message: {
         fontSize: 11,
         fontFamily: 'Outfit-Regular',
         lineHeight: 20,
-        // textAlign: 'center',
         marginBottom: 16,
     },
     closeButton: {
@@ -211,8 +204,6 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
         backgroundColor: '#70C2E8',
-        borderWidth: 1,
-        borderColor: '#555555',
         marginBottom: 20,
     },
     closeText: {
@@ -223,4 +214,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AnimatedInfoBox; 
+export default AnimatedInfoBox;

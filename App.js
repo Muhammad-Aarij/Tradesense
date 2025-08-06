@@ -18,10 +18,6 @@ import Purchases from 'react-native-purchases';
 const queryClient = new QueryClient();
 
 const App = () => {
-
-  // import Purchases from 'react-native-purchases';
-  // import { Platform } from "react-native";
-
   
   useEffect(() => {
     const setupRevenueCat = async () => {

@@ -1,32 +1,27 @@
 import React, { useContext, useMemo, useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
-    Dimensions, SafeAreaView
+    Dimensions, SafeAreaView, Alert, Platform
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
-import { API_URL } from "@env"; // Ensure you have API_URL set in your .env file
 import Purchases from 'react-native-purchases';
-import { Platform } from 'react-native';
-
+import { API_URL } from "@env";
 import { bg, CheckMark, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { enrollInCourse } from '../../../functions/Courses'; // You should already have this
+// import { enrollInCourse } from '../../../functions/Courses'; // You might not need this anymore
+import LinearGradient from 'react-native-linear-gradient';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
 // ------------------ Plan Card Component ------------------
 const PlanCard = ({
     title,
     price,
     description,
-    planId,
-    courseId,
-    studentId,
     onPress,
     isSelected,
     onEnroll,
@@ -38,12 +33,12 @@ const PlanCard = ({
         onPress={onPress}
         activeOpacity={0.9}
     >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[styles.planTitle, { textTransform: "capitalize" }]}>{title}</Text>
-            <Text style={styles.planPrice}>${price}</Text>
+        <View style={{ flexDirection: 'column', justifyContent: 'space-between', width: "100%", }}>
+            <Text style={[styles.planTitle, { textTransform: "capitalize" }]}>{title.replace("(trader 365)", "")}</Text>
+            <Text style={styles.planPrice}>{price}</Text>
         </View>
         <View style={styles.divider} />
-        <Text style={styles.description}>{description}</Text>
+        {!!description && <Text style={styles.description}>{description}</Text>}
         <View style={styles.featuresContainer}>
             <View style={styles.featureItem}>
                 <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
@@ -57,7 +52,7 @@ const PlanCard = ({
 
         <TouchableOpacity
             style={styles.checkoutButton}
-            onPress={() => onEnroll({ studentId, courseId, planId })}
+            onPress={onEnroll}
         >
             <Text style={styles.checkoutButtonText}>Join</Text>
         </TouchableOpacity>
@@ -77,102 +72,128 @@ const PlansScreen = () => {
     const { Courseid: courseId } = route.params || {};
 
     const [plans, setPlans] = useState([]);
-    const [selectedPlanId, setSelectedPlanId] = useState(null);
+    const [selectedPlan, setSelectedPlan] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const [isSubscribed, setIsSubscribed] = useState(false);
+    const [plansFetched, setPlansFetched] = useState(false);
 
-    // useEffect(() => {
-    //     const fetchPlans = async () => {
-    //         try {
-    //             dispatch(startLoading());
-    //             const response = await axios.get(`${API_URL}/api/plans?category=plans`);
-    //             setPlans(response.data || []);
-    //         } catch (error) {
-    //             console.error('Failed to fetch plans:', error);
-    //         } finally {
-    //             dispatch(stopLoading());
-    //         }
-    //     };
+    const checkSubscriptionStatus = async () => {
+        try {
+            const customerInfo = await Purchases.getCustomerInfo();
+            const entitlement = customerInfo.entitlements.active["Premium Courses Access"];
+            return Boolean(entitlement); // true if active
+        } catch (error) {
+            console.error("Failed to fetch subscription status", error);
+            return false;
+        }
+    };
 
-    //     fetchPlans();
-
-    //     return () => {
-    //         dispatch(stopLoading()); // Optional: only needed if you want to ensure cleanup
-    //     };
-    // }, []);
 
     useEffect(() => {
         const fetchRevenueCatPlans = async () => {
+            dispatch(startLoading());
+
             try {
-                dispatch(startLoading());
+                const [offerings, subscribed] = await Promise.all([
+                    Purchases.getOfferings(),
+                    checkSubscriptionStatus()
+                ]);
 
-                // Initialize RevenueCat
-                await Purchases.configure({
-                    apiKey: Platform.select({
-                        ios: 'appl_oUpJQhOOMgTrruGSdHIbPStHUNm',
-                        android: 'goog_NoUVHlSMLZnJLTGBDglGNAvuYyK',
-                    }),
-                    appUserID: studentId ?? null,
-                });
-
-                const offerings = await Purchases.getOfferings();
+                setIsSubscribed(subscribed);
+                setPlansFetched(true);
 
                 if (offerings.current && offerings.current.availablePackages.length > 0) {
-                    const mappedPlans = offerings.current.availablePackages.map((pkg) => ({
+                    const mappedPlans = offerings.current.availablePackages.map(pkg => ({
                         id: pkg.identifier,
-                        title: pkg.product.title,
+                        title: pkg.product.title.replace(/\s*\(.*?\)\s*/g, "").trim(),
                         description: pkg.product.description,
                         price: pkg.product.priceString,
-                        package: pkg, // Store original package for purchase
+                        package: pkg
                     }));
-
                     setPlans(mappedPlans);
                 } else {
                     setPlans([]);
                 }
-
             } catch (error) {
-                console.error('Failed to fetch offerings:', error);
+                console.error("Error fetching plans or status:", error);
+                setPlans([]);
             } finally {
                 dispatch(stopLoading());
             }
         };
 
         fetchRevenueCatPlans();
-
-        return () => {
-            dispatch(stopLoading());
-        };
     }, []);
 
-    // const handleEnroll = async ({ studentId, courseId, planId }) => {
-    //     // try {
-    //     //   dispatch(startLoading());
-    //     //   await enrollInCourse({ studentId, courseId, plan: planId });
-    //     //   dispatch(stopLoading());
-    //     //   setModalVisible(true);
-    //     // } catch (error) {
-    //     //   dispatch(stopLoading());
-    //     //   console.error('Enrollment error:', error);
-    //     // }
-    // };
-
-    const handleEnroll = async ({ packagee }) => {
+    const handleEnroll = async (packagee) => {
         try {
             dispatch(startLoading());
 
             const { customerInfo } = await Purchases.purchasePackage(packagee);
+            const entitlement = customerInfo.entitlements.active["Premium Courses Access"];
 
-            const isEntitled = customerInfo.entitlements.active["Premium Courses Access"]; 
+            if (entitlement) {
+                console.log("✅ Entitlement found!");
+
+                // Extract entitlement details
+                const purchaseData = {
+                    userId: studentId, // your app's user ID
+                    platform: Platform.OS,
+                    appUserID: customerInfo.originalAppUserId,
+                    productIdentifier: entitlement.productIdentifier,
+                    purchaseDate: entitlement.purchaseDate,
+                    expirationDate: entitlement.expirationDate,
+                    isSandbox: customerInfo.managementURL?.includes("sandbox") || false,
+                };
+                console.log("purchaseData",purchaseData);
+                 // Send to backend
+                // const response = await fetch(`${API_URL}/api/store-subscription`, {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //         Authorization: `Bearer ${userData.token}` // Optional: If you require auth
+                //     },
+                //     body: JSON.stringify(purchaseData)
+                // });
+
+                // if (!response.ok) {
+                //     throw new Error('Failed to store subscription in backend');
+                // }
+
+                setModalVisible(true);
+            } else {
+                Alert.alert("Purchase Failed", "The purchase was successful, but we could not verify your entitlement.");
+            }
+        } catch (error) {
+            dispatch(stopLoading());
+
+            if (error.code === Purchases.PURCHASE_CANCELLED_ERROR_CODE) {
+                Alert.alert("Purchase Cancelled", "You have cancelled the purchase.");
+            } else {
+                console.error("❌ Purchase failed:", error);
+                Alert.alert("Purchase Error", `An error occurred: ${error.message}`);
+            }
+        } finally {
+            dispatch(stopLoading());
+        }
+    };
+
+
+    const handleRestorePurchases = async () => {
+        try {
+            dispatch(startLoading());
+            const customerInfo = await Purchases.restorePurchases();
+            const isEntitled = customerInfo.entitlements.active["premium_access"];
 
             if (isEntitled) {
-                setModalVisible(true); // show success modal
+                Alert.alert("Success", "Your purchases have been restored!");
+                // Navigate or update state as needed
+            } else {
+                Alert.alert("No Purchases Found", "No active purchases were found to restore.");
             }
-
         } catch (error) {
-            if (!error.userCancelled) {
-                console.error('Purchase failed:', error);
-            }
+            console.error('Restore failed:', error);
+            Alert.alert("Error", "Failed to restore purchases. Please try again.");
         } finally {
             dispatch(stopLoading());
         }
@@ -180,6 +201,7 @@ const PlansScreen = () => {
 
     const handleCloseModal = () => {
         setModalVisible(false);
+        // You should navigate to the purchased courses screen or similar.
         navigation.navigate('PurchasedCoursesScreen');
     };
 
@@ -198,29 +220,72 @@ const PlansScreen = () => {
                     <Header title={'Subscription Plans'} />
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        {plans.length === 0 ? (
-                            <Text style={{ color: theme.subTextColor, textAlign: 'center', marginTop: 20 }}>
-                                No plans found.
-                            </Text>
-                        ) : (
-                            plans.map((plan) => (
-                                <PlanCard
-                                    key={plan.id}
-                                    title={plan.title}
-                                    price={plan.price}
-                                    description={plan.description}
-                                    planId={plan.id}
-                                    courseId={courseId}
-                                    studentId={studentId}
-                                    onPress={() => setSelectedPlanId(plan.id)}
-                                    isSelected={selectedPlanId === plan.id}
-                                    onEnroll={() => handleEnroll({ packagee: plan.package })}
-                                    styles={styles}
-                                    theme={theme}
-                                />
-                            ))
+                        {plansFetched && (
+                            <>
+                                {(isSubscribed || plans.length === 0) ? (
+                                    <View style={styles.noDataContainer}>
+                                        <LinearGradient
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            colors={['rgba(17, 103, 177, 0.05)', 'rgba(42, 157, 244, 0.01)', 'transparent']}
+                                            style={styles.noDataGradientWrapper}
+                                        >
+                                            <View style={styles.decorativeCircle1} />
+                                            <View style={styles.decorativeCircle2} />
 
+                                            <View style={styles.noDataContentContainer}>
+                                                <View style={styles.noDataIconContainer}>
+                                                    <Text style={styles.noDataIcon}>{isSubscribed ? '✅' : '📭'}</Text>
+                                                    <View style={styles.iconGlow} />
+                                                </View>
+
+                                                <Text style={styles.noDataTitle}>
+                                                    {isSubscribed ? 'You’re Subscribed!' : 'No Plans Available'}
+                                                </Text>
+
+                                                <Text style={styles.noDataSubtitle}>
+                                                    {isSubscribed
+                                                        ? 'You already have full access to all premium content.'
+                                                        : 'Please check back later for available subscription plans.'}
+                                                </Text>
+
+                                                {isSubscribed && (
+                                                    <View style={styles.noDataActionContainer}>
+                                                        <LinearGradient
+                                                            start={{ x: 0, y: 0 }}
+                                                            end={{ x: 1, y: 0 }}
+                                                            colors={[theme.primaryColor, theme.primaryColor + '80']}
+                                                            style={styles.noDataDot}
+                                                        />
+                                                        <Text style={styles.noDataMessage}>
+                                                            Explore the courses section to start learning.
+                                                        </Text>
+                                                    </View>
+                                                )}
+                                            </View>
+                                        </LinearGradient>
+                                    </View>
+                                ) : (
+                                    plans.map((plan) => (
+                                        <PlanCard
+                                            key={plan.id}
+                                            title={plan.title}
+                                            price={plan.price}
+                                            description={plan.description}
+                                            onPress={() => setSelectedPlan(plan)}
+                                            isSelected={selectedPlan && selectedPlan.id === plan.id}
+                                            onEnroll={() => handleEnroll(plan.package)}
+                                            styles={styles}
+                                            theme={theme}
+                                        />
+                                    ))
+                                )}
+                            </>
                         )}
+
+                        <TouchableOpacity style={styles.restoreButton} onPress={handleRestorePurchases}>
+                            <Text style={styles.restoreButtonText}>Restore Purchases</Text>
+                        </TouchableOpacity>
                     </ScrollView>
                 </SafeAreaView>
             </ImageBackground>
@@ -241,8 +306,8 @@ const getStyles = (theme) => StyleSheet.create({
         marginBottom: 25,
     },
     planCardSelected: { borderColor: theme.primaryColor },
-    planTitle: { color: theme.textColor, fontSize: 20, fontFamily: 'Inter-Bold', marginBottom: 10 },
-    planPrice: { color: theme.primaryColor, fontSize: 19, fontFamily: 'Inter-Bold', marginBottom: 15 },
+    planTitle: { color: theme.textColor, fontSize: 15, lineHeight: 24, fontFamily: 'Outfit-Bold', marginBottom: 10, maxWidth: "100%", },
+    planPrice: { color: theme.primaryColor, fontSize: 13, fontFamily: 'Outfit-Bold', marginBottom: 15, textAlign: "right" },
     divider: {
         width: '100%',
         marginBottom: 15,
@@ -270,7 +335,164 @@ const getStyles = (theme) => StyleSheet.create({
         color: '#fff',
         fontSize: 15,
         fontWeight: '600',
+        fontFamily: 'Outfit-SemiBold',
+    },
+    restoreButton: {
+        marginTop: 20,
+        alignSelf: 'center',
+    },
+    restoreButtonText: {
+        color: theme.primaryColor,
+        fontSize: 14,
+        fontFamily: 'Outfit-SemiBold',
+    },
+    noDataContainer: {
+        marginTop: width * 0.3,
+        alignSelf: "center",
+        overflow: 'hidden',
+    },
+    noDataGradientWrapper: {
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        position: 'relative',
+        overflow: 'hidden',
+    },
+    noDataContentContainer: {
+        alignItems: 'center',
+        paddingVertical: 40,
+        paddingHorizontal: 20,
+        minHeight: 280,
+        borderWidth: 2,
+        borderColor: theme.borderColor,
+    },
+    decorativeCircle1: {
+        position: 'absolute',
+        top: -30,
+        right: -30,
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        opacity: 0.6,
+    },
+    decorativeCircle2: {
+        position: 'absolute',
+        bottom: -40,
+        left: -40,
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        backgroundColor: 'rgba(147, 51, 234, 0.06)',
+        opacity: 0.4,
+    },
+    noDataIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
+        marginBottom: 20,
+        position: 'relative',
+        borderWidth: 2,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+        marginVertical: 20,
+    },
+    iconGlow: {
+        position: 'absolute',
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: theme.primaryColor,
+        opacity: 0.1,
+        zIndex: -1,
+    },
+    noDataIcon: {
+        fontSize: 36,
+        zIndex: 1,
+    },
+    noDataTitle: {
+        color: theme.subTextColor,
+        fontSize: 18,
+        fontFamily: 'Inter-Bold',
+        marginBottom: 10,
+        textAlign: 'center',
+        letterSpacing: 0.3,
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+        paddingHorizontal: 8,
+    },
+    noDataSubtitle: {
+        color: theme.subTextColor,
+        fontSize: 14,
+        fontFamily: 'Inter-Medium',
+        textAlign: 'center',
+        opacity: 0.9,
+        marginBottom: 24,
+        lineHeight: 20,
+        paddingHorizontal: 12,
+    },
+    inspirationalContainer: {
+
+        // marginBottom: 20,
+    },
+    motivationalBadge: {
+        borderRadius: 20,
+    },
+    motivationalBadgeInner: {
+        paddingVertical: 10,
+        paddingHorizontal: 18,
+        borderRadius: 20,
+        shadowColor: theme.primaryColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 6,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    motivationalText: {
+        color: '#FFFFFF',
+        fontSize: 13,
         fontFamily: 'Inter-SemiBold',
+        textAlign: 'center',
+        letterSpacing: 0.2,
+    },
+    noDataActionContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'stretch',
+        paddingHorizontal: 16,
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        paddingVertical: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        marginHorizontal: 4,
+        marginBottom: 20,
+    },
+    noDataDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginRight: 12,
+        shadowColor: theme.primaryColor,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.6,
+        shadowRadius: 4,
+        elevation: 4,
+    },
+    noDataMessage: {
+        color: theme.subTextColor,
+        fontSize: 13,
+        fontFamily: 'Inter-Medium',
+        textAlign: 'left',
+        lineHeight: 19,
+        opacity: 0.9,
+        flex: 1,
+        letterSpacing: 0.1,
     },
 });
 

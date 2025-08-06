@@ -196,7 +196,7 @@ const PurchasedCoursesScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // paddingBottom: height * 0.11,
+        paddingBottom: height * 0.11,
     },
     listContent: {
         paddingHorizontal: 20,

@@ -1,20 +1,22 @@
 import React, { useEffect, useState, useContext } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, TouchableOpacity,
-    Dimensions, ImageBackground, SafeAreaView, ActivityIndicator
+    Dimensions, ImageBackground, SafeAreaView, ActivityIndicator,
+    Image
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import Sound from 'react-native-sound';
 import LinearGradient from 'react-native-linear-gradient';
 import { API_URL } from "@env";
-import { bg, user, userBlue } from '../../../assets/images';
+import { bg, play, user, userBlue } from '../../../assets/images';
 import Header from '../../../components/Header';
 import OptimizedImage from '../../../components/OptimizedImage';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useCourseDetail } from '../../../functions/handleCourses';
 import Loader from '../../../components/loader';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import ProfileImage from '../../../components/ProfileImage';
 
 const { width } = Dimensions.get('window');
 
@@ -26,13 +28,25 @@ const CourseDetailScreen = () => {
     const { theme } = useContext(ThemeContext);
     const styles = getStyles(theme);
     const [durations, setDurations] = useState({});
-    const { courseId, courseTitle, affiliateToken } = route.params || {};
+    const { courseId, courseTitle, affiliateToken, instructorImage } = route.params || {};
 
     const {
         data: course,
         isLoading,
         error,
     } = useCourseDetail(courseId);
+
+    // 1. Define the function first
+    const getLowestPlanPrice = (plans) => {
+        if (!plans || plans.length === 0) return 0;
+        return Math.min(...plans.map(plan => plan.price));
+    };
+
+    // 2. Use it after definition
+    const lowestPrice = getLowestPlanPrice(course?.plans);
+    const profilePicUrl = course?.profilePic;
+    console.log('Instructor profile picture URL:', profilePicUrl);
+
 
     useEffect(() => {
         dispatch(startLoading());
@@ -93,10 +107,10 @@ const CourseDetailScreen = () => {
             <ImageBackground source={theme.bg} style={[styles.container, { backgroundColor: theme.background }]}>
                 <SafeAreaView>
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                        <Header title={course?.title || courseTitle} style={{ marginBottom: 25 }} />
+                        <Header title={""} style={{ marginBottom: 25 }} />
                         <View style={styles.mainImageContainer}>
-                            <OptimizedImage 
-                                uri={course?.thumbnail} 
+                            <OptimizedImage
+                                uri={course?.thumbnail}
                                 style={styles.mainCourseImage}
                                 fallbackSource={bg}
                                 showLoadingIndicator={true}
@@ -110,29 +124,52 @@ const CourseDetailScreen = () => {
                             <View style={styles.imageOverlay}>
                                 <View style={styles.overlayTop}>
                                     <View style={styles.instructorInfo}>
-                                        <OptimizedImage
-                                            uri={course?.instructorImage}
+                                        <ProfileImage
+                                            uri={instructorImage}
+                                            name={course?.instructorName || 'Instructor'}
+                                            size={60} // or whatever fits your design
+                                            borderRadius={30}
                                             style={styles.instructorImage}
-                                            fallbackSource={userBlue}
-                                            isAvatar={true}
-                                            username={course?.instructorName || 'Instructor'}
-                                            showInitials={true}
                                         />
                                         <View>
                                             <Text style={[styles.instructorName, { color: theme.primaryColor }]}>
                                                 {course?.instructorName || 'Instructor Name'}
                                             </Text>
-                                            <Text style={styles.instructorSubtitle}>Guided Audio</Text>
+                                            <Text style={styles.instructorSubtitle}>Instructor</Text>
                                         </View>
+                                    </View>
+                                    <View style={{flexDirection:"col,"}}>
+                                        <Text style={[styles.price, { color: "#fff" }]}>
+                                            Starting from
+                                        </Text>
+                                        <Text style={[styles.price, { color: "#fff",fontSize:18,fontWeight:"bold" }]}>
+                                            {lowestPrice} $
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
                         </View>
 
                         <View style={styles.courseInfoSection}>
+                            <Text style={[styles.heading]}>
+                                {course?.title || courseTitle}
+                            </Text>
                             <Text style={[styles.courseDescription, { color: theme.textColor }]}>
                                 {course?.description}
                             </Text>
+
+                            <LinearGradient
+                                start={{ x: 0.9, y: 0.95 }}
+                                end={{ x: 1.0, y: 1.0 }}
+                                colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
+                                style={styles.timestamp}>
+                                {/* <View style={styles.inerTime, [backgroundColor: 'rgba(199, 199, 199, 0.38)',] }> */}
+                                <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
+                                <Text style={[styles.instructorName, { color: theme.primaryColor, fontFamily: "Outfit-SemiBold", fontWeight: "bold" }]}>
+                                    15 min
+                                </Text>
+                                {/* </View> */}
+                            </LinearGradient>
                         </View>
 
                         <View style={styles.divider} />
@@ -142,14 +179,14 @@ const CourseDetailScreen = () => {
                                 <LinearGradient start={{ x: 0, y: 0.95 }} end={{ x: 1, y: 1 }}
                                     colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                     key={module._id} style={styles.audioItem}>
-                                        <View style = {styles.audioItemInner}>
-                                    <View style={styles.audioLeft}>
-                                        <Text style={styles.audioTitle}>{module.title}</Text>
-                                    </View>
-                                    <Text style={styles.audioDuration}>
-                                        {formatDuration(module.duration)}
-                                    </Text>
-                                    <Text style={styles.audioDescription}>{module.description}</Text>
+                                    <View style={styles.audioItemInner}>
+                                        <View style={styles.audioLeft}>
+                                            <Text style={styles.audioTitle}>{module.title}</Text>
+                                        </View>
+                                        <Text style={styles.audioDuration}>
+                                            {formatDuration(module.duration)}
+                                        </Text>
+                                        <Text style={styles.audioDescription}>{module.description}</Text>
                                     </View>
                                 </LinearGradient>
                             ))}
@@ -169,8 +206,8 @@ const CourseDetailScreen = () => {
                             )}
                         </TouchableOpacity>
                     </ScrollView>
-                </SafeAreaView>
-            </ImageBackground>
+                </SafeAreaView >
+            </ImageBackground >
         </>
     );
 };
@@ -178,7 +215,7 @@ const CourseDetailScreen = () => {
 const getStyles = (theme) => StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
+        padding: 25,
         paddingTop: 0,
     },
     centered: {
@@ -192,11 +229,11 @@ const getStyles = (theme) => StyleSheet.create({
     },
     mainImageContainer: {
         width: '100%',
-        height: width * 0.55,
-        borderRadius: 12,
+        height: width * 0.5,
+        borderRadius: 18,
         overflow: 'hidden',
         position: 'relative',
-        marginBottom: 20
+        // marginBottom: 20
     },
     mainCourseImage: {
         width: '100%',
@@ -217,45 +254,77 @@ const getStyles = (theme) => StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 15,
+        paddingVertical: 12,
+        paddingHorizontal: 7,
         zIndex: 10
     },
     overlayTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end'
+        alignItems: 'center'
     },
     instructorInfo: {
+        // borderWidth:2,
         flexDirection: 'row',
+        justifyContent: "center",
         alignItems: 'center',
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 20,
     },
     instructorImage: {
-        width: 40,
-        height: 40,
+        width: 35,
+        height: 35,
         borderRadius: 100,
         marginRight: 5
     },
     instructorName: {
-        fontSize: 13,
+        fontSize: 11,
         fontFamily: 'Outfit-SemiBold'
+    },
+    timestamp: {
+        // borderWidth:2,
+        borderRadius: 20,
+        marginTop: 20,
+        borderRadius: 50,
+        backgroundColor: 'rgba(199, 199, 199, 0.7)',
+        flexDirection: "row",
+        gap: 9,
+        paddingVertical: 9,
+        paddingHorizontal: 15,
+        backgroundColor: "",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    price: {
+        marginRight: 10,
+        fontSize: 9,
+        fontFamily: 'Outfit-Bold'
     },
     instructorSubtitle: {
         color: 'white',
-        fontSize: 11,
+        fontSize: 9,
         fontFamily: 'Outfit-Light'
     },
     courseInfoSection: {
         marginTop: 10,
-        paddingBottom: 10
+        // paddingBottom: 10,
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
+    },
+    heading: {
+        marginTop: 15,
+        color: theme.textColor,
+        fontSize: 15,
+        marginBottom: 12,
+        fontFamily: 'Outfit-Black'
     },
     courseDescription: {
         color: theme.textColor,
-        fontSize: 13,
-        lineHeight: 20,
-        fontFamily: 'Outfit-Light'
+        fontSize: 12,
+        lineHeight: 18,
+        fontFamily: 'Outfit-regular'
     },
     divider: {
         width: '100%',
@@ -311,8 +380,8 @@ const getStyles = (theme) => StyleSheet.create({
     },
     buyNowButtonText: {
         color: '#fff',
-        fontSize: 17,
-        fontWeight: '600',
+        fontSize: 14,
+        // fontWeight: '600',
         fontFamily: 'Outfit-SemiBold'
     }
 });

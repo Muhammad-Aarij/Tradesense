@@ -218,40 +218,38 @@ const getStyles = (theme) => StyleSheet.create({
         right: 0,
         zIndex: 5
     },
-    imageOverlay: {
+   imageOverlay: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 15,
+        paddingVertical: 12,
+        paddingHorizontal: 7,
         zIndex: 10
     },
     overlayTop: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end'
+        alignItems: 'center'
     },
     instructorInfo: {
+        // borderWidth:2,
         flexDirection: 'row',
+        justifyContent: "center",
         alignItems: 'center',
-        borderRadius: 20,
         paddingHorizontal: 10,
-        paddingVertical: 5
+        paddingVertical: 5,
+        borderRadius: 20,
     },
     instructorImage: {
-        width: 40,
-        height: 40,
+        width: 35,
+        height: 35,
         borderRadius: 100,
         marginRight: 5
     },
     instructorName: {
-        fontSize: 13,
-        fontFamily: 'Outfit-SemiBold'
-    },
-    instructorSubtitle: {
-        color: 'white',
         fontSize: 11,
-        fontFamily: 'Outfit-Light'
+        fontFamily: 'Outfit-SemiBold'
     },
     courseInfoSection: {
         marginTop: 10,

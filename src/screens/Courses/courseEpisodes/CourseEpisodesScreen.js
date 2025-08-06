@@ -23,6 +23,7 @@ import { API_URL } from "@env";
 import { ThemeContext } from '../../../context/ThemeProvider';
 import OptimizedImage from '../../../components/OptimizedImage';
 import ProfileImage from '../../../components/ProfileImage';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -200,7 +201,7 @@ const CourseEpisodesScreen = ({ route }) => {
         <ImageBackground source={theme.bg} style={styles.container}>
             <SafeAreaView>
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                    <Header title={course?.title || courseTitle} style={{ marginBottom: 30, }} />
+                    <Header title={""} style={{ marginBottom: 30, }} />
                     <View style={styles.mainImageContainer}>
                         <OptimizedImage
                             uri={courseImage}
@@ -208,6 +209,10 @@ const CourseEpisodesScreen = ({ route }) => {
                             fallbackSource={mountain}
                             resizeMode="cover"
                         />
+                        {/* <LinearGradient
+                            colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.9)']}
+                            style={styles.gradientOverlay}
+                        /> */}
                         <View style={styles.imgOverlay} />
                         <View style={styles.imageOverlay}>
                             <View style={styles.overlayTop}>
@@ -224,18 +229,35 @@ const CourseEpisodesScreen = ({ route }) => {
                                         style={styles.instructorImage}
                                     />
                                     <View>
-                                        <Text style={styles.instructorName}>{course?.instructorName}</Text>
-                                        {/* <Text style={styles.instructorSubtitle}>{course?.instructorExperienceLevel}</Text> */}
+                                        <Text style={[styles.instructorName, { color: theme.primaryColor }]}>{course?.instructorName}</Text>
+                                        <Text style={styles.instructorSubtitle}>Instructor</Text>
                                     </View>
                                 </View>
+
+                                <LinearGradient
+                                    start={{ x: 0.9, y: 0.95 }}
+                                    end={{ x: 1.0, y: 1.0 }}
+                                    colors={['rgba(255, 255, 255, 0.34)', 'rgba(204, 204, 204, 0)']}
+                                    style={styles.timestamp}>
+                                    {/* <View style={styles.inerTime, [backgroundColor: 'rgba(199, 199, 199, 0.38)',] }> */}
+                                    <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
+                                    <Text style={[styles.instructorName, { color: "white", fontFamily: "Outfit-SemiBold", fontWeight: "bold" }]}>
+                                        15 min
+                                    </Text>
+                                    {/* </View> */}
+                                </LinearGradient>
                             </View>
                         </View>
                     </View>
 
                     <View style={styles.courseDetails}>
+                        <Text style={[styles.heading]}>
+                            {course?.title || courseTitle}
+                        </Text>
                         <Text style={styles.courseDescription}>
                             {course?.description}
                         </Text>
+
                     </View>
 
                     <View style={{ width: "100%", marginBottom: 20, borderTopWidth: 1, borderColor: "rgba(119, 119, 119, 0.23)" }} />
@@ -249,12 +271,6 @@ const CourseEpisodesScreen = ({ route }) => {
                                     Thumbnail: courseImage,
                                     AudioUrl: episode.url,
                                     shouldFetchTrack: true,
-                                    // InstructorName: course?.instructorName,
-                                    // InstructorImage: course?.instructorImage,
-                                    // instructorInfo: course?.instructorInfo,
-                                    // instructorDescription: course?.instructorDescription,
-                                    // instructorLinks: course?.instructorLinks,
-                                    // InstructorTag: course?.instructorExperienceLevel,
                                     InstructorData: {
                                         name: course?.instructorName,
                                         email: course?.instructorInfo,
@@ -303,40 +319,6 @@ const CourseEpisodesScreen = ({ route }) => {
                     </View>
                 </ScrollView>
 
-                {/* Mini Player */}
-                {/* {currentEpisode && (
-                    <TouchableOpacity
-                        style={styles.miniPlayer}
-                        onPress={() =>
-                            navigation.navigate('TrackPlayer', {
-                                AudioTitle: currentEpisode.title,
-                                AudioDescr: currentEpisode.description,
-                                Thumbnail: courseImage,
-                                AudioUrl: currentEpisode.url,
-                                shouldFetchTrack: true, // ✅ from mini player
-                                showInstructor: true, 
-                            })
-                        }
-                    >
-                        <Image
-                            source={courseImage ? { uri: courseImage } : mountain}
-                            style={styles.miniPlayerImage}
-                        />
-                        <View style={styles.miniPlayerTextContent}>
-                            <Text style={styles.miniPlayerTitle}>{currentEpisode?.title}</Text>
-                            <Text style={styles.miniPlayerCourse}>{courseTitle}</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.miniPlayerPlayPauseButton}
-                            onPress={togglePlayback}
-                        >
-                            <Image source={isPlaying ? stop : play}
-                                style={{ width: 20, height: 18, resizeMode: 'contain' }}
-                            />
-                        </TouchableOpacity>
-                    </TouchableOpacity>
-                )
-                } */}
             </SafeAreaView>
         </ImageBackground >
     );
@@ -353,10 +335,10 @@ const getStyles = (theme) => StyleSheet.create({
     },
     mainImageContainer: {
         width: '100%',
-        height: width * 0.55,
+        height: width * 0.45,
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 12,
+        borderRadius: 18,
         overflow: 'hidden',
         marginBottom: 20,
     },
@@ -367,22 +349,49 @@ const getStyles = (theme) => StyleSheet.create({
         position: "relative",
     },
     imgOverlay: {
-        zIndex: 10,
+        zIndex: 1,
         width: "100%",
         height: "100%",
         position: "absolute",
-        backgroundColor: theme.overlayColor || 'rgba(31, 30, 30, 0.7)',
+        backgroundColor: theme.overlayColor || 'rgba(15, 15, 15, 0.7)',
     },
     imageOverlay: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        padding: 15,
+        paddingHorizontal: 7,
+        paddingVertical: 9,
+        zIndex:10,
+    },
+
+    heading: {
+        marginTop: 15,
+        color: theme.textColor,
+        fontSize: 15,
+        marginBottom: 12,
+        fontFamily: 'Outfit-Black'
+    },
+    timestamp: {
+        marginRight:7,
+        marginBottom:10,
+        borderRadius: 20,
+        marginTop: 20,
+        borderRadius: 50,
+        backgroundColor: 'rgba(199, 199, 199, 0.7)',
+        flexDirection: "row",
+        gap: 9,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        backgroundColor: "",
+        justifyContent: "center",
+        alignItems: "center",
     },
     overlayTop: {
+        width: "100%",
+        // borderWidth:2,
         flexDirection: 'row',
-        justifyContent: 'flex-start',
+        justifyContent: "space-between",
         alignItems: 'flex-end',
     },
     timeBadge: {
@@ -399,37 +408,43 @@ const getStyles = (theme) => StyleSheet.create({
         marginLeft: 5,
     },
     instructorInfo: {
+
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         paddingHorizontal: 10,
         paddingVertical: 5,
         zIndex: 100,
     },
     instructorImage: {
-        width: 40,
-        height: 40,
+        width: 35,
+        height: 35,
         borderRadius: 100,
-        marginRight: 5,
+        marginRight: 5
     },
     instructorName: {
-        color: theme.primaryColor,
-        fontSize: 13,
-        fontFamily: 'Outfit-Bold',
+        zIndex: 100000,
+        fontSize: 11,
+        fontFamily: 'Outfit-SemiBold',
+        color: "white",
     },
     instructorSubtitle: {
-        color: theme.subTextColor || 'white',
-        fontSize: 11,
-        fontFamily: 'Outfit-Light-BETA',
+        color: "white",
+        fontSize: 9,
+        fontFamily: 'Outfit-Light',
     },
     courseDetails: {
         paddingHorizontal: 16,
+        paddingLeft: 0,
         marginBottom: 20,
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
     },
     courseDescription: {
         color: theme.textColor,
         fontSize: 12,
         lineHeight: 20,
-        fontFamily: "Outfit-Light",
+        fontFamily: "Outfit-Thin",
     },
     episodesList: {
         paddingHorizontal: 9,

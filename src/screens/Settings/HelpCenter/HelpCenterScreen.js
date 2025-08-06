@@ -68,7 +68,7 @@ const HelpCenterScreen = ({ navigation }) => {
     <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <Header title="Help Center" navigation={currentNavigation} />
+          <Header title="Help Center" navigation={currentNavigation} style={{ marginBottom: 25 }} />
 
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* Search Bar */}
@@ -78,15 +78,15 @@ const HelpCenterScreen = ({ navigation }) => {
               colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
               style={styles.searchBarContainer}
             >
-              <View style = {styles.searchBarContainerInner}>
-              <Image source={searchMf} style={styles.searchIcon} />
-              <TextInput
-                style={[styles.searchInput, { color: theme.textColor }]}
-                placeholder="Search..."
-                placeholderTextColor={theme.textColor}
-                value={searchText}
-                onChangeText={setSearchText}
-              />
+              <View style={styles.searchBarContainerInner}>
+                <Image source={searchMf} style={styles.searchIcon} />
+                <TextInput
+                  style={[styles.searchInput, { color: theme.textColor }]}
+                  placeholder="Search..."
+                  placeholderTextColor={theme.textColor}
+                  value={searchText}
+                  onChangeText={setSearchText}
+                />
               </View>
             </LinearGradient>
 
@@ -153,25 +153,7 @@ const HelpCenterScreen = ({ navigation }) => {
         </View>
       </SafeAreaView>
 
-      {/* Footer Button */}
-      <View style={styles.absoluteFooter}>
-        <View style={styles.footerWrapper}>
-          <LinearGradient
-            start={{ x: 0.0, y: 0.95 }}
-            end={{ x: 1.0, y: 1.0 }}
-            colors={['rgba(0, 0, 0, 0.04)', 'rgba(255, 255, 255, 0)']}
-            style={[styles.problemButton, { backgroundColor: theme.primaryColor }]}
-          >
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center' }}
-              onPress={() => currentNavigation.navigate('ReportProblemScreen')}
-            >
-              <Image source={p2} style={styles.profileButtonIcon} />
-              <Text style={styles.problemButtonText}>Still have a problem?</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
-      </View>
+    
     </ImageBackground>
   );
 };

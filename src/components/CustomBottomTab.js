@@ -177,7 +177,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
 
         const label =
           route.name === "Pillars" ? "Discover"
-            : route.name === "Accountability" ? "Trader's Hub"
+            : route.name === "Accountability" ? "Traders Hub"
               : route.name === "ChatBot" ? "TraderSense"
                 : route.name;
 
@@ -233,11 +233,11 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
                     <Animated.View style={[
                       styles.iconContainer,
                       {
-                        shadowColor: theme.primaryColor,
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: shadowOpacity,
-                        shadowRadius: 4,
-                        elevation: focused ? 4 : 0,
+                        // shadowColor: theme.primaryColor,
+                        // shadowOffset: { width: 0, height: 2 },
+                        // shadowOpacity: shadowOpacity,
+                        // shadowRadius: 4,
+                        // elevation: focused ? 4 : 0,
                       }
                     ]}>
                       <Animated.Image 

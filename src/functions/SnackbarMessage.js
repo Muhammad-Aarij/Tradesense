@@ -20,14 +20,14 @@ const SnackbarMessage = ({
           type === 'error'
             ? '#F44336'
             : type === 'message'
-            ? isDarkMode
-              ? '#FFFFFF'
-              : theme.darkBlue
-            : '#4CAF50',
+              ? isDarkMode
+                ? theme.primaryColor
+                : theme.primaryColor
+              : theme.primaryColor,
         textColor:
           type === 'message'
             ? isDarkMode
-              ? theme.darkBlue
+              ? "#FFFFFF"
               : '#FFFFFF'
             : '#FFFFFF',
       });

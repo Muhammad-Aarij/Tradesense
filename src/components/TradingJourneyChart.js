@@ -175,7 +175,7 @@ const TradingJourneyChart = ({ userId }) => {
             </View>
 
             <View style={styles.chartWrapper}>
-                <LineChart
+                {/* <LineChart
                     data={rawSeries} // Use rawSeries directly after processing
                     width={width - (HORIZONTAL_PADDING * 2)} // Adjust width based on container padding
                     height={CHART_HEIGHT}
@@ -228,7 +228,7 @@ const TradingJourneyChart = ({ userId }) => {
                             <Text style={styles.xAxisLabelDate}>{item.dateLabel}</Text>
                         </View>
                     )}
-                />
+                /> */}
             </View>
         </View>
     );

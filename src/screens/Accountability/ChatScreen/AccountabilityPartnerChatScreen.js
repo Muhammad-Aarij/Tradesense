@@ -43,6 +43,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
     const [isBotTyping, setIsBotTyping] = useState(false);
     const [keyboardHeight, setKeyboardHeight] = useState(0); // State to track keyboard height
     const scrollViewRef = useRef();
+
     const lottieLoadingRef = useRef(null);
     const lottieTypingRef = useRef(null);
 
@@ -219,6 +220,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                                                     styles.messageText,
                                                     msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
                                                 ]}
+                                                onTypingDone={() => setIsBotTyping(false)} // ✅ Mark bot done when typing finishes
                                             />
                                         ) : (
                                             <Text style={[
@@ -228,6 +230,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                                                 {msg.text}
                                             </Text>
                                         )}
+
                                     </View>
                                 ))}
 
@@ -257,9 +260,23 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                                     multiline={false}
                                     editable={!isBotTyping}
                                 />
-                                <TouchableOpacity onPress={handleUserSendMessage} style={styles.sendButton} disabled={isBotTyping}>
-                                    <Image source={send2} style={{ width: 25, height: 25, resizeMode: 'contain' }} />
+                                <TouchableOpacity
+                                    onPress={handleUserSendMessage}
+                                    style={styles.sendButton}
+                                    disabled={isBotTyping} // disable when typing
+                                >
+                                    <Image
+                                        source={send2}
+                                        style={{
+                                            width: 25,
+                                            height: 25,
+                                            resizeMode: 'contain',
+                                            tintColor: isBotTyping ? 'gray' : theme.primaryColor // gray while disabled
+                                        }}
+                                    />
                                 </TouchableOpacity>
+
+
                             </View>
                         </>
                     )}
@@ -268,13 +285,11 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         </ImageBackground>
     );
 };
-
-const TypewriterTokens = ({ tokens, textStyle }) => {
+const TypewriterTokens = ({ tokens, textStyle, onTypingDone }) => {
     const [visibleLines, setVisibleLines] = useState([]);
 
     useEffect(() => {
         const fullText = tokens.join(' ');
-
         const lines = fullText.split(/\n|(?=\d+\.\s)/g).map(line => line.trim());
 
         let currentLine = 0;
@@ -282,7 +297,11 @@ const TypewriterTokens = ({ tokens, textStyle }) => {
         let currentText = '';
 
         const typeNextChar = () => {
-            if (currentLine >= lines.length) return;
+            if (currentLine >= lines.length) {
+                clearInterval(interval);
+                onTypingDone?.(); // ✅ Notify parent that typing is done
+                return;
+            }
 
             if (charIndex < lines[currentLine].length) {
                 currentText += lines[currentLine][charIndex];

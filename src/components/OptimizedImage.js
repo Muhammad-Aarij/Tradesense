@@ -44,7 +44,7 @@ const OptimizedImage = ({
   const isUriValid = typeof secureUri === 'string' && secureUri.trim() !== '';
 
   const handleLoad = useCallback(() => {
-    console.log('Image loaded');
+    // console.log('Image loaded');
     setIsLoading(false);
     setHasError(false);
     setImageLoaded(true);
