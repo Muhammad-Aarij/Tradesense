@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useEffect, useState } from 'react';
+import React, { useContext, useMemo, useEffect, useState, useRef } from 'react';
 import {
     View,
     Text,
@@ -25,6 +25,7 @@ import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
 import DocumentPicker from 'react-native-document-picker';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import SnackbarMessage from '../../../../functions/SnackbarMessage';
+import TradeBottomSheet from '../../../../components/TradeBottomSheet'; // Assuming this is your bottom sheet component
 
 // Mood selection modal component
 const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, theme }) => {
@@ -93,6 +94,10 @@ const Journaling = ({ navigation }) => {
     const [selectedMood, setSelectedMood] = useState('happy');
     const [isMoodModalVisible, setIsMoodModalVisible] = useState(false);
     const [isSameDay, setIsSameDay] = useState(false);
+
+    // State for the selected trade and ref for the bottom sheet
+    const [selectedTrade, setSelectedTrade] = useState(null);
+    const bottomSheetRef = useRef(null);
 
     // Handle loading states
     useEffect(() => {
@@ -218,47 +223,56 @@ const Journaling = ({ navigation }) => {
     };
 
     const handleCSVUpload = async () => {
-        try {
-            const result = await DocumentPicker.pick({
-                type: [DocumentPicker.types.csv, DocumentPicker.types.allFiles],
-            });
+    try {
+        const result = await DocumentPicker.pick({
+            type: [DocumentPicker.types.plainText], // MIME type for .csv
+            copyTo: 'cachesDirectory', // Optional: improves compatibility across Android/iOS
+        });
 
-            if (result && result[0]) {
-                dispatch(startLoading());
-                const file = result[0];
-                console.log('Selected file:', file);
+        const file = result[0];
 
-                uploadCSV.mutate(file, {
-                    onSuccess: (data) => {
-                        console.log('CSV upload successful:', data);
-                        setConfirmationTitle('Success');
-                        setIcon(tick);
-                        setConfirmationMessage('CSV file uploaded successfully!');
-                        setIsConfirmationVisible(true);
-                        setShowExtraButtons(false);
-                        dispatch(stopLoading());
-                    },
-                    onError: (error) => {
-                        console.error('CSV upload failed:', error);
-                        setIcon(fail);
-                        setConfirmationTitle('Upload Failed');
-                        setConfirmationMessage('Failed to upload CSV file. Please try again.');
-                        setIsConfirmationVisible(true);
-                        dispatch(stopLoading());
-                    },
-                });
-            }
-        } catch (err) {
-            if (!DocumentPicker.isCancel(err)) {
-                console.error('Document picker error:', err);
-                setConfirmationTitle('Error');
-                setConfirmationMessage('Failed to select file. Please try again.');
-                setIcon(fail);
-                setIsConfirmationVisible(true);
-            }
+        // Optional: double-check extension
+        if (!file.name.endsWith('.csv')) {
+            Alert.alert('Invalid File', 'Please select a .csv file only.');
+            return;
         }
-    };
 
+        dispatch(startLoading());
+        uploadCSV.mutate(file, {
+            onSuccess: (data) => {
+                console.log('CSV upload successful:', data);
+                setConfirmationTitle('Success');
+                setIcon(tick);
+                setConfirmationMessage('CSV file uploaded successfully!');
+                setIsConfirmationVisible(true);
+                setShowExtraButtons(false);
+                dispatch(stopLoading());
+            },
+            onError: (error) => {
+                console.error('CSV upload failed:', error);
+                setIcon(fail);
+                setConfirmationTitle('Upload Failed');
+                setConfirmationMessage('Failed to upload CSV file. Please try again.');
+                setIsConfirmationVisible(true);
+                dispatch(stopLoading());
+            },
+        });
+
+    } catch (err) {
+        if (!DocumentPicker.isCancel(err)) {
+            console.error('Document picker error:', err);
+            setConfirmationTitle('Error');
+            setConfirmationMessage('Failed to select file. Please try again.');
+            setIcon(fail);
+            setIsConfirmationVisible(true);
+        }
+    }
+};
+
+    const handleTradeItemClick = (trade) => {
+        setSelectedTrade(trade);
+        bottomSheetRef.current?.open();
+    };
 
     const randomQuote = useMemo(() => {
         const quotes = moodQuotes[selectedMood.toLowerCase()] || moodQuotes.happy;
@@ -326,8 +340,6 @@ const Journaling = ({ navigation }) => {
                 />
             )}
 
-
-
             {isConfirmationVisible && <ConfirmationModal
                 isVisible={isConfirmationVisible}
                 title={confirmationTitle}
@@ -339,16 +351,11 @@ const Journaling = ({ navigation }) => {
                 <View style={styles.overlayBackground} />
             )}
 
-
-
             <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
                 {/* Gradient Card */}
-                <TouchableOpacity >
+                <TouchableOpacity>
                     <ImageBackground
                         source={colorBg}
-                        // start={{ x: 0, y: 0.95 }}
-                        // end={{ x: 1, y: 1 }}
-                        // colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                         style={styles.cardLinearGradient}
                     >
                         <View style={styles.card}>
@@ -423,7 +430,7 @@ const Journaling = ({ navigation }) => {
                     <Text style={styles.sectionTitle}>Trades</Text>
                     <TouchableOpacity
                         style={{ flexDirection: "row", gap: 5, alignItems: "center" }}
-                        onPress={() => navigation.navigate("Trading")}>
+                        onPress={() => navigation.navigate("Trading", { selectedMood: selectedMood })}>
                         <Text style={styles.manageTradesText}>Manage Trades</Text>
                         <Image source={back} style={{ width: 10, height: 10, resizeMode: "contain", tintColor: "#79869B", transform: [{ rotate: "180deg" }] }} />
                     </TouchableOpacity>
@@ -434,26 +441,30 @@ const Journaling = ({ navigation }) => {
                         latestTrades.map((trade, index) => {
                             const isPositive = trade.result?.toLowerCase() === 'profit';
                             return (
-                                <LinearGradient
+                                <TouchableOpacity
                                     key={index}
-                                    start={{ x: 0, y: 0.95 }}
-                                    end={{ x: 1, y: 1 }}
-                                    colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
-                                    style={styles.tradeItemLinearGradient}
+                                    onPress={() => handleTradeItemClick(trade)}
                                 >
-                                    <View style={styles.tradeItem}>
-                                        <View>
-                                            <Text style={styles.tradeCompanyName}>{trade.stockName || 'N/A'}</Text>
-                                            <Text style={styles.tradeSymbol}>{trade.tradeType || 'Type'}</Text>
+                                    <LinearGradient
+                                        start={{ x: 0, y: 0.95 }}
+                                        end={{ x: 1, y: 1 }}
+                                        colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+                                        style={styles.tradeItemLinearGradient}
+                                    >
+                                        <View style={styles.tradeItem}>
+                                            <View>
+                                                <Text style={styles.tradeCompanyName}>{trade.stockName || 'N/A'}</Text>
+                                                <Text style={styles.tradeSymbol}>{trade.tradeType || 'Type'}</Text>
+                                            </View>
+                                            <View style={styles.tradePriceContainer}>
+                                                <Text style={styles.tradePrice}>${trade.exitPrice}</Text>
+                                                <Text style={isPositive ? styles.tradeChangePositive : styles.tradeChangeNegative}>
+                                                    {trade.result || 'N/A'}
+                                                </Text>
+                                            </View>
                                         </View>
-                                        <View style={styles.tradePriceContainer}>
-                                            <Text style={styles.tradePrice}>${trade.exitPrice}</Text>
-                                            <Text style={isPositive ? styles.tradeChangePositive : styles.tradeChangeNegative}>
-                                                {trade.result || 'N/A'}
-                                            </Text>
-                                        </View>
-                                    </View>
-                                </LinearGradient>
+                                    </LinearGradient>
+                                </TouchableOpacity>
                             );
                         })
                     ) : (
@@ -488,6 +499,8 @@ const Journaling = ({ navigation }) => {
                     )}
                 </View>
             </ScrollView>
+            {/* The bottom sheet component */}
+            <TradeBottomSheet ref={bottomSheetRef} trade={selectedTrade} />
 
             {/* Mood Selection Modal */}
             <MoodSelectionModal
@@ -500,6 +513,7 @@ const Journaling = ({ navigation }) => {
         </SafeAreaView>
     );
 };
+
 
 const getStyles = (theme) =>
     StyleSheet.create({

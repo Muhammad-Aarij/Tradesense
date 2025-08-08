@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useTopPicks, useRecommendations, useBundles, useDailyThought, useMusic } from '../../../functions/DiscoverApis';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { bg, discover1, discoverLight, info, video1, locked } from '../../../assets/images';
+import { bg, discover1, discoverLight, info, video1, locked, subscription } from '../../../assets/images';
 import RecommendationTile from '../../../components/RecommendationTile';
 import TopPickTile from '../../../components/TopPickTile';
 import BundleTileSection from '../../../components/BundleTileSection';
@@ -23,7 +23,7 @@ import ScrollToTopWrapper from '../../../components/ScrollToTopWrapper';
 const { height } = Dimensions.get('window');
 
 
-const DiscoverScreen = () => {
+const DiscoverScreen = ({ navigation }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
     const [selectedCard, setSelectedCard] = useState(0);
     const [showRecommendationsInfo, setShowRecommendationsInfo] = useState(false);
@@ -34,6 +34,8 @@ const DiscoverScreen = () => {
     const dispatch = useDispatch();
     const isLoading = useSelector(state => state.loader.isLoading); // <-- Add this
     const [showPremiumModal, setShowPremiumModal] = useState(false);
+    const [showBundlesInfo, setShowBundlesInfo] = useState(false);
+    const [showMusicInfo, setShowMusicInfo] = useState(false);
 
     const { data: topPicks, isLoading: loadingTop } = useTopPicks(userId);
     const { data: recommendations, isLoading: loadingRec } = useRecommendations(userId);
@@ -159,9 +161,18 @@ const DiscoverScreen = () => {
                         <ConfirmationModal
                             title={"Unlock Premium Content"}
                             message={"Subscribe to access all guided sessions, expert talks, and exclusive audio and video experiences."}
-                            icon={locked}
+                            icon={subscription}
                             buttonText="Subscribe Now"
-                            onClose={() => setShowPremiumModal(false)} // make sure modal has an onClose prop
+                            onClose={() => {
+                                setShowPremiumModal(false);
+                                navigation.navigate("More", {
+                                    screen: "AppSubscription",
+                                });
+                            }}
+                            onCrossClose={() => {
+                                setShowPremiumModal(false);
+                            }}
+
                         />
                     )}
 
@@ -175,7 +186,7 @@ const DiscoverScreen = () => {
 
                     {/* Recommendations */}
                     <View style={styles.section}>
-                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}  onPress={handleTopPicksInfo} >
+                        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }} onPress={handleTopPicksInfo} >
                             <Text style={[styles.sectionTitle, { marginBottom: 0, paddingHorizontal: 0, paddingLeft: 25, }]}>Top Recommendations</Text>
                             <TouchableOpacity onPress={handleRecommendationsInfo}>
                                 <Image source={info} style={{ width: 20, height: 20, resizeMode: "contain", marginLeft: 10, tintColor: theme.primaryColor }} />
@@ -275,7 +286,13 @@ const DiscoverScreen = () => {
                     {/* Bundles */}
                     {filteredBundles.map((bundle) => (
                         <View key={bundle.goal} style={styles.section}>
-                            <Text style={styles.sectionTitle}>{bundle.goal}</Text>
+                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }} onPress={handleTopPicksInfo} >
+                                <Text style={[styles.sectionTitle, { marginBottom: 0, paddingHorizontal: 0, paddingLeft: 25, }]}>{bundle.goal}</Text>
+                                <TouchableOpacity onPress={() => setShowBundlesInfo(true)}>
+                                    <Image source={info} style={{ width: 20, height: 20, resizeMode: "contain", marginLeft: 10, tintColor: theme.primaryColor }} />
+                                </TouchableOpacity>
+                            </TouchableOpacity>
+                            {/* <Text style={styles.sectionTitle}>{bundle.goal}</Text> */}
                             <FlatList
                                 data={bundle.resources}
                                 renderItem={({ item }) => (
@@ -309,7 +326,13 @@ const DiscoverScreen = () => {
                     {/* Music Section */}
                     {music && Array.isArray(music.music) && music.music.length > 0 && (
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Music for You</Text>
+                            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }} onPress={handleTopPicksInfo} >
+                                <Text style={[styles.sectionTitle, { marginBottom: 0, paddingHorizontal: 0, paddingLeft: 25, }]}>Music for You</Text>
+                                <TouchableOpacity onPress={() => setShowMusicInfo(true)}>
+                                    <Image source={info} style={{ width: 20, height: 20, resizeMode: "contain", marginLeft: 10, tintColor: theme.primaryColor }} />
+                                </TouchableOpacity>
+                            </TouchableOpacity>
+                            {/* <Text style={styles.sectionTitle}>Music for You</Text> */}
                             <FlatList
                                 data={music.music}
                                 renderItem={({ item }) => (
@@ -357,6 +380,22 @@ const DiscoverScreen = () => {
                         message="Curated content handpicked by our expert team specifically for your trading journey. These picks represent the highest quality resources that align with your current skill level and learning objectives."
                         position="center"
                     />
+                    <AnimatedInfoBox
+                        isVisible={showBundlesInfo}
+                        onClose={() => setShowBundlesInfo(false)}
+                        title="Bundles"
+                        message="Bundles are curated collections of content grouped by specific trading goals. They provide structured learning experiences across different skill levels and topics to help you master key areas efficiently."
+                        position="center"
+                    />
+
+                    <AnimatedInfoBox
+                        isVisible={showMusicInfo}
+                        onClose={() => setShowMusicInfo(false)}
+                        title="Music for You"
+                        message="Enjoy specially selected audio tracks designed to help you focus, relax, or energize your trading day. These tracks align with your mood and trading rhythm."
+                        position="center"
+                    />
+
                 </ScrollView>
             </ScrollToTopWrapper>
         </ImageBackground>

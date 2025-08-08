@@ -9,7 +9,9 @@ import {
   Dimensions,
   StyleSheet,
   ActivityIndicator,
-  Alert
+  Alert,
+  Platform,
+  SafeAreaView
 } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
@@ -20,17 +22,18 @@ import {
   repeat,
   skip,
   stop,
-  user,
-  shuffleIcon,
   playb,
   noThumbnail,
-  back
+  back,
+  shuffleIcon,
+  attention
 } from '../../assets/images';
 import theme from '../../themes/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import AnimatedInfoBox from '../../components/AnimatedInfoBox';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
 const VideoPlayerScreen = ({ route }) => {
   const { VideoUrl, Thumbnail, VideoTitle, VideoDescr } = route.params;
@@ -41,19 +44,51 @@ const VideoPlayerScreen = ({ route }) => {
   const [progress, setProgress] = useState({ currentTime: 0, duration: 0 });
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const controlsTimeoutRef = useRef(null);
+  const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
+
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
 
+  const resetControlsTimeout = () => {
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      if (isFullScreen) {
+        setShowControls(false);
+      }
+    }, 3000);
+  };
+
   useEffect(() => {
     console.log('VideoUrl', VideoUrl);
-    // Stop any playing audio when video starts
     TrackPlayer.stop().catch(() => { });
     const timer = setTimeout(() => {
       setPaused(false);
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+      Orientation.lockToPortrait();
+    };
   }, []);
+
+  useEffect(() => {
+    if (isFullScreen) {
+      setShowControls(true);
+      resetControlsTimeout();
+    } else {
+      setShowControls(true);
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    }
+  }, [isFullScreen]);
 
   const formatTime = (seconds) => {
     if (!seconds || isNaN(seconds)) return '0:00';
@@ -63,8 +98,8 @@ const VideoPlayerScreen = ({ route }) => {
   };
 
   const togglePlayback = () => {
-    console.log('Toggle playback - current paused state:', paused);
     setPaused(!paused);
+    resetControlsTimeout();
   };
 
   const toggleFullScreen = () => {
@@ -79,11 +114,13 @@ const VideoPlayerScreen = ({ route }) => {
   const skipForward = () => {
     const newTime = Math.min(progress.currentTime + 10, progress.duration);
     playerRef.current?.seek(newTime);
+    resetControlsTimeout();
   };
 
   const skipBackward = () => {
     const newTime = Math.max(progress.currentTime - 10, 0);
     playerRef.current?.seek(newTime);
+    resetControlsTimeout();
   };
 
   const handleVideoLoad = (data) => {
@@ -110,27 +147,42 @@ const VideoPlayerScreen = ({ route }) => {
 
   const handleSeek = (value) => {
     playerRef.current?.seek(value);
+    resetControlsTimeout();
   };
 
-  return (
-    <ImageBackground source={{ uri: Thumbnail ?? noThumbnail }} style={styles.container}>
-      <View style={styles.blurOverlay} />
-      {/* Back Button */}
-      <TouchableOpacity
-        style={[styles.backButton, { top: insets.top + 30 }]}
-        onPress={() => navigation.goBack()}
-        hitSlop={{ top: 10, bottom: 10, left: 5, right: 10 }}
-      >
-        <Image source={back} style={styles.backIcon} />
-      </TouchableOpacity>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+  const handleVideoTap = () => {
+    setShowControls(prev => !prev);
+    resetControlsTimeout();
+  };
 
-        <View style={styles.albumArtContainer}>
+  const videoContainerStyle = isFullScreen
+    ? styles.fullScreenVideoContainer
+    : styles.albumArtContainer;
+
+  const videoPlayerStyle = isFullScreen
+    ? styles.fullScreenVideoPlayer
+    : styles.albumArt;
+
+  return (
+    <ImageBackground source={{ uri: Thumbnail ?? noThumbnail }} style={[styles.container, { padding: isFullScreen ? 0 : 30 }]}>
+
+      <View style={styles.blurOverlay} />
+      <SafeAreaView style={styles.safeArea}>
+        {/* Back Button - Always visible */}
+        <TouchableOpacity
+          style={[styles.backButton, { top: isFullScreen ? insets.top + 20 : insets.top + 5, left: isFullScreen ? 20 : 5 }]}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 5, right: 10 }}
+        >
+          <Image source={back} style={styles.backIcon} />
+        </TouchableOpacity>
+
+        <View style={videoContainerStyle}>
           <Video
             source={{ uri: VideoUrl }}
             ref={playerRef}
-            style={styles.albumArt}
-            resizeMode="contain"
+            style={videoPlayerStyle}
+            resizeMode={isFullScreen ? "cover" : "contain"}
             paused={paused}
             muted={muted}
             repeat={false}
@@ -147,17 +199,8 @@ const VideoPlayerScreen = ({ route }) => {
               setIsBuffering(false);
             }}
             controls={false}
+            onTouchEnd={handleVideoTap}
           />
-
-          {/* <View style={styles.albumArtOverlay}>
-            <View style={styles.artistInfo}>
-              <Image source={user} style={styles.artistImage} />
-              <View>
-                <Text style={styles.artistName}>Alwin</Text>
-                <Text style={styles.artistRole}>Mentally Relax</Text>
-              </View>
-            </View>
-          </View> */}
 
           {(isBuffering || !videoLoaded) && (
             <View style={styles.loadingOverlay}>
@@ -167,64 +210,136 @@ const VideoPlayerScreen = ({ route }) => {
               </Text>
             </View>
           )}
+
+          {isFullScreen && showControls && (
+            <View style={[styles.fullScreenControlsOverlay, { paddingBottom: insets.bottom }]}>
+              {/* No longer need a separate back button here, as the main one is always visible */}
+
+              <View style={styles.fullScreenProgressBarContainer}>
+                <Text style={styles.progressTime}>{formatTime(progress.currentTime)}</Text>
+                <Slider
+                  style={styles.progressBar}
+                  minimumValue={0}
+                  maximumValue={progress.duration || 1}
+                  value={progress.currentTime}
+                  onSlidingComplete={handleSeek}
+                  minimumTrackTintColor={theme.primaryColor}
+                  maximumTrackTintColor="#898989"
+                  thumbTintColor={theme.primaryColor}
+                  disabled={!videoLoaded}
+                />
+                <Text style={styles.progressTime}>{formatTime(progress.duration)}</Text>
+              </View>
+
+              <View style={styles.fullScreenControls}>
+                <TouchableOpacity
+                  style={styles.controlButton1}
+                  onPress={() => { setMuted(!muted); resetControlsTimeout(); }}
+                >
+                  <Image
+                    source={shuffleIcon}
+                    style={[styles.controlIcon, { opacity: muted ? 0.5 : 1 }]}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.controlButton} onPress={skipBackward}>
+                  <Image source={skip} style={styles.controlIcon} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.playPauseButton, { opacity: videoLoaded ? 1 : 0.5 }]}
+                  onPress={togglePlayback}
+                  disabled={!videoLoaded}
+                >
+                  <Image
+                    source={paused ? playb : stop}
+                    style={styles.playPauseIcon}
+                  />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.controlButton} onPress={skipForward}>
+                  <Image source={next} style={styles.controlIcon} />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.controlButton1} onPress={toggleFullScreen}>
+                  <Image source={repeat} style={styles.controlIcon} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.courseTitle}>{VideoTitle}</Text>
-          <Text style={styles.courseDescription}>{VideoDescr}</Text>
-        </View>
+        {!isFullScreen && (
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <View style={styles.infoContainer}>
+              <Text style={styles.courseTitle}>{VideoTitle}</Text>
+              <Text style={styles.courseDescription}>{VideoDescr}</Text>
+            </View>
 
-        <View style={styles.progressBarContainer}>
-          <Text style={styles.progressTime}>{formatTime(progress.currentTime)}</Text>
-          <Slider
-            style={styles.progressBar}
-            minimumValue={0}
-            maximumValue={progress.duration || 1}
-            value={progress.currentTime}
-            onSlidingComplete={handleSeek}
-            minimumTrackTintColor={theme.primaryColor}
-            maximumTrackTintColor="#898989"
-            thumbTintColor={theme.primaryColor}
-            disabled={!videoLoaded}
-          />
-          <Text style={styles.progressTime}>{formatTime(progress.duration)}</Text>
-        </View>
+            <View style={styles.progressBarContainer}>
+              <Text style={styles.progressTime}>{formatTime(progress.currentTime)}</Text>
+              <Slider
+                style={styles.progressBar}
+                minimumValue={0}
+                maximumValue={progress.duration || 1}
+                value={progress.currentTime}
+                onSlidingComplete={handleSeek}
+                minimumTrackTintColor={theme.primaryColor}
+                maximumTrackTintColor="#898989"
+                thumbTintColor={theme.primaryColor}
+                disabled={!videoLoaded}
+              />
+              <Text style={styles.progressTime}>{formatTime(progress.duration)}</Text>
+            </View>
 
-        <View style={styles.controlsContainer}>
-          <TouchableOpacity
-            style={styles.controlButton1}
-            onPress={() => setMuted(!muted)}
-          >
-            <Image
-              source={shuffleIcon}
-              style={[styles.controlIcon, { opacity: muted ? 0.5 : 1 }]}
-            />
-          </TouchableOpacity>
+            <View style={styles.controlsContainer}>
+              <TouchableOpacity
+                style={styles.controlButton1}
+                onPress={() => setIsDisclaimerVisible(true)}
+              >
+                <Image
+                  source={attention}
+                  style={[styles.controlIcon, { opacity: muted ? 0.5 : 1 }]}
+                />
+              </TouchableOpacity>
 
-          <TouchableOpacity style={styles.controlButton} onPress={skipBackward}>
-            <Image source={skip} style={styles.controlIcon} />
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.controlButton} onPress={skipBackward}>
+                <Image source={skip} style={styles.controlIcon} />
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.playPauseButton, { opacity: videoLoaded ? 1 : 0.5 }]}
-            onPress={togglePlayback}
-            disabled={!videoLoaded}
-          >
-            <Image
-              source={paused ? playb : stop}
-              style={styles.playPauseIcon}
-            />
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.playPauseButton, { opacity: videoLoaded ? 1 : 0.5 }]}
+                onPress={togglePlayback}
+                disabled={!videoLoaded}
+              >
+                <Image
+                  source={paused ? playb : stop}
+                  style={styles.playPauseIcon}
+                />
+              </TouchableOpacity>
 
-          <TouchableOpacity style={styles.controlButton} onPress={skipForward}>
-            <Image source={next} style={styles.controlIcon} />
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.controlButton} onPress={skipForward}>
+                <Image source={next} style={styles.controlIcon} />
+              </TouchableOpacity>
 
-          <TouchableOpacity style={styles.controlButton1} onPress={toggleFullScreen}>
-            <Image source={repeat} style={styles.controlIcon} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+              <TouchableOpacity style={styles.controlButton1} onPress={toggleFullScreen}>
+                <Image source={repeat} style={styles.controlIcon} />
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+
+        )}
+        <AnimatedInfoBox
+          isVisible={isDisclaimerVisible}
+          onClose={() => setIsDisclaimerVisible(false)}
+          title="Disclaimer"
+          message={
+            'This audio is for educational and informational purposes only. It is not financial advice. Please consult a professional before making any investment decisions.'
+          }
+          position="center"
+          maxWidth={width * 0.85}
+        />
+      </SafeAreaView>
     </ImageBackground>
   );
 };
@@ -237,6 +352,12 @@ const styles = StyleSheet.create({
     padding: 30,
     paddingBottom: 0,
   },
+  safeArea: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(12, 12, 12, 0.85)',
@@ -244,16 +365,14 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: 'center',
     justifyContent: "center",
-    flex: 1,
-    // borderWidth:3,
-    // borderColor: 'rgba(255, 255, 255, 0.1)',
+    flexGrow: 1,
   },
   albumArtContainer: {
     width: '100%',
-    height: height * 0.25,
+    height: height / 2.5,
     borderRadius: 20,
     overflow: 'hidden',
-    marginTop: 20,
+    marginTop: 70,
     marginBottom: 30,
     borderWidth: 0.7,
     borderColor: '#FFF',
@@ -263,37 +382,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
-  albumArtOverlay: {
+  fullScreenVideoContainer: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    padding: 15,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  artistInfo: {
-    flexDirection: 'row',
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  artistImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-    backgroundColor: '#666',
-  },
-  artistName: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-  artistRole: {
-    color: '#CCCCCC',
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+  fullScreenVideoPlayer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000',
   },
   loadingOverlay: {
     position: 'absolute',
@@ -385,8 +489,6 @@ const styles = StyleSheet.create({
     tintColor: '#FFFFFF',
     resizeMode: 'contain',
   },
-
-
   backButton: {
     position: 'absolute',
     left: 20,
@@ -405,6 +507,46 @@ const styles = StyleSheet.create({
     height: 10,
     tintColor: '#FFFFFF',
     resizeMode: 'contain',
+  },
+  fullScreenControlsOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 0,
+    paddingTop: 0,
+  },
+  fullScreenBackButton: { // This style is no longer explicitly used as a separate button, but its properties are merged
+    position: 'absolute',
+    left: 0,
+    zIndex: 1000,
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  fullScreenProgressBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    paddingHorizontal: 0,
+  },
+  fullScreenControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+    paddingHorizontal: 0,
   },
 });
 

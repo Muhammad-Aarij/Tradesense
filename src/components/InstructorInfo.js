@@ -19,6 +19,7 @@ import {
   userBlue,
 } from '../assets/images';
 import { API_URL } from "@env";
+import ProfileImage from './ProfileImage';
 
 const { width } = Dimensions.get('window');
 
@@ -105,7 +106,7 @@ const InstructorInfo = ({
         return { alignSelf: 'center' };
     }
   };
-
+  console.log("Instructor Image in info", InstructorImage)
   if (!isVisible) return null;
 
   return (
@@ -127,16 +128,20 @@ const InstructorInfo = ({
           {/* Instructor details */}
           <View style={styles.content}>
             <View style={styles.artistInfo}>
-              <Image
-                source={InstructorImage ? { uri: `${API_URL}/${InstructorImage}` } : userBlue}
-                style={styles.artistImage}
+              <ProfileImage
+                uri={InstructorImage}
+                name={InstructorName || 'Instructor'}
+                size={30} // or whatever fits your design
+                borderRadius={30}
+                style={styles.instructorImage}
               />
-              <View>
-                <Text style={[styles.artistName, { color: theme.text }]}>
+
+              <View style={{marginLeft:10,}}>
+                <Text style={[styles.artistName, { color: theme.textColor }]}>
                   {InstructorName || 'Unknown'}
                 </Text>
                 <Text style={[styles.artistRole, { color: theme.textColor || '#CCCCCC' }]}>
-                  {InstructorTag || 'Instructor'}
+                  {"Instructor" || 'Instructor'}
                 </Text>
               </View>
             </View>
@@ -204,17 +209,17 @@ const styles = StyleSheet.create({
   },
   artistName: {
     fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Outfit-SemiBold',
   },
   artistRole: {
     fontSize: 10,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
   },
   message: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontSize: 11,
+    fontFamily: 'Outfit-Regular',
     lineHeight: 18,
-    // marginBottom: 16,
+    marginBottom: 16,
   },
   socialLinksRow: {
     flexDirection: 'row',
@@ -240,7 +245,7 @@ const styles = StyleSheet.create({
   },
   closeText: {
     fontSize: 13,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     textAlign: 'center',
   },
 });

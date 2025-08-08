@@ -15,6 +15,7 @@ import { useCourseDetail } from '../../../functions/handleCourses';
 import { trackAffiliateVisit } from '../../../functions/affiliateApi';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import ProfileImage from '../../../components/ProfileImage';
 
 const { width } = Dimensions.get('window');
 
@@ -36,6 +37,14 @@ const CourseDeepLink = () => {
     } = useCourseDetail(courseId);
 
     const modules = course?.courseModules || [];
+
+    const getLowestPlanPrice = (plans) => {
+        if (!plans || plans.length === 0) return 0;
+        return Math.min(...plans.map(plan => plan.price));
+    };
+
+    // 2. Use it after definition
+    const lowestPrice = getLowestPlanPrice(course?.plans);
 
     useEffect(() => {
         dispatch(startLoading());
@@ -131,15 +140,30 @@ const CourseDeepLink = () => {
                             <View style={styles.imageOverlay}>
                                 <View style={styles.overlayTop}>
                                     <View style={styles.instructorInfo}>
-                                        <Image
+                                        <ProfileImage
+                                            uri={course?.instructorImage}
+                                            name={course?.instructorName || 'Instructor'}
+                                            size={60} // or whatever fits your design
+                                            borderRadius={30}
+                                            style={styles.instructorImage}
+                                        />
+                                        {/* <Image
                                             source={{ uri: course?.instructorImage ? course.instructorImage : Image.resolveAssetSource(userBlue).uri }}
-                                            style={styles.instructorImage} />
+                                            style={styles.instructorImage} /> */}
                                         <View>
                                             <Text style={[styles.instructorName, { color: theme.primaryColor }]}>
                                                 {course?.instructorName}
                                             </Text>
-                                            <Text style={styles.instructorSubtitle}>Guided Audio</Text>
+                                            <Text style={styles.instructorSubtitle}>Instructor</Text>
                                         </View>
+                                    </View>
+                                    <View style={{ flexDirection: "col," }}>
+                                        <Text style={[styles.price, { color: "#fff" }]}>
+                                            Starting from
+                                        </Text>
+                                        <Text style={[styles.price, { color: "#fff", fontSize: 18, fontWeight: "bold" }]}>
+                                            {lowestPrice} $
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
@@ -209,6 +233,11 @@ const getStyles = (theme) => StyleSheet.create({
         height: '100%',
         resizeMode: 'cover'
     },
+    price: {
+        marginRight: 10,
+        fontSize: 9,
+        fontFamily: 'Outfit-Bold'
+    },
     gradientOverlay: {
         position: 'absolute',
         width: '100%',
@@ -218,7 +247,7 @@ const getStyles = (theme) => StyleSheet.create({
         right: 0,
         zIndex: 5
     },
-   imageOverlay: {
+    imageOverlay: {
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -240,6 +269,11 @@ const getStyles = (theme) => StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 20,
+    },
+    instructorSubtitle: {
+        color: 'white',
+        fontSize: 9,
+        fontFamily: 'Outfit-Light'
     },
     instructorImage: {
         width: 35,
@@ -311,8 +345,8 @@ const getStyles = (theme) => StyleSheet.create({
     },
     buyNowButtonText: {
         color: '#fff',
-        fontSize: 17,
-        fontWeight: '600',
+        fontSize: 15,
+        // fontWeight: x'600',
         fontFamily: 'Outfit-SemiBold'
     }
 });

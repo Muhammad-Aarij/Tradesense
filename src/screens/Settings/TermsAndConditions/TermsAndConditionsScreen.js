@@ -43,10 +43,10 @@ const TermsAndConditionsScreen = ({ navigation }) => {
     <ImageBackground source={theme.bg} style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <Header title="Terms and Conditions" navigation={navigation} />
+          <Header title="" navigation={navigation} />
 
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            { error ? (
+            {error ? (
               <View style={styles.errorContainer}>
                 <Text style={[styles.errorText, { color: theme.errorColor || 'red' }]}>
                   Error loading terms: {error.message}
@@ -75,26 +75,26 @@ const TermsAndConditionsScreen = ({ navigation }) => {
                     }}
                     tagsStyles={{
                       h1: { fontSize: responsiveFontSize(14), fontFamily: 'Outfit-SemiBold', marginBottom: 10 },
-                      h2: { fontSize: responsiveFontSize(12), fontFamily: 'Outfit-SemiBold', marginBottom: 0 },
-                      p: { marginBottom: 5, lineHeight: 20, fontFamily: 'Outfit-Regular' },
-                      ul: { paddingLeft: 0, marginBottom: 10 },
-                      li: { marginBottom: 5 },
-                    }}
-                    renderers={{
+                      h2: { fontSize: responsiveFontSize(12), fontFamily: 'Outfit-Medium', marginBottom: 0 },
+                      strong: {fontFamily:"Outfit-SemiBold"},
+                      p: { marginBottom: 5, fontFamily: 'Outfit-Regular' },
+                      ul: { paddingLeft: 10, listStyleType: "none" },
                       li: ({ TDefaultRenderer, ...props }) => (
-                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 0 }}>
-                          {/* <Text style={{
-                            fontSize: responsiveFontSize(12),
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', }}>
+                          <Text style={{
+                            fontSize: responsiveFontSize(10),
                             // lineHeight: responsiveFontSize(18),
-                            marginRight: 6,
+                            marginLeft: 6,
                             color: theme.textColor,
-                          }}>•</Text> */}
-                          <View >
+                            marginTop: 2, // slight nudge to align vertically
+                          }}>•</Text>
+                          <View style={{ flex: 1 }}>
                             <TDefaultRenderer {...props} />
                           </View>
                         </View>
                       )
                     }}
+
                   />
 
                 )}
@@ -120,16 +120,27 @@ const TermsAndConditionsScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  li: {
+    fontFamily: 'Outfit-Regular',
+    fontSize: responsiveFontSize(12),
+    lineHeight: responsiveFontSize(18),
+    marginBottom: 0,
+    padding: 0,
+  },
+  ul: {
+    paddingRight: responsiveWidth(10),
+  },
+
   container: { flex: 1, paddingHorizontal: responsiveWidth(20) },
-  scrollContent: { paddingBottom: verticalScale(100) },
+  // scrollContent: { paddingBottom: verticalScale(100) },
   contentCard: { paddingVertical: responsiveHeight(10), marginBottom: responsiveHeight(20) },
   cardTitle: {
-    fontSize: responsiveFontSize(18),
-    fontWeight: 'bold',
+    fontFamily: 'Outfit-SemiBold',
+    fontSize: responsiveFontSize(17),
     marginBottom: responsiveHeight(15),
   },
   sectionHeading: {
-    fontSize: responsiveFontSize(13),
+    fontSize: responsiveFontSize(1),
     fontFamily: 'Outfit-SemiBold',
     marginTop: responsiveHeight(15),
     marginBottom: responsiveHeight(8),
@@ -167,7 +178,6 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#FFFFFF',
     fontSize: responsiveFontSize(14),
-    fontWeight: 'bold',
   },
 });
 

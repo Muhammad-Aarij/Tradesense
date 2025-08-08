@@ -14,7 +14,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -53,6 +53,7 @@ import { recordAudioProgress } from '../../functions/recordAudioProgress';
 import { API_URL } from '@env';
 import OptimizedImage from '../../components/OptimizedImage';
 import AnimatedInfoBox from '../../components/AnimatedInfoBox';
+import ProfileImage from '../../components/ProfileImage';
 
 const { height, width } = Dimensions.get('window');
 
@@ -67,6 +68,7 @@ const PlayerScreen = ({ route }) => {
     InstructorName,
     InstructorImage,
     InstructorTag,
+    resourceId,
     InstructorData,
     isShowInside
   } = route.params;
@@ -76,6 +78,8 @@ const PlayerScreen = ({ route }) => {
   const insets = useSafeAreaInsets();
   const playbackState = usePlaybackState();
   const progress = useProgress();
+  const userId = useSelector((state) => state.auth.userId);
+
   const isPlaying = playbackState.state === PlaybackState.Playing;
   // console.log('====================================');
   // console.log("Instructor NAME", InstructorName);
@@ -100,7 +104,7 @@ const PlayerScreen = ({ route }) => {
   const [repeatCount, setRepeatCount] = useState(0); // 0 = off, 1, 2, 7, 31
   const [currentRepeats, setCurrentRepeats] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const repeatOptions = [0, 1, 2, 7, 31]; // 0 means off
+  const repeatOptions = [0, 1, 3, 7, 31]; // 0 means off
   const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
 
   const track = {
@@ -125,14 +129,14 @@ const PlayerScreen = ({ route }) => {
       // Only show global loader for full track loads, not for seeking
       if ((event.state === PlaybackState.Buffering || event.state === PlaybackState.Loading) && !isSeeking) {
         dispatch(startLoading());
-        
+
         // Set a 3-second timeout for loading
         const timeout = setTimeout(() => {
           console.log('Audio loading timeout - going back to previous screen');
           dispatch(stopLoading());
           navigation.goBack();
         }, 7000);
-        
+
         setLoadingTimeout(timeout);
       } else if ((event.state === PlaybackState.Ready || event.state === PlaybackState.Playing) && !isSeeking) {
         // Clear timeout if loading completes successfully
@@ -147,7 +151,7 @@ const PlayerScreen = ({ route }) => {
           clearTimeout(loadingTimeout);
           setLoadingTimeout(null);
         }
-        
+
         // Handle repeat when track ends
         if (repeatCount > 0 && currentRepeats < repeatCount) {
           handleTrackEnded();
@@ -162,11 +166,45 @@ const PlayerScreen = ({ route }) => {
   // Cleanup timeout on component unmount
   useEffect(() => {
     return () => {
+      // Clear timeout
       if (loadingTimeout) {
         clearTimeout(loadingTimeout);
       }
+      console.log('====================================');
+      console.log("Inside CLeandUp Track Player");
+      console.log(userId, resourceId, progress.position);
+      console.log('====================================');
+      // Save progress on unmount
+      if (userId && resourceId && progress?.position > 0) {
+        console.log('====================================');
+        console.log("Inside CLeandUp Track Player SAving Progress");
+        console.log('====================================');
+        const payload = {
+          userId,
+          resourceId,
+          currentTime: Math.floor(progress.position),
+        };
+
+        console.log("📤 Saving progress...", payload);
+
+        fetch(`${API_URL}/api/resource/progress`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        })
+          .then(res => res.json())
+          .then(res => {
+            console.log("✅ Progress saved:", res);
+          })
+          .catch(err => {
+            console.log("❌ Error saving progress:", err);
+          });
+      }
     };
-  }, [loadingTimeout]);
+  }, [loadingTimeout, userId, resourceId, progress.position]);
+
 
   const handleTrackEnded = async () => {
     try {
@@ -505,10 +543,17 @@ const PlayerScreen = ({ route }) => {
                 <View style={styles.albumArtOverlay}>
                   <View style={{ ...styles.artistInfo, marginBottom: 10, }}>
                     {/* {InstructorName && */}
-                    <OptimizedImage
+                    <ProfileImage
+                      uri={InstructorData?.image}
+                      name={InstructorData?.name || 'Instructor'}
+                      size={35} // or whatever fits your design
+                      borderRadius={30}
+                      style={styles.instructorImage}
+                    />
+                    {/* <OptimizedImage
                       uri={
                         InstructorData?.image?.trim()
-                          ? `${API_URL}/${InstructorData.image}`
+                          ? `${InstructorData.image}`
                           : null
                       }
                       style={styles.artistImage}
@@ -527,14 +572,14 @@ const PlayerScreen = ({ route }) => {
                           fontFamily: 'Outfit-Bold',
                         },
                       }}
-                    />
+                    /> */}
 
                     {/* } */}
-                    <View>
+                    <View style={{ marginLeft: 10, }}>
                       <Text style={styles.artistName}>
                         {InstructorData?.name?.trim() ? InstructorData.name : "Louise Nonweiler"}
                       </Text>
-                      <Text style={styles.artistRole}>{InstructorData?.experienceLevel}</Text>
+                      <Text style={styles.artistRole}>Instructor</Text>
                     </View>
                   </View>
                   <TouchableOpacity onPress={() => setIsModalVisible(true)}>
@@ -557,7 +602,7 @@ const PlayerScreen = ({ route }) => {
                 </View>
               </View>} */}
             <Text style={styles.courseTitle}>{AudioTitle}</Text>
-            <Text style={styles.courseDescription}>{AudioDescr}</Text>
+            <Text numberOfLines={3} style={styles.courseDescription}>{AudioDescr}</Text>
           </View>
 
           <View style={styles.progressBarContainer}>
@@ -593,14 +638,14 @@ const PlayerScreen = ({ route }) => {
             <TouchableOpacity style={styles.controlButton} onPress={() => TrackPlayer.skipToNext()}>
               <Image source={next} style={styles.controlIcon} />
             </TouchableOpacity>
-                         <TouchableOpacity style={styles.controlButton1} onPress={toggleRepeat}>
-               <View style={styles.repeatButtonContainer}>
-                 <Image source={repeat} style={[styles.controlIcon, { tintColor: repeatCount > 0 ? theme.primaryColor : '#FFFFFF' }]} />
-                 {repeatCount > 0 && getRepeatButtonText() && (
-                   <Text style={styles.repeatCountText}>{getRepeatButtonText()}</Text>
-                 )}
-               </View>
-             </TouchableOpacity>
+            <TouchableOpacity style={styles.controlButton1} onPress={toggleRepeat}>
+              <View style={styles.repeatButtonContainer}>
+                <Image source={repeat} style={[styles.controlIcon, { tintColor: repeatCount > 0 ? theme.primaryColor : '#FFFFFF' }]} />
+                {repeatCount > 0 && getRepeatButtonText() && (
+                  <Text style={styles.repeatCountText}>{getRepeatButtonText()}</Text>
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -652,7 +697,7 @@ const styles = StyleSheet.create({
     width: '100%',
     flex: 1,
     padding: 15,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   artistInfo: {
     flexDirection: 'row',
@@ -666,12 +711,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#666',
   },
   artistName: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'Outfit-Medium',
+    color: theme.primaryColor,
+    fontSize: 12,
+    fontFamily: 'Outfit-Bold',
   },
   artistRole: {
-    color: '#CCCCCC',
+    color: '#eeeeeeff',
     fontSize: 12,
     fontFamily: 'Outfit-Regular',
   },
@@ -680,16 +725,16 @@ const styles = StyleSheet.create({
   },
   courseTitle: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: 'Outfit-Medium',
-    marginBottom: 5,
+    marginBottom: 15,
   },
   courseDescription: {
     color: '#FFF',
-    fontSize: 12,
-    fontFamily: 'Outfit-Light-BETA',
+    fontSize: 11,
+    fontFamily: 'Outfit-Light',
     lineHeight: 18,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   progressBarContainer: {
     flexDirection: 'row',

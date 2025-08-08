@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { ThemeContext } from '../context/ThemeProvider';
-
+import { eyeClose, eyeOpen } from '../assets/images';
 const CustomInput = ({
     label,
     placeholder,

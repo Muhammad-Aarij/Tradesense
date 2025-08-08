@@ -17,6 +17,8 @@ import { bg, searchMf, back, p2 } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { fetchFAQs } from '../../../functions/Helpcenter';
 import { ThemeContext } from '../../../context/ThemeProvider';
+import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import { useDispatch } from 'react-redux';
 
 const { width, height } = Dimensions.get('window');
 
@@ -26,6 +28,7 @@ const responsiveFontSize = (size) => (width / 375) * size;
 const verticalScale = (size) => (height / 812) * size;
 
 const HelpCenterScreen = ({ navigation }) => {
+  const dispatch = useDispatch();
   const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
 
@@ -42,6 +45,8 @@ const HelpCenterScreen = ({ navigation }) => {
 
   useEffect(() => {
     const loadFAQs = async () => {
+      dispatch(startLoading()); // <-- dispatch start
+      setIsLoading(true);
       try {
         const data = await fetchFAQs();
         setFaqs(data);
@@ -50,10 +55,12 @@ const HelpCenterScreen = ({ navigation }) => {
         console.error('Error loading FAQs:', err);
       } finally {
         setIsLoading(false);
+        dispatch(stopLoading()); // <-- dispatch stop
       }
     };
     loadFAQs();
   }, []);
+
 
   const toggleFAQ = (id) => {
     setExpandedFAQ(expandedFAQ === id ? null : id);
@@ -101,14 +108,24 @@ const HelpCenterScreen = ({ navigation }) => {
                 <Text style={styles.errorText}>Failed to load FAQs: {error.message}</Text>
                 <TouchableOpacity
                   style={[styles.retryButton, { backgroundColor: theme.primaryColor }]}
-                  onPress={() => {
+                  onPress={async () => {
+                    dispatch(startLoading());
                     setIsLoading(true);
                     setError(null);
-                    fetchFAQs().then(setFaqs).catch(setError).finally(() => setIsLoading(false));
+                    try {
+                      const data = await fetchFAQs();
+                      setFaqs(data);
+                    } catch (err) {
+                      setError(err);
+                    } finally {
+                      setIsLoading(false);
+                      dispatch(stopLoading());
+                    }
                   }}
                 >
                   <Text style={styles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
+
               </View>
             ) : (
               <View style={styles.faqListContainer}>
@@ -153,7 +170,7 @@ const HelpCenterScreen = ({ navigation }) => {
         </View>
       </SafeAreaView>
 
-    
+
     </ImageBackground>
   );
 };

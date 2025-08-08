@@ -22,6 +22,7 @@ import trophy from './trophy.png';
 import wallet from './wallet.png';
 import G from './G.png';
 import eyeClose from './eye-Close.png';
+import eyeOpen from './eyeOpen.png';
 import secureUser from './secureUser.png';
 
 import check from './check.png'
@@ -157,15 +158,16 @@ import quot from './quot.png'
 import attention from './attention.png'
 import louise from './lowi.png'
 import colorBg from './colorBg.png'
+import subscription from './subscription.png'
 
 export {
   age1, age2, age3, age4, age5, age6, alarm, bg, board, female, health, hearts, send2, homeSplash, lockicon, m, play2,
-  lock, locked, male, tick, trophy, wallet, G, eyeClose, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
+  lock, locked, male, tick, trophy, wallet, G, eyeClose, eyeOpen, secureUser, send, menu, chatbot, discover, discover1, bundle, work,
   check, uncheck, home, care, video, book, user, scholar, graph, bell, bellWhite, circle, wave, play, playb, back, mountain, acc, fail,
   CheckMark, heartOutline, heart, pause, sound, bank, PayPal, googlePay, blueArrow, copy, shuffleIcon, next, d, cwhite, cblue,
   skip, stop, repeat, video1, video2, video3, videoY, mobile, circleTop, audio, meditation, calm, afirm, success, noThumbnail,
   audio2, graphical, text, videoIcon, calendar, userT, pillar, affiliate, homeT, course, whiteBg, light, dark, hamburger, dots, checkboxChecked, checkboxUnchecked,
   editwhite, deletewhite, searchMf, shape, login, applePay, p1, p2, p3, p4, p5, p6, p7, p8, p9, userProfile, logoWhite, userDefault,
   audioNew, videoNew, discoverLight, discoverIcon, menuIcon, traderHub, info, camera, f, affiliate1, logoBlack, cf1, cf2, cf3, cf4,
-  facebook, instagram, twitter, linkedin, addBtn, userBlue, cardd, notificationIcon, quot, attention, louise, colorBg
+  facebook, instagram, twitter, linkedin, addBtn, userBlue, cardd, notificationIcon, quot, attention, louise, colorBg, subscription
 };

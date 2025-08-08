@@ -87,9 +87,9 @@ const getStyles = (theme) =>
 
             height: 1,
             marginBottom: 20,
-            width: 100,
+            width: 50,
             borderWidth: 2,
-            borderRadius: 10,
+            borderRadius: 20,
             borderTopColor: theme.subTextColor,
             fontSize: 16,
             color: theme.textColor,

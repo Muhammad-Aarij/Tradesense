@@ -21,7 +21,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { back, bg, fail, p2, tick } from '../../../assets/images';
+import { back, bg, fail, tick } from '../../../assets/images';
+import { requestAccountDeletion } from '../../../functions/auth';
 
 const { width, height } = Dimensions.get('window');
 const scale = (size) => (width / 375) * size;
@@ -30,7 +31,7 @@ const verticalScale = (size) => (height / 812) * size;
 const AccountSecurityScreen = () => {
     const { theme, toggleTheme } = useContext(ThemeContext);
     const dispatch = useDispatch();
-    const { userToken } = useSelector(state => state.auth);
+    const { userToken, userId } = useSelector(state => state.auth);
 
     const [modalVisible, setModalVisible] = useState(false);
     const [modalType, setModalType] = useState('success');
@@ -38,9 +39,14 @@ const AccountSecurityScreen = () => {
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
     const [isFactorAuthEnabled, setIsFactorAuthEnabled] = useState(true);
+
+    // Correct state variables for each functionality
     const [showChangePassword, setShowChangePassword] = useState(false);
+    const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [deletionReason, setDeletionReason] = useState('');
 
     useEffect(() => {
         const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -56,7 +62,6 @@ const AccountSecurityScreen = () => {
             hideSubscription.remove();
         };
     }, []);
-
 
     const styles = getStyles(theme);
 
@@ -82,14 +87,11 @@ const AccountSecurityScreen = () => {
                 token: userToken,
                 password: newPassword,
             });
-            console.log('====================================');
-            console.log(response.data?.message);
-            console.log('====================================');
+
             if (response.data?.message?.toLowerCase().includes('password updated')) {
                 setModalType('success');
                 setModalMessage('Password changed successfully!');
                 setModalVisible(true);
-                // Reset fields
                 setNewPassword('');
                 setConfirmPassword('');
                 setShowChangePassword(false);
@@ -99,9 +101,48 @@ const AccountSecurityScreen = () => {
                 setModalVisible(true);
             }
 
-
         } catch (error) {
             const errMsg = error?.response?.data?.message || "Failed to change password.";
+            setModalType('error');
+            setModalMessage(errMsg);
+            setModalVisible(true);
+        } finally {
+            dispatch(stopLoading());
+        }
+    };
+
+
+    const handleDeleteAccount = async () => {
+        if (!deletionReason) {
+            setModalType('error');
+            setModalMessage('Please provide a reason for deleting your account.');
+            setModalVisible(true);
+            return;
+        }
+
+        try {
+            dispatch(startLoading());
+
+            const response = await requestAccountDeletion({
+                userId: userId, // Make sure this is defined in your component
+                reason: deletionReason,
+            });
+
+            if (response?.message?.toLowerCase().includes('deleted')) {
+                setModalType('success');
+                setModalMessage('Your account has been successfully deleted.');
+                setModalVisible(true);
+                setDeletionReason('');
+                setShowDeleteAccount(false);
+                // Optionally log out the user
+                // dispatch(logout());
+            } else {
+                setModalType('error');
+                setModalMessage(response?.message || 'Unexpected response.');
+                setModalVisible(true);
+            }
+        } catch (error) {
+            const errMsg = error?.response?.data?.message || "Failed to delete account.";
             setModalType('error');
             setModalMessage(errMsg);
             setModalVisible(true);
@@ -118,17 +159,17 @@ const AccountSecurityScreen = () => {
             colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
             style={styles.securityItem}
         >
-            <View style = {styles.securityItemInner}>
-            <View style={styles.securityTextContent}>
-                <Text style={styles.securityItemText}>{text}</Text>
-                {description && <Text style={styles.securityItemDescription}>{description}</Text>}
-            </View>
-            <Switch
-                trackColor={{ false: theme.borderColor, true: theme.primaryColor }}
-                thumbColor="white"
-                onValueChange={onToggle}
-                value={isEnabled}
-            />
+            <View style={styles.securityItemInner}>
+                <View style={styles.securityTextContent}>
+                    <Text style={styles.securityItemText}>{text}</Text>
+                    {description && <Text style={styles.securityItemDescription}>{description}</Text>}
+                </View>
+                <Switch
+                    trackColor={{ false: theme.borderColor, true: theme.primaryColor }}
+                    thumbColor="white"
+                    onValueChange={onToggle}
+                    value={isEnabled}
+                />
             </View>
         </LinearGradient>
     );
@@ -141,17 +182,17 @@ const AccountSecurityScreen = () => {
                 colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
                 style={styles.securityItem}
             >
-                <View style = {styles.securityItemInner}>
-                <Text style={styles.securityItemText}>{text}</Text>
-                <Image
-                    source={back}
-                    style={{
-                        width: 10,
-                        height: 10,
-                        resizeMode: "contain",
-                        transform: [{ rotate: "270deg" }],
-                    }}
-                />
+                <View style={styles.securityItemInner}>
+                    <Text style={styles.securityItemText}>{text}</Text>
+                    <Image
+                        source={back}
+                        style={{
+                            width: 10,
+                            height: 10,
+                            resizeMode: "contain",
+                            transform: [{ rotate: "270deg" }],
+                        }}
+                    />
                 </View>
             </LinearGradient>
         </TouchableOpacity>
@@ -160,15 +201,15 @@ const AccountSecurityScreen = () => {
     return (
         <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
             <SafeAreaView style={styles.safeArea}>
-                <ConfirmationModal
-                    isVisible={modalVisible}
-                    title={modalType === 'success' ? 'Success' : 'Error'}
-                    icon={modalType === 'success' ? tick : fail}
-
-                    message={modalMessage}
-                    onClose={() => setModalVisible(false)}
-                />
-
+                {modalVisible &&
+                    <ConfirmationModal
+                        visible={modalVisible} // Corrected prop name
+                        title={modalType === 'success' ? 'Success' : 'Error'}
+                        icon={modalType === 'success' ? tick : fail}
+                        message={modalMessage}
+                        onClose={() => setModalVisible(false)}
+                    />
+                }
                 <View style={styles.container}>
                     <Header title="Account Settings" style={{ marginBottom: 20, }} />
 
@@ -180,17 +221,15 @@ const AccountSecurityScreen = () => {
                                 isEnabled={theme.mode === 'dark'}
                                 onToggle={toggleTheme}
                             />
-                            {/* <ToggleItem
-                                text="Factor Authentication"
-                                description="Enable 2FA"
-                                isEnabled={isFactorAuthEnabled}
-                                onToggle={() => setIsFactorAuthEnabled(prev => !prev)}
-                            /> */}
+
+                            {/* Change Password Section */}
                             <LinkItem
                                 text={showChangePassword ? 'Hide Password Fields' : 'Change Password'}
-                                onPress={() => setShowChangePassword(prev => !prev)}
+                                onPress={() => {
+                                    setShowChangePassword(prev => !prev);
+                                    setShowDeleteAccount(false); // Hide the other section
+                                }}
                             />
-
                             {showChangePassword && (
                                 <LinearGradient
                                     start={{ x: 0, y: 0.95 }}
@@ -199,14 +238,6 @@ const AccountSecurityScreen = () => {
                                     style={styles.securityItem2}
                                 >
                                     <View style={styles.passwordContainer}>
-                                        {/* <TextInput
-                                            style={styles.input}
-                                            placeholder="Old Password"
-                                            placeholderTextColor={theme.subTextColor}
-                                            secureTextEntry
-                                            value={oldPassword}
-                                            onChangeText={setOldPassword}
-                                        /> */}
                                         <TextInput
                                             style={styles.input}
                                             placeholder="New Password"
@@ -229,30 +260,45 @@ const AccountSecurityScreen = () => {
                                     </View>
                                 </LinearGradient>
                             )}
+
+                            {/* Delete Account Section */}
+                            <LinkItem
+                                text={'Delete Account'}
+                                onPress={() => {
+                                    setShowDeleteAccount(prev => !prev);
+                                    setShowChangePassword(false); // Hide the other section
+                                }}
+                            />
+                            {showDeleteAccount && (
+                                <LinearGradient
+                                    start={{ x: 0, y: 0.95 }}
+                                    end={{ x: 1, y: 1 }}
+                                    colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
+                                    style={styles.securityItem2}
+                                >
+                                    <View style={styles.passwordContainer}>
+                                        <TextInput
+                                            style={[styles.input, { height: verticalScale(150), textAlignVertical: 'top', padding: 20, }]}
+                                            placeholder="Why you wanted to delete your account?"
+                                            placeholderTextColor={theme.subTextColor}
+                                            value={deletionReason}
+                                            onChangeText={setDeletionReason}
+                                            multiline
+                                        />
+                                        <TouchableOpacity style={[styles.saveButton, { backgroundColor: 'red' }]} onPress={handleDeleteAccount}>
+                                            <Text style={styles.saveButtonText}>Delete Account</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </LinearGradient>
+                            )}
                         </View>
                     </ScrollView>
                 </View>
             </SafeAreaView>
-
-            {/* {!isKeyboardVisible && (
-                <View style={styles.absoluteFooter}>
-                    <LinearGradient
-                        start={{ x: 0, y: 0.95 }}
-                        end={{ x: 1, y: 1 }}
-                        colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
-                        style={styles.footerWrapper}
-                    >
-                        <TouchableOpacity style={styles.profileButton}>
-                            <Image source={p2} style={styles.profileButtonIcon} />
-                            <Text style={styles.profileButtonText}>Account Settings</Text>
-                        </TouchableOpacity>
-                    </LinearGradient>
-                </View>
-            )} */}
-
         </ImageBackground>
     );
 };
+
 
 const getStyles = (theme) =>
     StyleSheet.create({
@@ -264,7 +310,7 @@ const getStyles = (theme) =>
             borderColor: theme.borderColor,
             borderWidth: 1,
             borderRadius: scale(12),
-         
+
         },
         securityItemInner: {
             flexDirection: 'row',
@@ -319,8 +365,8 @@ const getStyles = (theme) =>
         },
         saveButtonText: {
             color: '#fff',
-            fontWeight: 'bold',
-            fontSize: scale(13),
+            fontFamily: 'Outfit-Bold',
+            fontSize: scale(12),
         },
         absoluteFooter: {
             position: 'absolute',

@@ -11,6 +11,7 @@ import CustomBottomTab from "../components/CustomBottomTab";
 import AccountabilityPartnerChatScreen from "../screens/Accountability/ChatScreen/AccountabilityPartnerChatScreen";
 import SidebarNavigator from "./SidebarNavigator";
 import UserProfileMenuScreen from "../screens/Settings/UserProfileMenu/Profile";
+import MoreNavigator from "./SidebarNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -33,22 +34,8 @@ export default function BottomNavigator() {
           tabBarButton: () => null, // ✅ Hides the tab icon/button
         }}
       />
-
-
-      {/* <Tab.Screen
-        name="Accountability"
-        component={AccountabilityNavigator}
-        options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
-      /> */}
-
-      {/* <Tab.Screen
-        name="Affiliate"
-        component={AffiliateNavigator}
-        options={{ tabBarStyle: { display: 'none' }, tabBarButton: () => null }}
-      /> */}
-
       <Tab.Screen name="Sense Ai" component={AccountabilityPartnerChatScreen} />
-      <Tab.Screen name="More" component={UserProfileMenuScreen} />
+      <Tab.Screen name="More" component={MoreNavigator} />
     </Tab.Navigator>
   );
 }

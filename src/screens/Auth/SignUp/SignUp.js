@@ -11,7 +11,7 @@ import {
     KeyboardAvoidingView,
     Platform,
 } from 'react-native';
-import { bg, G, eyeClose, secureUser, applePay, tick } from '../../../assets/images';
+import { bg, G, eyeClose, secureUser, applePay, tick, eyeOpen } from '../../../assets/images';
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
 import { sendOTP } from '../../../functions/otpService';
@@ -47,7 +47,8 @@ const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [isPasswordVisible2, setIsPasswordVisible2] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalTitle, setModalTitle] = useState('');
     const [modalMessage, setModalMessage] = useState('');
@@ -159,7 +160,7 @@ const SignUp = ({ navigation }) => {
             // Extract google user details (defensive in case structure changes)
             const googleUser = response?.user || response?.data?.user || response;
             console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
-            
+
             const data = await googleLoginApi(googleUser);
             const answers = data.existingUser?.questionnaireAnswers;
 
@@ -244,14 +245,14 @@ const SignUp = ({ navigation }) => {
                         try {
                             const data = await appleLoginApi(authRes);
                             const answers = data.existingUser?.questionnaireAnswers;
-                
+
                             const isProfilingPending =
                                 !answers ||
                                 (typeof answers === 'object' && Object.keys(answers).length === 0) ||
                                 (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
-                
+
                             await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
-                
+
                             if (isProfilingPending) {
                                 console.log('data.user++++>>>>> in signup', data.existingUser);
                                 console.log('data.token++++>>>>> in signup', data.token);
@@ -302,7 +303,7 @@ const SignUp = ({ navigation }) => {
                 backgroundColor: '#010b13b6',
                 textColor: '#fff',
             });
-        } 
+        }
     }
 
     return (
@@ -337,7 +338,7 @@ const SignUp = ({ navigation }) => {
                             secureTextEntry={!passwordVisible}
                             value={password}
                             onChangeText={setPassword}
-                            icon={eyeClose}
+                            icon={passwordVisible ? eyeOpen : eyeClose}
                             onIconPress={() => setPasswordVisible(!passwordVisible)}
                         />
 
@@ -347,9 +348,10 @@ const SignUp = ({ navigation }) => {
                             secureTextEntry={!passwordVisible2}
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
-                            icon={eyeClose}
+                            icon={passwordVisible2 ? eyeOpen : eyeClose}
                             onIconPress={() => setPasswordVisible2(!passwordVisible2)}
                         />
+
 
                         <TouchableOpacity
                             style={[styles.button, { backgroundColor: theme.primaryColor }]}
@@ -385,11 +387,7 @@ const SignUp = ({ navigation }) => {
                                 </TouchableOpacity>
                             </LinearGradient>
 
-                            <TouchableOpacity 
-                                onPress={AppleLogin}
-                                style={styles.appleBtn}>
-                                <Image source={applePay} style={styles.socialIcon} />
-                            </TouchableOpacity>
+
                         </View>
 
                         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -439,13 +437,13 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: width * 0.07,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         marginTop: height * 0.03,
         marginBottom: height * 0.01,
     },
     subtitle: {
         fontSize: width * 0.032,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         width: width * 0.5,
         textAlign: 'center',
         marginBottom: height * 0.025,
@@ -459,9 +457,9 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#fff',
-        fontSize: width * 0.04,
+        fontSize: width * 0.036,
         fontWeight: '600',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
     orContainer: {
         marginVertical: height * 0.035,
@@ -475,7 +473,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ccc',
     },
     or: {
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         fontSize: width * 0.03,
         marginHorizontal: width * 0.025,
     },
@@ -488,7 +486,7 @@ const styles = StyleSheet.create({
         borderColor: '#B6B6B6',
         borderRadius: width * 0.035,
         // alignItems: 'center',
-       
+
     },
     googleBtnInner: {
         flexDirection: 'row',
@@ -499,7 +497,7 @@ const styles = StyleSheet.create({
     googleText: {
         marginLeft: width * 0.025,
         fontSize: width * 0.032,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
     },
     appleBtn: {
         marginLeft: width * 0.015,
@@ -520,11 +518,11 @@ const styles = StyleSheet.create({
     footer: {
         marginTop: height * 0.04,
         marginBottom: height * 0.05,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         fontSize: width * 0.03,
     },
     link: {
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
     },
 });
 

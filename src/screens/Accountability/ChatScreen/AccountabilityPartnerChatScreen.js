@@ -10,42 +10,52 @@ import {
     KeyboardAvoidingView,
     Platform,
     ImageBackground,
-    Keyboard // Import Keyboard for keyboard events
+    Keyboard,
+    Dimensions,
+    Alert
 } from 'react-native';
 import LottieView from 'lottie-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
     bg,
     chatbot,
     send2,
     back,
-    circle
+    locked,
+    subscription,
+    attention
 } from '../../../assets/images';
 import { getChatbotSessionId, sendChatbotMessage, getChatbotHistory } from '../../../functions/chatbotApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import typing from '../../../assets/typing.json' // Assuming this is your typing Lottie animation
+import typing from '../../../assets/typing.json';
+import ConfirmationModal from '../../../components/ConfirmationModal';
+import AnimatedInfoBox from '../../../components/AnimatedInfoBox';
+const { height, width } = Dimensions.get('window');
 
-// Assuming your Lottie animation JSON files are located here
-const LOADING_ANIMATION = typing; // <<< IMPORTANT: Update this path
+const LOADING_ANIMATION = typing;
 
 const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
     const { partnerName } = route.params || { partnerName: 'AI Companion' };
     const { theme, isDarkMode } = useContext(ThemeContext);
-    const userId = useSelector((state) => state.auth.userId);
     const dispatch = useDispatch();
-    const isLoading = useSelector((state) => state.loader.isLoading);
+
+    const userId = useSelector((state) => state.auth.userId);
+    const userObject = useSelector((state) => state.auth.userObject);
+    const isPremiumUser = userObject?.isPremium || true;
+    console.log("UserObject.isPremium:", isPremiumUser);
+    const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
 
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [sessionId, setSessionId] = useState(null);
-    const [isBotTyping, setIsBotTyping] = useState(false);
-    const [keyboardHeight, setKeyboardHeight] = useState(0); // State to track keyboard height
-    const scrollViewRef = useRef();
+    const [isLoadingResponse, setIsLoadingResponse] = useState(true); // New state for API loading
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
-    const lottieLoadingRef = useRef(null);
-    const lottieTypingRef = useRef(null);
+    const scrollViewRef = useRef();
 
     const getTime = () =>
         new Date().toLocaleTimeString('en-US', {
@@ -55,40 +65,54 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         });
 
     useEffect(() => {
-        const initializeChat = async () => {
+        const initializeChatSessionAndHistory = async () => {
+            if (!userId) {
+                console.warn("User ID not available for chat initialization.");
+                return;
+            }
+
+            if (!isPremiumUser) {
+                setMessages([{
+                    id: 'premium-prompt-initial',
+                    text: 'Please subscribe to unlock full chat features.',
+                    sender: 'partner',
+                    time: getTime()
+                }]);
+                return;
+            }
+
             try {
                 dispatch(startLoading());
                 const newSessionId = await getChatbotSessionId();
                 setSessionId(newSessionId);
 
-                if (userId) {
-                    const oldMessages = await getChatbotHistory(userId);
-                    const formattedHistory = oldMessages.map((msg, index) => ({
-                        id: `history-${index}`,
-                        text: msg.text,
-                        sender: msg.sender === 'bot' ? 'partner' : 'me',
-                        time: new Date(msg.timestamp).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                        })
-                    }));
+                const oldMessages = await getChatbotHistory(userId);
+                const formattedHistory = oldMessages.map((msg, index) => ({
+                    id: `history-${index}`,
+                    text: msg.text,
+                    sender: msg.sender === 'bot' ? 'partner' : 'me',
+                    time: new Date(msg.timestamp).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                    })
+                }));
 
-                    setMessages(
-                        formattedHistory.length > 0
-                            ? formattedHistory
-                            : [
-                                {
-                                    id: 'bot-greeting',
-                                    text: 'Hello, how can I assist you today?',
-                                    sender: 'partner',
-                                    time: getTime()
-                                }
-                            ]
-                    );
-                }
+                setMessages(
+                    formattedHistory.length > 0
+                        ? formattedHistory
+                        : [
+                            {
+                                id: 'bot-greeting',
+                                text: 'Hello, how can I assist you today?',
+                                sender: 'partner',
+                                time: getTime()
+                            }
+                        ]
+                );
             } catch (error) {
                 console.error("Chat initialization error:", error);
+                Alert.alert("Chat Error", "Failed to start chat. Please try again later.");
                 setMessages([{
                     id: 'error-init',
                     text: 'Failed to start chat. Please try again later.',
@@ -100,9 +124,8 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
             }
         };
 
-        initializeChat();
+        initializeChatSessionAndHistory();
 
-        // Keyboard listeners for dynamic marginBottom
         const keyboardDidShowListener = Keyboard.addListener(
             'keyboardDidShow',
             (e) => {
@@ -120,18 +143,33 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [userId, dispatch]);
+    }, [userId, dispatch, isPremiumUser]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!isPremiumUser) {
+                setShowPremiumModal(true);
+            }
+            return () => {
+            };
+        }, [isPremiumUser])
+    );
 
     const handleSendMessageToBot = useCallback(
         async (messageText) => {
-            if (!sessionId) return;
+            if (!sessionId || !isPremiumUser) {
+                Alert.alert("Premium Feature", "Please subscribe to send messages.");
+                return;
+            }
 
-            setIsBotTyping(true);
+            setIsLoadingResponse(true); // Start loader before API call
 
             try {
                 const botResponse = await sendChatbotMessage(sessionId, messageText, userId);
                 const responseText = botResponse?.response || "I didn't get a clear response. Could you rephrase?";
                 const responseTokens = responseText.split(" ");
+                
+                setIsLoadingResponse(false); // Stop loader after response is received
 
                 setMessages(prev => [
                     ...prev,
@@ -144,6 +182,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                 ]);
             } catch (error) {
                 console.error("Error sending message to bot:", error);
+                Alert.alert("Message Error", `Failed to send message: ${error.message || 'Something went wrong.'}`);
                 setMessages(prev => [
                     ...prev,
                     {
@@ -153,15 +192,19 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                         time: getTime()
                     }
                 ]);
-            } finally {
-                setIsBotTyping(false);
+                setIsLoadingResponse(false); // Stop loader on error
             }
         },
-        [sessionId, userId]
+        [sessionId, userId, isPremiumUser]
     );
 
     const handleUserSendMessage = () => {
-        if (newMessage.trim() === '' || isBotTyping) return;
+        if (newMessage.trim() === '' || isLoadingResponse || !isPremiumUser) {
+            if (!isPremiumUser) {
+                Alert.alert("Premium Feature", "Please subscribe to send messages.");
+            }
+            return;
+        }
 
         const userMsg = {
             id: `user-${Date.now()}`,
@@ -177,186 +220,213 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
     };
 
     useEffect(() => {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
             scrollViewRef.current?.scrollToEnd({ animated: true });
         }, 100);
-    }, [messages, isBotTyping]);
+        return () => clearTimeout(timer);
+    }, [messages, isLoadingResponse]);
 
-    const styles = getStyles(theme, isDarkMode, keyboardHeight); // Pass keyboardHeight to styles
+    const styles = getStyles(theme, isDarkMode, keyboardHeight);
 
     return (
-        <ImageBackground source={theme.bg || bg} style={{ flex: 1 }}>
+        <ImageBackground source={bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                     <View style={styles.header}>
-                        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                            <Image source={back} style={styles.backIcon} />
-                        </TouchableOpacity>
-                        <View style={styles.partnerHeaderInfo}>
-                            <Image source={chatbot} style={styles.partnerAvatar} />
-                            <Text style={styles.partnerName}>{partnerName}</Text>
+                        <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center ", width: "auto", }}>
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                                <Image source={back} style={styles.backIcon} />
+                            </TouchableOpacity>
+                            <View style={styles.partnerHeaderInfo}>
+                                <Image source={chatbot} style={styles.partnerAvatar} />
+                                <Text style={styles.partnerName}>{partnerName}</Text>
+                            </View>
                         </View>
+                        <TouchableOpacity style={styles.controlButton1} onPress={() => setIsDisclaimerVisible(true)}>
+                            <Image source={attention} style={{ ...styles.controlIcon }} />
+                        </TouchableOpacity>
                     </View>
 
-                    {(
-                        <>
-                            <ScrollView
-                                ref={scrollViewRef}
-                                contentContainerStyle={styles.messagesContainer}
-                                showsVerticalScrollIndicator={false}
+                    <ScrollView
+                        ref={scrollViewRef}
+                        contentContainerStyle={styles.messagesContainer}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        {messages.map((msg) => (
+                            <View
+                                key={msg.id}
+                                style={[
+                                    styles.messageBubble,
+                                    msg.sender === 'me' ? styles.myMessage : styles.partnerMessage
+                                ]}
                             >
-                                {messages.map((msg) => (
-                                    <View
-                                        key={msg.id}
-                                        style={[
-                                            styles.messageBubble,
-                                            msg.sender === 'me' ? styles.myMessage : styles.partnerMessage
+                                {msg.tokens ? (
+                                    <TypewriterTokens
+                                        tokens={msg.tokens}
+                                        textStyle={[
+                                            styles.messageText,
+                                            msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
                                         ]}
-                                    >
-                                        {msg.tokens ? (
-                                            <TypewriterTokens
-                                                tokens={msg.tokens}
-                                                textStyle={[
-                                                    styles.messageText,
-                                                    msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
-                                                ]}
-                                                onTypingDone={() => setIsBotTyping(false)} // ✅ Mark bot done when typing finishes
-                                            />
-                                        ) : (
-                                            <Text style={[
-                                                styles.messageText,
-                                                msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
-                                            ]}>
-                                                {msg.text}
-                                            </Text>
-                                        )}
-
-                                    </View>
-                                ))}
-
-                                {isBotTyping && (
-                                    <View style={styles.typingIndicatorContainer}>
-                                        <View style={{ ...styles.partnerMessage, paddingHorizontal: 10, paddingVertical: 0, }}>
-                                            <LottieView
-                                                ref={lottieTypingRef}
-                                                source={typing}
-                                                autoPlay
-                                                loop
-                                                style={styles.typingLottieAnimation}
-                                            />
-                                        </View>
-                                    </View>
-                                )}
-                            </ScrollView>
-
-                            <View style={styles.inputContainer}>
-                                <TextInput
-                                    style={styles.textInput}
-                                    placeholder="Type your message"
-                                    placeholderTextColor={theme.subTextColor}
-                                    value={newMessage}
-                                    onChangeText={setNewMessage}
-                                    onSubmitEditing={handleUserSendMessage}
-                                    multiline={false}
-                                    editable={!isBotTyping}
-                                />
-                                <TouchableOpacity
-                                    onPress={handleUserSendMessage}
-                                    style={styles.sendButton}
-                                    disabled={isBotTyping} // disable when typing
-                                >
-                                    <Image
-                                        source={send2}
-                                        style={{
-                                            width: 25,
-                                            height: 25,
-                                            resizeMode: 'contain',
-                                            tintColor: isBotTyping ? 'gray' : theme.primaryColor // gray while disabled
-                                        }}
                                     />
-                                </TouchableOpacity>
-
-
+                                ) : (
+                                    <Text style={[
+                                        styles.messageText,
+                                        msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
+                                    ]}>
+                                        {msg.text}
+                                    </Text>
+                                )}
                             </View>
-                        </>
-                    )}
+                        ))}
+
+                        {/* RENDER THE TYPING ANIMATION HERE, ONLY WHEN THE API IS LOADING */}
+                        {isLoadingResponse && (
+                            <View style={[styles.messageBubble, styles.partnerMessage, styles.typingIndicatorContainer]}>
+                                <LottieView
+                                    source={LOADING_ANIMATION}
+                                    autoPlay
+                                    loop
+                                    style={styles.typingLottieAnimation}
+                                />
+                            </View>
+                        )}
+                    </ScrollView>
+
+                    <View style={styles.inputContainer}>
+                        <TextInput
+                            style={styles.textInput}
+                            placeholder="Type your message"
+                            placeholderTextColor={theme.subTextColor}
+                            value={newMessage}
+                            onChangeText={setNewMessage}
+                            onSubmitEditing={handleUserSendMessage}
+                            multiline={false}
+                            editable={!isLoadingResponse && isPremiumUser} />
+                        <TouchableOpacity
+                            onPress={handleUserSendMessage}
+                            style={styles.sendButton}
+                            disabled={isLoadingResponse || !isPremiumUser}
+                        >
+                            <Image
+                                source={send2}
+                                style={{
+                                    width: 25,
+                                    height: 25,
+                                    resizeMode: 'contain',
+                                    tintColor: (isLoadingResponse || !isPremiumUser) ? 'gray' : theme.primaryColor
+                                }}
+                            />
+                        </TouchableOpacity>
+                    </View>
                 </KeyboardAvoidingView>
             </SafeAreaView>
+
+            {showPremiumModal && (
+                <ConfirmationModal
+                    isVisible={showPremiumModal}
+                    title={"Unlock Premium Content"}
+                    message={"Subscribe to access all guided sessions, expert talks, and exclusive audio and video experiences."}
+                    icon={subscription}
+                    buttonText="Subscribe Now"
+                    onCrossClose={() => {
+                        setShowPremiumModal(false);
+                    }}
+                    onClose={() => {
+                        setShowPremiumModal(false);
+                        navigation.navigate("More", {
+                            screen: "AppSubscription",
+                        });
+                    }}
+                />
+            )}
+
+            <AnimatedInfoBox
+                isVisible={isDisclaimerVisible}
+                onClose={() => setIsDisclaimerVisible(false)}
+                title="Disclaimer"
+                message={
+                    "This chatbot provides responses for educational, informational, and entertainment purposes only. It is not a substitute for professional advice—be it medical, legal, financial, or otherwise. Always seek the guidance of qualified professionals before making decisions based on content from this chat."
+                }
+                position="center"
+                maxWidth={width * 0.85}
+            />
         </ImageBackground>
     );
 };
-const TypewriterTokens = ({ tokens, textStyle, onTypingDone }) => {
-    const [visibleLines, setVisibleLines] = useState([]);
+
+// TypewriterTokens is updated to be self-contained and not rely on an external onTypingDone callback
+const TypewriterTokens = ({ tokens, textStyle }) => {
+    const [displayedText, setDisplayedText] = useState('');
+    const intervalRef = useRef(null);
+    const fullTextRef = useRef('');
+    const charIndexRef = useRef(0);
 
     useEffect(() => {
-        const fullText = tokens.join(' ');
-        const lines = fullText.split(/\n|(?=\d+\.\s)/g).map(line => line.trim());
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
 
-        let currentLine = 0;
-        let charIndex = 0;
-        let currentText = '';
+        fullTextRef.current = tokens.join(' ');
+        charIndexRef.current = 0;
+        setDisplayedText('');
 
-        const typeNextChar = () => {
-            if (currentLine >= lines.length) {
-                clearInterval(interval);
-                onTypingDone?.(); // ✅ Notify parent that typing is done
-                return;
-            }
+        if (!fullTextRef.current) {
+            return;
+        }
 
-            if (charIndex < lines[currentLine].length) {
-                currentText += lines[currentLine][charIndex];
-                charIndex++;
-
-                setVisibleLines(prev => {
-                    const updated = [...prev];
-                    while (updated.length < lines.length) updated.push('');
-                    updated[currentLine] = currentText;
-                    return updated;
-                });
+        intervalRef.current = setInterval(() => {
+            if (charIndexRef.current < fullTextRef.current.length) {
+                setDisplayedText(prev => prev + fullTextRef.current[charIndexRef.current]);
+                charIndexRef.current++;
             } else {
-                currentLine++;
-                charIndex = 0;
-                currentText = '';
+                clearInterval(intervalRef.current);
+            }
+        }, 25);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
             }
         };
-
-        const interval = setInterval(typeNextChar, 25);
-        setVisibleLines(['']);
-
-        return () => clearInterval(interval);
     }, [tokens]);
 
     return (
-        <View>
-            {visibleLines.map((line, idx) => (
-                <Text key={idx} style={textStyle}>
-                    {line}
-                </Text>
-            ))}
-        </View>
+        <Text style={textStyle}>
+            {displayedText}
+        </Text>
     );
 };
 
-
+// ... (getStyles remains unchanged) ...
 const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 0 : 10 },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 20,
+        justifyContent: "center",
+        paddingHorizontal: 30,
         paddingVertical: 15,
         borderBottomWidth: 1,
-        borderBottomColor: theme.borderColor
+        borderBottomColor: theme.borderColor,
     },
     backButton: {
-        // marginRight: 10,
         padding: 5,
+        justifyContent: "flex-end",
     },
     backIcon: {
         width: 10,
         height: 10,
         resizeMode: 'contain',
         tintColor: theme.textColor,
+    },
+    controlButton1: {
+        padding: 10,
+    },
+    controlIcon: {
+        width: 20,
+        height: 20,
+        tintColor: '#FFFFFF',
+        resizeMode: 'contain',
     },
     partnerHeaderInfo: {
         flexDirection: 'row',
@@ -388,24 +458,22 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     },
     myMessage: {
         fontFamily: 'Outfit-Medium',
-
         marginRight: 0,
         alignSelf: 'flex-end',
         backgroundColor: theme.primaryColor,
         borderRadius: 15,
         borderBottomRightRadius: 1,
-        paddingHorizontal: 20, // Explicit padding
-        paddingVertical: 10,   // Explicit padding
+        paddingHorizontal: 20,
+        paddingVertical: 10,
     },
     partnerMessage: {
         fontFamily: 'Outfit-Medium',
-
         alignSelf: 'flex-start',
         backgroundColor: isDarkMode ? "#FFFFFF" : theme.borderColor,
         borderRadius: 15,
         borderBottomLeftRadius: 1,
-        paddingHorizontal: 20, // Explicit padding
-        paddingVertical: 10,   // Explicit padding
+        paddingHorizontal: 20,
+        paddingVertical: 10,
     },
     messageText: { fontSize: 13 },
     myMessageText: { color: '#FFF' },
@@ -415,8 +483,7 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        // Dynamic marginBottom based on keyboardHeight
-        marginBottom: Platform.OS === 'ios' ? "16%" : (keyboardHeight > 0 ? 130 : 95),
+        marginBottom: Platform.OS === 'ios' ? keyboardHeight : (keyboardHeight > 0 ? 130 : 95),
         paddingHorizontal: 15,
         paddingVertical: 5,
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -441,16 +508,12 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     },
     typingIndicatorContainer: {
         alignSelf: 'flex-start',
-        // marginBottom: 13,
     },
     typingLottieAnimation: {
-        width: 60,
-        // borderWidth: 2,
-        // borderColor:"red",
-        height: 40,
+        width: 300,
+        height: 50,
     },
     lottieContainer: {
-        // flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'transparent',

@@ -115,12 +115,23 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+
+     flavorDimensions "store"
+
+    productFlavors {
+        play {
+            dimension "store"
+        }
+        // amazon {
+        //     dimension "store"
+        // }
+    }
 }
 
 dependencies {
-    // The version of react-native is set by the React Native Gradle Plugin
+    
     implementation("com.facebook.react:react-android")
-    implementation 'com.google.firebase:firebase-messaging:23.4.0' // or latest
+    implementation 'com.google.firebase:firebase-messaging:23.4.0' 
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

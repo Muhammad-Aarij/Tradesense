@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 const { width } = Dimensions.get('window');
 
 const DailyBreakdownChart = ({
-    title = "Daily Breakdown",
+    title,
     defaultFilter = 'Daily',
     type = 'habit',
     navigation, // Add navigation prop
@@ -32,7 +32,7 @@ const DailyBreakdownChart = ({
     const logs = type === 'affiliate' ? affiliateLogs : habitLogs;
 
     const [dynamicChartData, setDynamicChartData] = useState([]);
-    const filterOptions = ['Daily', 'Monthly', 'Yearly'];
+    const filterOptions = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
     const styles = getStyles(theme);
 
     // Re-compute chart data when the selected filter changes OR when the
@@ -73,7 +73,47 @@ const DailyBreakdownChart = ({
                     value: count,
                     label,
                     fullDate,
-                    frontColor: i % 2 === 0 ? theme.subTextColor : theme.primaryColor,
+                    frontColor: count > 0 ? (i % 2 === 0 ? theme.subTextColor : theme.primaryColor) : 'rgba(255, 255, 255, 0.08)',
+                    topLabelComponent: count === 0 ? () => (
+                        <View style={styles.zeroValueDot}>
+                            <View style={styles.zeroValueInner} />
+                        </View>
+                    ) : null,
+                });
+            }
+        } else if (filter === 'Weekly') {
+            for (let i = 3; i >= 0; i--) { // Show past 4 weeks
+                const weekStart = new Date(now);
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay() - i * 7); // Sunday
+                weekStart.setHours(0, 0, 0, 0);
+
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6); // Saturday
+                weekEnd.setHours(23, 59, 59, 999);
+
+                const label = `W-${getWeekNumber(weekStart)}`;
+
+                const fullDate = `${weekStart.toLocaleDateString('en-US', {
+                    month: 'short', day: 'numeric'
+                })} - ${weekEnd.toLocaleDateString('en-US', {
+                    month: 'short', day: 'numeric'
+                })}`;
+
+                const count = logs.filter((log) => {
+                    const logDate = extractDate(log);
+                    return logDate >= weekStart && logDate <= weekEnd;
+                }).length;
+
+                result.push({
+                    value: count,
+                    label,
+                    fullDate,
+                    frontColor: count > 0 ? (i % 2 === 0 ? theme.subTextColor : theme.primaryColor) : 'rgba(255, 255, 255, 0.08)',
+                    topLabelComponent: count === 0 ? () => (
+                        <View style={styles.zeroValueDot}>
+                            <View style={styles.zeroValueInner} />
+                        </View>
+                    ) : null,
                 });
             }
         } else if (filter === 'Monthly') {
@@ -97,7 +137,12 @@ const DailyBreakdownChart = ({
                     value: count,
                     label,
                     fullDate,
-                    frontColor: i % 2 === 0 ? theme.subTextColor : theme.primaryColor,
+                    frontColor: count > 0 ? (i % 2 === 0 ? theme.subTextColor : theme.primaryColor) : 'rgba(255, 255, 255, 0.08)',
+                    topLabelComponent: count === 0 ? () => (
+                        <View style={styles.zeroValueDot}>
+                            <View style={styles.zeroValueInner} />
+                        </View>
+                    ) : null,
                 });
             }
         } else if (filter === 'Yearly') {
@@ -112,7 +157,12 @@ const DailyBreakdownChart = ({
                     value: count,
                     label: String(year),
                     fullDate: String(year),
-                    frontColor: i % 2 === 0 ? theme.subTextColor : theme.primaryColor,
+                    frontColor: count > 0 ? (i % 2 === 0 ? theme.subTextColor : theme.primaryColor) : 'rgba(255, 255, 255, 0.08)',
+                    topLabelComponent: count === 0 ? () => (
+                        <View style={styles.zeroValueDot}>
+                            <View style={styles.zeroValueInner} />
+                        </View>
+                    ) : null,
                 });
             }
         }
@@ -128,9 +178,23 @@ const DailyBreakdownChart = ({
         return totalValue > 0;
     };
 
+    const getWeekNumber = (date) => {
+        const tempDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const firstDay = new Date(tempDate.getFullYear(), 0, 1);
+        const pastDays = Math.floor((tempDate - firstDay) / 86400000);
+        return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
+    };
+
     const getDailyBreakdownDateText = () => {
         if (selectedFilter === 'Daily') {
             return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        } else if (selectedFilter === 'Weekly') {
+            const now = new Date();
+            const start = new Date(now);
+            start.setDate(now.getDate() - now.getDay());
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
         } else if (selectedFilter === 'Monthly') {
             return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
         } else if (selectedFilter === 'Yearly') {
@@ -142,13 +206,13 @@ const DailyBreakdownChart = ({
     return (
         <LinearGradient
             start={{ x: 0, y: 1 }} end={{ x: 0.6, y: 1 }}
-            colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
+            colors={['rgba(126,126,126,0.025)', 'rgba(255,255,255,0)']}
             style={styles.LinearGradient}
         >
             <View style={styles.dailyBreakdownContainer}>
                 <View style={styles.dailyBreakdownHeader}>
                     <View>
-                        <Text style={styles.dailyBreakdownTitle}>{title}</Text>
+                        <Text style={styles.dailyBreakdownTitle}>{title || `${selectedFilter} Breakdown`}</Text>
                         <Text style={styles.dailyBreakdownDate}>{getDailyBreakdownDateText()}</Text>
                     </View>
                     <View style={{ position: 'relative' }}>
@@ -220,7 +284,7 @@ const DailyBreakdownChart = ({
                                 renderTooltip={(item) => (
                                     <View style={styles.tooltip}>
                                         <Text style={styles.tooltipText}>Value: {item.value}</Text>
-                                        <Text style={styles.tooltipText}>Date: {item.fullDate}</Text>
+                                        <Text style={styles.tooltipText}>{item.fullDate}</Text>
                                     </View>
                                 )}
                             />
@@ -342,8 +406,9 @@ const getStyles = (theme) =>
             marginBottom: 20,
         },
         dailyBreakdownTitle: {
-            color: theme.subTextColor,
+            color: theme.textColor,
             fontSize: 16,
+            fontWeight: 'bold',
             fontFamily: 'Outfit-Black',
             marginBottom: 4,
         },
@@ -355,27 +420,36 @@ const getStyles = (theme) =>
         dropdownContainer: {
             flexDirection: 'row',
             alignItems: 'center',
-            backgroundColor: theme.primaryColor,
-            // borderWidth: 0.9,
-            // borderColor: theme.borderColor,
+            backgroundColor: theme.tabBg,
+            borderWidth: 1.5,
+            borderColor: theme.borderColor,
             borderRadius: 8,
-            paddingVertical: 7,
-            paddingHorizontal: 12,
+            paddingVertical: 10,
+            paddingLeft: 5,
+            paddingRight: 10,
+            width: 100,
             justifyContent: 'space-between',
+            elevation: 2,
+            shadowColor: theme.primaryColor,
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
         },
         dropdownArrow: {
             width: 10,
             height: 10,
             resizeMode: 'contain',
-            tintColor: '#CCCCCC',
+            tintColor: theme.textColor,
         },
         dropdownOptions: {
             position: 'absolute',
             top: 35,
             left: 0,
             width: '100%',
-            backgroundColor: theme.primaryColor,
+            backgroundColor: theme.tabBg,
             borderRadius: 8,
+            borderWidth: 0.9,
+            borderColor: theme.borderColor,
             paddingVertical: 10,
             zIndex: 1000,
         },
@@ -385,12 +459,12 @@ const getStyles = (theme) =>
             paddingHorizontal: 15,
         },
         optionText: {
-            color: 'white',
+            color: theme.textColor,
             fontSize: 12,
             fontFamily: 'Outfit-Regular',
         },
         dailyBreakdownFilter: {
-            color: '#FFF',
+            color: theme.textColor,
             fontSize: 12,
             fontFamily: 'Outfit-Medium',
             paddingHorizontal: 8,
@@ -565,6 +639,21 @@ const getStyles = (theme) =>
             color: "#fff",
             fontSize: 13,
             fontFamily: "Outfit-SemiBold",
+        },
+        zeroValueDot: {
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+            marginTop: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        zeroValueInner: {
+            width: 2,
+            height: 2,
+            borderRadius: 1,
+            backgroundColor: 'rgba(255, 255, 255, 0.6)',
         },
     });
 

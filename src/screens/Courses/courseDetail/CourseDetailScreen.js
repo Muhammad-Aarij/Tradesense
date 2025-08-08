@@ -44,8 +44,6 @@ const CourseDetailScreen = () => {
 
     // 2. Use it after definition
     const lowestPrice = getLowestPlanPrice(course?.plans);
-    const profilePicUrl = course?.profilePic;
-    console.log('Instructor profile picture URL:', profilePicUrl);
 
 
     useEffect(() => {

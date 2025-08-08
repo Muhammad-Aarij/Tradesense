@@ -37,7 +37,8 @@ const PurchasedCoursesScreen = () => {
     const { data: allCourses, isLoading: isLoadingAll, error: errorAll, refetch: refetchAll } = useCourses();
 
     // console.log(studentId);
-    console.log("All ENROLLED COurses", allCourses);
+    // console.log("All ENROLLED COurses", allCourses);
+    
     const [refreshing, setRefreshing] = useState(false);
     const overallLoading = isLoadingEnrolled && isLoadingAll;
 

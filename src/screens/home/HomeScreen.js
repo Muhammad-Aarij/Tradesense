@@ -110,7 +110,7 @@ const HomeScreen = ({ navigation }) => {
     <ImageBackground source={theme?.bg} style={styles.container1}>
       <SafeAreaView>
         <ScrollToTopWrapper>
-          <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+          <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View style={styles.header}>
               {/* Make sure `profilePic` is a string or undefined */}

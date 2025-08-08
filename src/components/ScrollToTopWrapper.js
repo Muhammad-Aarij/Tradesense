@@ -15,7 +15,7 @@ const ScrollToTopWrapper = ({ children, ...props }) => {
   );
 
   return (
-    <ScrollView ref={scrollRef} {...props}>
+    <ScrollView ref={scrollRef} {...props} showsVerticalScrollIndicator={false}>
       {children}
     </ScrollView>
   );

@@ -43,7 +43,7 @@ export const useCourses = () => {
 
 const fetchCourseDetail = async (courseId) => {
     const { data } = await axios.get(`${API_URL}/api/courses/${courseId}`);
-    console.log("Fetch COurse Detail Data of Instructor:", data.instructor);
+    // console.log("Fetch COurse Detail Data of Instructor:", data.instructor);
     return {
         Courseid: data._id,
         title: data.title,

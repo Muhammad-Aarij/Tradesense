@@ -23,7 +23,8 @@ import { ThemeContext } from '../../../context/ThemeProvider';
 import { useTradeRecords } from '../../../functions/Trades';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 
-const Trading = ({ navigation }) => {
+const Trading = ({ navigation, route }) => {
+    const selectedMood = route.params.selectedMood;
     const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
     const scrollRef = useRef(null);
@@ -129,7 +130,11 @@ const Trading = ({ navigation }) => {
         <ImageBackground source={theme.bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
                 {showExtraButtons && (
-                    <View style={styles.overlayBackground} />
+                    <TouchableOpacity
+                        style={styles.overlayBackground}
+                        onPress={() => setShowExtraButtons(false)}
+                        activeOpacity={1}
+                    />
                 )}
                 <View style={styles.floatingButtonContainer}>
                     {/* Add Data Button (Top Left of Add Button) */}
@@ -218,8 +223,9 @@ const Trading = ({ navigation }) => {
                             >
                                 <FlatList
                                     data={monthList}
+                                    contentContainerStyle={{ width: 100 }}
                                     ItemSeparatorComponent={() => (
-                                        <View style={{ height: 0.4, backgroundColor: theme.borderColor, marginHorizontal: 16, opacity: 0.5 }} />
+                                        <View style={{ backgroundColor: theme.borderColor, marginHorizontal: 16, opacity: 0.5 }} />
                                     )}
                                     keyExtractor={(item) => item.format('YYYY-MM')}
 

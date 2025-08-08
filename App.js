@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Platform } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { Platform, AppState } from "react-native"; // Import AppState
 import store from "./src/redux/store/store";
 import { Provider } from "react-redux";
 import AppNavContainer from "./src/navigation";
@@ -18,125 +18,121 @@ import Purchases from 'react-native-purchases';
 const queryClient = new QueryClient();
 
 const App = () => {
-  
-  useEffect(() => {
-    const setupRevenueCat = async () => {
-      // ✅ Enable debug logs first
-      Purchases.setDebugLogsEnabled(true);
+    const appState = useRef(AppState.currentState);
 
-      // ✅ Then configure RevenueCat
-      await Purchases.configure({
-        apiKey: Platform.select({
-          ios: 'appl_oUpJQhOOMgTrruGSdHIbPStHUNm',
-          android: 'goog_NoUVHlSMLZnJLTGBDglGNAvuYyK',
-        }),
-        // Optional: appUserID: 'user_id_123'
-      });
+    useEffect(() => {
+        const setupRevenueCat = async () => {
+            // ✅ Enable debug logs first
+            // Purchases.setDebugLogsEnabled(true);
+            // ✅ Then configure RevenueCat
+            await Purchases.configure({
+                apiKey: Platform.select({
+                    ios: 'appl_oUpJQhOOMgTrruGSdHIbPStHUNm',
+                    android: 'goog_NoUVHlSMLZnJLTGBDglGNAvuYyK',
+                }),
+                // Optional: appUserID: 'user_id_123'
+            });
+        };
 
-      // (Optional) Fetch customer info
-      const customerInfo = await Purchases.getCustomerInfo();
-      console.log('RevenueCat Entitlements:', customerInfo.entitlements.active);
-    };
+        setupRevenueCat();
+    }, []);
 
-    setupRevenueCat();
-  }, []);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
+    const [modalMessage, setModalMessage] = useState('');
 
+    useEffect(() => {
+        const initialize = async () => {
+            try {
+                GoogleSignin.configure({
+                    webClientId: GOOGLE_WEB_CLIENT_ID,
+                    iosClientId: GOOGLE_IOS_CLIENT_ID,
+                    scopes: ["profile", "email"],
+                });
 
+                if (!firebase.apps.length) {
+                    await firebase.initializeApp();
+                    console.log("✅ Firebase initialized");
+                }
 
+                await getFCMToken();
 
-  // Purchases.configure({
-  //   apiKey: Platform.select({
+                messaging().setBackgroundMessageHandler(async remoteMessage => {
+                    console.log('📩 [Background] Message handled:', remoteMessage);
+                });
 
-  //   }),
-  //   appUserID: null, // or pass your custom user ID
-  // });
+                // This listener handles the case where the user taps a notification to open the app from the background
+                const unsubscribeOpenedApp = messaging().onNotificationOpenedApp(remoteMessage => {
+                    console.log('📲 App opened from background by notification:', remoteMessage);
+                    if (remoteMessage?.notification) {
+                        setModalTitle(remoteMessage.notification.title || "Notification");
+                        setModalMessage(remoteMessage.notification.body || "");
+                        setModalVisible(true);
+                    }
+                });
 
+                // This listener handles the case where the app is opened from a quit state via a notification
+                const remoteMessage = await messaging().getInitialNotification();
+                if (remoteMessage) {
+                    console.log('🚀 App opened from quit by notification:', remoteMessage);
+                    setModalTitle(remoteMessage.notification.title || "Notification");
+                    setModalMessage(remoteMessage.notification.body || "");
+                    setModalVisible(true);
+                }
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState('');
-  const [modalMessage, setModalMessage] = useState('');
+                return () => {
+                    unsubscribeOpenedApp();
+                };
 
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        GoogleSignin.configure({
-          webClientId: GOOGLE_WEB_CLIENT_ID,
-          iosClientId: GOOGLE_IOS_CLIENT_ID,
-          scopes: ["profile", "email"],
-        });
-
-        if (!firebase.apps.length) {
-          await firebase.initializeApp();
-          console.log("✅ Firebase initialized");
-        }
-
-        await getFCMToken(); // ✅ Extracted function
-
-
-        messaging().setBackgroundMessageHandler(async remoteMessage => {
-          console.log('📩 [Background] Message handled:', remoteMessage);
-        });
-
-        messaging().onNotificationOpenedApp(remoteMessage => {
-          console.log('📲 App opened from background by notification:', remoteMessage);
-          if (remoteMessage?.notification) {
-            setModalTitle(remoteMessage.notification.title || "Notification");
-            setModalMessage(remoteMessage.notification.body || "");
-            setModalVisible(true);
-          }
-        });
-
-        messaging()
-          .getInitialNotification()
-          .then(remoteMessage => {
-            if (remoteMessage) {
-              console.log('🚀 App opened from quit by notification:', remoteMessage);
-              setModalTitle(remoteMessage.notification.title || "Notification");
-              setModalMessage(remoteMessage.notification.body || "");
-              setModalVisible(true);
+            } catch (error) {
+                console.error("🔥 Initialization error:", error.message);
             }
-          });
+        };
 
-      } catch (error) {
-        console.error("🔥 Initialization error:", error.message);
-      }
-    };
+        initialize();
+    }, []);
 
-    initialize();
-  }, []);
+    useEffect(() => {
+        const unsubscribe = messaging().onMessage(async remoteMessage => {
+            console.log("📨 [Foreground] Notification received:", remoteMessage);
+            // Only show the modal if the app is in the active state (i.e., foreground)
+            if (appState.current === 'active' && remoteMessage?.notification) {
+                setModalTitle(remoteMessage.notification.title || "Notification");
+                setModalMessage(remoteMessage.notification.body || "");
+                setModalVisible(true);
+            }
+        });
 
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      console.log("📨 [Foreground] Notification received:", remoteMessage);
-      if (remoteMessage?.notification) {
-        setModalTitle(remoteMessage.notification.title || "Notification");
-        setModalMessage(remoteMessage.notification.body || "");
-        setModalVisible(true);
-      }
-    });
+        // Add a listener to track app state changes
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            appState.current = nextAppState;
+        });
 
-    return unsubscribe;
-  }, []);
+        return () => {
+            unsubscribe();
+            subscription.remove();
+        };
+    }, []);
 
-  return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <AuthProvider>
-            {modalVisible &&
-              <ConfirmationModal
-                title={modalTitle}
-                message={modalMessage}
-                icon={notificationIcon}
-                visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-              />}
-            <AppNavContainer />
-          </AuthProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </Provider>
-  );
+    return (
+        <Provider store={store}>
+            <QueryClientProvider client={queryClient}>
+                <ThemeProvider>
+                    <AuthProvider>
+                        {modalVisible &&
+                            <ConfirmationModal
+                                title={modalTitle}
+                                message={modalMessage}
+                                icon={notificationIcon}
+                                visible={modalVisible}
+                                onClose={() => setModalVisible(false)}
+                            />}
+                        <AppNavContainer />
+                    </AuthProvider>
+                </ThemeProvider>
+            </QueryClientProvider>
+        </Provider>
+    );
 };
 
 export default App;

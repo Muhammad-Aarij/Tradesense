@@ -212,22 +212,22 @@ export default function Acc_FormData({ route }) {
       dispatch(startLoading()); // Start global loading indicator
       setUploading(true); // Set local uploading indicator
 
-      // let imageUrl = '';
-      // if (imageFile) {
-      //   const formData = new FormData();
-      //   formData.append('file', {
-      //     uri: imageFile.uri,
-      //     name: imageFile.name,
-      //     type: imageFile.type,
-      //   });
+      let imageUrl = '';
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('file', {
+          uri: imageFile.uri,
+          name: imageFile.name,
+          type: imageFile.type,
+        });
 
-      //   console.log('Uploading image...');
-      //   const imageRes = await axios.post(`${API_BASE_URL}/upload/image`, formData, {
-      //     headers: { 'Content-Type': 'multipart/form-data' },
-      //   });
-      //   imageUrl = imageRes?.data?.url || '';
-      //   console.log('Image upload response:', imageRes.data);
-      // }
+        console.log('Uploading image...');
+        const imageRes = await axios.post(`${API_BASE_URL}/api/file/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        imageUrl = imageRes?.data?.s3Url || '';
+        console.log('Image upload response:', imageRes.data);
+      }
 
       // let csvUrl = '';
       // if (csvFile) {
@@ -263,11 +263,10 @@ export default function Acc_FormData({ route }) {
         result,
         emotionalState,
         notes: reflectionNotes,
-        // chartImageUrl: imageUrl
-        // csvDocumentUrl: csvUrl,    
+        image: imageUrl
       };
 
-      console.log('Form Submitted with files:', tradeFormData);
+      console.log('Form Submitted with files:', tradeFormData.image);
       const response = await submitTrade(tradeFormData); // Use the useSubmitTrade mutation
       console.log('Trade submitted successfully:', response);
       setShowSuccessModal(true);
@@ -341,8 +340,8 @@ export default function Acc_FormData({ route }) {
               )}
             </View>
 
-            <CustomInput label="Product Name"
-              placeholder={"Enter Product Name"}
+            <CustomInput label="Stock Name"
+              placeholder={"Enter Stock Name"}
               value={stock} onChangeText={setStock} />
             <CustomPicker label="Trade Type" selectedValue={tradeType} onValueChange={setTradeType} items={tradeTypeOptions} styles={styles} theme={theme} isDarkMode={isDarkMode} />
             <CustomInput
@@ -367,7 +366,7 @@ export default function Acc_FormData({ route }) {
             {/* <CustomPicker label="Result" selectedValue={result} onValueChange={setResult} items={resultOptions} styles={styles} theme={theme} /> */}
             <CustomPicker label="Emotional State" selectedValue={emotionalState} onValueChange={setEmotionalState} items={emotionalStateOptions} styles={styles} theme={theme} isDarkMode={isDarkMode} />
             <CustomInput label="Reflection Notes" value={reflectionNotes} onChangeText={setReflectionNotes} placeholder="What happened..." isMultiline={true} />
-            {/* 
+
             <LinearGradient
               start={{ x: 0, y: 0.95 }}
               end={{ x: 1, y: 1 }}
@@ -385,7 +384,7 @@ export default function Acc_FormData({ route }) {
 
             <View style={{ height: 15, }} />
 
-            <LinearGradient
+            {/* <LinearGradient
               start={{ x: 0, y: 0.95 }}
               end={{ x: 1, y: 1 }}
               style={{
@@ -438,7 +437,7 @@ const getStyles = (theme) =>
     formContainer: { paddingBottom: 100 }, // Add extra padding to ensure content is not hidden behind keyboard
     inputGroup: { marginBottom: 15 },
     inputLabel: {
-      fontFamily: 'Inter-Medium',
+      fontFamily: 'Outfit-Medium',
       fontSize: 12,
       color: '#fff',
       marginBottom: 5,
@@ -456,7 +455,7 @@ const getStyles = (theme) =>
     },
     textInputContent: {
       color: theme.subTextColor,
-      fontFamily: 'Inter-Medium',
+      fontFamily: 'Outfit-Medium',
       fontSize: 13,
       paddingVertical: 15,
     },
@@ -472,7 +471,7 @@ const getStyles = (theme) =>
       alignItems: 'center',
     },
     pickerText: {
-      fontFamily: 'Inter-Regular',
+      fontFamily: 'Outfit-Regular',
       fontSize: 12,
       flex: 1,
     },
@@ -502,13 +501,13 @@ const getStyles = (theme) =>
     },
     pickerHeaderText: {
       fontSize: 18,
-      fontFamily: 'Inter-SemiBold',
-      fontWeight: '600',
+      fontFamily: 'Outfit-SemiBold',
+      // fontWeight: '600',
     },
     pickerDoneButton: {
       fontSize: 16,
-      fontFamily: 'Inter-Medium',
-      fontWeight: '600',
+      fontFamily: 'Outfit-Medium',
+      // fontWeight: '600',
     },
     pickerOptionsContainer: {
       paddingVertical: 10,
@@ -527,11 +526,11 @@ const getStyles = (theme) =>
     },
     pickerOptionText: {
       fontSize: 16,
-      fontFamily: 'Inter-Regular',
+      fontFamily: 'Outfit-Regular',
     },
     pickerCheckmark: {
       fontSize: 18,
-      fontFamily: 'Inter-Bold',
+      fontFamily: 'Outfit-Bold',
     },
     uploadButton: {
       backgroundColor: 'rgba(255,255,255,0.06)',
@@ -549,8 +548,8 @@ const getStyles = (theme) =>
     uploadButtonText: {
       color: theme.textColor,
       fontSize: 13,
-      fontWeight: '500',
-      fontFamily: 'Inter-Regular',
+      // fontWeight: '500',
+      fontFamily: 'Outfit-Regular',
     },
     submitButton: {
       backgroundColor: theme.primaryColor,
@@ -562,9 +561,9 @@ const getStyles = (theme) =>
     },
     submitButtonText: {
       color: '#fff',
-      fontSize: 17,
-      fontWeight: '600',
-      fontFamily: 'Inter-SemiBold',
+      fontSize: 14,
+      // fontWeight: '600',
+      fontFamily: 'Outfit-SemiBold',
     },
     modalContainer: {
       flex: 1,
@@ -582,7 +581,7 @@ const getStyles = (theme) =>
     modalText: {
       color: '#fff',
       fontSize: 16,
-      fontFamily: 'Inter-Medium',
+      fontFamily: 'Outfit-Medium',
       marginBottom: 15,
       textAlign: 'center',
     },
@@ -595,7 +594,7 @@ const getStyles = (theme) =>
     modalButtonText: {
       color: '#fff',
       fontSize: 15,
-      fontFamily: 'Inter-SemiBold',
+      fontFamily: 'Outfit-SemiBold',
     },
     iosPickerButtons: {
       flexDirection: 'row',
@@ -616,7 +615,7 @@ const getStyles = (theme) =>
     },
     iosPickerButtonText: {
       fontSize: 16,
-      fontFamily: "Inter-Medium",
-      fontWeight: "600",
+      fontFamily: "Outfit-Medium",
+      // fontWeight: "600",
     },
   });

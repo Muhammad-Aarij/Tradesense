@@ -40,7 +40,7 @@ const formatDuration = (seconds) => {
 };
 const PurchasedCourseCard = ({ course, onPress, showplaybtn = true, showUrl = true }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
-    console.log("Purchased Course Details", course);
+    // console.log("Purchased Course Details", course);
     return (
         <TouchableOpacity
             style={[

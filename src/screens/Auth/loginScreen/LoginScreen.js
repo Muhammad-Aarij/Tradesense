@@ -4,7 +4,7 @@ import {
     ImageBackground, ScrollView, Pressable, Modal, KeyboardAvoidingView, Platform,
     TouchableWithoutFeedback, Keyboard,
 } from 'react-native';
-import { bg, login as userLock, G, eyeClose, applePay, tick, fail } from '../../../assets/images';
+import { bg, login as userLock, G, eyeClose, applePay, tick, fail, eyeOpen } from '../../../assets/images';
 import themeBase from '../../../themes/theme';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import LinearGradient from 'react-native-linear-gradient';
@@ -52,6 +52,7 @@ const LoginScreen = ({ navigation, route }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const showConfirmationModal = ({ title, message, icon }) => {
         setConfirmation({
             visible: true,
@@ -137,7 +138,7 @@ const LoginScreen = ({ navigation, route }) => {
             // Extract google user details (defensive in case structure changes)
             const googleUser = response?.user || response?.data?.user || response;
             console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
-            
+
             const data = await googleLoginApi(googleUser);
             const answers = data.existingUser?.questionnaireAnswers;
 
@@ -228,14 +229,14 @@ const LoginScreen = ({ navigation, route }) => {
                         try {
                             const data = await appleLoginApi(authRes);
                             const answers = data.existingUser?.questionnaireAnswers;
-                
+
                             const isProfilingPending =
                                 !answers ||
                                 (typeof answers === 'object' && Object.keys(answers).length === 0) ||
                                 (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
-                
+
                             await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
-                
+
                             if (pendingDeepLink) {
                                 if (!isProfilingPending) dispatch(setProfilingDone(true));
                                 navigation.replace('CourseDeepLink', {
@@ -292,7 +293,7 @@ const LoginScreen = ({ navigation, route }) => {
                 backgroundColor: colours.error,
                 textColor: colours.black,
             });
-        } 
+        }
     }
 
     return (
@@ -316,11 +317,11 @@ const LoginScreen = ({ navigation, route }) => {
                             <CustomInput
                                 label="Password"
                                 placeholder="Enter your password"
-                                secureTextEntry={!passwordVisible}
+                                secureTextEntry={!isPasswordVisible}
                                 value={password}
                                 onChangeText={setPassword}
-                                icon={eyeClose}
-                                onIconPress={() => setPasswordVisible(!passwordVisible)}
+                                icon={isPasswordVisible ? eyeOpen : eyeClose}
+                                onIconPress={() => setIsPasswordVisible((prev) => !prev)}
                             />
 
                             <TouchableOpacity style={styles(theme).forgot} onPress={() => navigation.navigate('ForgotPassword')}>
@@ -343,7 +344,9 @@ const LoginScreen = ({ navigation, route }) => {
 
                             <View style={styles(theme).row}>
                                 <LinearGradient
-                                    colors={['rgba(255,255,255,0.16)', 'rgba(204,204,204,0)']}
+                                    start={{ x: 0.0, y: 0.95 }}
+                                    end={{ x: 1.0, y: 1.0 }}
+                                    colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
                                     style={styles(theme).googleBtn}
                                 >
                                     <TouchableOpacity onPress={googleSignIn} style={styles(theme).googleBtnInner}>
@@ -352,11 +355,11 @@ const LoginScreen = ({ navigation, route }) => {
                                     </TouchableOpacity>
                                 </LinearGradient>
 
-                                <TouchableOpacity 
-                                onPress={AppleLogin}
-                                style={styles(theme).appleBtn}>
+                                {/* <TouchableOpacity
+                                    onPress={AppleLogin}
+                                    style={styles(theme).appleBtn}>
                                     <Image source={applePay} style={styles(theme).socialIcon} />
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                             </View>
 
                             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
@@ -408,7 +411,7 @@ const styles = (theme) => StyleSheet.create({
     or: { fontFamily: 'Inter-Medium', color: theme.subTextColor, fontSize: width * 0.03, marginHorizontal: width * 0.025 },
     row: { flexDirection: 'row' },
     googleBtn: {
-        flexDirection: 'row', borderWidth: 0.5, borderColor: '#B6B6B6',
+        flexDirection: 'row', borderWidth: 0.2, borderColor: '#B6B6B6',
         borderRadius: width * 0.035, alignItems: 'center', height: height * 0.065,
         justifyContent: 'center', flexGrow: 1
     },

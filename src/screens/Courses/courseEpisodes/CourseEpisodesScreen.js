@@ -39,7 +39,8 @@ const CourseEpisodesScreen = ({ route }) => {
     const userId = useSelector(state => state.auth);
     const [durations, setDurations] = useState({});
     const modules = course?.courseModules || [];
-    console.log("Specific COurse Data", course)
+
+    // console.log("Specific COurse modules Data", modules)
     useEffect(() => {
         let isMounted = true;
         dispatch(startLoading());
@@ -73,17 +74,6 @@ const CourseEpisodesScreen = ({ route }) => {
     //     };
     // }, []);
 
-    const getAudioDuration = (url, id) => {
-        const sound = new Sound(url, null, (error) => {
-            if (error) {
-                console.log(`Failed to load sound for ${id}:`, error);
-                return;
-            }
-            const duration = sound.getDuration();
-            setDurations(prev => ({ ...prev, [id]: duration }));
-            sound.release(); // good practice
-        });
-    };
 
 
     useEffect(() => {
@@ -131,69 +121,69 @@ const CourseEpisodesScreen = ({ route }) => {
 
 
 
-    const playEpisode = async (episode) => {
-        try {
-            // ✅ Check if TrackPlayer is already initialized
-            const isInitialized = await TrackPlayer.getState()
-                .then(() => true)
-                .catch(() => false); // If error, not initialized
+    // const playEpisode = async (episode) => {
+    //     try {
+    //         // ✅ Check if TrackPlayer is already initialized
+    //         const isInitialized = await TrackPlayer.getState()
+    //             .then(() => true)
+    //             .catch(() => false); // If error, not initialized
 
-            if (!isInitialized) {
-                console.log("🛠 Setting up TrackPlayer...");
-                await TrackPlayer.setupPlayer();
-            }
+    //         if (!isInitialized) {
+    //             console.log("🛠 Setting up TrackPlayer...");
+    //             await TrackPlayer.setupPlayer();
+    //         }
 
-            // ✅ Reset and load the new episode
-            await TrackPlayer.reset();
-            await TrackPlayer.add({
-                id: episode._id,
-                url: episode.url,
-                title: episode.title,
-                artist: course?.instructorName || "Instructor",
-                artwork: courseImage,
-            });
-            await TrackPlayer.play();
-            setCurrentEpisode(episode);
-        } catch (error) {
-            console.log('❌ Error playing episode:', error);
-        }
-    };
-
-
-    const togglePlayback = async () => {
-        const currentState = await TrackPlayer.getState();
-        if (currentState === State.Playing) {
-            await TrackPlayer.pause();
-        } else {
-            await TrackPlayer.play();
-        }
-    };
-
-    const handleFavorite = async (episode) => {
-        console.log('Adding to favorites:', userId);
-        const result = await addToFavorites({
-            userId: userId.userId,
-            itemId: episode._id,
-            itemType: 'CourseModule',
-        });
-
-        if (result.error) {
-            console.warn('Failed to favorite:', result.error);
-        } else {
-            console.log('Favorited successfully:', result);
-        }
-    };
+    //         // ✅ Reset and load the new episode
+    //         await TrackPlayer.reset();
+    //         await TrackPlayer.add({
+    //             id: episode._id,
+    //             url: episode.url,
+    //             title: episode.title,
+    //             artist: course?.instructorName || "Instructor",
+    //             artwork: courseImage,
+    //         });
+    //         await TrackPlayer.play();
+    //         setCurrentEpisode(episode);
+    //     } catch (error) {
+    //         console.log('❌ Error playing episode:', error);
+    //     }
+    // };
 
 
-    const handleUnstar = async (ItemID) => {
-        const result = await deleteFavorite(ItemID);
+    // const togglePlayback = async () => {
+    //     const currentState = await TrackPlayer.getState();
+    //     if (currentState === State.Playing) {
+    //         await TrackPlayer.pause();
+    //     } else {
+    //         await TrackPlayer.play();
+    //     }
+    // };
 
-        if (result.error) {
-            console.warn('Failed to unstar:', result.error);
-        } else {
-            console.log('Successfully removed favorite:', result);
-        }
-    };
+    // const handleFavorite = async (episode) => {
+    //     console.log('Adding to favorites:', userId);
+    //     const result = await addToFavorites({
+    //         userId: userId.userId,
+    //         itemId: episode._id,
+    //         itemType: 'CourseModule',
+    //     });
+
+    //     if (result.error) {
+    //         console.warn('Failed to favorite:', result.error);
+    //     } else {
+    //         console.log('Favorited successfully:', result);
+    //     }
+    // };
+
+
+    // const handleUnstar = async (ItemID) => {
+    //     const result = await deleteFavorite(ItemID);
+
+    //     if (result.error) {
+    //         console.warn('Failed to unstar:', result.error);
+    //     } else {
+    //         console.log('Successfully removed favorite:', result);
+    //     }
+    // };
 
 
 
@@ -241,7 +231,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                     style={styles.timestamp}>
                                     {/* <View style={styles.inerTime, [backgroundColor: 'rgba(199, 199, 199, 0.38)',] }> */}
                                     <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
-                                    <Text style={[styles.instructorName, { color: "white", fontFamily: "Outfit-SemiBold", fontWeight: "bold" }]}>
+                                    <Text style={[styles.instructorName, { color: "white", fontFamily: "Outfit-Regular" }]}>
                                         15 min
                                     </Text>
                                     {/* </View> */}
@@ -270,6 +260,7 @@ const CourseEpisodesScreen = ({ route }) => {
                                     AudioDescr: episode.description || '',
                                     Thumbnail: courseImage,
                                     AudioUrl: episode.url,
+                                    resourceId: episode._id,
                                     shouldFetchTrack: true,
                                     InstructorData: {
                                         name: course?.instructorName,
@@ -288,11 +279,16 @@ const CourseEpisodesScreen = ({ route }) => {
                                 </View>
                                 <View style={styles.episodeInfo}>
                                     <Text style={styles.episodeTitle}>{episode.title}</Text>
-                                    <Text style={styles.episodeDuration}>
-                                        {
-                                            formatDuration(episode.duration)
-                                        }
-                                    </Text>
+                                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5, }}>
+                                        <Text style={styles.episodeDuration}>
+                                            {
+                                                formatDuration(episode.duration)
+                                            }
+                                        </Text>
+                                        <Text style={{ ...styles.episodeDuration, color: theme.textColor }}>
+                                            3 times played
+                                        </Text>
+                                    </View>
 
                                 </View>
                                 {/* <TouchableOpacity
@@ -362,7 +358,7 @@ const getStyles = (theme) => StyleSheet.create({
         right: 0,
         paddingHorizontal: 7,
         paddingVertical: 9,
-        zIndex:10,
+        zIndex: 10,
     },
 
     heading: {
@@ -370,11 +366,11 @@ const getStyles = (theme) => StyleSheet.create({
         color: theme.textColor,
         fontSize: 15,
         marginBottom: 12,
-        fontFamily: 'Outfit-Black'
+        fontFamily: 'Outfit-Bold'
     },
     timestamp: {
-        marginRight:7,
-        marginBottom:10,
+        marginRight: 7,
+        marginBottom: 10,
         borderRadius: 20,
         marginTop: 20,
         borderRadius: 50,
@@ -470,13 +466,14 @@ const getStyles = (theme) => StyleSheet.create({
     },
     episodeTitle: {
         color: theme.textColor,
-        fontSize: 12,
+        fontSize: 13,
         fontFamily: "Outfit-Regular"
     },
     episodeDuration: {
+        marginTop: 5,
         color: theme.subTextColor,
-        fontSize: 12,
-        fontFamily: "Outfit-Regular"
+        fontSize: 11,
+        fontFamily: "Outfit-Thin"
     },
     miniPlayer: {
         flexDirection: 'row',

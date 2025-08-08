@@ -42,11 +42,11 @@ export const googleLoginApi = async (googleUser) => {
 
 export const appleLoginApi = async (appleUser) => {
   console.log("Apple login api response:", appleUser);
-  
+
   // Extract name from Apple user data
   const givenName = appleUser.givenName || appleUser.fullName?.givenName || 'Apple';
   const familyName = appleUser.familyName || appleUser.fullName?.familyName || 'User';
-  
+
   // Create name field - if both are empty, use "Apple User" as default
   let name = '';
   if (givenName && familyName) {
@@ -58,7 +58,7 @@ export const appleLoginApi = async (appleUser) => {
   } else {
     name = 'Apple User'; // Default name when no name is provided
   }
-  
+
   const payload = {
     email: appleUser.email,
     profilePic: null,
@@ -73,5 +73,21 @@ export const appleLoginApi = async (appleUser) => {
   } catch (error) {
     console.error("Apple login api error:", error.response.data);
     throw error;
+  }
+};
+
+
+
+export const requestAccountDeletion = async ({ userId, reason }) => {
+  try {
+    const response = await axios.post(`${API_URL}/api/delete/requests`, {
+      userId,
+      reason,
+    });
+
+    return response.data; // You can handle success response here
+  } catch (error) {
+    console.error('Account deletion request failed:', error);
+    throw error; // Optional: rethrow for handling in UI
   }
 };

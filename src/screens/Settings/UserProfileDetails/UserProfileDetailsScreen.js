@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -11,29 +11,35 @@ import {
   Dimensions,
 } from 'react-native';
 import OptimizedImage from '../../../components/OptimizedImage';
-import { userProfile, userT, userDefault } from '../../../assets/images';
+import { userProfile, userT, userDefault, info } from '../../../assets/images';
 import Header from '../../../components/Header';
 import GradientStatCard from './GradientStatCard';
 import { useSelector } from 'react-redux';
-import { ThemeContext } from '../../../context/ThemeProvider'; // ✅ Correct theme context
+import { ThemeContext } from '../../../context/ThemeProvider';
 import { useAffiliateStats } from '../../../functions/affiliateApi';
 import { useHabitStats } from '../../../functions/habbitFunctions';
 import ProfileImage from '../../../components/ProfileImage';
+import AnimatedInfoBox from '../../../components/AnimatedInfoBox';
 const { width, height } = Dimensions.get('window');
 
 const scale = (size) => (width / 375) * size;
 const verticalScale = (size) => (height / 812) * size;
 
 const UserProfileDetailsScreen = () => {
-  const { theme } = useContext(ThemeContext); // ✅ use dynamic theme
+  const { theme } = useContext(ThemeContext);
   const styles = getStyles(theme);
   const profilePic = useSelector(state => state.auth.userObject?.profilePic);
-  console.log("P", profilePic);
   const name = useSelector(state => state.auth.userObject?.name);
   const userId = useSelector(state => state.auth.userId);
   const { data: affiliateStats = { enrolled: 0, money: 0, visited: 0 } } = useAffiliateStats(userId);
   const { data: habitStats = { total: 0, completed: 0, pending: 0, streak: 0 } } = useHabitStats(userId);
 
+  // 👇 Change 1: Use state to manage the info box content
+  const [infoBoxContent, setInfoBoxContent] = useState({
+    title: '',
+    message: '',
+    isVisible: false
+  });
 
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
@@ -42,22 +48,32 @@ const UserProfileDetailsScreen = () => {
     return 'Good Evening! 🌙';
   };
 
-  const userData = {
-    name: 'SAM SMITH',
-    title: 'Good Day',
-    avatar: userProfile,
-    totalSessions: '23145',
-    totalTime: '4h30m',
-    totalCourses: '02',
-    daysLearningStreak: 5,
-    daysLearningStreakTarget: 10,
-    weeksLearningStreak: 2,
-    weeksLearningStreakTarget: 10,
-  };
+  // 👇 Change 2: Create a function to open the info box with specific content
+  const handleInfoPress = useCallback((title, message) => {
+    setInfoBoxContent({
+      title,
+      message,
+      isVisible: true,
+    });
+  }, []);
+
+  // 👇 Change 3: Create a function to close the info box
+  const handleCloseInfoBox = useCallback(() => {
+    setInfoBoxContent(prev => ({ ...prev, isVisible: false }));
+  }, []);
 
   return (
     <ImageBackground source={theme.bg} style={styles.background}>
       <SafeAreaView style={styles.safeArea}>
+        {/* 👇 Change 4: Pass the dynamic state to AnimatedInfoBox */}
+        <AnimatedInfoBox
+          isVisible={infoBoxContent.isVisible}
+          onClose={handleCloseInfoBox}
+          title={infoBoxContent.title}
+          message={infoBoxContent.message}
+          position="center"
+        />
+
         <View style={styles.container}>
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <Header title="Profile" />
@@ -65,7 +81,7 @@ const UserProfileDetailsScreen = () => {
             {/* Profile Card */}
             <View style={styles.profileCard}>
               <View style={styles.avatarWrapper}>
-                <ProfileImage 
+                <ProfileImage
                   uri={profilePic ? `${profilePic}` : null}
                   name={name}
                   size={55}
@@ -81,12 +97,18 @@ const UserProfileDetailsScreen = () => {
             </View>
 
             {/* Stats */}
-            {/* <View style={styles.statsContainer}>
-              <GradientStatCard value={userData.totalSessions} label="Total Streaks" />
-              <GradientStatCard value={userData.totalTime} label="Total Time Spend" />
-            </View> */}
-
-            <Text style={styles.progressTitle}>Goal Statistics</Text>
+            <View style={{ flexDirection: "row", gap: 15, alignItems: "center", }}>
+              <Text style={styles.progressTitle}>Goal Statistics</Text>
+              {/* 👇 Change 5: Update onPress handler for Goal Statistics */}
+              <TouchableOpacity
+                onPress={() => handleInfoPress(
+                  'Goal Statistics',
+                  'This section tracks your personal habit progress, including total habits, completed tasks, pending items, and your current streak. It helps you stay motivated and monitor your consistency over time.'
+                )}
+              >
+                <Image source={info} style={{ width: 15, height: 15, resizeMode: "contain", tintColor: theme.primaryColor }} />
+              </TouchableOpacity>
+            </View>
             <View style={styles.statsContainer}>
               <GradientStatCard value={habitStats.streak} label="Streak" />
             </View>
@@ -96,8 +118,18 @@ const UserProfileDetailsScreen = () => {
               <GradientStatCard value={habitStats.pending} label="Pending" />
             </View>
 
-
-            <Text style={styles.progressTitle}>Affiliate Statistics</Text>
+            <View style={{ flexDirection: "row", gap: 15, alignItems: "center", }}>
+              <Text style={styles.progressTitle}>Affiliate Statistics</Text>
+              {/* 👇 Change 6: Update onPress handler for Affiliate Statistics */}
+              <TouchableOpacity
+                onPress={() => handleInfoPress(
+                  'Affiliate Statistics',
+                  'This section summarizes your affiliate performance, showing how many people visited your referral link, how many enrolled, your total earnings, and your conversion rate. It’s a snapshot of your impact and rewards from sharing the platform.'
+                )}
+              >
+                <Image source={info} style={{ width: 15, height: 15, resizeMode: "contain", tintColor: theme.primaryColor }} />
+              </TouchableOpacity>
+            </View>
             <View style={styles.statsContainer}>
               <GradientStatCard value={affiliateStats.visited} label="Visits" />
               <GradientStatCard value={affiliateStats.enrolled} label="Enrolled" />
@@ -114,20 +146,9 @@ const UserProfileDetailsScreen = () => {
                 label="Conversion Rate"
               />
             </View>
-
           </ScrollView>
         </View>
       </SafeAreaView>
-
-      {/* Fixed Footer Button */}
-      {/* <View style={styles.absoluteFooter}>
-        <View style={styles.footerWrapper}>
-          <TouchableOpacity style={styles.profileButton} onPress={() => console.log('Edit Profile')}>
-            <Image source={userT} style={styles.profileButtonIcon} />
-            <Text style={styles.profileButtonText}>Profile</Text>
-          </TouchableOpacity>
-        </View>
-      </View> */}
     </ImageBackground>
   );
 };
@@ -198,6 +219,12 @@ const getStyles = (theme) => StyleSheet.create({
     color: theme.textColor,
     fontFamily: 'Outfit-Medium',
     marginVertical: verticalScale(10),
+  },
+  progressDescr: {
+    fontSize: scale(10),
+    color: theme.subTextColor,
+    fontFamily: 'Outfit-Regular',
+    marginBottom: verticalScale(14),
   },
   streakCardsRow: {
     flexDirection: 'row',

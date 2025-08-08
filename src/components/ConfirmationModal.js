@@ -1,26 +1,27 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Dimensions } from 'react-native';
-// import { BlurView } from '@react-native-community/blur';
 import { ThemeContext } from '../context/ThemeProvider';
-
-import theme from '../themes/theme';
 import LinearGradient from 'react-native-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
-const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = true, buttonText = "Continue" }) => {
+const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = true, buttonText = "Continue", onCrossClose }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
+
+    // Determine which close function to use for the cross button
+    const handleCrossClose = onCrossClose || onClose;
+
+    // Create styles dynamically based on the current theme
+    const styles = useMemo(() => getStyles(theme, isDarkMode), [theme, isDarkMode]);
 
     return (
         <Modal transparent animationType="fade" visible={isVisible} onRequestClose={onClose}>
             <View style={styles.overlay}>
-                {/* <BlurView style={styles.blurContainer} blurType="dark" blurAmount={1} /> */}
-                {/* <View style={styles.blurContainer} /> */}
                 <LinearGradient
                     start={{ x: 0.0, y: 0.0 }}
                     end={{ x: 1.0, y: 1.0 }}
-                    colors={isDarkMode 
-                        ? ['rgba(0, 0, 0, 0.9)', 'rgba(20, 20, 20, 0.95)'] 
+                    colors={isDarkMode
+                        ? ['rgba(0, 0, 0, 0.9)', 'rgba(20, 20, 20, 0.95)']
                         : ['rgba(255, 255, 255, 0.95)', 'rgba(245, 245, 245, 0.98)']
                     }
                     style={styles.modalContainer}>
@@ -34,17 +35,17 @@ const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = 
                         <Text style={[styles.title, { color: theme.textColor }]}>{title}</Text>
                         <Text style={[styles.message, { color: theme.subTextColor }]}>{message}</Text>
                         {button && (
-                            <TouchableOpacity 
-                                onPress={onClose} 
+                            <TouchableOpacity
+                                onPress={onClose}
                                 style={styles.button}
                                 activeOpacity={0.8}
                             >
                                 <Text style={styles.buttonText}>{buttonText}</Text>
                             </TouchableOpacity>
                         )}
-                        <TouchableOpacity 
-                            style={styles.closeButton} 
-                            onPress={onClose}
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={handleCrossClose}
                             activeOpacity={0.7}
                         >
                             <Text style={[styles.closeButtonText, { color: theme.subTextColor }]}>✕</Text>
@@ -52,11 +53,12 @@ const ConfirmationModal = ({ isVisible, onClose, title, message, icon, button = 
                     </View>
                 </LinearGradient>
             </View>
-        </Modal >
+        </Modal>
     );
 };
 
-const styles = StyleSheet.create({
+// Function to create styles based on theme and isDarkMode
+const getStyles = (theme, isDarkMode) => StyleSheet.create({
     overlay: {
         flex: 1,
         justifyContent: 'center',
@@ -81,7 +83,7 @@ const styles = StyleSheet.create({
     },
     modalContainerInner: {
         paddingVertical: 40,
-        paddingBottom:20,
+        paddingBottom: 20,
         paddingHorizontal: 30,
         borderRadius: 20,
         alignItems: 'center',
@@ -112,16 +114,15 @@ const styles = StyleSheet.create({
         zIndex: 1,
     },
     title: {
-        fontSize: 17,
+        fontSize: 15,
         fontFamily: "Outfit-Bold",
         color: "#EFEFEF",
         textAlign: "center",
         marginBottom: 10,
-        // lineHeight: 28,
     },
     message: {
         width: "90%",
-        fontSize: 14,
+        fontSize: 12,
         color: "#EFEFEF",
         textAlign: 'center',
         marginBottom: 30,
@@ -149,9 +150,8 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 13,
         fontFamily: "Outfit-SemiBold",
-        // fontWeight: "600",
         textAlign: 'center',
     },
     closeButton: {
@@ -168,7 +168,6 @@ const styles = StyleSheet.create({
     closeButtonText: {
         fontSize: 14,
         fontFamily: "Outfit-Medium",
-        // fontWeight: "500",
     },
 });
 
