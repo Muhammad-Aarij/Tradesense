@@ -59,7 +59,7 @@
 //         resizeMode: 'contain',
 //     },
 //     title: {
-//         fontFamily: 'Inter-Regular',
+//         fontFamily: 'Outfit-Regular',
 //         fontSize: width * 0.07,
 //         color: '#FFFFFF',
 //         textAlign: 'center',
@@ -67,7 +67,7 @@
 //         marginTop: height * 0.02,
 //     },
 //     subtitle: {
-//         fontFamily: 'Inter-Thin-BETA',
+//         fontFamily: 'Outfit-Thin-BETA',
 //         fontSize: width * 0.04,
 //         color: '#FFFFFF',
 //         textAlign: 'center',
@@ -94,6 +94,6 @@
 //     buttonText: {
 //         color: theme.primaryColor,
 //         fontSize: width * 0.042,
-//         fontFamily: 'Inter-Medium',
+//         fontFamily: 'Outfit-Medium',
 //     },
 // });

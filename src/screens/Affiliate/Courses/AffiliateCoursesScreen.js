@@ -284,9 +284,9 @@ const getStyles = (theme) => StyleSheet.create({
     container: { flex: 1, backgroundColor: '#08131F', padding: 25, paddingTop: 5 },
     listContainer: { paddingBottom: 120, marginBottom: 100 },
     messageContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
-    messageText: { color: '#FFF', fontSize: 14, fontFamily: 'Inter-Regular', marginBottom: 20, textAlign: 'center' },
+    messageText: { color: '#FFF', fontSize: 14, fontFamily: 'Outfit-Regular', marginBottom: 20, textAlign: 'center' },
     requestButton: { backgroundColor: theme.primaryColor, paddingVertical: 12, paddingHorizontal: 25, borderRadius: 28 },
-    requestButtonText: { color: '#FFF', fontSize: 12, fontFamily: 'Inter-Regular' },
+    requestButtonText: { color: '#FFF', fontSize: 12, fontFamily: 'Outfit-Regular' },
     statsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
     statCard: {
         // borderWidth: 0.9,
@@ -305,8 +305,8 @@ const getStyles = (theme) => StyleSheet.create({
         // marginBottom: 16,
         alignItems: 'flex-start',
     },
-    statLabel: { color: theme.textColor, fontSize: 20, fontFamily: 'Inter-SemiBold' },
-    statValue: { color: theme.subTextColor, fontSize: 10, fontFamily: 'Inter-Light-BETA' },
+    statLabel: { color: theme.textColor, fontSize: 20, fontFamily: 'Outfit-SemiBold' },
+    statValue: { color: theme.subTextColor, fontSize: 10, fontFamily: 'Outfit-Light-BETA' },
     noDataContainer: {
         marginTop: width * 0.3,
         alignSelf: "center",
@@ -376,7 +376,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataTitle: {
         color: theme.subTextColor,
         fontSize: 18,
-        fontFamily: 'Inter-Bold',
+        fontFamily: 'Outfit-Bold',
         marginBottom: 10,
         textAlign: 'center',
         letterSpacing: 0.3,
@@ -388,7 +388,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataSubtitle: {
         color: theme.subTextColor,
         fontSize: 14,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         textAlign: 'center',
         opacity: 0.9,
         marginBottom: 24,
@@ -417,7 +417,7 @@ const getStyles = (theme) => StyleSheet.create({
     motivationalText: {
         color: '#FFFFFF',
         fontSize: 13,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         textAlign: 'center',
         letterSpacing: 0.2,
     },
@@ -448,7 +448,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataMessage: {
         color: theme.subTextColor,
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         textAlign: 'left',
         lineHeight: 19,
         opacity: 0.9,

@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 17,
         color: '#fff',
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
     addSmallButton: {
         backgroundColor: theme.primaryColor,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     addSmallButtonText: {
         color: '#fff',
         fontSize: 14,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
     },
     sectionActions: {
 
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     smallFilterTabText: {
         color: '#aaa',
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
     },
     activeSmallFilterTabText: {
         color: '#fff',
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     dailyBreakdownFilter: {
         color: '#fff',
         fontSize: 13,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
     dropdownOptions: {
         position: 'absolute',
@@ -243,6 +243,6 @@ const styles = StyleSheet.create({
     optionText: {
         color: '#fff',
         fontSize: 13,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
 });

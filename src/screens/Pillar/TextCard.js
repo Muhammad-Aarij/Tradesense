@@ -44,12 +44,12 @@ const styles = StyleSheet.create({
   episodeTitle: {
     color: "#FFFFFF",
     fontSize: 16,
-    fontFamily: "Inter-Light-BETA",
+    fontFamily: "Outfit-Light-BETA",
   },
   episodeDuration: {
     color: "#FFF",
     fontSize: 13,
-    fontFamily: "Inter-Thin-BETA",
+    fontFamily: "Outfit-Thin-BETA",
   },
   heartButton: {
     padding: 10,

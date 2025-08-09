@@ -172,7 +172,7 @@ export default function AddGoal({ route, navigation }) {
             contentContainerStyle={styles.formContainer} 
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
+            keyboardDismissMode="Outfitactive"
             automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           >
             {/* Goal Name */}
@@ -287,13 +287,13 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 15,
   },
   inputLabel: {
-    fontFamily: "Inter-Medium",
+    fontFamily: "Outfit-Medium",
     fontSize: 12,
     color: theme.textColor,
     marginBottom: 5,
   },
   pickerTxt: {
-    fontFamily: "Inter-Medium",
+    fontFamily: "Outfit-Medium",
     fontSize: 13,
     color: "#fff",
     marginBottom: 5,
@@ -311,7 +311,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   textInputContent: {
     color: theme.subTextColor,
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
     paddingVertical: 15,
     fontSize: 13,
   },
@@ -325,7 +325,7 @@ const getStyles = (theme) => StyleSheet.create({
   picker: {
     height: 55,
     color: "#fff",
-    fontFamily: "Inter-Light-BETA",
+    fontFamily: "Outfit-Light-BETA",
     paddingVertical: 15,
     fontSize: 10,
 
@@ -363,7 +363,7 @@ const getStyles = (theme) => StyleSheet.create({
   },
   iosPickerButtonText: {
     fontSize: 16,
-    fontFamily: "Inter-Medium",
+    fontFamily: "Outfit-Medium",
     fontWeight: "600",
   },
 });

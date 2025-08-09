@@ -259,7 +259,7 @@ const HomeScreen = ({ navigation }) => {
                 <ImageBackground source={quot} style={styles.linearGradient}
                 >
                   <View style={{ ...styles.section, flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={styles.sectionTitle2}>{quotation}</Text>
+                    <Text style={{ ...styles.sectionTitle2, color: isDarkMode ? "#FFFFFF" : "#000000" }}>{quotation}</Text>
                   </View>
                 </ImageBackground>
 
@@ -431,8 +431,8 @@ const getStyles = (theme) =>
     },
     avatar: { width: 40, height: 40, borderRadius: 98, marginRight: 10 },
     bell: { width: 35, height: 35, resizeMode: 'contain', alignSelf: 'center' },
-    greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Inter-Regular' },
-    username: { color: theme.textColor, fontSize: 11, fontFamily: 'Inter-Medium', textTransform: "capitalize" },
+    greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Outfit-Regular' },
+    username: { color: theme.textColor, fontSize: 11, fontFamily: 'Outfit-Medium', textTransform: "capitalize" },
     section: {
       width: '100%',
       borderRadius: 10,
@@ -442,14 +442,14 @@ const getStyles = (theme) =>
     sectionTitle: {
       color: theme.textColor,
       fontSize: 12,
-      fontFamily: 'Inter-Medium',
+      fontFamily: 'Outfit-Medium',
       marginBottom: 5,
     },
     sectionTitle2: {
       marginRight: 10,
       color: theme.subTextColor,
       fontSize: 13,
-      fontFamily: 'Inter-Regular',
+      fontFamily: 'Outfit-Regular',
       flexWrap: 'wrap',
       flex: 1,
     },
@@ -463,7 +463,7 @@ const getStyles = (theme) =>
       color: theme.subTextColor,
       fontSize: 10,
       marginTop: 10,
-      fontFamily: 'Inter-Regular',
+      fontFamily: 'Outfit-Regular',
     },
     goalProgress: {
       flexDirection: 'row',
@@ -476,7 +476,7 @@ const getStyles = (theme) =>
       color: theme.textColor,
       fontSize: 12,
       textAlign: 'center',
-      fontFamily: 'Inter-Regular',
+      fontFamily: 'Outfit-Regular',
     },
     weekDots: {
       backgroundColor: '#70C2E8',
@@ -519,7 +519,7 @@ const getStyles = (theme) =>
     tagText: {
       color: '#fff',
       fontSize: 10,
-      fontFamily: 'Inter-Medium',
+      fontFamily: 'Outfit-Medium',
       marginLeft: 4,
     },
     tagIcon: {
@@ -543,7 +543,7 @@ const getStyles = (theme) =>
       color: '#fff',
       marginLeft: 5,
       fontSize: 9,
-      fontFamily: 'Inter-Regular',
+      fontFamily: 'Outfit-Regular',
     },
     dayContainer: {
       alignItems: 'center',

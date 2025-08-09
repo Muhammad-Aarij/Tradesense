@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState, useEffect } from 'react';
+ import React, { useContext, useMemo, useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
     Dimensions, SafeAreaView, Alert, Platform
@@ -14,10 +14,10 @@ import ConfirmationModal from '../../../components/ConfirmationModal';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 // import { enrollInCourse } from '../../../functions/Courses'; // You might not need this anymore
 import LinearGradient from 'react-native-linear-gradient';
+import SnackbarMessage from '../../../functions/SnackbarMessage';
 
 const { height, width } = Dimensions.get('window');
 
-// ------------------ Plan Card Component ------------------
 const PlanCard = ({
     title,
     price,
@@ -68,14 +68,25 @@ const PlansScreen = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const userData = useSelector(state => state.auth);
+    // console.log("UserDATA",userData.userObject.isPremium);
     const studentId = userData?.userObject?._id;
-    const { Courseid: courseId } = route.params || {};
-
+    const isPremium = userData?.userObject?.isPremium;
     const [plans, setPlans] = useState([]);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [plansFetched, setPlansFetched] = useState(false);
+    const [snackbar, setSnackbar] = useState({
+        visible: false,
+        text: '',
+        type: 'info', // can be 'success', 'error', 'info'
+    });
+    const showSnackbar = (text, type = 'info') => {
+        setSnackbar({ visible: true, text, type });
+        setTimeout(() => {
+            setSnackbar({ visible: false, text: '', type: 'info' });
+        }, 3000); // Hide after 3 seconds
+    };
 
     const checkSubscriptionStatus = async () => {
         try {
@@ -102,21 +113,36 @@ const PlansScreen = () => {
                 setIsSubscribed(subscribed);
                 setPlansFetched(true);
 
-                if (offerings.current && offerings.current.availablePackages.length > 0) {
-                    const mappedPlans = offerings.current.availablePackages.map(pkg => ({
+                if (subscribed) {
+                    showSnackbar("You already have an active subscription.", "success");
+                }
+
+                const allPackages = [];
+
+                for (const offeringId in offerings.all) {
+                    const offering = offerings.all[offeringId];
+                    const packages = offering.availablePackages || [];
+
+                    const mappedPackages = packages.map(pkg => ({
                         id: pkg.identifier,
                         title: pkg.product.title.replace(/\s*\(.*?\)\s*/g, "").trim(),
                         description: pkg.product.description,
                         price: pkg.product.priceString,
-                        package: pkg
+                        package: pkg,
+                        offeringId: offeringId,
                     }));
-                    setPlans(mappedPlans);
-                } else {
-                    setPlans([]);
+
+                    allPackages.push(...mappedPackages);
                 }
+                // console.log('====================================');
+                // console.log(plans);
+                // console.log('====================================');
+
+                setPlans(allPackages);
             } catch (error) {
                 console.error("Error fetching plans or status:", error);
                 setPlans([]);
+                showSnackbar("Failed to fetch plans. Please try again later.", "error");
             } finally {
                 dispatch(stopLoading());
             }
@@ -124,6 +150,7 @@ const PlansScreen = () => {
 
         fetchRevenueCatPlans();
     }, []);
+
 
     const handleEnroll = async (packagee) => {
         try {
@@ -138,20 +165,19 @@ const PlansScreen = () => {
                 // Extract entitlement details
                 const purchaseData = {
                     userId: studentId, // your app's user ID
-                    platform: Platform.OS,
+                    // platform: Platform.OS,
                     appUserID: customerInfo.originalAppUserId,
                     productIdentifier: entitlement.productIdentifier,
                     purchaseDate: entitlement.purchaseDate,
                     expirationDate: entitlement.expirationDate,
-                    isSandbox: customerInfo.managementURL?.includes("sandbox") || false,
+                    environment: customerInfo.managementURL?.includes("sandbox") || false,
                 };
-                console.log("purchaseData",purchaseData);
-                 // Send to backend
-                // const response = await fetch(`${API_URL}/api/store-subscription`, {
+                console.log("purchaseData", purchaseData);
+                // Send to backend
+                // const response = await fetch(`${API_URL}/api/subscription`, {
                 //     method: 'POST',
                 //     headers: {
                 //         'Content-Type': 'application/json',
-                //         Authorization: `Bearer ${userData.token}` // Optional: If you require auth
                 //     },
                 //     body: JSON.stringify(purchaseData)
                 // });
@@ -159,7 +185,9 @@ const PlansScreen = () => {
                 // if (!response.ok) {
                 //     throw new Error('Failed to store subscription in backend');
                 // }
-
+                // console.log('====================================');
+                // console.log("Response from the purchase API",response.data);
+                // console.log('====================================');
                 setModalVisible(true);
             } else {
                 Alert.alert("Purchase Failed", "The purchase was successful, but we could not verify your entitlement.");
@@ -168,11 +196,14 @@ const PlansScreen = () => {
             dispatch(stopLoading());
 
             if (error.code === Purchases.PURCHASE_CANCELLED_ERROR_CODE) {
-                Alert.alert("Purchase Cancelled", "You have cancelled the purchase.");
+                showSnackbar("You have cancelled the purchase.", "info");
+            } else if (error.message?.includes("already active for the user")) {
+                showSnackbar("You already own this subscription.", "success");
             } else {
                 console.error("❌ Purchase failed:", error);
-                Alert.alert("Purchase Error", `An error occurred: ${error.message}`);
+                showSnackbar(`An error occurred: ${error.message}`, "error");
             }
+
         } finally {
             dispatch(stopLoading());
         }
@@ -183,11 +214,10 @@ const PlansScreen = () => {
         try {
             dispatch(startLoading());
             const customerInfo = await Purchases.restorePurchases();
-            const isEntitled = customerInfo.entitlements.active["premium_access"];
+            const isEntitled = customerInfo.entitlements.active["Premium Courses Access"];
 
             if (isEntitled) {
                 Alert.alert("Success", "Your purchases have been restored!");
-                // Navigate or update state as needed
             } else {
                 Alert.alert("No Purchases Found", "No active purchases were found to restore.");
             }
@@ -201,8 +231,7 @@ const PlansScreen = () => {
 
     const handleCloseModal = () => {
         setModalVisible(false);
-        // You should navigate to the purchased courses screen or similar.
-        navigation.navigate('PurchasedCoursesScreen');
+        navigation.navigate('Home');
     };
 
     return (
@@ -217,12 +246,14 @@ const PlansScreen = () => {
 
             <ImageBackground source={theme.bg || bg} style={styles.container}>
                 <SafeAreaView>
+                    <SnackbarMessage visible={snackbar.visible} message={snackbar.text} type={snackbar.type} />
+
                     <Header title={'Subscription Plans'} />
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         {plansFetched && (
                             <>
-                                {(isSubscribed || plans.length === 0) ? (
+                                {(isPremium || plans.length === 0) ? (
                                     <View style={styles.noDataContainer}>
                                         <LinearGradient
                                             start={{ x: 0, y: 0 }}
@@ -415,7 +446,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataTitle: {
         color: theme.subTextColor,
         fontSize: 18,
-        fontFamily: 'Inter-Bold',
+        fontFamily: 'Outfit-Bold',
         marginBottom: 10,
         textAlign: 'center',
         letterSpacing: 0.3,
@@ -427,7 +458,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataSubtitle: {
         color: theme.subTextColor,
         fontSize: 14,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         textAlign: 'center',
         opacity: 0.9,
         marginBottom: 24,
@@ -456,7 +487,7 @@ const getStyles = (theme) => StyleSheet.create({
     motivationalText: {
         color: '#FFFFFF',
         fontSize: 13,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         textAlign: 'center',
         letterSpacing: 0.2,
     },
@@ -487,7 +518,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataMessage: {
         color: theme.subTextColor,
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         textAlign: 'left',
         lineHeight: 19,
         opacity: 0.9,

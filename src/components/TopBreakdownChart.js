@@ -156,54 +156,54 @@ const TopBreakdownChart = ({
         const rawMinValue = Math.min(...values);
         const rawMaxValue = Math.max(...values);
 
-        const calculateNiceInterval = (min, max, numDivisions) => {
+        const calculateNiceOutfitval = (min, max, numDivisions) => {
             const range = max - min;
             if (range === 0) {
                 return min === 0 ? 2 : Math.abs(min) * 0.2; // Adjusted for single value being 0 or non-zero
             }
 
-            const roughInterval = range / numDivisions;
-            const exponent = Math.floor(Math.log10(roughInterval));
+            const roughOutfitval = range / numDivisions;
+            const exponent = Math.floor(Math.log10(roughOutfitval));
             const base10 = Math.pow(10, exponent);
 
             let niceFraction;
-            if (roughInterval / base10 <= 1) niceFraction = 1;
-            else if (roughInterval / base10 <= 2) niceFraction = 2;
-            else if (roughInterval / base10 <= 5) niceFraction = 5;
+            if (roughOutfitval / base10 <= 1) niceFraction = 1;
+            else if (roughOutfitval / base10 <= 2) niceFraction = 2;
+            else if (roughOutfitval / base10 <= 5) niceFraction = 5;
             else niceFraction = 10;
 
             return niceFraction * base10;
         };
 
         const numSections = 5;
-        let interval = calculateNiceInterval(rawMinValue, rawMaxValue, numSections);
+        let Outfitval = calculateNiceOutfitval(rawMinValue, rawMaxValue, numSections);
 
         let yAxisMinValue;
         if (rawMinValue >= 0) {
             yAxisMinValue = 0;
         } else {
-            yAxisMinValue = Math.floor(rawMinValue / interval) * interval;
+            yAxisMinValue = Math.floor(rawMinValue / Outfitval) * Outfitval;
         }
 
-        let yAxisMaxValue = Math.ceil(rawMaxValue / interval) * interval;
+        let yAxisMaxValue = Math.ceil(rawMaxValue / Outfitval) * Outfitval;
 
         if (yAxisMaxValue <= yAxisMinValue) {
-            yAxisMaxValue = yAxisMinValue + (interval === 0 ? 10 : interval); // Ensure positive range, fallback to 10 if interval is 0
-            if (interval === 0) interval = (yAxisMaxValue - yAxisMinValue) / numSections;
+            yAxisMaxValue = yAxisMinValue + (Outfitval === 0 ? 10 : Outfitval); // Ensure positive range, fallback to 10 if Outfitval is 0
+            if (Outfitval === 0) Outfitval = (yAxisMaxValue - yAxisMinValue) / numSections;
         }
         
         while (yAxisMaxValue < rawMaxValue) {
-            yAxisMaxValue += interval;
+            yAxisMaxValue += Outfitval;
         }
         while (yAxisMinValue > rawMinValue) {
-            yAxisMinValue -= interval;
+            yAxisMinValue -= Outfitval;
         }
 
         if (rawMinValue >= 0 && yAxisMinValue < 0) {
             yAxisMinValue = 0;
         }
 
-        let noOfSections = (yAxisMaxValue - yAxisMinValue) / interval;
+        let noOfSections = (yAxisMaxValue - yAxisMinValue) / Outfitval;
         // Ensure noOfSections is an integer and at least 1
         noOfSections = Math.max(1, Math.round(noOfSections));
 
@@ -212,12 +212,12 @@ const TopBreakdownChart = ({
             noOfSections = 1;
         } else if (noOfSections === 0 && yAxisMaxValue === yAxisMinValue) {
             yAxisMaxValue = yAxisMinValue + 10;
-            interval = 2;
+            Outfitval = 2;
             noOfSections = 5;
         }
 
 
-        return { min: yAxisMinValue, max: yAxisMaxValue, noOfSections, step: interval };
+        return { min: yAxisMinValue, max: yAxisMaxValue, noOfSections, step: Outfitval };
     }, [chartData]);
 
 
@@ -375,9 +375,9 @@ const TopBreakdownChart = ({
                                 endFillColor={theme.backgroundColor}
                                 startOpacity={0.3}
                                 endOpacity={0}
-                                pointerConfig={{
-                                    pointerStripUptoDataPoint: true,
-                                    pointerLabelComponent: (items) => {
+                                poOutfitConfig={{
+                                    poOutfitStripUptoDataPoint: true,
+                                    poOutfitLabelComponent: (items) => {
                                         return (
                                             <View style={styles.tooltip}>
                                                 <Text style={styles.tooltipText}>
@@ -468,12 +468,12 @@ const getStyles = (theme) => StyleSheet.create({
     dailyBreakdownTitle: {
         color: theme.subTextColor,
         fontSize: 16,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
     },
     dailyBreakdownDate: {
         color: theme.subTextColor,
         fontSize: 12,
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
     },
     dropdownContainer: {
         flexDirection: 'row',
@@ -508,12 +508,12 @@ const getStyles = (theme) => StyleSheet.create({
     optionText: {
         color: 'white',
         fontSize: 12,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
     dailyBreakdownFilter: {
         color: '#FFF',
         fontSize: 12,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         paddingHorizontal: 8,
     },
     chartScrollView: {
@@ -547,13 +547,13 @@ const getStyles = (theme) => StyleSheet.create({
         marginRight: 15,
         color: theme.subTextColor,
         fontSize: 12,
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
     },
     xAxisText: {
         marginBottom: 5,
         color: theme.subTextColor,
         fontSize: 12,
-        fontFamily: 'Inter-Light-BETA',
+        fontFamily: 'Outfit-Light-BETA',
     },
     tooltip: {
         backgroundColor: theme.primaryColor,
@@ -631,7 +631,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataTitle: {
         color: theme.subTextColor,
         fontSize: 18,
-        fontFamily: 'Inter-Bold',
+        fontFamily: 'Outfit-Bold',
         marginBottom: 10,
         textAlign: 'center',
         letterSpacing: 0.3,
@@ -643,7 +643,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataSubtitle: {
         color: theme.subTextColor,
         fontSize: 14,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         textAlign: 'center',
         opacity: 0.9,
         marginBottom: 24,
@@ -676,7 +676,7 @@ const getStyles = (theme) => StyleSheet.create({
     noDataMessage: {
         color: theme.subTextColor,
         fontSize: 13,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         textAlign: 'left',
         lineHeight: 19,
         opacity: 0.9,

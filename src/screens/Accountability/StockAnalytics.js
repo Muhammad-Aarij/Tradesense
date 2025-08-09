@@ -30,8 +30,8 @@ const AccountabilityScreen = ({ navigation }) => {
 
       {/* Balance Section */}
       <View style={styles.balanceSection}>
-        <Text style={{ fontSize: 13, color: "gray", fontFamily: "Inter-Thin-BETA", textTransform: "uppercase", marginBottom: 7 }}>Total Amount</Text>
-        <Text style={{ fontSize: 13, color: "black", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 5, fontFamily: "Inter-Medium", backgroundColor: "#0EEF9E", marginBottom: 15, }}>Demo</Text>
+        <Text style={{ fontSize: 13, color: "gray", fontFamily: "Outfit-Thin-BETA", textTransform: "uppercase", marginBottom: 7 }}>Total Amount</Text>
+        <Text style={{ fontSize: 13, color: "black", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 5, fontFamily: "Outfit-Medium", backgroundColor: "#0EEF9E", marginBottom: 15, }}>Demo</Text>
         <Text style={styles.balanceAmount}>€9,968.00</Text>
         <Text style={{ fontSize: 13, color: "white", fontFamily: "Barlow-Regular", marginBottom: 7 }}>
           <Text style={{ color: "#FF4E36" }}>
@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
     paddingTop: 35,
   },
   avatar: { width: 45, height: 45, borderRadius: 8, marginRight: 10 },
-  greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Inter-Regular' },
-  username: { color: theme.textColor, fontSize: 12, fontFamily: 'Inter-Medium' },
+  greeting: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Outfit-Regular' },
+  username: { color: theme.textColor, fontSize: 12, fontFamily: 'Outfit-Medium' },
   balanceSection: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   balanceAmount: {
     fontSize: 44,
-    fontFamily: "Inter-Thin-BETA",
+    fontFamily: "Outfit-Thin-BETA",
     color: 'white',
     marginBottom: 10,
   },
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontFamily: 'Outfit-SemiBold',
     color: '#EFEFEF',
   },
   watchlistItem: {

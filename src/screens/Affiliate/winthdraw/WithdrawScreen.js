@@ -89,7 +89,7 @@ const WithdrawScreen = ({ navigation, route }) => {
                                 </View>
                                 <View style={styles.historyItemRight}>
                                     <Text style={styles.historyItemAmount}>${item.amount}</Text>
-                                    <Image source={blueArrow} style={styles.historyItemArrow} />
+                                    {/* <Image source={blueArrow} style={styles.historyItemArrow} /> */}
                                 </View>
                                 </View>
                             </LinearGradient>

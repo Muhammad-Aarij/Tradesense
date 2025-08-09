@@ -396,19 +396,19 @@ const styles = (theme) => StyleSheet.create({
     },
     scrollContent: { alignItems: 'center' },
     image: { width: width * 0.45, height: height * 0.2, resizeMode: 'contain', marginTop: height * 0.01 },
-    title: { fontSize: width * 0.07, color: theme.textColor, fontFamily: 'Inter-SemiBold', marginBottom: height * 0.01 },
-    subtitle: { color: theme.subTextColor, fontSize: width * 0.03, fontFamily: 'Inter-Regular', marginBottom: height * 0.03 },
+    title: { fontSize: width * 0.07, color: theme.textColor, fontFamily: 'Outfit-SemiBold', marginBottom: height * 0.01 },
+    subtitle: { color: theme.subTextColor, fontSize: width * 0.03, fontFamily: 'Outfit-Regular', marginBottom: height * 0.03 },
     forgot: { alignSelf: 'flex-end', marginBottom: height * 0.02 },
-    forgotText: { color: theme.textColor, fontSize: width * 0.028, fontFamily: 'Inter-Medium' },
+    forgotText: { color: theme.textColor, fontSize: width * 0.028, fontFamily: 'Outfit-Medium' },
     button: {
         backgroundColor: theme.primaryColor, width: '100%',
         paddingVertical: height * 0.02, borderRadius: width * 0.035,
         marginTop: height * 0.025, alignItems: 'center'
     },
-    buttonText: { color: '#fff', fontSize: width * 0.04, fontFamily: 'Inter-SemiBold' },
+    buttonText: { color: '#fff', fontSize: width * 0.04, fontFamily: 'Outfit-SemiBold' },
     orContainer: { marginVertical: height * 0.035, flexDirection: 'row', alignItems: 'center' },
     Line: { flex: 1, height: 0.8, backgroundColor: '#ccc' },
-    or: { fontFamily: 'Inter-Medium', color: theme.subTextColor, fontSize: width * 0.03, marginHorizontal: width * 0.025 },
+    or: { fontFamily: 'Outfit-Medium', color: theme.subTextColor, fontSize: width * 0.03, marginHorizontal: width * 0.025 },
     row: { flexDirection: 'row' },
     googleBtn: {
         flexDirection: 'row', borderWidth: 0.2, borderColor: '#B6B6B6',
@@ -416,22 +416,22 @@ const styles = (theme) => StyleSheet.create({
         justifyContent: 'center', flexGrow: 1
     },
     googleBtnInner: { flexDirection: 'row', alignItems: 'center' },
-    googleText: { color: theme.textColor, marginLeft: width * 0.025, fontSize: width * 0.032, fontFamily: 'Inter-Medium' },
+    googleText: { color: theme.textColor, marginLeft: width * 0.025, fontSize: width * 0.032, fontFamily: 'Outfit-Medium' },
     appleBtn: {
         marginLeft: width * 0.015, borderWidth: 2, borderColor: '#003145',
         height: height * 0.065, width: height * 0.065, borderRadius: 100,
         justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(13,25,35,0.1)'
     },
     socialIcon: { width: width * 0.05, height: width * 0.05, resizeMode: 'contain' },
-    footer: { color: '#ccc', marginTop: height * 0.04, marginBottom: height * 0.05, fontFamily: 'Inter-Medium', fontSize: width * 0.03 },
+    footer: { color: '#ccc', marginTop: height * 0.04, marginBottom: height * 0.05, fontFamily: 'Outfit-Medium', fontSize: width * 0.03 },
     link: { color: theme.primaryColor },
 
     modalBackground: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
     modalContent: { backgroundColor: theme.bgColor, padding: 25, borderRadius: 15, alignItems: 'center' },
-    modalTitle: { color: theme.textColor, fontSize: 18, fontFamily: 'Inter-SemiBold', marginBottom: 10 },
+    modalTitle: { color: theme.textColor, fontSize: 18, fontFamily: 'Outfit-SemiBold', marginBottom: 10 },
     modalText: { color: theme.subTextColor, fontSize: 14, textAlign: 'center', marginBottom: 20 },
     modalButton: { backgroundColor: theme.primaryColor, paddingHorizontal: 30, paddingVertical: 10, borderRadius: 10 },
-    modalButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Inter-Medium' }
+    modalButtonText: { color: '#fff', fontSize: 14, fontFamily: 'Outfit-Medium' }
 });
 
 export default LoginScreen;

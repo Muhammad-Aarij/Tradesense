@@ -208,7 +208,7 @@ const Trading = ({ navigation, route }) => {
                             style={{
                                 flex: 1,
                                 justifyContent: 'center',
-                                backgroundColor: 'rgba(0,0,0,0.5)',
+                                backgroundColor: 'rgba(0,0,0,0.7)',
                             }}
                             onPress={() => setMonthPickerVisible(false)}
                             activeOpacity={1}
@@ -223,7 +223,6 @@ const Trading = ({ navigation, route }) => {
                             >
                                 <FlatList
                                     data={monthList}
-                                    contentContainerStyle={{ width: 100 }}
                                     ItemSeparatorComponent={() => (
                                         <View style={{ backgroundColor: theme.borderColor, marginHorizontal: 16, opacity: 0.5 }} />
                                     )}
@@ -231,7 +230,7 @@ const Trading = ({ navigation, route }) => {
 
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
-                                            style={{ paddingVertical: 12, paddingHorizontal: 26 }}
+                                            style={{ paddingVertical: 12, paddingHorizontal: 26,width:"100%", }}
                                             onPress={() => {
                                                 setSelectedMonth(item);
                                                 const fallback = moment(item).date(1);

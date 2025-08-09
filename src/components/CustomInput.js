@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     label: {
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         fontSize: 12,
         marginBottom: 5,
     },
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         fontSize: 13,
         paddingRight: 35,
     },

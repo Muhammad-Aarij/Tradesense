@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
     Dimensions,
@@ -13,6 +13,7 @@ import ConfirmationModal from '../../../components/ConfirmationModal';
 import { enrollInCourse } from '../../../functions/handleCourses';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { trackAffiliateVisit } from '../../../functions/affiliateApi';
+import { ThemeContext } from '../../../context/ThemeProvider';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,20 +26,22 @@ const PlanCard = ({
     studentId,
     onPress,
     isSelected,
+    theme,
+    isDarkMode,
     onEnroll
 }) => (
     <TouchableOpacity
-        style={[styles.planCard, isSelected && styles.planCardSelected]}
+        style={[styles.planCard, isSelected && styles.planCardSelected, { backgroundColor: isDarkMode ? "#000" : "#FFFFFF" }]}
         onPress={onPress}
     >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={styles.planTitle}>{title}</Text>
+            <Text style={{ ...styles.planTitle, color: theme.textColor }}>{title}</Text>
             <Text style={styles.planPrice}>${price}</Text>
         </View>
-        <View style={styles.divider} />
+        <View style={{ ...styles.divider, borderColor: theme.subTextColor }} />
         <View style={styles.featuresContainer}>
             {description
-                .replace('Plan includes :', '') // remove leading label
+                .replace('Plan includes :', '') 
                 .split('\n') // split by newlines
                 .map((line, index) => {
                     const trimmed = line.trim();
@@ -47,7 +50,7 @@ const PlanCard = ({
                     return (
                         <View key={index} style={styles.featureItem}>
                             <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
-                            <Text style={styles.featureText}>{trimmed}</Text>
+                            <Text style={{ ...styles.featureText, color: theme.textColor }}>{trimmed}</Text>
                         </View>
                     );
                 })}
@@ -69,7 +72,7 @@ const PlansScreenDeepLink = () => {
     const { plans = [], Courseid: courseId, affiliateCode } = route.params || {};
     const userData = useSelector(state => state.auth);
     const studentId = userData.userObject?._id;
-
+    const { theme, isDarkMode } = useContext(ThemeContext);
     const [selectedPlanId, setSelectedPlanId] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalTitle, setModalTitle] = useState('');
@@ -77,7 +80,7 @@ const PlansScreenDeepLink = () => {
     const [modalIcon, setModalIcon] = useState(null);
     const { isSignedIn, userToken, isProfilingDone } = useSelector(state => state.auth);
 
-     const logVisit = async () => {
+    const logVisit = async () => {
         const result = await trackAffiliateVisit({
             referrerUserId: affiliateCode,
             courseId,
@@ -138,7 +141,7 @@ const PlansScreenDeepLink = () => {
         }
     };
 
-   
+
 
     const handleCloseModal = () => {
         console.log('🔐 isSignedIn:', isSignedIn);
@@ -164,12 +167,14 @@ const PlansScreenDeepLink = () => {
                 />
             )}
 
-            <ImageBackground source={bg} style={styles.container}>
+            <ImageBackground source={theme.bg} style={styles.container}>
                 <SafeAreaView>
-                <Header title={'Memberships'} />
+                    <Header title={'Memberships'} />
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         {plans.map((plan) => (
                             <PlanCard
+                                theme={theme}
+                                isDarkMode={isDarkMode}
                                 key={plan._id}
                                 title={plan.name}
                                 price={plan.price}
@@ -202,18 +207,20 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 15,
         backgroundColor: 'rgba(255, 255, 255, 0.06)',
-        borderWidth: 0.9,
+        borderWidth: 0.2,
+        elevation: 2,
         borderColor: theme.borderColor,
         marginBottom: 25,
     },
     planCardSelected: { borderColor: theme.primaryColor },
-    planTitle: { color: '#FFFFFF', fontSize: 20, fontFamily: 'Outfit-Bold', marginBottom: 10 },
-    planPrice: { color: theme.primaryColor, fontSize: 19, fontFamily: 'Outfit-Bold', marginBottom: 15 },
+    planTitle: { color: '#FFFFFF', fontSize: 16, fontFamily: 'Outfit-Medium', marginBottom: 10 },
+    planPrice: { color: theme.primaryColor, fontSize: 15, fontFamily: 'Outfit-Bold', marginBottom: 15 },
     divider: {
         width: '100%',
         marginBottom: 15,
-        borderWidth: 0.7,
-        borderColor: theme.borderColor,
+        borderWidth: 0.3,
+        opacity: 20,
+        borderColor: theme.subTextColor,
     },
     description: {
         color: '#FFFFFF',
@@ -223,20 +230,21 @@ const styles = StyleSheet.create({
     },
     featuresContainer: { marginBottom: 20 },
     featureItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-    checkIcon: { width: 20, height: 20, resizeMode: 'contain' },
-    featureText: { color: '#FFFFFF', fontSize: 14, marginLeft: 10 },
+    checkIcon: { width: 16, height: 16, resizeMode: 'contain' },
+    featureText: { color: '#FFFFFF', fontSize: 12, marginLeft: 8 },
     checkoutButton: {
         backgroundColor: theme.primaryColor,
         width: '100%',
         padding: 12,
+        paddingVertical:10,
         borderRadius: 11,
         marginTop: 20,
         alignItems: 'center',
     },
     checkoutButtonText: {
         color: '#fff',
-        fontSize: 15,
-        fontWeight: '600',
+        fontSize: 13,
+        // fontWeight: '600',
         fontFamily: 'Outfit-SemiBold',
     },
 });

@@ -22,6 +22,7 @@ import ScrollToTopWrapper from '../../../components/ScrollToTopWrapper';
 
 const Dashboard = ({ navigation, route }) => {
   const [activeTab, setActiveTab] = useState('Accountability');
+  const [overlay, setOverlay] = useState(false);
   const name = useSelector(state => state.auth.userObject?.name);
   const { theme, isDarkMode } = useContext(ThemeContext);
   const styles = useMemo(() => getStyles(theme), [theme]);
@@ -39,6 +40,11 @@ const Dashboard = ({ navigation, route }) => {
   );
 
 
+  const handleShowExtraButtons = (value) => {
+    console.log("Show Extra Buttons:", value);
+    setOverlay(value);
+  }
+
   const getTimeBasedGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning! ☀️';
@@ -50,6 +56,9 @@ const Dashboard = ({ navigation, route }) => {
     <ImageBackground source={theme.bg} style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
       <SafeAreaView style={styles.container}>
+        {overlay && (
+          <View style={styles.overlayBackground} />
+        )}
         <ScrollToTopWrapper>
           <ScrollView contentContainerStyle={styles.scrollViewContent}>
             {/* Header */}
@@ -91,7 +100,8 @@ const Dashboard = ({ navigation, route }) => {
             {/* Content */}
             {activeTab === 'Accountability'
               ? <Accountability navigation={navigation} />
-              : <Journaling navigation={navigation} />}
+              : <Journaling navigation={navigation} onToggleExtraButtons={handleShowExtraButtons} />
+            }
           </ScrollView>
         </ScrollToTopWrapper>
       </SafeAreaView>
@@ -118,7 +128,7 @@ const getStyles = (theme) =>
       borderRadius: 88,
       marginRight: 10,
     },
-    greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Inter-Regular' },
+    greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Outfit-Regular' },
 
     username: {
       color: theme.textColor,
@@ -151,6 +161,13 @@ const getStyles = (theme) =>
       paddingVertical: 10,
       alignItems: 'center',
     },
+    overlayBackground: {
+      ...StyleSheet.absoluteFillObject, 
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      zIndex: 900, 
+    },
+
+
     activeTabText: {
       fontSize: 12,
       color: theme.onPrimary || '#FFF',

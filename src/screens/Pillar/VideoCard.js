@@ -79,19 +79,19 @@ const getStyles = (theme) => StyleSheet.create({
     durationText: {
       color: theme.textColor,
       fontSize: 10,
-      fontFamily: "Inter-Regular",
+      fontFamily: "Outfit-Regular",
     },
     title: {
       color: theme.textColor,
       fontSize: 12,
-      fontFamily: "Inter-Regular",
+      fontFamily: "Outfit-Regular",
       paddingHorizontal: 10,
       paddingTop: 8, // Adjust spacing
     },
     descr: {
       color: "rgb(161, 161, 161)",
       fontSize: 12,
-      fontFamily: "Inter-Light-BETA",
+      fontFamily: "Outfit-Light-BETA",
       paddingHorizontal: 10,
       paddingBottom: 8, // Adjust spacing
     },

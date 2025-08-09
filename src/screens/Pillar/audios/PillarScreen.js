@@ -216,12 +216,12 @@ const styles = StyleSheet.create({
     miniPlayerTitle: {
         color: '#FFFFFF',
         fontSize: 13,
-        fontFamily: "Inter-Medium"
+        fontFamily: "Outfit-Medium"
     },
     miniPlayerCourse: {
         color: '#AAAAAA',
         fontSize: 11,
-        fontFamily: "Inter-Light-BETA"
+        fontFamily: "Outfit-Light-BETA"
     },
     miniPlayerPlayPauseButton: { padding: 5 },
 });

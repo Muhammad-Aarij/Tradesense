@@ -124,7 +124,7 @@ const AccountSecurityScreen = () => {
             dispatch(startLoading());
 
             const response = await requestAccountDeletion({
-                userId: userId, // Make sure this is defined in your component
+                userId: userId, 
                 reason: deletionReason,
             });
 
@@ -134,7 +134,6 @@ const AccountSecurityScreen = () => {
                 setModalVisible(true);
                 setDeletionReason('');
                 setShowDeleteAccount(false);
-                // Optionally log out the user
                 // dispatch(logout());
             } else {
                 setModalType('error');
@@ -334,7 +333,7 @@ const getStyles = (theme) =>
         securityTextContent: { flex: 1, marginRight: 10 },
         securityItemText: {
             fontSize: scale(12),
-            fontFamily: 'Inter-Regular',
+            fontFamily: 'Outfit-Regular',
             color: theme.textColor,
         },
         securityItemDescription: {
@@ -403,7 +402,7 @@ const getStyles = (theme) =>
         profileButtonText: {
             fontSize: scale(13),
             color: 'white',
-            fontFamily: 'Inter-Medium',
+            fontFamily: 'Outfit-Medium',
         },
     });
 

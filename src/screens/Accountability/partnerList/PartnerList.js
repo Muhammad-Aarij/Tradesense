@@ -71,7 +71,7 @@ const AccountabilityPartnerListScreen = ({ navigation }) => {
                         </View>
                         <View style={{ justifyContent: "flex-end", alignItems: "flex-end" }}>
                             <Text style={styles.messageTime}>{partner.time}</Text>
-                            <Text style={{ fontFamily: "Inter-SemiBold", color: "white", backgroundColor: theme.primaryColor, borderRadius: 10, width: 20, height: 20, textAlign: "center", marginTop: 5 }}>5</Text>
+                            <Text style={{ fontFamily: "Outfit-SemiBold", color: "white", backgroundColor: theme.primaryColor, borderRadius: 10, width: 20, height: 20, textAlign: "center", marginTop: 5 }}>5</Text>
                         </View>
                     </TouchableOpacity>
                 ))}
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     connectedStatus: {
         fontSize: 14,
         color: '#FFFFFF',
-        fontFamily: "Inter-Light-BETA",
+        fontFamily: "Outfit-Light-BETA",
         marginLeft: 20,
         marginBottom: 10,
     },
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     },
     partnerName: {
         fontSize: 13,
-        fontFamily: "Inter-Medium",
+        fontFamily: "Outfit-Medium",
         color: '#FFFFFF',
         marginBottom: 1,
     },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     messageTime: {
         fontSize: 10,
         color: '#ffffff',
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         marginLeft: 10,
     },
 });

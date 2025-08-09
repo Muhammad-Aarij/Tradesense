@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     marginTop: 10,
   },
   infoContainer: {
@@ -421,13 +421,13 @@ const styles = StyleSheet.create({
   courseTitle: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Outfit-Medium',
     marginBottom: 5,
   },
   courseDescription: {
     color: '#FFF',
     fontSize: 12,
-    fontFamily: 'Inter-Light-BETA',
+    fontFamily: 'Outfit-Light-BETA',
     lineHeight: 18,
     marginBottom: 30,
   },
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   progressTime: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Outfit-Regular',
     width: 35,
     textAlign: 'center',
   },

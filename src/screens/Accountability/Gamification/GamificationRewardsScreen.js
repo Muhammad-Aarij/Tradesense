@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         color: theme.textColor,
-        fontFamily: 'Inter-SemiBold',
+        fontFamily: 'Outfit-SemiBold',
         position: 'absolute',
         left: 0,
         right: 0,
@@ -195,12 +195,12 @@ const styles = StyleSheet.create({
     },
     rewardTitle: {
         fontSize: 14.5,
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         color: '#E0E0E0',
         marginBottom: 2,
     },
     rewardDescription: {
-        fontFamily: "Inter-Light",
+        fontFamily: "Outfit-Light",
         fontSize: 10,
         color: '#B0B0B0',
     },
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     },
     rewardStatusText: {
         fontSize: 12,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         color: '#FFFFFF',
     },
 });

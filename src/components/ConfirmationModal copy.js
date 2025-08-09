@@ -71,12 +71,12 @@ const styles = StyleSheet.create({
     width: 130, height: 130, resizeMode: "contain", marginBottom: 20,
   },
   title: {
-    fontSize: 16, fontFamily: "Inter-SemiBold",
+    fontSize: 16, fontFamily: "Outfit-SemiBold",
     color: "#EFEFEF", textAlign: "center", marginBottom: 8,
   },
   message: {
     fontSize: 14, color: "#EFEFEF", textAlign: 'center',
-    marginBottom: 20, fontFamily: "Inter-Regular", width: "90%",
+    marginBottom: 20, fontFamily: "Outfit-Regular", width: "90%",
   },
   button: {
     flexDirection:"row",
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 13,
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
   },
 });
 

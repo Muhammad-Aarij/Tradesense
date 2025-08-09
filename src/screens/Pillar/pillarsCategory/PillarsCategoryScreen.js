@@ -162,7 +162,7 @@ const getStyles = (theme) => StyleSheet.create({
     contentCategoryTitle: {
         color: theme.textColor,
         fontSize: 17, // text-lg
-        fontFamily: "Inter-Light-BETA",
+        fontFamily: "Outfit-Light-BETA",
         marginTop: 15, // mt-5 (approx 20px)
         marginBottom: 16, // mb-4
     },
@@ -199,7 +199,7 @@ const getStyles = (theme) => StyleSheet.create({
         marginRight: 8, // mr-2
     },
     contentCategoryButtonText: {
-        fontFamily: "Inter-Regular",
+        fontFamily: "Outfit-Regular",
         color: theme.textColor,
         fontSize: 16, // text-sm
     },
@@ -208,7 +208,7 @@ const getStyles = (theme) => StyleSheet.create({
     sectionTitle: {
         color: theme.textColor,
         fontSize: 17, // text-lg
-        fontFamily: "Inter-Light-BETA",
+        fontFamily: "Outfit-Light-BETA",
         marginBottom: 16, // mb-4
     },
     horizontalCardList: {

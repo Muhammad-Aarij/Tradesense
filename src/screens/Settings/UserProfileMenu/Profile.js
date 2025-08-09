@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
   SafeAreaView, Dimensions, ImageBackground, Alert
@@ -28,9 +28,8 @@ const verticalScale = size => (height / 812) * size;
 const UserProfileMenuScreen = ({ navigation }) => {
   const name = useSelector(state => state.auth.userObject?.name);
   const dispatch = useDispatch();
-  const { theme } = useContext(ThemeContext);
+  const { theme, isDarkMode, toggleTheme } = useContext(ThemeContext); 
   const styles = getStyles(theme);
-
   const [profileImage, setProfileImage] = useState(null);
   const [confirmation, setConfirmation] = useState({ visible: false, success: true, message: '' });
   const userId = useSelector(state => state.auth.userObject?._id);
@@ -136,6 +135,13 @@ const UserProfileMenuScreen = ({ navigation }) => {
       dispatch(stopLoading());
     }
   };
+  // New handler to log out and set theme
+  const handleLogout = useCallback(() => {
+    if (!isDarkMode) {
+      toggleTheme();
+    }
+    dispatch(logoutUser());
+  }, [isDarkMode, toggleTheme, dispatch]);
 
 
   const MenuItem = ({ icon, text, onPress }) => (
@@ -158,51 +164,51 @@ const UserProfileMenuScreen = ({ navigation }) => {
   return (
     <ImageBackground source={theme.bg} style={styles.background}>
       <SafeAreaView style={styles.safeArea}>
-      <ScrollToTopWrapper>
-      <ConfirmationModal
-        isVisible={confirmation.visible}
-        icon={confirmation.success ? tick : fail}
-        title={confirmation.success ? 'Success' : 'Failed'}
-        message={confirmation.message}
-        onClose={() => setConfirmation({ ...confirmation, visible: false })}
-      />
+        <ScrollToTopWrapper>
+          <ConfirmationModal
+            isVisible={confirmation.visible}
+            icon={confirmation.success ? tick : fail}
+            title={confirmation.success ? 'Success' : 'Failed'}
+            message={confirmation.message}
+            onClose={() => setConfirmation({ ...confirmation, visible: false })}
+          />
 
-      <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <View style={styles.profileCard}>
-            <View style={styles.avatarWrapper}>
-              <ProfileImage
-                uri={profilePic ? `${profilePic}` : null}
-                name={name}
-                size={55}
-                borderRadius={22}
-                style={styles.avatar}
-                textStyle={{ fontSize: 14, color: theme.primaryColor }}
-              />
-              <TouchableOpacity onPress={openGallery} style={styles.cameraIconWrapper}>
-                <Image source={camera} style={styles.cameraIcon} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.profileName}>{name}</Text>
-            <Text style={styles.profileSubtitle}>{getTimeBasedGreeting()}</Text>
-          </View>
+          <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.profileCard}>
+                <View style={styles.avatarWrapper}>
+                  <ProfileImage
+                    uri={profilePic ? `${profilePic}` : null}
+                    name={name}
+                    size={55}
+                    borderRadius={22}
+                    style={styles.avatar}
+                    textStyle={{ fontSize: 14, color: theme.primaryColor }}
+                  />
+                  <TouchableOpacity onPress={openGallery} style={styles.cameraIconWrapper}>
+                    <Image source={camera} style={styles.cameraIcon} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.profileName}>{name}</Text>
+                <Text style={styles.profileSubtitle}>{getTimeBasedGreeting()}</Text>
+              </View>
 
-          <View style={styles.menuItemsContainer}>
-            <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('Menu', { screen: 'UserProfileDetails' })} />
-            <MenuItem icon={p2} text="Subscription Plans" onPress={() => navigation.navigate('Menu', { screen: 'AppSubscription' })} />
-            <MenuItem icon={f} text="Courses" onPress={() => navigation.navigate('Courses')} />
-            <MenuItem icon={affiliate1} text="Affiliate" onPress={() => navigation.navigate('Affiliate')} />
-            <MenuItem icon={p3} text="Account Settings" onPress={() => navigation.navigate('Menu', { screen: 'AccountSecurity' })} />
-            <MenuItem icon={p4} text="Help Center" onPress={() => navigation.navigate('Menu', { screen: 'HelpCenter' })} />
-            <MenuItem icon={p5} text="Report a Problem" onPress={() => navigation.navigate('Menu', { screen: 'ReportProblem' })} />
-            <MenuItem icon={p6} text="About" onPress={() => navigation.navigate('Menu', { screen: 'About' })} />
-            <MenuItem icon={p7} text="Terms and Conditions" onPress={() => navigation.navigate('Menu', { screen: 'TermsAndConditions' })} />
-            <MenuItem icon={p9} text="Logout" onPress={() => dispatch(logoutUser())} />
+              <View style={styles.menuItemsContainer}>
+                <MenuItem icon={p1} text="Profile" onPress={() => navigation.navigate('Menu', { screen: 'UserProfileDetails' })} />
+                <MenuItem icon={p2} text="Subscription Plans" onPress={() => navigation.navigate('Menu', { screen: 'AppSubscription' })} />
+                <MenuItem icon={f} text="Courses" onPress={() => navigation.navigate('Courses')} />
+                <MenuItem icon={affiliate1} text="Affiliate" onPress={() => navigation.navigate('Affiliate')} />
+                <MenuItem icon={p3} text="Account Settings" onPress={() => navigation.navigate('Menu', { screen: 'AccountSecurity' })} />
+                <MenuItem icon={p4} text="Help Center" onPress={() => navigation.navigate('Menu', { screen: 'HelpCenter' })} />
+                <MenuItem icon={p5} text="Report a Problem" onPress={() => navigation.navigate('Menu', { screen: 'ReportProblem' })} />
+                <MenuItem icon={p6} text="About" onPress={() => navigation.navigate('Menu', { screen: 'About' })} />
+                <MenuItem icon={p7} text="Terms and Conditions" onPress={() => navigation.navigate('Menu', { screen: 'TermsAndConditions' })} />
+                <MenuItem icon={p9} text="Logout" onPress={handleLogout} /> 
+              </View>
+            </ScrollView>
           </View>
-        </ScrollView>
-      </View>
-      </ScrollToTopWrapper>
-    </SafeAreaView>
+        </ScrollToTopWrapper>
+      </SafeAreaView>
     </ImageBackground >
   );
 };
@@ -259,7 +265,7 @@ const getStyles = (theme) => StyleSheet.create({
     fontFamily: "Outfit-Medium",
     color: theme.textColor,
   },
-  greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Inter-Regular' },
+  greeting: { color: theme.primaryColor, fontSize: 10, fontFamily: 'Outfit-Regular' },
 
   profileSubtitle: {
     fontSize: scale(12),
@@ -278,6 +284,7 @@ const getStyles = (theme) => StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
+    overflow:"hidden",
     borderColor: theme.borderColor,
     borderRadius: scale(8),
   },

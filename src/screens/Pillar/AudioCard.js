@@ -79,7 +79,7 @@ const getStyles = (theme) => StyleSheet.create({
   episodeNumber: {
     color: theme.textColor,
     fontSize: 19.4,
-    fontFamily: "Inter-SemiBold",
+    fontFamily: "Outfit-SemiBold",
   },
   episodeInfo: {
     flex: 1,
@@ -87,12 +87,12 @@ const getStyles = (theme) => StyleSheet.create({
   episodeTitle: {
     color: theme.textColor,
     fontSize: 13,
-    fontFamily: "Inter-Regular",
+    fontFamily: "Outfit-Regular",
   },
   episodeDuration: {
     color: theme.textColor,
     fontSize: 12,
-    fontFamily: "Inter-Light-BETA",
+    fontFamily: "Outfit-Light",
   },
   heartButton: {
     padding: 10,

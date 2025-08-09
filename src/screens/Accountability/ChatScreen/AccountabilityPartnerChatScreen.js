@@ -33,6 +33,7 @@ import { ThemeContext } from '../../../context/ThemeProvider';
 import typing from '../../../assets/typing.json';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import AnimatedInfoBox from '../../../components/AnimatedInfoBox';
+
 const { height, width } = Dimensions.get('window');
 
 const LOADING_ANIMATION = typing;
@@ -45,13 +46,15 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
     const userId = useSelector((state) => state.auth.userId);
     const userObject = useSelector((state) => state.auth.userObject);
     const isPremiumUser = userObject?.isPremium || true;
-    console.log("UserObject.isPremium:", isPremiumUser);
-    const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
 
+    console.log("UserObject.isPremium:", isPremiumUser);
+
+    const [isDisclaimerVisible, setIsDisclaimerVisible] = useState(false);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [sessionId, setSessionId] = useState(null);
-    const [isLoadingResponse, setIsLoadingResponse] = useState(true); // New state for API loading
+    const [isLoadingResponse, setIsLoadingResponse] = useState(false);
+    const [isTypingDone, setIsTypingDone] = useState(true);
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
 
@@ -155,6 +158,11 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         }, [isPremiumUser])
     );
 
+    // This memoized function's reference will not change across renders
+    const handleTypingDone = useCallback(() => {
+        setIsTypingDone(true);
+    }, []);
+
     const handleSendMessageToBot = useCallback(
         async (messageText) => {
             if (!sessionId || !isPremiumUser) {
@@ -162,14 +170,15 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                 return;
             }
 
-            setIsLoadingResponse(true); // Start loader before API call
+            setIsLoadingResponse(true);
+            setIsTypingDone(false);
 
             try {
                 const botResponse = await sendChatbotMessage(sessionId, messageText, userId);
                 const responseText = botResponse?.response || "I didn't get a clear response. Could you rephrase?";
                 const responseTokens = responseText.split(" ");
-                
-                setIsLoadingResponse(false); // Stop loader after response is received
+
+                setIsLoadingResponse(false);
 
                 setMessages(prev => [
                     ...prev,
@@ -192,14 +201,15 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                         time: getTime()
                     }
                 ]);
-                setIsLoadingResponse(false); // Stop loader on error
+                setIsLoadingResponse(false);
+                setIsTypingDone(true);
             }
         },
         [sessionId, userId, isPremiumUser]
     );
 
     const handleUserSendMessage = () => {
-        if (newMessage.trim() === '' || isLoadingResponse || !isPremiumUser) {
+        if (newMessage.trim() === '' || isLoadingResponse || !isPremiumUser || !isTypingDone) {
             if (!isPremiumUser) {
                 Alert.alert("Premium Feature", "Please subscribe to send messages.");
             }
@@ -267,6 +277,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                                             styles.messageText,
                                             msg.sender === 'me' ? styles.myMessageText : styles.partnerMessageText
                                         ]}
+                                        onTypingDone={handleTypingDone} // Pass the memoized function here
                                     />
                                 ) : (
                                     <Text style={[
@@ -279,7 +290,6 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                             </View>
                         ))}
 
-                        {/* RENDER THE TYPING ANIMATION HERE, ONLY WHEN THE API IS LOADING */}
                         {isLoadingResponse && (
                             <View style={[styles.messageBubble, styles.partnerMessage, styles.typingIndicatorContainer]}>
                                 <LottieView
@@ -301,11 +311,12 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                             onChangeText={setNewMessage}
                             onSubmitEditing={handleUserSendMessage}
                             multiline={false}
-                            editable={!isLoadingResponse && isPremiumUser} />
+                            editable={!isLoadingResponse && isPremiumUser && isTypingDone}
+                        />
                         <TouchableOpacity
                             onPress={handleUserSendMessage}
                             style={styles.sendButton}
-                            disabled={isLoadingResponse || !isPremiumUser}
+                            disabled={isLoadingResponse || !isPremiumUser || newMessage.trim() === '' || !isTypingDone}
                         >
                             <Image
                                 source={send2}
@@ -313,7 +324,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
                                     width: 25,
                                     height: 25,
                                     resizeMode: 'contain',
-                                    tintColor: (isLoadingResponse || !isPremiumUser) ? 'gray' : theme.primaryColor
+                                    tintColor: (isLoadingResponse || !isPremiumUser || newMessage.trim() === '' || !isTypingDone) ? 'gray' : theme.primaryColor
                                 }}
                             />
                         </TouchableOpacity>
@@ -354,8 +365,8 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
     );
 };
 
-// TypewriterTokens is updated to be self-contained and not rely on an external onTypingDone callback
-const TypewriterTokens = ({ tokens, textStyle }) => {
+// ... TypewriterTokens and getStyles remain unchanged
+const TypewriterTokens = ({ tokens, textStyle, onTypingDone }) => {
     const [displayedText, setDisplayedText] = useState('');
     const intervalRef = useRef(null);
     const fullTextRef = useRef('');
@@ -371,6 +382,7 @@ const TypewriterTokens = ({ tokens, textStyle }) => {
         setDisplayedText('');
 
         if (!fullTextRef.current) {
+            onTypingDone();
             return;
         }
 
@@ -380,6 +392,7 @@ const TypewriterTokens = ({ tokens, textStyle }) => {
                 charIndexRef.current++;
             } else {
                 clearInterval(intervalRef.current);
+                onTypingDone();
             }
         }, 25);
 
@@ -388,7 +401,7 @@ const TypewriterTokens = ({ tokens, textStyle }) => {
                 clearInterval(intervalRef.current);
             }
         };
-    }, [tokens]);
+    }, [tokens, onTypingDone]);
 
     return (
         <Text style={textStyle}>
@@ -397,7 +410,6 @@ const TypewriterTokens = ({ tokens, textStyle }) => {
     );
 };
 
-// ... (getStyles remains unchanged) ...
 const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 0 : 10 },
     header: {
@@ -510,8 +522,8 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
         alignSelf: 'flex-start',
     },
     typingLottieAnimation: {
-        width: 300,
-        height: 50,
+        width: 50,
+        height: 30,
     },
     lottieContainer: {
         justifyContent: 'center',

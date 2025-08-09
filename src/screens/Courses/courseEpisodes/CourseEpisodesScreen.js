@@ -254,25 +254,26 @@ const CourseEpisodesScreen = ({ route }) => {
 
                     <View style={styles.episodesList}>
                         {modules.map((episode, index) => (
-                            <TouchableOpacity key={episode.id} onPress={() =>
-                                navigation.navigate('TrackPlayer', {
-                                    AudioTitle: episode.title,
-                                    AudioDescr: episode.description || '',
-                                    Thumbnail: courseImage,
-                                    AudioUrl: episode.url,
-                                    resourceId: episode._id,
-                                    shouldFetchTrack: true,
-                                    InstructorData: {
-                                        name: course?.instructorName,
-                                        email: course?.instructorInfo,
-                                        description: course?.instructorDescription,
-                                        experienceLevel: course?.instructorExperienceLevel,
-                                        image: instructorImage,
-                                        links: course?.instructorLinks
-                                    },
-                                    showInstructor: true,
-                                    navigationKey: Date.now(),
-                                })}
+                            <TouchableOpacity key={episode.id}
+                                onPress={() =>
+                                    navigation.navigate('TrackPlayer', {
+                                        AudioTitle: episode.title,
+                                        AudioDescr: episode.description || '',
+                                        Thumbnail: courseImage,
+                                        AudioUrl: episode.url,
+                                        resourceId: episode._id,
+                                        shouldFetchTrack: true,
+                                        InstructorData: {
+                                            name: course?.instructorName,
+                                            email: course?.instructorInfo,
+                                            description: course?.instructorDescription,
+                                            experienceLevel: course?.instructorExperienceLevel,
+                                            image: instructorImage,
+                                            links: course?.instructorLinks
+                                        },
+                                        showInstructor: true,
+                                        navigationKey: Date.now(),
+                                    })}
                                 style={styles.episodeItem}>
                                 <View style={styles.episodeNumberContainer}>
                                     <Text style={styles.episodeNumber}>{index + 1}</Text>

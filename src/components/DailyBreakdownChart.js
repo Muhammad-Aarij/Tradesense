@@ -225,7 +225,7 @@ const DailyBreakdownChart = ({
                                 source={back}
                                 style={{
                                     ...styles.dropdownArrow,
-                                    tintColor: "white",
+                                    tintColor: theme.primaryColor,
                                     transform: [{ rotate: filterDropdownVisible ? '90deg' : '-90deg' }]
                                 }}
                             />
@@ -407,14 +407,13 @@ const getStyles = (theme) =>
         },
         dailyBreakdownTitle: {
             color: theme.textColor,
-            fontSize: 16,
-            fontWeight: 'bold',
-            fontFamily: 'Outfit-Black',
-            marginBottom: 4,
+            fontSize: 14,
+            fontFamily: 'Outfit-Bold',
+            marginBottom: 2,
         },
         dailyBreakdownDate: {
             color: theme.subTextColor,
-            fontSize: 12,
+            fontSize: 10,
             fontFamily: 'Outfit-Light',
         },
         dropdownContainer: {

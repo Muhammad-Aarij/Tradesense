@@ -60,7 +60,7 @@ const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, the
     );
 };
 
-const Journaling = ({ navigation }) => {
+const Journaling = ({ navigation, onToggleExtraButtons }) => {
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
     const dispatch = useDispatch();
@@ -85,6 +85,12 @@ const Journaling = ({ navigation }) => {
         message: '',
         type: '', // e.g., 'success' or 'error'
     });
+
+    useEffect(() => {
+        if (onToggleExtraButtons) {
+            onToggleExtraButtons(showExtraButtons);
+        }
+    }, [showExtraButtons]);
 
     const [showExtraButtons, setShowExtraButtons] = useState(false);
 
@@ -223,51 +229,51 @@ const Journaling = ({ navigation }) => {
     };
 
     const handleCSVUpload = async () => {
-    try {
-        const result = await DocumentPicker.pick({
-            type: [DocumentPicker.types.plainText], // MIME type for .csv
-            copyTo: 'cachesDirectory', // Optional: improves compatibility across Android/iOS
-        });
+        try {
+            const result = await DocumentPicker.pick({
+                type: [DocumentPicker.types.plainText], // MIME type for .csv
+                copyTo: 'cachesDirectory', // Optional: improves compatibility across Android/iOS
+            });
 
-        const file = result[0];
+            const file = result[0];
 
-        // Optional: double-check extension
-        if (!file.name.endsWith('.csv')) {
-            Alert.alert('Invalid File', 'Please select a .csv file only.');
-            return;
-        }
+            // Optional: double-check extension
+            if (!file.name.endsWith('.csv')) {
+                Alert.alert('Invalid File', 'Please select a .csv file only.');
+                return;
+            }
 
-        dispatch(startLoading());
-        uploadCSV.mutate(file, {
-            onSuccess: (data) => {
-                console.log('CSV upload successful:', data);
-                setConfirmationTitle('Success');
-                setIcon(tick);
-                setConfirmationMessage('CSV file uploaded successfully!');
-                setIsConfirmationVisible(true);
-                setShowExtraButtons(false);
-                dispatch(stopLoading());
-            },
-            onError: (error) => {
-                console.error('CSV upload failed:', error);
+            dispatch(startLoading());
+            uploadCSV.mutate(file, {
+                onSuccess: (data) => {
+                    console.log('CSV upload successful:', data);
+                    setConfirmationTitle('Success');
+                    setIcon(tick);
+                    setConfirmationMessage('CSV file uploaded successfully!');
+                    setIsConfirmationVisible(true);
+                    setShowExtraButtons(false);
+                    dispatch(stopLoading());
+                },
+                onError: (error) => {
+                    console.error('CSV upload failed:', error);
+                    setIcon(fail);
+                    setConfirmationTitle('Upload Failed');
+                    setConfirmationMessage('Failed to upload CSV file. Please try again.');
+                    setIsConfirmationVisible(true);
+                    dispatch(stopLoading());
+                },
+            });
+
+        } catch (err) {
+            if (!DocumentPicker.isCancel(err)) {
+                console.error('Document picker error:', err);
+                setConfirmationTitle('Error');
+                setConfirmationMessage('Failed to select file. Please try again.');
                 setIcon(fail);
-                setConfirmationTitle('Upload Failed');
-                setConfirmationMessage('Failed to upload CSV file. Please try again.');
                 setIsConfirmationVisible(true);
-                dispatch(stopLoading());
-            },
-        });
-
-    } catch (err) {
-        if (!DocumentPicker.isCancel(err)) {
-            console.error('Document picker error:', err);
-            setConfirmationTitle('Error');
-            setConfirmationMessage('Failed to select file. Please try again.');
-            setIcon(fail);
-            setIsConfirmationVisible(true);
+            }
         }
-    }
-};
+    };
 
     const handleTradeItemClick = (trade) => {
         setSelectedTrade(trade);
@@ -283,10 +289,10 @@ const Journaling = ({ navigation }) => {
         return (
             <SafeAreaView style={styles.container}>
                 <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
-                <View style={styles.loadingContainer}>
+                {/* <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={theme.primaryColor} />
                     <Text style={styles.loadingText}>Loading your journal...</Text>
-                </View>
+                </View> */}
             </SafeAreaView>
         );
     }
@@ -548,16 +554,16 @@ const getStyles = (theme) =>
             padding: 20,
         },
         cardLinearGradient: {
-            borderWidth: 0.9,
+            // borderWidth: 0.9,
             borderRadius: 8,
             overflow: "hidden",
-            borderColor: theme.borderColor,
+            // borderColor: theme.borderColor,
             marginBottom: 15,
         },
         cardTitle: {
             color: theme.textColor,
-            fontSize: 14,
-            fontWeight: 'bold',
+            fontSize: 12,
+            fontFamily: 'Outfit-Bold',
             marginBottom: 5,
         },
         cardDescription: {
@@ -756,7 +762,7 @@ const getStyles = (theme) =>
         overlayBackground: {
             ...StyleSheet.absoluteFillObject, // spread this object properly
             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            zIndex: 999, // high zIndex to be on top
+            zIndex: 9, // high zIndex to be on top
         },
 
 

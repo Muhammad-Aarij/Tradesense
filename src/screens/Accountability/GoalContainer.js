@@ -213,7 +213,7 @@ const getStyles = (theme) => StyleSheet.create({
     addSmallButtonText: {
         color: '#fff',
         fontSize: 12,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
     },
     sectionActions: {
         flexDirection: 'row',
@@ -243,7 +243,7 @@ const getStyles = (theme) => StyleSheet.create({
     dailyBreakdownFilter: {
         color: theme.textColor,
         fontSize: 12,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
     dropdownOptions: {
         position: 'absolute',
@@ -261,7 +261,7 @@ const getStyles = (theme) => StyleSheet.create({
     optionText: {
         color: '#fff',
         fontSize: 13,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
     },
     emptyStateContainer: {
         justifyContent: 'center',
@@ -284,14 +284,14 @@ const getStyles = (theme) => StyleSheet.create({
     },
     emptyStateTitle: {
         fontSize: 20,
-        fontFamily: 'Inter-Bold',
+        fontFamily: 'Outfit-Bold',
         color: theme.textColor,
         marginBottom: 12,
         textAlign: 'center',
     },
     emptyStateSubtitle: {
         fontSize: 14,
-        fontFamily: 'Inter-Regular',
+        fontFamily: 'Outfit-Regular',
         color: theme.textColor,
         textAlign: 'center',
         lineHeight: 20,
@@ -315,7 +315,7 @@ const getStyles = (theme) => StyleSheet.create({
     emptyStateButtonText: {
         color: '#fff',
         fontSize: 12,
-        fontFamily: 'Inter-Medium',
+        fontFamily: 'Outfit-Medium',
         textAlign: 'center',
     },
 });
