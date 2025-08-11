@@ -124,17 +124,16 @@ const AccountSecurityScreen = () => {
             dispatch(startLoading());
 
             const response = await requestAccountDeletion({
-                userId: userId, 
+                userId: userId,
                 reason: deletionReason,
             });
 
-            if (response?.message?.toLowerCase().includes('deleted')) {
+            if (response?._id && response?.createdAt) {
                 setModalType('success');
-                setModalMessage('Your account has been successfully deleted.');
+                setModalMessage('Your account deletion request has been successfully submitted.');
                 setModalVisible(true);
                 setDeletionReason('');
-                setShowDeleteAccount(false);
-                // dispatch(logout());
+                setShowDeleteAccount(false)
             } else {
                 setModalType('error');
                 setModalMessage(response?.message || 'Unexpected response.');

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import theme from '../../../themes/theme';
 import { bg, age1, age2, age3, age4, age5, age6 } from '../../../assets/images';
+import OptimizedImage from '../../../components/OptimizedImage';
 
 const ageImageMap = {
     '18-24': age1,
@@ -63,7 +64,7 @@ const AgeScreen = ({ navigation, route }) => {
     };
 
     return (
-        <ImageBackground source={bg} style={{flex: 1}}>
+        <ImageBackground source={bg} style={{ flex: 1 }}>
             <SafeAreaView style={styles.container}>
                 <ScrollView
                     style={{ flex: 1, width: '100%' }}
@@ -92,7 +93,12 @@ const AgeScreen = ({ navigation, route }) => {
                                     ]}
                                     onPress={() => handleAgeSelection(ageOption)}
                                 >
-                                    <Image style={{ width: 38, height: 40, resizeMode: "contain" }} source={{ uri: ageOption.image }} />
+                                    <OptimizedImage
+                                        style={{ width: 38, height: 40, resizeMode: "contain" }}
+                                        uri={ageOption.image}
+                                        showLoadingIndicator={true}
+                                        resizeMode="cover"
+                                    />
                                     <Text
                                         style={[
                                             styles.optionText,

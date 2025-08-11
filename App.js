@@ -19,6 +19,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
     const appState = useRef(AppState.currentState);
+    // const userId = useSelector((state) => state.auth.userId);
 
     useEffect(() => {
         const setupRevenueCat = async () => {
@@ -30,7 +31,7 @@ const App = () => {
                     ios: 'appl_oUpJQhOOMgTrruGSdHIbPStHUNm',
                     android: 'goog_NoUVHlSMLZnJLTGBDglGNAvuYyK',
                 }),
-                // Optional: appUserID: 'user_id_123'
+                // appUserID: 
             });
         };
 

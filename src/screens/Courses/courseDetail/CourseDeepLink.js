@@ -29,7 +29,14 @@ const CourseDeepLink = () => {
 
     const [durations, setDurations] = useState({});
     const { courseId, courseTitle, affiliateCode } = route.params || {};
+    const [totalDuration, setTotalDuration] = useState(0);
 
+    useEffect(() => {
+        if (modules.length > 0) {
+            const sum = modules.reduce((acc, cur) => acc + (cur.duration || 0), 0);
+            setTotalDuration(sum);
+        }
+    }, [modules]);
     const {
         data: course,
         isLoading,

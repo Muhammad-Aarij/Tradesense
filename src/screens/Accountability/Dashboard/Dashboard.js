@@ -56,9 +56,9 @@ const Dashboard = ({ navigation, route }) => {
     <ImageBackground source={theme.bg} style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
       <SafeAreaView style={styles.container}>
-        {overlay && (
+        {/* {overlay && (
           <View style={styles.overlayBackground} />
-        )}
+        )} */}
         <ScrollToTopWrapper>
           <ScrollView contentContainerStyle={styles.scrollViewContent}>
             {/* Header */}

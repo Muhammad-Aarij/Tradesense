@@ -25,10 +25,19 @@ const CourseDetailScreen = () => {
     const route = useRoute();
     const dispatch = useDispatch();
 
+    const [totalDuration, setTotalDuration] = useState(0);
     const { theme } = useContext(ThemeContext);
     const styles = getStyles(theme);
     const [durations, setDurations] = useState({});
     const { courseId, courseTitle, affiliateToken, instructorImage } = route.params || {};
+
+    useEffect(() => {
+        if (modules.length > 0) {
+            const sum = modules.reduce((acc, cur) => acc + (cur.duration || 0), 0);
+            setTotalDuration(sum);
+        }
+    }, [modules]);
+
 
     const {
         data: course,
@@ -136,11 +145,11 @@ const CourseDetailScreen = () => {
                                             <Text style={styles.instructorSubtitle}>Instructor</Text>
                                         </View>
                                     </View>
-                                    <View style={{flexDirection:"col,"}}>
+                                    <View style={{ flexDirection: "col," }}>
                                         <Text style={[styles.price, { color: "#fff" }]}>
                                             Starting from
                                         </Text>
-                                        <Text style={[styles.price, { color: "#fff",fontSize:18,fontWeight:"bold" }]}>
+                                        <Text style={[styles.price, { color: "#fff", fontSize: 18, fontWeight: "bold" }]}>
                                             {lowestPrice} $
                                         </Text>
                                     </View>
@@ -156,18 +165,16 @@ const CourseDetailScreen = () => {
                                 {course?.description}
                             </Text>
 
-                            <LinearGradient
+                            {/* <LinearGradient
                                 start={{ x: 0.9, y: 0.95 }}
                                 end={{ x: 1.0, y: 1.0 }}
                                 colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
                                 style={styles.timestamp}>
-                                {/* <View style={styles.inerTime, [backgroundColor: 'rgba(199, 199, 199, 0.38)',] }> */}
                                 <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
                                 <Text style={[styles.instructorName, { color: theme.primaryColor, fontFamily: "Outfit-SemiBold", fontWeight: "bold" }]}>
-                                    15 min
+                                    {formatDuration(totalDuration)}
                                 </Text>
-                                {/* </View> */}
-                            </LinearGradient>
+                            </LinearGradient> */}
                         </View>
 
                         <View style={styles.divider} />

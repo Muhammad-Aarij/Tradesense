@@ -25,9 +25,9 @@ import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
 import DocumentPicker from 'react-native-document-picker';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import SnackbarMessage from '../../../../functions/SnackbarMessage';
-import TradeBottomSheet from '../../../../components/TradeBottomSheet'; // Assuming this is your bottom sheet component
+import TradeBottomSheet from '../../../../components/TradeBottomSheet'; 
 
-// Mood selection modal component
+
 const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, theme }) => {
     const modalStyles = getModalStyles(theme);
     return (
@@ -231,7 +231,7 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
     const handleCSVUpload = async () => {
         try {
             const result = await DocumentPicker.pick({
-                type: [DocumentPicker.types.plainText], // MIME type for .csv
+                type: [DocumentPicker.types.csv, DocumentPicker.types.allFiles],
                 copyTo: 'cachesDirectory', // Optional: improves compatibility across Android/iOS
             });
 
@@ -239,9 +239,14 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
 
             // Optional: double-check extension
             if (!file.name.endsWith('.csv')) {
-                Alert.alert('Invalid File', 'Please select a .csv file only.');
+                setSnackbar({
+                    visible: true,
+                    message: 'Invalid File.\nPlease select a .csv file only.',
+                    type: 'error',
+                });
+                // Alert.alert('Invalid File', 'Please select a .csv file only.');
                 return;
-            }
+            } 
 
             dispatch(startLoading());
             uploadCSV.mutate(file, {
@@ -401,7 +406,7 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
                 )}
 
                 {/* Feeling Today */}
-                <Text style={styles.sectionTitle}>How you're feeling Today?</Text>
+                <Text style={styles.sectionTitle}>How are you feeling today?</Text>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.daySelectorScroll}>
                     {moodOptions.map((item, index) => {
@@ -639,6 +644,7 @@ const getStyles = (theme) =>
             color: '#FFF',
         },
         tradesHeader: {
+            marginTop:5,
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -761,7 +767,7 @@ const getStyles = (theme) =>
         },
         overlayBackground: {
             ...StyleSheet.absoluteFillObject, // spread this object properly
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            // backgroundColor: 'rgba(0, 0, 0, 0.5)',
             zIndex: 9, // high zIndex to be on top
         },
 
@@ -770,12 +776,13 @@ const getStyles = (theme) =>
             position: 'absolute',
             right: -33,
             top: 200,
-            zIndex: 1000,
             // alignItems: 'center',
+            zIndex: 999,
         },
-
+        
         extraButtonTop: {
             position: 'absolute',
+            zIndex: 999,
             bottom: 65,
             right: 60,
             width: 80,

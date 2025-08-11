@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
-  userDefault,
   bell,
   graph,
   back,
@@ -35,6 +34,10 @@ import { getUserNotifications } from '../../functions/notifications';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ProfileImage from '../../components/ProfileImage';
 import ScrollToTopWrapper from '../../components/ScrollToTopWrapper';
+import { getUserData } from '../../functions/affiliateApi';
+import { loginApi } from '../../functions/auth';
+import { useFocusEffect } from '@react-navigation/native';
+import { updateUserData } from '../../redux/slice/authSlice';
 
 const { width, height } = Dimensions.get('window');
 
@@ -49,7 +52,10 @@ const HomeScreen = ({ navigation }) => {
   const profilePic = useSelector((state) => state.auth.userObject?.profilePic);
   const userId = useSelector((state) => state.auth.userObject?._id);
   const name = useSelector((state) => state.auth.userObject?.name);
-
+  const Token = useSelector((state) => state.auth.userToken);
+  console.log('====================================');
+  console.log("Token", Token);
+  console.log('====================================');
   const queryClient = useQueryClient();
   const {
     data: notifications,
@@ -70,6 +76,33 @@ const HomeScreen = ({ navigation }) => {
     if (hour < 17) return 'Good Afternoon! 🌤️';
     return 'Good Evening! 🌙';
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAndStoreUserData = async () => {
+        try {
+          if (!userId) return;
+
+          // Fetch main user data
+          const userData = await getUserData(userId);
+
+          // If you also need student data, make sure studentId is defined
+          console.log('====================================');
+          dispatch(updateUserData(userData));
+
+          console.log("User IS premium", userData.isPremium);
+          console.log('====================================');
+          // You can dispatch here if needed
+          // dispatch(setUserData(userData));
+
+        } catch (error) {
+          console.error('Error fetching and storing user data:', error);
+        }
+      };
+
+      fetchAndStoreUserData();
+    }, [userId, dispatch])
+  );
 
   const isDayCompleted = (dayIndex) => {
     const today = moment();

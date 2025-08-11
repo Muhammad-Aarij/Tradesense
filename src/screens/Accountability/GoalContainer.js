@@ -79,8 +79,8 @@ const handleAddGoal = async () => {
     dispatch(startLoading());
 
     try {
-        const isSubscribed = await checkSubscriptionStatus(); // check live status
-        const canAddMore = isSubscribed || goalsData.length < 5;
+        // const isSubscribed = await checkSubscriptionStatus(); // check live status
+        const canAddMore = isPremium || goalsData.length < 5;
 
         if (!canAddMore) {
             setSnackbar({

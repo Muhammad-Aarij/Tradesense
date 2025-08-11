@@ -45,7 +45,7 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
 
     const userId = useSelector((state) => state.auth.userId);
     const userObject = useSelector((state) => state.auth.userObject);
-    const isPremiumUser = userObject?.isPremium || true;
+    const isPremiumUser = userObject?.isPremium || false;
 
     console.log("UserObject.isPremium:", isPremiumUser);
 

@@ -79,15 +79,17 @@ export const appleLoginApi = async (appleUser) => {
 
 
 export const requestAccountDeletion = async ({ userId, reason }) => {
+  console.log("Deleteing User Request", userId, reason);
   try {
     const response = await axios.post(`${API_URL}/api/delete/requests`, {
-      userId,
-      reason,
+      "userId": userId,
+      "reason": reason,
     });
 
-    return response.data; // You can handle success response here
+    console.error('Account  request :', response.data);
+    return response.data;
   } catch (error) {
     console.error('Account deletion request failed:', error);
-    throw error; // Optional: rethrow for handling in UI
+    throw error;
   }
 };

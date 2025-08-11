@@ -46,6 +46,17 @@ export const getUserDetails = async (userId) => {
     }
 };
 
+export const getUserData = async (userId) => {
+    try {
+        const response = await axios.get(`${API_URL}/api/auth/users/${userId}`);
+        // const { affiliateCode, isAffiliate } = response.data.user;
+        return response.data.user;
+    } catch (error) {
+        console.error('Error fetching user details:', error.response?.data || error.message);
+        throw error;
+    }
+};
+
 
 
 

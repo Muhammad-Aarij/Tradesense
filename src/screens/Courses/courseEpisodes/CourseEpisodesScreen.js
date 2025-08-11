@@ -39,7 +39,14 @@ const CourseEpisodesScreen = ({ route }) => {
     const userId = useSelector(state => state.auth);
     const [durations, setDurations] = useState({});
     const modules = course?.courseModules || [];
+    const [totalDuration, setTotalDuration] = useState(0);
 
+    useEffect(() => {
+        if (modules.length > 0) {
+            const sum = modules.reduce((acc, cur) => acc + (cur.duration || 0), 0);
+            setTotalDuration(sum);
+        }
+    }, [modules]);
     // console.log("Specific COurse modules Data", modules)
     useEffect(() => {
         let isMounted = true;
@@ -95,6 +102,15 @@ const CourseEpisodesScreen = ({ route }) => {
         };
     }, [modules]);
 
+    function formatDuration2(minutes) {
+        if (minutes < 60) {
+            return `${minutes} min`;
+        } else {
+            const hrs = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return mins > 0 ? `${hrs} hour ${mins} min` : `${hrs} hour`;
+        }
+    }
 
     const formatDuration = (durationInSeconds) => {
         const hrs = Math.floor(durationInSeconds / 3600);
@@ -232,7 +248,8 @@ const CourseEpisodesScreen = ({ route }) => {
                                     {/* <View style={styles.inerTime, [backgroundColor: 'rgba(199, 199, 199, 0.38)',] }> */}
                                     <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
                                     <Text style={[styles.instructorName, { color: "white", fontFamily: "Outfit-Regular" }]}>
-                                        15 min
+                                        {formatDuration2(totalDuration)}
+
                                     </Text>
                                     {/* </View> */}
                                 </LinearGradient>

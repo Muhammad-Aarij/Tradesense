@@ -1,65 +1,70 @@
- import React, { useContext, useMemo, useState, useEffect } from 'react';
+import React, { useContext, useMemo, useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
-    Dimensions, SafeAreaView, Alert, Platform
+    Dimensions, SafeAreaView, Alert
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Purchases from 'react-native-purchases';
+import axios from 'axios';
 import { API_URL } from "@env";
 import { bg, CheckMark, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import ConfirmationModal from '../../../components/ConfirmationModal';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-// import { enrollInCourse } from '../../../functions/Courses'; // You might not need this anymore
 import LinearGradient from 'react-native-linear-gradient';
 import SnackbarMessage from '../../../functions/SnackbarMessage';
+import { getUserData } from '../../../functions/affiliateApi';
+import { updateUserData } from '../../../redux/slice/authSlice';
 
 const { height, width } = Dimensions.get('window');
 
-const PlanCard = ({
-    title,
-    price,
-    description,
-    onPress,
-    isSelected,
-    onEnroll,
-    styles,
-    theme
-}) => (
+// ✅ Duration formatter
+const getDurationText = (minutes) => {
+    if (minutes < 0 || isNaN(minutes)) return '';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+        return `${hours} hour${hours > 1 ? 's' : ''} ${mins} min`;
+    } else {
+        return `${mins} min`;
+    }
+};
+
+const PlanCard = ({ title, price, description, durationMinutes, onPress, isSelected, onEnroll, styles, theme }) => (
     <TouchableOpacity
         style={[styles.planCard, isSelected && styles.planCardSelected]}
         onPress={onPress}
         activeOpacity={0.9}
     >
-        <View style={{ flexDirection: 'column', justifyContent: 'space-between', width: "100%", }}>
+        <View style={{ flexDirection: 'column', justifyContent: 'space-between', width: "100%" }}>
             <Text style={[styles.planTitle, { textTransform: "capitalize" }]}>{title.replace("(trader 365)", "")}</Text>
             <Text style={styles.planPrice}>{price}</Text>
         </View>
         <View style={styles.divider} />
-        {!!description && <Text style={styles.description}>{description}</Text>}
+
+        {!!description && (
+            <Text style={styles.description}>
+                {durationMinutes ? `${description} • ${getDurationText(durationMinutes)}` : description}
+            </Text>
+        )}
+
         <View style={styles.featuresContainer}>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
-                <Text style={styles.featureText}>Full Access to Modules</Text>
-            </View>
-            <View style={styles.featureItem}>
-                <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
-                <Text style={styles.featureText}>No Time Limit</Text>
-            </View>
+            {["Full Access to Modules", "No Time Limit"].map((feature, i) => (
+                <View key={i} style={styles.featureItem}>
+                    <Image source={CheckMark} style={[styles.checkIcon, { tintColor: theme.textColor }]} />
+                    <Text style={styles.featureText}>{feature}</Text>
+                </View>
+            ))}
         </View>
 
-        <TouchableOpacity
-            style={styles.checkoutButton}
-            onPress={onEnroll}
-        >
+        <TouchableOpacity style={styles.checkoutButton} onPress={onEnroll}>
             <Text style={styles.checkoutButtonText}>Join</Text>
         </TouchableOpacity>
     </TouchableOpacity>
 );
 
-// ------------------ Main Screen ------------------
 const PlansScreen = () => {
     const { theme } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
@@ -68,155 +73,121 @@ const PlansScreen = () => {
     const dispatch = useDispatch();
     const navigation = useNavigation();
     const userData = useSelector(state => state.auth);
-    // console.log("UserDATA",userData.userObject.isPremium);
     const studentId = userData?.userObject?._id;
-    const isPremium = userData?.userObject?.isPremium;
+    const isPremiumUser = userData?.userObject?.isPremium;
+
     const [plans, setPlans] = useState([]);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [plansFetched, setPlansFetched] = useState(false);
-    const [snackbar, setSnackbar] = useState({
-        visible: false,
-        text: '',
-        type: 'info', // can be 'success', 'error', 'info'
-    });
+    const [snackbar, setSnackbar] = useState({ visible: false, text: '', type: 'info' });
+
     const showSnackbar = (text, type = 'info') => {
         setSnackbar({ visible: true, text, type });
-        setTimeout(() => {
-            setSnackbar({ visible: false, text: '', type: 'info' });
-        }, 3000); // Hide after 3 seconds
+        setTimeout(() => setSnackbar({ visible: false, text: '', type: 'info' }), 3000);
     };
-
-    const checkSubscriptionStatus = async () => {
-        try {
-            const customerInfo = await Purchases.getCustomerInfo();
-            const entitlement = customerInfo.entitlements.active["Premium Courses Access"];
-            return Boolean(entitlement); // true if active
-        } catch (error) {
-            console.error("Failed to fetch subscription status", error);
-            return false;
-        }
-    };
-
 
     useEffect(() => {
-        const fetchRevenueCatPlans = async () => {
+        if (!studentId) return;
+
+        const initializeScreen = async () => {
             dispatch(startLoading());
-
             try {
-                const [offerings, subscribed] = await Promise.all([
-                    Purchases.getOfferings(),
-                    checkSubscriptionStatus()
-                ]);
-
-                setIsSubscribed(subscribed);
-                setPlansFetched(true);
-
-                if (subscribed) {
+                if (isPremiumUser) {
+                    setIsSubscribed(true);
                     showSnackbar("You already have an active subscription.", "success");
+                    setPlansFetched(true);
+                    return;
                 }
 
-                const allPackages = [];
-
-                for (const offeringId in offerings.all) {
-                    const offering = offerings.all[offeringId];
-                    const packages = offering.availablePackages || [];
-
-                    const mappedPackages = packages.map(pkg => ({
+                const offerings = await Purchases.getOfferings();
+                const allPackages = Object.values(offerings.all || {}).flatMap(offering =>
+                    (offering.availablePackages || []).map(pkg => ({
                         id: pkg.identifier,
                         title: pkg.product.title.replace(/\s*\(.*?\)\s*/g, "").trim(),
                         description: pkg.product.description,
                         price: pkg.product.priceString,
-                        package: pkg,
-                        offeringId: offeringId,
-                    }));
-
-                    allPackages.push(...mappedPackages);
-                }
-                // console.log('====================================');
-                // console.log(plans);
-                // console.log('====================================');
+                        durationMinutes: pkg.product.subscriptionPeriodUnit === 'MONTH' ? null : pkg.product.subscriptionPeriodNumberOfUnits, // or however your API provides minutes
+                        package: pkg
+                    }))
+                );
 
                 setPlans(allPackages);
             } catch (error) {
-                console.error("Error fetching plans or status:", error);
-                setPlans([]);
-                showSnackbar("Failed to fetch plans. Please try again later.", "error");
+                console.error("Error initializing plans:", error);
+                showSnackbar("Failed to fetch plans or user data.", "error");
             } finally {
+                setPlansFetched(true);
                 dispatch(stopLoading());
             }
         };
 
-        fetchRevenueCatPlans();
-    }, []);
+        initializeScreen();
+    }, [studentId, theme, userData?.userToken]);
 
-
-    const handleEnroll = async (packagee) => {
+    const closeBackend = async (data) => {
         try {
             dispatch(startLoading());
+            await axios.post(`${API_URL}/api/subscription`, data, {
+                headers: { "Content-Type": "application/json" },
+                responseType: "text"
+            });
+            showSnackbar("Subscription saved successfully!", "success");
 
-            const { customerInfo } = await Purchases.purchasePackage(packagee);
-            const entitlement = customerInfo.entitlements.active["Premium Courses Access"];
+            const updatedUser = await getUserData(studentId);
+            dispatch(updateUserData(updatedUser));
 
-            if (entitlement) {
-                console.log("✅ Entitlement found!");
-
-                // Extract entitlement details
-                const purchaseData = {
-                    userId: studentId, // your app's user ID
-                    // platform: Platform.OS,
-                    appUserID: customerInfo.originalAppUserId,
-                    productIdentifier: entitlement.productIdentifier,
-                    purchaseDate: entitlement.purchaseDate,
-                    expirationDate: entitlement.expirationDate,
-                    environment: customerInfo.managementURL?.includes("sandbox") || false,
-                };
-                console.log("purchaseData", purchaseData);
-                // Send to backend
-                // const response = await fetch(`${API_URL}/api/subscription`, {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     body: JSON.stringify(purchaseData)
-                // });
-
-                // if (!response.ok) {
-                //     throw new Error('Failed to store subscription in backend');
-                // }
-                // console.log('====================================');
-                // console.log("Response from the purchase API",response.data);
-                // console.log('====================================');
-                setModalVisible(true);
-            } else {
-                Alert.alert("Purchase Failed", "The purchase was successful, but we could not verify your entitlement.");
-            }
         } catch (error) {
-            dispatch(stopLoading());
-
-            if (error.code === Purchases.PURCHASE_CANCELLED_ERROR_CODE) {
-                showSnackbar("You have cancelled the purchase.", "info");
-            } else if (error.message?.includes("already active for the user")) {
-                showSnackbar("You already own this subscription.", "success");
-            } else {
-                console.error("❌ Purchase failed:", error);
-                showSnackbar(`An error occurred: ${error.message}`, "error");
-            }
-
+            console.error("Backend subscription save failed:", error.message);
+            showSnackbar("Failed to save subscription data.", "error");
         } finally {
             dispatch(stopLoading());
         }
     };
 
+    const handleEnroll = async (packagee) => {
+        try {
+            dispatch(startLoading());
+            await Purchases.purchasePackage(packagee);
+            const { entitlements, originalAppUserId, managementURL } = await Purchases.getCustomerInfo();
+            const entitlement = entitlements.active["premium_subscription"];
+
+            if (!entitlement) {
+                Alert.alert("Purchase Failed", "Purchase succeeded but entitlement was not confirmed.");
+                return;
+            }            
+
+            const data = {
+                userId: studentId,
+                appUserId: originalAppUserId,
+                productIdentifier: entitlement.productIdentifier,
+                purchaseDate: entitlement.latestPurchaseDate,
+                expirationDate: entitlement.expirationDate,
+                environment: managementURL?.includes("sandbox") ? "sandbox" : "production",
+            };
+
+            await closeBackend(data);
+            setModalVisible(true);
+        } catch (error) {
+            if (error.code === Purchases.PURCHASE_CANCELLED_ERROR_CODE) {
+                showSnackbar("You have cancelled the purchase.", "info");
+            } else if (error.message?.includes("already active for the user")) {
+                showSnackbar("You already own this subscription.", "success");
+            } else {
+                console.error("Purchase failed:", error);
+                showSnackbar("An error occurred while buying the subscription", "error");
+            }
+        } finally {
+            dispatch(stopLoading());
+        }
+    };
 
     const handleRestorePurchases = async () => {
         try {
             dispatch(startLoading());
             const customerInfo = await Purchases.restorePurchases();
-            const isEntitled = customerInfo.entitlements.active["Premium Courses Access"];
-
-            if (isEntitled) {
+            if (customerInfo.entitlements.active["premium_subscription"]) {
                 Alert.alert("Success", "Your purchases have been restored!");
             } else {
                 Alert.alert("No Purchases Found", "No active purchases were found to restore.");
@@ -229,82 +200,59 @@ const PlansScreen = () => {
         }
     };
 
-    const handleCloseModal = () => {
-        setModalVisible(false);
-        navigation.navigate('Home');
-    };
-
     return (
         <>
             {modalVisible && (
                 <ConfirmationModal
                     title={'Course Purchased Successfully'}
                     icon={tick}
-                    onClose={handleCloseModal}
+                    onClose={() => { setModalVisible(false); navigation.goBack(); }}
                 />
             )}
 
             <ImageBackground source={theme.bg || bg} style={styles.container}>
                 <SafeAreaView>
                     <SnackbarMessage visible={snackbar.visible} message={snackbar.text} type={snackbar.type} />
-
                     <Header title={'Subscription Plans'} />
 
                     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                         {plansFetched && (
                             <>
-                                {(isPremium || plans.length === 0) ? (
+                                {(isSubscribed || plans.length === 0) ? (
                                     <View style={styles.noDataContainer}>
                                         <LinearGradient
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
+                                            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
                                             colors={['rgba(17, 103, 177, 0.05)', 'rgba(42, 157, 244, 0.01)', 'transparent']}
                                             style={styles.noDataGradientWrapper}
                                         >
                                             <View style={styles.decorativeCircle1} />
                                             <View style={styles.decorativeCircle2} />
-
                                             <View style={styles.noDataContentContainer}>
                                                 <View style={styles.noDataIconContainer}>
                                                     <Text style={styles.noDataIcon}>{isSubscribed ? '✅' : '📭'}</Text>
                                                     <View style={styles.iconGlow} />
                                                 </View>
-
                                                 <Text style={styles.noDataTitle}>
                                                     {isSubscribed ? 'You’re Subscribed!' : 'No Plans Available'}
                                                 </Text>
-
                                                 <Text style={styles.noDataSubtitle}>
                                                     {isSubscribed
                                                         ? 'You already have full access to all premium content.'
                                                         : 'Please check back later for available subscription plans.'}
                                                 </Text>
-
-                                                {isSubscribed && (
-                                                    <View style={styles.noDataActionContainer}>
-                                                        <LinearGradient
-                                                            start={{ x: 0, y: 0 }}
-                                                            end={{ x: 1, y: 0 }}
-                                                            colors={[theme.primaryColor, theme.primaryColor + '80']}
-                                                            style={styles.noDataDot}
-                                                        />
-                                                        <Text style={styles.noDataMessage}>
-                                                            Explore the courses section to start learning.
-                                                        </Text>
-                                                    </View>
-                                                )}
                                             </View>
                                         </LinearGradient>
                                     </View>
                                 ) : (
-                                    plans.map((plan) => (
+                                    plans.map(plan => (
                                         <PlanCard
                                             key={plan.id}
                                             title={plan.title}
                                             price={plan.price}
                                             description={plan.description}
+                                            durationMinutes={plan.durationMinutes}
                                             onPress={() => setSelectedPlan(plan)}
-                                            isSelected={selectedPlan && selectedPlan.id === plan.id}
+                                            isSelected={selectedPlan?.id === plan.id}
                                             onEnroll={() => handleEnroll(plan.package)}
                                             styles={styles}
                                             theme={theme}
@@ -324,7 +272,6 @@ const PlansScreen = () => {
     );
 };
 
-// ------------------ Styles ------------------
 const getStyles = (theme) => StyleSheet.create({
     container: { flex: 1, padding: 25, paddingTop: 0 },
     scrollContent: { paddingBottom: height * 0.1 },
@@ -337,194 +284,28 @@ const getStyles = (theme) => StyleSheet.create({
         marginBottom: 25,
     },
     planCardSelected: { borderColor: theme.primaryColor },
-    planTitle: { color: theme.textColor, fontSize: 15, lineHeight: 24, fontFamily: 'Outfit-Bold', marginBottom: 10, maxWidth: "100%", },
+    planTitle: { color: theme.textColor, fontSize: 15, fontFamily: 'Outfit-Bold', marginBottom: 10 },
     planPrice: { color: theme.primaryColor, fontSize: 13, fontFamily: 'Outfit-Bold', marginBottom: 15, textAlign: "right" },
-    divider: {
-        width: '100%',
-        marginBottom: 15,
-        borderWidth: 0.7,
-        borderColor: theme.borderColor,
-    },
-    description: {
-        color: theme.textColor,
-        fontSize: 14,
-        marginBottom: 15,
-    },
+    divider: { width: '100%', marginBottom: 15, borderWidth: 0.7, borderColor: theme.borderColor },
+    description: { color: theme.textColor, fontSize: 14, marginBottom: 15 },
     featuresContainer: { marginBottom: 20 },
     featureItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
     checkIcon: { width: 20, height: 20, resizeMode: 'contain' },
     featureText: { color: theme.textColor, fontSize: 14, marginLeft: 10 },
-    checkoutButton: {
-        backgroundColor: theme.primaryColor,
-        width: '100%',
-        padding: 12,
-        borderRadius: 11,
-        marginTop: 20,
-        alignItems: 'center',
-    },
-    checkoutButtonText: {
-        color: '#fff',
-        fontSize: 15,
-        fontWeight: '600',
-        fontFamily: 'Outfit-SemiBold',
-    },
-    restoreButton: {
-        marginTop: 20,
-        alignSelf: 'center',
-    },
-    restoreButtonText: {
-        color: theme.primaryColor,
-        fontSize: 14,
-        fontFamily: 'Outfit-SemiBold',
-    },
-    noDataContainer: {
-        marginTop: width * 0.3,
-        alignSelf: "center",
-        overflow: 'hidden',
-    },
-    noDataGradientWrapper: {
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        position: 'relative',
-        overflow: 'hidden',
-    },
-    noDataContentContainer: {
-        alignItems: 'center',
-        paddingVertical: 40,
-        paddingHorizontal: 20,
-        minHeight: 280,
-        borderWidth: 2,
-        borderColor: theme.borderColor,
-    },
-    decorativeCircle1: {
-        position: 'absolute',
-        top: -30,
-        right: -30,
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        opacity: 0.6,
-    },
-    decorativeCircle2: {
-        position: 'absolute',
-        bottom: -40,
-        left: -40,
-        width: 140,
-        height: 140,
-        borderRadius: 70,
-        backgroundColor: 'rgba(147, 51, 234, 0.06)',
-        opacity: 0.4,
-    },
-    noDataIconContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-        alignSelf: 'center',
-        marginBottom: 20,
-        position: 'relative',
-        borderWidth: 2,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-        marginVertical: 20,
-    },
-    iconGlow: {
-        position: 'absolute',
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: theme.primaryColor,
-        opacity: 0.1,
-        zIndex: -1,
-    },
-    noDataIcon: {
-        fontSize: 36,
-        zIndex: 1,
-    },
-    noDataTitle: {
-        color: theme.subTextColor,
-        fontSize: 18,
-        fontFamily: 'Outfit-Bold',
-        marginBottom: 10,
-        textAlign: 'center',
-        letterSpacing: 0.3,
-        textShadowColor: 'rgba(0, 0, 0, 0.3)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
-        paddingHorizontal: 8,
-    },
-    noDataSubtitle: {
-        color: theme.subTextColor,
-        fontSize: 14,
-        fontFamily: 'Outfit-Medium',
-        textAlign: 'center',
-        opacity: 0.9,
-        marginBottom: 24,
-        lineHeight: 20,
-        paddingHorizontal: 12,
-    },
-    inspirationalContainer: {
-
-        // marginBottom: 20,
-    },
-    motivationalBadge: {
-        borderRadius: 20,
-    },
-    motivationalBadgeInner: {
-        paddingVertical: 10,
-        paddingHorizontal: 18,
-        borderRadius: 20,
-        shadowColor: theme.primaryColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 8,
-        elevation: 6,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.2)',
-    },
-    motivationalText: {
-        color: '#FFFFFF',
-        fontSize: 13,
-        fontFamily: 'Outfit-SemiBold',
-        textAlign: 'center',
-        letterSpacing: 0.2,
-    },
-    noDataActionContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'stretch',
-        paddingHorizontal: 16,
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        paddingVertical: 14,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        marginHorizontal: 4,
-        marginBottom: 20,
-    },
-    noDataDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        marginRight: 12,
-        shadowColor: theme.primaryColor,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.6,
-        shadowRadius: 4,
-        elevation: 4,
-    },
-    noDataMessage: {
-        color: theme.subTextColor,
-        fontSize: 13,
-        fontFamily: 'Outfit-Medium',
-        textAlign: 'left',
-        lineHeight: 19,
-        opacity: 0.9,
-        flex: 1,
-        letterSpacing: 0.1,
-    },
+    checkoutButton: { backgroundColor: theme.primaryColor, width: '100%', padding: 12, borderRadius: 11, marginTop: 20, alignItems: 'center' },
+    checkoutButtonText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit-SemiBold' },
+    restoreButton: { marginTop: 20, alignSelf: 'center' },
+    restoreButtonText: { color: theme.primaryColor, fontSize: 14, fontFamily: 'Outfit-SemiBold' },
+    noDataContainer: { marginTop: width * 0.3, alignSelf: "center" },
+    noDataGradientWrapper: { borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden' },
+    noDataContentContainer: { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20, minHeight: 280, borderWidth: 2, borderColor: theme.borderColor },
+    decorativeCircle1: { position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(59,130,246,0.1)', opacity: 0.6 },
+    decorativeCircle2: { position: 'absolute', bottom: -40, left: -40, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(147,51,234,0.06)', opacity: 0.4 },
+    noDataIconContainer: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)', marginVertical: 20 },
+    iconGlow: { position: 'absolute', width: 100, height: 100, borderRadius: 50, backgroundColor: theme.primaryColor, opacity: 0.1, zIndex: -1 },
+    noDataIcon: { fontSize: 36, zIndex: 1 },
+    noDataTitle: { color: theme.subTextColor, fontSize: 18, fontFamily: 'Outfit-Bold', marginBottom: 10, textAlign: 'center' },
+    noDataSubtitle: { color: theme.subTextColor, fontSize: 14, fontFamily: 'Outfit-Medium', textAlign: 'center', marginBottom: 24, lineHeight: 20 },
 });
 
 export default PlansScreen;

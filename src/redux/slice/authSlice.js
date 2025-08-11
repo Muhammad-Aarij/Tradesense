@@ -69,6 +69,25 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Thunk: Update user data only
+export const updateUserData = createAsyncThunk(
+  'auth/updateUserData',
+  async (updatedUser, thunkAPI) => {
+    try {
+      thunkAPI.dispatch(startLoading());
+
+      // Save updated user object to AsyncStorage
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+
+      return updatedUser;
+    } catch (error) {
+      console.error('❌ Error updating user data:', error);
+      return thunkAPI.rejectWithValue(error);
+    } finally {
+      thunkAPI.dispatch(stopLoading());
+    }
+  }
+);
 
 
 // Thunk: Logout
@@ -136,6 +155,14 @@ const authSlice = createSlice({
         state.affiliateCode = user?.affiliateCode || null;
         state.isLoading = false;
       })
+      .addCase(updateUserData.fulfilled, (state, action) => {
+        state.userObject = action.payload;
+        state.userId = action.payload?._id || null;
+        state.isAffiliate = action.payload?.isAffiliate || false;
+        state.affiliateCode = action.payload?.affiliateCode || null;
+
+      })
+
       .addCase(loginUser.fulfilled, (state, action) => {
         const { token, user, isProfilingDone, themeType } = action.payload;
 
@@ -149,18 +176,18 @@ const authSlice = createSlice({
         state.affiliateCode = user?.affiliateCode || null;
         state.isLoading = false;
       })
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.userToken = null;
-        state.userObject = null;
-        state.userId = null;
-        state.isSignedIn = false;
-        state.isProfilingDone = false;
-        state.themeType = 'light';
-        state.isAffiliate = false;
-        state.affiliateCode = null;
-        state.isLoading = false;
-      });
-  },
+    .addCase(logoutUser.fulfilled, (state) => {
+      state.userToken = null;
+      state.userObject = null;
+      state.userId = null;
+      state.isSignedIn = false;
+      state.isProfilingDone = false;
+      state.themeType = 'light';
+      state.isAffiliate = false;
+      state.affiliateCode = null;
+      state.isLoading = false;
+    });
+},
 });
 
 export const { setTheme, setProfilingDone, setAffiliateData, setProfilePic } = authSlice.actions;

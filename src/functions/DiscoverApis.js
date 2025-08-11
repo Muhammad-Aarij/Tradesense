@@ -6,9 +6,15 @@ import { startLoading, stopLoading } from '../redux/slice/loaderSlice';
 
 const fetchTopPicks = async (userId) => {
   const response = await axios.get(`${API_URL}/api/resources/recommend/${userId}`);
-  // console.log('Top Picks Response:', response.data);
-  return response.data;
+  const picks = response.data;
+
+  // Get half the length, rounded down
+  const halfLength = Math.floor(picks.length / 2);
+
+  // Return only the first half
+  return picks.slice(0, halfLength);
 };
+
 
 export const useTopPicks = (userId) => {
   const dispatch = useDispatch();
@@ -26,9 +32,15 @@ export const useTopPicks = (userId) => {
 
 const fetchRecommendations = async (userId) => {
   const response = await axios.get(`${API_URL}/api/resources/recommend/${userId}`);
-  // console.log('Recommendations Response:', response.data);
-  return response.data;
+  const recommendations = response.data;
+
+  // Calculate midpoint
+  const halfIndex = Math.floor(recommendations.length / 2);
+
+  // Return the second half
+  return recommendations.slice(halfIndex);
 };
+
 
 export const useRecommendations = (userId) => {
   const dispatch = useDispatch();

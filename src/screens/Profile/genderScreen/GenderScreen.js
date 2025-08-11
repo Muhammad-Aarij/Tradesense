@@ -17,6 +17,7 @@ import { bg } from '../../../assets/images';
 import { useDispatch } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import { useSelector } from 'react-redux';
+import OptimizedImage from '../../../components/OptimizedImage';
 
 const { height } = Dimensions.get('window');
 
@@ -85,8 +86,8 @@ const GenderScreen = ({ navigation, route }) => {
     }, []);
 
     return (
-        <ImageBackground source={bg} style={{flex: 1}}>
-        <SafeAreaView style={styles.container}>
+        <ImageBackground source={bg} style={{ flex: 1 }}>
+            <SafeAreaView style={styles.container}>
                 <Text style={styles.title}>Gender</Text>
                 <Text style={styles.subtitle}>Select Your Gender</Text>
 
@@ -101,8 +102,13 @@ const GenderScreen = ({ navigation, route }) => {
                             onPress={() => handleGenderSelection(genderOption, genderQuestionId)}
                         >
                             {genderOption.image && (
-                                <Image source={{ uri: genderOption.image }} style={styles.icon} />
-                            )}
+                                <OptimizedImage
+                                    uri={genderOption.image}
+                                    style={styles.icon}
+                                    borderRadius={8} // optional, for rounded edges
+                                    showLoadingIndicator={true}
+                                    resizeMode="cover"
+                                />)}
                             <Text
                                 style={[
                                     styles.optionText,
@@ -147,7 +153,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
-        marginBottom:5,
+        marginBottom: 5,
         fontFamily: 'Outfit-Medium',
         color: '#FFFFFF',
     },

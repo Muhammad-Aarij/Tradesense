@@ -12,16 +12,18 @@ import {
     FlatList,
     Image,
 } from 'react-native';
+import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import TradeBottomSheet from '../../../components/TradeBottomSheet';
-import { addBtn, bg } from '../../../assets/images';
+import { addBtn, bg, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
-import { useTradeRecords } from '../../../functions/Trades';
+import { useTradeRecords, useUploadTradesCSV } from '../../../functions/Trades';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
+import SnackbarMessage from '../../../functions/SnackbarMessage';
 
 const Trading = ({ navigation, route }) => {
     const selectedMood = route.params.selectedMood;
@@ -29,14 +31,22 @@ const Trading = ({ navigation, route }) => {
     const styles = useMemo(() => getStyles(theme), [theme]);
     const scrollRef = useRef(null);
     const [showExtraButtons, setShowExtraButtons] = useState(false);
-
+    const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+    const [confirmationTitle, setConfirmationTitle] = useState('');
+    const [confirmationMessage, setConfirmationMessage] = useState('');
+    const [icon, setIcon] = useState(null);
     const userData = useSelector((state) => state.auth);
     const userId = userData?.userObject?._id;
     const bottomSheetRef = useRef();
     const [selectedTrade, setSelectedTrade] = useState(null);
-
+    const uploadCSV = useUploadTradesCSV(userId);
+    const [snackbar, setSnackbar] = React.useState({
+        visible: false,
+        message: '',
+        type: '', // e.g., 'success' or 'error'
+    });
     const { data: tradesData = [] } = useTradeRecords(userId);
-    console.log("Trades Data:", tradesData);
+    // console.log("Trades Data:", tradesData);
     const currentDate = moment();
     const [selectedMonth, setSelectedMonth] = useState(moment().startOf('month'));
     const [selectedDate, setSelectedDate] = useState(currentDate.format('YYYY-MM-DD'));
@@ -45,6 +55,16 @@ const Trading = ({ navigation, route }) => {
     const monthList = Array.from({ length: currentDate.month() + 1 }, (_, i) =>
         moment().month(i).startOf('month')
     );
+
+    React.useEffect(() => {
+        if (snackbar.visible) {
+            const timer = setTimeout(() => {
+                setSnackbar((prev) => ({ ...prev, visible: false }));
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [snackbar.visible]);
 
     const daysInSelectedMonth = () => {
         const days = [];
@@ -90,8 +110,19 @@ const Trading = ({ navigation, route }) => {
             });
 
             if (result && result[0]) {
-                dispatch(startLoading());
                 const file = result[0];
+
+                // Check CSV extension (case-insensitive)
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    setSnackbar({
+                        visible: true,
+                        message: 'Invalid File.\nPlease select a .csv file only.',
+                        type: 'error',
+                    });
+                    return;
+                }
+
+                dispatch(startLoading());
                 console.log('Selected file:', file);
 
                 uploadCSV.mutate(file, {
@@ -126,6 +157,7 @@ const Trading = ({ navigation, route }) => {
     };
 
 
+
     return (
         <ImageBackground source={theme.bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
@@ -137,7 +169,6 @@ const Trading = ({ navigation, route }) => {
                     />
                 )}
                 <View style={styles.floatingButtonContainer}>
-                    {/* Add Data Button (Top Left of Add Button) */}
 
                     {showExtraButtons && (
                         <TouchableOpacity
@@ -151,7 +182,6 @@ const Trading = ({ navigation, route }) => {
                         </TouchableOpacity>
                     )}
 
-                    {/* Upload CSV Button (Bottom Left of Add Button) */}
                     {showExtraButtons && (
                         <TouchableOpacity
                             style={styles.extraButtonBottom}
@@ -161,7 +191,6 @@ const Trading = ({ navigation, route }) => {
                         </TouchableOpacity>
                     )}
 
-                    {/* Floating Plus Button */}
                     <TouchableOpacity
                         style={styles.addButton}
                         onPress={() => setShowExtraButtons(!showExtraButtons)}
@@ -173,10 +202,9 @@ const Trading = ({ navigation, route }) => {
                     </TouchableOpacity>
                 </View>
                 <StatusBar barStyle="light-content" backgroundColor="#1A1A2E" />
-                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}>
+                <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
                     <Header title="Trades" style={{ marginBottom: 20 }} />
 
-                    {/* Month Selector */}
                     <TouchableOpacity
                         onPress={() => setMonthPickerVisible(true)}
                         style={{
@@ -230,7 +258,7 @@ const Trading = ({ navigation, route }) => {
 
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
-                                            style={{ paddingVertical: 12, paddingHorizontal: 26,width:"100%", }}
+                                            style={{ paddingVertical: 12, paddingHorizontal: 26, width: "100%", }}
                                             onPress={() => {
                                                 setSelectedMonth(item);
                                                 const fallback = moment(item).date(1);
@@ -388,6 +416,14 @@ const Trading = ({ navigation, route }) => {
                             })
                         )}
                     </View>
+
+                    {snackbar.visible && (
+                        <SnackbarMessage
+                            message={snackbar.message}
+                            type={snackbar.type}
+                            visible={snackbar.visible}
+                        />
+                    )}
                 </ScrollView>
                 <TradeBottomSheet ref={bottomSheetRef} trade={selectedTrade} />
 

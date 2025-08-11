@@ -305,7 +305,7 @@ const LoginScreen = ({ navigation, route }) => {
 
                         <ScrollView contentContainerStyle={styles(theme).scrollContent} style={styles(theme).bottomcontainer}>
                             <Text style={styles(theme).title}>Login</Text>
-                            <Text style={styles(theme).subtitle}>Welcome back, we missed you</Text>
+                            <Text style={styles(theme).subtitle}>Login to your account </Text>
 
                             <CustomInput
                                 label="Email"

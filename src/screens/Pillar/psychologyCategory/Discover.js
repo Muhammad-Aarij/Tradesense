@@ -30,6 +30,7 @@ const DiscoverScreen = ({ navigation }) => {
     const [showTopPicksInfo, setShowTopPicksInfo] = useState(false);
     const { userObject } = useSelector(state => state.auth);
     const userId = userObject?._id;
+    const isPremium = userObject?.isPremium;
     console.log(userId);
     const dispatch = useDispatch();
     const isLoading = useSelector(state => state.loader.isLoading); // <-- Add this
@@ -45,17 +46,21 @@ const DiscoverScreen = ({ navigation }) => {
 
     const [isSubscribed, setIsSubscribed] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            const fetchSubStatus = async () => {
-                const status = await checkSubscriptionStatus();
-                console.log('Status of the User Subscription', status);
-                setIsSubscribed(status);
-            };
+    useEffect(() => {
+        setIsSubscribed(isPremium);
+    }, [isPremium])
+    // useFocusEffect(
+    //     useCallback(() => {
+    //         const fetchSubStatus = async () => {
+    //             const status = await checkSubscriptionStatus();
+    //             console.log('Status of the User Subscription', status);
+    //             setIsSubscribed(status);
+    //         };
 
-            fetchSubStatus();
-        }, [])
-    );
+    //         fetchSubStatus();
+    //         // setIsSubscribed(isPremium);
+    //     }, [isPremium])
+    // );
 
 
     // console.log("remcomed", recommendations);
