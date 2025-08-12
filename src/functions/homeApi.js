@@ -7,7 +7,7 @@ import { API_URL } from "@env";
 
 const fetchRecommendations = async (userId) => {
     const response = await axios.get(`${API_URL}/api/resources/random/${userId}`);
-    // console.log("Home", response);
+    console.log("Home", response);
     return response.data;
 };
 

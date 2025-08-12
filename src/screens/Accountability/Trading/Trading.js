@@ -1,4 +1,6 @@
 import React, { useContext, useMemo, useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
     View,
     Text,
@@ -18,12 +20,13 @@ import moment from 'moment';
 import { useDispatch, useSelector } from 'react-redux';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import TradeBottomSheet from '../../../components/TradeBottomSheet';
-import { addBtn, bg, tick } from '../../../assets/images';
+import { addBtn, bg, subscription, tick } from '../../../assets/images';
 import Header from '../../../components/Header';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import { useTradeRecords, useUploadTradesCSV } from '../../../functions/Trades';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
 import SnackbarMessage from '../../../functions/SnackbarMessage';
+import ConfirmationModal from '../../../components/ConfirmationModal';
 
 const Trading = ({ navigation, route }) => {
     const selectedMood = route.params.selectedMood;
@@ -51,7 +54,23 @@ const Trading = ({ navigation, route }) => {
     const [selectedMonth, setSelectedMonth] = useState(moment().startOf('month'));
     const [selectedDate, setSelectedDate] = useState(currentDate.format('YYYY-MM-DD'));
     const [monthPickerVisible, setMonthPickerVisible] = useState(false);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
+
+    const userObject = useSelector(state => state.auth.userObject);
+    const isPremium = userObject?.isPremium;
+
     const dispatch = useDispatch();
+
+    useFocusEffect(
+        useCallback(() => {
+            // Reset the state whenever the screen gains focus
+            setShowExtraButtons(false);
+
+            // No cleanup needed in this case
+            return () => { };
+        }, [])
+    );
+
     const monthList = Array.from({ length: currentDate.month() + 1 }, (_, i) =>
         moment().month(i).startOf('month')
     );
@@ -86,6 +105,22 @@ const Trading = ({ navigation, route }) => {
     };
 
     const days = daysInSelectedMonth();
+
+    const getTodayTrades = (trades) => {
+        const today = new Date();
+        return trades.filter((trade) => {
+            const createdAt = new Date(trade.createdAt);
+            return (
+                createdAt.getFullYear() === today.getFullYear() &&
+                createdAt.getMonth() === today.getMonth() &&
+                createdAt.getDate() === today.getDate()
+            );
+        });
+    };
+
+    const todayTrades = useMemo(() => getTodayTrades(tradesData), [tradesData]);
+    console.log("Today's Trades", todayTrades);
+
 
     const filteredTrades = tradesData.filter(
         (trade) => moment(trade.tradeDate).format('YYYY-MM-DD') === selectedDate
@@ -168,24 +203,60 @@ const Trading = ({ navigation, route }) => {
                         activeOpacity={1}
                     />
                 )}
+
+                {showPremiumModal && (
+                    <ConfirmationModal
+                        title={"Unlock Premium Content"}
+                        message={"Subscribe to access all guided sessions, expert talks, and exclusive audio and video experiences."}
+                        icon={subscription}
+                        buttonText="Subscribe Now"
+                        onClose={() => {
+                            setShowPremiumModal(false);
+                            navigation.navigate("More", {
+                                screen: "AppSubscription",
+                            });
+                        }}
+                        onCrossClose={() => {
+                            setShowPremiumModal(false);
+                        }}
+
+                    />
+                )}
+
                 <View style={styles.floatingButtonContainer}>
 
                     {showExtraButtons && (
                         <TouchableOpacity
                             style={styles.extraButtonTop}
                             onPress={() => {
+                                if (!isPremium && todayTrades.length >= 2) {
+                                    setSnackbar({
+                                        visible: true,
+                                        message: 'Free users can only add 2 trades per day.\nUpgrade to premium for unlimited access.',
+                                        type: 'error',
+                                    });
+                                    return;
+                                }
+
                                 setShowExtraButtons(false);
                                 navigation.navigate('Acc_FormData', { emotion: selectedMood });
                             }}
+
+
                         >
                             <Text style={styles.extraButtonText}>Add Trade</Text>
                         </TouchableOpacity>
-                    )}
-
+                    )} 
                     {showExtraButtons && (
                         <TouchableOpacity
                             style={styles.extraButtonBottom}
-                            onPress={handleCSVUpload}
+                            onPress={() => {
+                                if (isPremium) {
+                                    handleCSVUpload();
+                                } else {
+                                    setShowPremiumModal(true);
+                                }
+                            }}
                         >
                             <Text style={styles.extraButtonText}>Import CSV</Text>
                         </TouchableOpacity>
@@ -364,51 +435,55 @@ const Trading = ({ navigation, route }) => {
                                             end={{ x: 1, y: 1 }}
                                             colors={['rgba(126,126,126,0.12)', 'rgba(255,255,255,0)']}
                                             style={{
+                                                borderRadius: 12,
+                                                marginBottom: 10,
+                                            }}
+                                        >
+                                            <View style={{
                                                 flexDirection: 'row',
                                                 justifyContent: 'space-between',
                                                 alignItems: 'center',
                                                 borderRadius: 12,
                                                 padding: 15,
                                                 paddingHorizontal: 18,
-                                                marginBottom: 10,
                                                 borderWidth: 0.9,
                                                 borderColor: theme.borderColor,
-                                            }}
-                                        >
-                                            <View>
-                                                <Text style={{ color: theme.textColor, fontSize: 14, fontWeight: 'bold' }}>
-                                                    {trade.stockName}
-                                                </Text>
-                                                <Text
-                                                    style={{
-                                                        marginTop: 3,
-                                                        color: theme.subTextColor,
-                                                        fontSize: 10,
-                                                        fontFamily: 'Outfit-Light-BETA',
-                                                    }}
-                                                >
-                                                    {trade.tradeType}
-                                                </Text>
-                                            </View>
-                                            <View style={{ alignItems: 'flex-end' }}>
-                                                <Text
-                                                    style={{
-                                                        color: theme.textColor,
-                                                        fontSize: 15,
-                                                        fontFamily: 'Outfit-Light-BETA',
-                                                    }}
-                                                >
-                                                    {price}
-                                                </Text>
-                                                <Text
-                                                    style={{
-                                                        color: isPositive ? '#4CAF50' : '#FF5252',
-                                                        fontSize: 11,
-                                                        fontFamily: 'Outfit-Light-BETA',
-                                                    }}
-                                                >
-                                                    {change} {isPositive ? '▲' : '▼'}
-                                                </Text>
+                                            }}>
+                                                <View>
+                                                    <Text style={{ color: theme.textColor, fontSize: 14, fontWeight: 'bold' }}>
+                                                        {trade.stockName}
+                                                    </Text>
+                                                    <Text
+                                                        style={{
+                                                            marginTop: 3,
+                                                            color: theme.subTextColor,
+                                                            fontSize: 10,
+                                                            fontFamily: 'Outfit-Light-BETA',
+                                                        }}
+                                                    >
+                                                        {trade.tradeType}
+                                                    </Text>
+                                                </View>
+                                                <View style={{ alignItems: 'flex-end' }}>
+                                                    <Text
+                                                        style={{
+                                                            color: theme.textColor,
+                                                            fontSize: 15,
+                                                            fontFamily: 'Outfit-Light-BETA',
+                                                        }}
+                                                    >
+                                                        {price}
+                                                    </Text>
+                                                    <Text
+                                                        style={{
+                                                            color: isPositive ? '#4CAF50' : '#FF5252',
+                                                            fontSize: 11,
+                                                            fontFamily: 'Outfit-Light-BETA',
+                                                        }}
+                                                    >
+                                                        {change} {isPositive ? '▲' : '▼'}
+                                                    </Text>
+                                                </View>
                                             </View>
                                         </LinearGradient>
                                     </TouchableOpacity>

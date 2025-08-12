@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import React, { useEffect, useState, useContext } from 'react';
+import { NavigationContainer, useNavigationContainerRef, DarkTheme as RNDarkTheme, DefaultTheme as RNLightTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Linking } from 'react-native';
+import { Linking, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import AuthNavigator from './AuthNavigator';
 import HomeNavigator from './HomeNavigator';
@@ -14,6 +14,7 @@ import PlansScreenDeepLink from '../screens/Courses/Plans/PlansScreenDeepLink';
 import MenuComponent from '../components/MenuComponent';
 import SplashScreen from '../screens/splashScreen/SplashScreen';
 import PlayerScreen from '../screens/TrackPlayer/PlayerScreen';
+import { ThemeContext } from '../context/ThemeProvider';
 
 
 const RootStack = createNativeStackNavigator();
@@ -28,6 +29,7 @@ const MainFlow = () => {
 };
 
 const AppNavContainer = () => {
+    const { isDarkMode } = useContext(ThemeContext);
     const dispatch = useDispatch();
     const navigationRef = useNavigationContainerRef();
     const [isAppReady, setIsAppReady] = useState(false);
@@ -147,14 +149,38 @@ const AppNavContainer = () => {
         return <SplashScreen />;
     }
 
+    const DarkTheme = {
+        ...RNDarkTheme,
+        colors: {
+            ...RNDarkTheme.colors,
+            background: '#080E17',
+            card: '#080E17',
+            border: 'transparent',
+            text: '#FFFFFF',
+        },
+    };
+
+    const LightTheme = {
+        ...RNLightTheme,
+        colors: {
+            ...RNLightTheme.colors,
+            background: '#FFFFFF',
+            card: '#FFFFFF',
+            border: 'transparent',
+            text: '#000000',
+        },
+    };
+
     return (
         <>
+            <View style={{ flex: 1, backgroundColor: isDarkMode ? '#080E17' : '#FFFFFF' }}>
             <NavigationContainer
                 ref={navigationRef}
                 linking={linking}
+                theme={isDarkMode ? DarkTheme : LightTheme}
             // onReady is no longer needed for initialUrl handling as it's done in useEffect
             >
-                <RootStack.Navigator screenOptions={{ headerShown: false }}>
+                <RootStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: isDarkMode ? '#080E17' : '#FFFFFF' } }}>
                     {/* SplashScreen is handled by conditional rendering outside NavigationContainer */}
                     <RootStack.Screen name="MainFlow" component={MainFlow} />
                     <RootStack.Screen name="TrackPlayer" component={PlayerScreen} />
@@ -166,6 +192,7 @@ const AppNavContainer = () => {
 
                 {isSidebarOpen && <MenuComponent />}
             </NavigationContainer>
+            </View>
             {isLoading && <Loader />}
         </>
     );

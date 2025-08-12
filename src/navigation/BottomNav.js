@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 
@@ -12,15 +12,18 @@ import AccountabilityPartnerChatScreen from "../screens/Accountability/ChatScree
 import SidebarNavigator from "./SidebarNavigator";
 import UserProfileMenuScreen from "../screens/Settings/UserProfileMenu/Profile";
 import MoreNavigator from "./SidebarNavigator";
+import { ThemeContext } from "../context/ThemeProvider";
 
 const Tab = createBottomTabNavigator();
 
 export default function BottomNavigator() {
+  const { isDarkMode } = useContext(ThemeContext);
   return (
     <Tab.Navigator
       tabBar={(props) => <CustomBottomTab {...props} />}
       screenOptions={{
         headerShown: false,
+        sceneContainerStyle: { backgroundColor: isDarkMode ? '#080E17' : '#FFFFFF' },
       }}
       detachInactiveScreens={false}
     >

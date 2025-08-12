@@ -112,6 +112,7 @@ const GoalsScreen = ({ navigation, route }) => {
             }
 
             const payload = { questionnaireAnswers };
+            console.log(payload, token, user?._id);
 
             dispatch(startLoading());
             try {
@@ -131,7 +132,7 @@ const GoalsScreen = ({ navigation, route }) => {
 
                 setShowSuccessModal(true);
             } catch (err) {
-                console.error(err);
+                console.error(err.response.data);
                 showSnackbar('Failed to complete setup. Please try again.');
             } finally {
                 dispatch(stopLoading());

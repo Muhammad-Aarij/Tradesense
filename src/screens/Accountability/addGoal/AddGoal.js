@@ -172,7 +172,7 @@ export default function AddGoal({ route, navigation }) {
             contentContainerStyle={styles.formContainer} 
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="Outfitactive"
+            keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           >
             {/* Goal Name */}
@@ -253,6 +253,7 @@ export default function AddGoal({ route, navigation }) {
           </ScrollView>
           {showConfirmationModal && (
             <ConfirmationModal
+              isVisible={showConfirmationModal}
               title={editingGoal ? "Goal Updated!" : "Goal Added!"}
               message={
                 editingGoal

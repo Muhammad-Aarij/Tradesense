@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import { playb, stop, noThumbnail } from '../assets/images';
 import theme from '../themes/theme';
 import { useUserContext } from '../context/UserProvider';
 import { recordAudioProgress } from '../functions/recordAudioProgress';
+import { ThemeContext } from '../context/ThemeProvider';
 
 const { width } = Dimensions.get('window');
 
@@ -33,6 +34,7 @@ const MiniPlayer = () => {
   const insets = useSafeAreaInsets();
   const userContext = useUserContext();
   const userId = userContext?.id;
+  const { isDarkMode } = useContext(ThemeContext);
 
   const isPlaying = playbackState.state === PlaybackState.Playing;
 
@@ -177,14 +179,23 @@ const MiniPlayer = () => {
     : activeTrack.artwork;
   // console.log('MiniPlayer artwork URL:', secureArtwork);
 
+  const colors = {
+    surface: isDarkMode ? 'rgba(11, 16, 22, 0.9)' : 'rgba(255, 255, 255, 0.98)',
+    border: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+    progressBg: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.06)',
+    title: isDarkMode ? '#FFFFFF' : '#111111',
+    artist: isDarkMode ? '#CCCCCC' : '#5A5A5A',
+    albumPlaceholder: isDarkMode ? '#333333' : '#E5E5E5',
+  };
+
   return (
     <Animated.View style={[styles.container, { transform: [{ translateY }] }]} {...panResponder.panHandlers}>
       <TouchableOpacity style={{ flex: 1 }} onPress={openFullPlayer} activeOpacity={0.8}>
         {/* Background with gradient effect */}
-        <View style={styles.background} />
+        <View style={[styles.background, { backgroundColor: colors.surface, borderColor: colors.border }]} />
 
         {/* Progress bar */}
-        <View style={styles.progressContainer}>
+        <View style={[styles.progressContainer, { backgroundColor: colors.progressBg }]}>
           <View
             style={[
               styles.progressBar,
@@ -197,17 +208,17 @@ const MiniPlayer = () => {
           {/* Album Art */}
           <Image
             source={{ uri: secureArtwork || noThumbnail }}
-            style={styles.albumArt}
+            style={[styles.albumArt, { backgroundColor: colors.albumPlaceholder }]}
             onError={(error) => console.log('MiniPlayer image loading error:', error?.nativeEvent?.error, secureArtwork)}
             onLoad={() => console.log('MiniPlayer image loaded successfully:', secureArtwork)}
           />
 
           {/* Track Info */}
           <View style={styles.trackInfo}>
-            <Text style={styles.title} numberOfLines={1}>
+            <Text style={[styles.title, { color: colors.title }]} numberOfLines={1}>
               {activeTrack.title}
             </Text>
-            <Text style={styles.artist} numberOfLines={1}>
+            <Text style={[styles.artist, { color: colors.artist }]} numberOfLines={1}>
               {activeTrack.artist || 'Unknown Artist'}
             </Text>
           </View>

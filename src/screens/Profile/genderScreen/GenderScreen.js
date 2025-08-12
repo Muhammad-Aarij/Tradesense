@@ -90,7 +90,6 @@ const GenderScreen = ({ navigation, route }) => {
             <SafeAreaView style={styles.container}>
                 <Text style={styles.title}>Gender</Text>
                 <Text style={styles.subtitle}>Select Your Gender</Text>
-
                 <View style={styles.optionsContainer}>
                     {genderQuestions.map((genderOption) => (
                         <TouchableOpacity
@@ -153,6 +152,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 28,
+        marginTop: 10,
         marginBottom: 5,
         fontFamily: 'Outfit-Medium',
         color: '#FFFFFF',

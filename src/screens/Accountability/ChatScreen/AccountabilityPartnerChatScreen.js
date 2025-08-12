@@ -17,7 +17,6 @@ import {
 import LottieView from 'lottie-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-    bg,
     chatbot,
     send2,
     back,
@@ -28,7 +27,8 @@ import {
 import { getChatbotSessionId, sendChatbotMessage, getChatbotHistory } from '../../../functions/chatbotApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { startLoading, stopLoading } from '../../../redux/slice/loaderSlice';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { ThemeContext } from '../../../context/ThemeProvider';
 import typing from '../../../assets/typing.json';
 import ConfirmationModal from '../../../components/ConfirmationModal';
@@ -38,9 +38,17 @@ const { height, width } = Dimensions.get('window');
 
 const LOADING_ANIMATION = typing;
 
+const guidelineBaseWidth = 375;
+
+const responsiveWidth = (size) => (width / guidelineBaseWidth) * size;
+const responsiveHeight = (size) => (width / guidelineBaseWidth) * size;
+const responsiveFontSize = (size) => (width / guidelineBaseWidth) * size;
+
 const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
-    const { partnerName } = route.params || { partnerName: 'AI Companion' };
+    const { partnerName } = route.params || { partnerName: 'Sense AI' };
     const { theme, isDarkMode } = useContext(ThemeContext);
+    const insets = useSafeAreaInsets();
+    const tabBarHeight = (typeof useBottomTabBarHeight === 'function') ? useBottomTabBarHeight() : 0;
     const dispatch = useDispatch();
 
     const userId = useSelector((state) => state.auth.userId);
@@ -236,10 +244,37 @@ const AccountabilityPartnerChatScreen = ({ navigation, route }) => {
         return () => clearTimeout(timer);
     }, [messages, isLoadingResponse]);
 
-    const styles = getStyles(theme, isDarkMode, keyboardHeight);
+    // SIMPLE DEVICE-SPECIFIC APPROACH: Use screen height to determine spacing
+    // This avoids complex calculations that fail on different devices
+    const isSmallDevice = height <= 667; // iPhone SE, iPhone 6/7/8
+    const isMediumDevice = height > 667 && height <= 812; // iPhone X/XS/11 Pro
+    const isLargeDevice = height > 812; // iPhone 11/12/13/14/15/16 series
+    
+    // Calculate the custom tab bar total height using the same responsive logic
+    const customTabHeight = responsiveHeight(70);
+    const customTabMargin = responsiveHeight(10);
+    const customTabTotal = customTabHeight + customTabMargin;
+    
+    // Device-specific bottom spacing that works reliably
+    let baseBottomSpace;
+    if (isSmallDevice) {
+        // iPhone SE - use custom tab total + small buffer
+        baseBottomSpace = customTabTotal + 8;
+    } else if (isMediumDevice) {
+        // iPhone X/XS/11 Pro - use custom tab + moderate buffer
+        baseBottomSpace = customTabTotal + 12;
+    } else {
+        // Large devices - use custom tab but subtract some safe area to avoid huge gap
+        baseBottomSpace = customTabTotal + 16 - (insets?.bottom || 0) * 0.5;
+    }
+
+    // When keyboard is open, position input above keyboard
+    const bottomSpace = keyboardHeight > 0 ? keyboardHeight + 8 : Math.max(baseBottomSpace, 20);
+
+    const styles = getStyles(theme, isDarkMode, bottomSpace);
 
     return (
-        <ImageBackground source={bg} style={{ flex: 1 }}>
+        <ImageBackground source={theme.bg} style={{ flex: 1 }}>
             <SafeAreaView style={{ flex: 1 }}>
                 <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                     <View style={styles.header}>
@@ -410,7 +445,7 @@ const TypewriterTokens = ({ tokens, textStyle, onTypingDone }) => {
     );
 };
 
-const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
+const getStyles = (theme, isDarkMode, bottomSpace) => StyleSheet.create({
     container: { flex: 1, paddingTop: Platform.OS === 'ios' ? 0 : 10 },
     header: {
         flexDirection: 'row',
@@ -437,7 +472,7 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
     controlIcon: {
         width: 20,
         height: 20,
-        tintColor: '#FFFFFF',
+        tintColor: theme.textColor,
         resizeMode: 'contain',
     },
     partnerHeaderInfo: {
@@ -462,7 +497,7 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
         flexGrow: 1,
         paddingTop: 30,
         paddingHorizontal: 20,
-        paddingVertical: 10,
+        paddingBottom: bottomSpace + responsiveHeight(6),
     },
     messageBubble: {
         maxWidth: '80%',
@@ -493,16 +528,18 @@ const getStyles = (theme, isDarkMode, keyboardHeight) => StyleSheet.create({
         color: !isDarkMode ? theme.subTextColor : 'black',
     },
     inputContainer: {
+        position: 'absolute',
+        left: 20,
+        right: 20,
+        bottom: bottomSpace,
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: Platform.OS === 'ios' ? keyboardHeight : (keyboardHeight > 0 ? 130 : 95),
         paddingHorizontal: 15,
         paddingVertical: 5,
-        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backgroundColor: theme.transparentBg,
         borderWidth: 0.9,
         borderColor: theme.borderColor,
         borderRadius: 8,
-        marginHorizontal: 20
     },
     textInput: {
         flex: 1,

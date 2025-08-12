@@ -98,12 +98,7 @@ const HelpCenterScreen = ({ navigation }) => {
             </LinearGradient>
 
             {/* FAQ List */}
-            {isLoading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.primaryColor} />
-                <Text style={[styles.loadingText, { color: theme.textColor }]}>Loading FAQs...</Text>
-              </View>
-            ) : error ? (
+            {error ? (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>Failed to load FAQs: {error.message}</Text>
                 <TouchableOpacity
@@ -138,7 +133,9 @@ const HelpCenterScreen = ({ navigation }) => {
                     style={styles.faqItem}
                   >
                     <TouchableOpacity
-                      style={styles.faqQuestionButton}
+                      style={[styles.faqQuestionButton,
+                      expandedFAQ == (faq._id || index) && { borderBottomWidth: 0.5 },
+                      ]}
                       onPress={() => toggleFAQ(faq._id || index)}
                     >
                       <Text style={[styles.faqQuestion, { color: theme.textColor }]}>{faq.question}</Text>
@@ -233,8 +230,8 @@ const getStyles = (theme) => StyleSheet.create({
     alignItems: 'center',
     paddingVertical: responsiveHeight(15),
     borderRadius: responsiveWidth(8),
-    borderWidth: 0.9,
-    borderTopWidth: 0,
+    // borderBottomWidth: 0.9,
+    // borderTopWidth: 0,
     borderColor: theme.borderColor,
   },
   faqQuestion: {

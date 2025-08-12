@@ -70,17 +70,16 @@ const ForgetPassword = ({ navigation }) => {
         <Image source={lock} style={styles.image} />
         <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.darkBlue : "white" }]}>
           <Text style={[styles.title, { color: theme.textColor }]}>Forgot Password</Text>
-          <View>
-            <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Enter your email address</Text>
-            <CustomInput
-              placeholder="Enter your Email Address"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
+          <Text style={[styles.subtitle, { color: theme.subTextColor }]}>Enter your email address</Text>
+
+          <CustomInput
+            placeholder="Enter your Email Address"
+            value={email}
+            onChangeText={setEmail}
+          />
 
           <TouchableOpacity style={[styles.button, { backgroundColor: theme.primaryColor }]} onPress={handleVerify}>
-            <Text style={styles.buttonText}>Send OTP</Text>
+            <Text style={styles.buttonText}>Verify</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
@@ -110,17 +109,16 @@ const styles = StyleSheet.create({
     marginTop: height * 0.015,
   },
   title: {
-    fontSize: width * 0.06,
+    fontSize: width * 0.07,
     fontFamily: 'Outfit-SemiBold',
     marginTop: height * 0.03,
     marginBottom: height * 0.015,
   },
   subtitle: {
-    marginTop: height * 0.03,
-    marginBottom: 10,
     fontSize: width * 0.035,
     fontFamily: 'Outfit-Medium',
-    textAlign: 'left',
+    textAlign: 'center',
+    marginBottom: height * 0.03,
   },
   button: {
     width: '100%',
@@ -131,7 +129,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: width * 0.035,
+    fontSize: width * 0.041,
     fontWeight: '600',
     fontFamily: 'Outfit-SemiBold',
   },

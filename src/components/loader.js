@@ -24,8 +24,8 @@ export default function Loader() {
   return (
     <>
       {
-        isDarkMode ? < View style={[StyleSheet.absoluteFillObject, styles.container, { backgroundColor: "black" }]}>
-          <View style={{ width: 80, height: 80, justifyContent: 'center', alignItems: 'center', borderColor: theme.primaryColor, borderWidth: 1, borderRadius: 10 }}>
+        isDarkMode ? < View style={[StyleSheet.absoluteFillObject, styles.container, { backgroundColor: "rgba(0,0,0,0.5)" }]}>
+          <View style={{ width: 80, height: 80, justifyContent: 'center', alignItems: 'center', borderColor: theme.primaryColor, borderWidth: 2, borderRadius: 10 }}>
             <Video
               source={trader365Logo}
               style={{ width: 72, height: 72, borderRadius: 15, overflow: "hidden" }}
@@ -38,11 +38,11 @@ export default function Loader() {
           {/* <Text style={styles.modalText}>{loadingText}</Text> */}
         </View >
           :
-          <View style={[StyleSheet.absoluteFillObject, styles.container, { backgroundColor: "white" }]}>
-            <View style={{ width: 80, height: 80, justifyContent: 'center', alignItems: 'center', borderColor: theme.primaryColor, borderWidth: 1, borderRadius: 10 }}>
+          <View style={[StyleSheet.absoluteFillObject, styles.container, { backgroundColor: "rgba(255,255,255,0.5)" }]}>
+            <View style={{ width: 80, height: 80, justifyContent: 'center', alignItems: 'center', borderColor: theme.primaryColor, borderWidth: 2, borderRadius: 10 }}>
               <Video
                 source={lightLogo}
-                style={{ width: 72, height: 72, borderRadius: 15, overflow: "hidden" }}
+                style={{ width: 80, height: 80, borderRadius: 10, overflow: "hidden" }}
                 resizeMode="contain"
                 repeat={true}
                 muted={true}

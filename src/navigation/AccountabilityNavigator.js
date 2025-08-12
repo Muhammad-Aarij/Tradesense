@@ -23,8 +23,8 @@ const AccountabilityNavigator = () => {
             <Accountability.Screen name="Watchlist" component={Watchlist} />
             <Accountability.Screen name="Acc_Stocks" component={AccountabilityScreen} />
             <Accountability.Screen name="Goals" component={GoalContainer} />
-            {/* <Accountability.Screen name="AddGoal" component={AddGoal} />
-            <Accountability.Screen name="AddHabit" component={HabitTracking} />
+            <Accountability.Screen name="AddGoal" component={AddGoal} />
+            {/* <Accountability.Screen name="AddHabit" component={HabitTracking} />
             <Accountability.Screen name="Acc_FormData" component={Acc_FormData} /> */}
             {/* <Accountability.Screen name="ChatScreen" component={AccountabilityPartnerChatScreen} /> */}
             <Accountability.Screen name="AccountabilityPartner" component={AccountabilityPartnerListScreen} />

@@ -67,7 +67,7 @@ const AgeScreen = ({ navigation, route }) => {
         <ImageBackground source={bg} style={{ flex: 1 }}>
             <SafeAreaView style={styles.container}>
                 <ScrollView
-                    style={{ flex: 1, width: '100%' }}
+                    style={{ flex: 1, width: '90%'}}
                     contentContainerStyle={{
                         flexGrow: 1,
                         justifyContent: 'center',

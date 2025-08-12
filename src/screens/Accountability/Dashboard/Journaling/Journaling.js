@@ -1,4 +1,6 @@
 import React, { useContext, useMemo, useEffect, useState, useRef } from 'react';
+import { useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
     View,
     Text,
@@ -14,7 +16,7 @@ import {
     Alert,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { addBtn, back, bg, colorBg, fail, tick } from '../../../../assets/images';
+import { addBtn, back, bg, colorBg, fail, subscription, tick } from '../../../../assets/images';
 import { ThemeContext } from '../../../../context/ThemeProvider';
 import { useUserMood, usePostMood, useUpdateMood, useAllMoods } from '../../../../functions/MoodApi';
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,7 +27,7 @@ import { startLoading, stopLoading } from '../../../../redux/slice/loaderSlice';
 import DocumentPicker from 'react-native-document-picker';
 import ConfirmationModal from '../../../../components/ConfirmationModal';
 import SnackbarMessage from '../../../../functions/SnackbarMessage';
-import TradeBottomSheet from '../../../../components/TradeBottomSheet'; 
+import TradeBottomSheet from '../../../../components/TradeBottomSheet';
 
 
 const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, theme }) => {
@@ -61,7 +63,7 @@ const MoodSelectionModal = ({ isVisible, onClose, onSelectMood, moodOptions, the
 };
 
 const Journaling = ({ navigation, onToggleExtraButtons }) => {
-    const { theme } = useContext(ThemeContext);
+    const { theme, isDarkMode } = useContext(ThemeContext);
     const styles = useMemo(() => getStyles(theme), [theme]);
     const dispatch = useDispatch();
 
@@ -93,6 +95,10 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
     }, [showExtraButtons]);
 
     const [showExtraButtons, setShowExtraButtons] = useState(false);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
+
+    const userObject = useSelector(state => state.auth.userObject);
+    const isPremium = userObject?.isPremium;
 
     const { mutate: postMood } = usePostMood();
     const { mutate: updateMood } = useUpdateMood();
@@ -104,6 +110,18 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
     // State for the selected trade and ref for the bottom sheet
     const [selectedTrade, setSelectedTrade] = useState(null);
     const bottomSheetRef = useRef(null);
+
+
+
+    useFocusEffect(
+        useCallback(() => {
+            // Reset the state whenever the screen gains focus
+            setShowExtraButtons(false);
+
+            // No cleanup needed in this case
+            return () => { };
+        }, [])
+    );
 
     // Handle loading states
     useEffect(() => {
@@ -246,7 +264,7 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
                 });
                 // Alert.alert('Invalid File', 'Please select a .csv file only.');
                 return;
-            } 
+            }
 
             dispatch(startLoading());
             uploadCSV.mutate(file, {
@@ -280,6 +298,21 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
         }
     };
 
+    const getTodayTrades = (trades) => {
+        const today = new Date();
+        return trades.filter((trade) => {
+            const createdAt = new Date(trade.createdAt);
+            return (
+                createdAt.getFullYear() === today.getFullYear() &&
+                createdAt.getMonth() === today.getMonth() &&
+                createdAt.getDate() === today.getDate()
+            );
+        });
+    };
+
+    const todayTrades = useMemo(() => getTodayTrades(tradesData), [tradesData]);
+    console.log("Today's Trades", todayTrades);
+
     const handleTradeItemClick = (trade) => {
         setSelectedTrade(trade);
         bottomSheetRef.current?.open();
@@ -306,15 +339,45 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
         <SafeAreaView style={styles.container}>
             {/* Floating Button Container - Fixed Position */}
             <View style={styles.floatingButtonContainer}>
+
+                {showPremiumModal && (
+                    <ConfirmationModal
+                        title={"Unlock Premium Content"}
+                        message={"Subscribe to access all guided sessions, expert talks, and exclusive audio and video experiences."}
+                        icon={subscription}
+                        buttonText="Subscribe Now"
+                        onClose={() => {
+                            setShowPremiumModal(false);
+                            navigation.navigate("More", {
+                                screen: "AppSubscription",
+                            });
+                        }}
+                        onCrossClose={() => {
+                            setShowPremiumModal(false);
+                        }}
+
+                    />
+                )}
                 {/* Add Data Button (Top Left of Add Button) */}
 
                 {showExtraButtons && (
                     <TouchableOpacity
                         style={styles.extraButtonTop}
                         onPress={() => {
+                            if (!isPremium && todayTrades.length >= 2) {
+                                setSnackbar({
+                                    visible: true,
+                                    message: 'Free users can only add 2 trades per day.\nUpgrade to premium for unlimited access.',
+                                    type: 'error',
+                                });
+                                return;
+                            }
+
                             setShowExtraButtons(false);
                             navigation.navigate('Acc_FormData', { emotion: selectedMood });
                         }}
+
+
                     >
                         <Text style={styles.extraButtonText}>Add Trade</Text>
                     </TouchableOpacity>
@@ -324,11 +387,18 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
                 {showExtraButtons && (
                     <TouchableOpacity
                         style={styles.extraButtonBottom}
-                        onPress={handleCSVUpload}
+                        onPress={() => {
+                            if (isPremium) {
+                                handleCSVUpload();
+                            } else {
+                                setShowPremiumModal(true);
+                            }
+                        }}
                     >
                         <Text style={styles.extraButtonText}>Import CSV</Text>
                     </TouchableOpacity>
                 )}
+
 
                 {/* Floating Plus Button */}
                 <TouchableOpacity
@@ -337,7 +407,7 @@ const Journaling = ({ navigation, onToggleExtraButtons }) => {
                 >
                     <Image
                         source={addBtn}
-                        style={styles.addButtonImage}
+                        style={[styles.addButtonImage, { tintColor: isDarkMode ? "#FFFFFF" : theme.primaryColor }]}
                     />
                 </TouchableOpacity>
             </View>
@@ -644,7 +714,7 @@ const getStyles = (theme) =>
             color: '#FFF',
         },
         tradesHeader: {
-            marginTop:5,
+            marginTop: 5,
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -779,7 +849,7 @@ const getStyles = (theme) =>
             // alignItems: 'center',
             zIndex: 999,
         },
-        
+
         extraButtonTop: {
             position: 'absolute',
             zIndex: 999,

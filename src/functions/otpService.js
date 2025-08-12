@@ -5,7 +5,7 @@ import { API_URL } from "@env"; // Ensure you have API_URL set in your .env file
 const sendOTP = async (email, registration = true,) => {
     try {
         console.log("Sending OTP to email:", email, "Registration:", registration);
-        const response = await axios.post(`${API_URL}/api/otp/sendOTP`, {
+        const response = await axios.post(`http://13.61.22.84/api/otp/sendOTP`, {
             email: email,
             registeration: registration,         
             forgetPassword: !registration

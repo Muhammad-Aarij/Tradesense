@@ -121,11 +121,13 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
   }, [state.index]);
 
   return (
-    <Animated.View 
+     <Animated.View 
       style={[
         styles.tabBarWrapper, 
         { 
-          paddingBottom: Platform.OS === 'ios' ? 0 : insets.bottom,
+          // Ensure the bar sits above the iOS home indicator while not growing too tall.
+          // Keep internal padding minimal; we account for spacing from content on screens.
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom * 0.25 : insets.bottom,
           transform: [{ scale: tabBarScale }],
           opacity: tabBarOpacity,
         }
@@ -277,11 +279,11 @@ export default function CustomBottomTab({ state, descriptors, navigation }) {
                   <Animated.View style={[
                     styles.iconContainer,
                     {
-                      shadowColor: theme.inactiveTint || "#AAA",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: shadowOpacity,
-                      shadowRadius: 2,
-                      elevation: 0,
+                      // shadowColor: theme.inactiveTint || "#AAA",
+                      // shadowOffset: { width: 0, height: 1 },
+                      // shadowOpacity: shadowOpacity,
+                      // shadowRadius: 2,
+                      // elevation: 0,
                     }
                   ]}>
                     <Animated.Image 

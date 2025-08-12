@@ -11,7 +11,7 @@ import {
     KeyboardAvoidingView,
     Platform,
 } from 'react-native';
-import { bg, G, eyeClose, secureUser, applePay, tick, eyeOpen } from '../../../assets/images';
+import { bg, G, eyeClose, secureUser, applePay, tick } from '../../../assets/images';
 import LinearGradient from 'react-native-linear-gradient';
 import CustomInput from '../../../components/CustomInput';
 import { sendOTP } from '../../../functions/otpService';
@@ -47,8 +47,7 @@ const SignUp = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const [isPasswordVisible2, setIsPasswordVisible2] = useState(false);
+
     const [modalVisible, setModalVisible] = useState(false);
     const [modalTitle, setModalTitle] = useState('');
     const [modalMessage, setModalMessage] = useState('');
@@ -155,36 +154,41 @@ const SignUp = ({ navigation }) => {
             await new Promise(resolve => setTimeout(resolve, 200));
             const response = await GoogleSignin.signIn();
             console.log('Google Sign-In raw response:', JSON.stringify(response, null, 2));
-            dispatch(startLoading());
+            if (response.data.user && response.data.user.email) {
+                dispatch(startLoading());
 
-            // Extract google user details (defensive in case structure changes)
-            const googleUser = response?.user || response?.data?.user || response;
-            console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
+                // Extract google user details (defensive in case structure changes)
+                const googleUser = response?.user || response?.data?.user || response;
+                console.log('Parsed googleUser to be sent to backend:', JSON.stringify(googleUser, null, 2));
 
-            const data = await googleLoginApi(googleUser);
-            const answers = data.existingUser?.questionnaireAnswers;
+                const data = await googleLoginApi(googleUser);
+                const answers = data.existingUser?.questionnaireAnswers;
 
-            const isProfilingPending =
-                !answers ||
-                (typeof answers === 'object' && Object.keys(answers).length === 0) ||
-                (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
+                const isProfilingPending =
+                    !answers ||
+                    (typeof answers === 'object' && Object.keys(answers).length === 0) ||
+                    (typeof answers === 'object' && Object.values(answers).every(arr => Array.isArray(arr) && arr.length === 0));
 
-            await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
+                await dispatch(loginUser({ token: data.token, user: data.existingUser, themeType: 'dark' }));
 
-            if (isProfilingPending) {
-                console.log('data.user++++>>>>> in login', data.existingUser);
-                console.log('data.token++++>>>>> in login', data.token);
-                navigation.replace("GenderScreen", {
-                    user: data.existingUser,
-                    token: data.token,
-                });
-            } else {
-                dispatch(setProfilingDone(true));
-                navigation.replace('MainFlow');
+                if (isProfilingPending) {
+                    console.log('data.user++++>>>>> in login', data.existingUser);
+                    console.log('data.token++++>>>>> in login', data.token);
+                    navigation.replace("GenderScreen", {
+                        user: data.existingUser,
+                        token: data.token,
+                    });
+                } else {
+                    dispatch(setProfilingDone(true));
+                    navigation.replace('MainFlow');
+                }
+            }
+            else{
+                return;
             }
 
         } catch (error) {
-            console.error("Google Sign-In error:", error.response?.data);
+            console.error("Google Sign-In error:", error.response?.data || error.message || error);
 
             const message = {
                 [statusCodes.SIGN_IN_CANCELLED]: 'Sign-in cancelled.',
@@ -321,7 +325,7 @@ const SignUp = ({ navigation }) => {
                 style={styles.keyboardAvoiding}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
                     <Image source={secureUser} style={styles.image} />
 
                     <View style={[styles.bottomcontainer, { backgroundColor: isDarkMode ? theme.isDarkMode : 'white' }]}>
@@ -338,7 +342,7 @@ const SignUp = ({ navigation }) => {
                             secureTextEntry={!passwordVisible}
                             value={password}
                             onChangeText={setPassword}
-                            icon={passwordVisible ? eyeOpen : eyeClose}
+                            icon={eyeClose}
                             onIconPress={() => setPasswordVisible(!passwordVisible)}
                         />
 
@@ -348,10 +352,9 @@ const SignUp = ({ navigation }) => {
                             secureTextEntry={!passwordVisible2}
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
-                            icon={passwordVisible2 ? eyeOpen : eyeClose}
+                            icon={eyeClose}
                             onIconPress={() => setPasswordVisible2(!passwordVisible2)}
                         />
-
 
                         <TouchableOpacity
                             style={[styles.button, { backgroundColor: theme.primaryColor }]}
@@ -378,16 +381,36 @@ const SignUp = ({ navigation }) => {
                             <LinearGradient
                                 start={{ x: 0.0, y: 0.95 }}
                                 end={{ x: 1.0, y: 1.0 }}
-                                colors={['rgba(255, 255, 255, 0.16)', 'rgba(204, 204, 204, 0)']}
+                                colors={['rgba(255, 255, 255, 0.10)', 'rgba(204, 204, 204, 0)']}
                                 style={styles.googleBtn}
                             >
                                 <TouchableOpacity onPress={googleSignIn} style={styles.googleBtnInner}>
+                                    <Text style={[styles.googleText, { color: theme.textColor }]}>Continue with    </Text>
                                     <Image source={G} style={styles.socialIcon} />
-                                    <Text style={[styles.googleText, { color: theme.textColor }]}>Continue with Google</Text>
                                 </TouchableOpacity>
                             </LinearGradient>
+                            {Platform.OS === 'ios' && (
+                                <>
+                                    <View style={{ width: width * 0.025 }} />
+                                    <LinearGradient
+                                        start={{ x: 0.0, y: 0.95 }}
+                                        end={{ x: 1.0, y: 1.0 }}
+                                        colors={['rgba(255, 255, 255, 0.10)', 'rgba(204, 204, 204, 0)']}
+                                        style={styles.googleBtn}
+                                    >
+                                        <TouchableOpacity onPress={AppleLogin} style={styles.googleBtnInner}>
+                                            <Text style={[styles.googleText, { color: theme.textColor }]}>Continue with    </Text>
+                                            <Image source={applePay} style={styles.socialIcon} />
+                                        </TouchableOpacity>
+                                    </LinearGradient>
+                                </>
+                            )}
 
-
+                            {/* <TouchableOpacity 
+                                onPress={AppleLogin}
+                                style={styles.appleBtn}>
+                                <Image source={applePay} style={styles.socialIcon} />
+                            </TouchableOpacity> */}
                         </View>
 
                         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -437,13 +460,13 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: width * 0.07,
-        fontFamily: 'Outfit-SemiBold',
+        fontFamily: 'Inter-SemiBold',
         marginTop: height * 0.03,
         marginBottom: height * 0.01,
     },
     subtitle: {
         fontSize: width * 0.032,
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
         width: width * 0.5,
         textAlign: 'center',
         marginBottom: height * 0.025,
@@ -457,9 +480,9 @@ const styles = StyleSheet.create({
     },
     buttonText: {
         color: '#fff',
-        fontSize: width * 0.036,
+        fontSize: width * 0.04,
         fontWeight: '600',
-        fontFamily: 'Outfit-SemiBold',
+        fontFamily: 'Inter-SemiBold',
     },
     orContainer: {
         marginVertical: height * 0.035,
@@ -473,7 +496,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ccc',
     },
     or: {
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
         fontSize: width * 0.03,
         marginHorizontal: width * 0.025,
     },
@@ -481,23 +504,20 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
     googleBtn: {
-        flexDirection: 'row',
-        borderWidth: 0.3,
-        borderColor: '#B6B6B6',
-        borderRadius: width * 0.035,
-        // alignItems: 'center',
-
+        flexDirection: 'row', borderWidth: 0.5, borderColor: '#B6B6B6',
+        borderRadius: width * 0.035, alignItems: 'center', height: height * 0.065,
+        justifyContent: 'center', flexGrow: 1
     },
     googleBtnInner: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: height * 0.018,
-        paddingHorizontal: width * 0.1,
+        // paddingVertical: height * 0.018,
+        // paddingHorizontal: width * 0.1,
     },
     googleText: {
         marginLeft: width * 0.025,
         fontSize: width * 0.032,
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
     },
     appleBtn: {
         marginLeft: width * 0.015,
@@ -518,11 +538,11 @@ const styles = StyleSheet.create({
     footer: {
         marginTop: height * 0.04,
         marginBottom: height * 0.05,
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
         fontSize: width * 0.03,
     },
     link: {
-        fontFamily: 'Outfit-Medium',
+        fontFamily: 'Inter-Medium',
     },
 });
 

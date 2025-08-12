@@ -245,13 +245,13 @@ const CourseEpisodesScreen = ({ route }) => {
                                     end={{ x: 1.0, y: 1.0 }}
                                     colors={['rgba(255, 255, 255, 0.34)', 'rgba(204, 204, 204, 0)']}
                                     style={styles.timestamp}>
-                                    {/* <View style={styles.inerTime, [backgroundColor: 'rgba(199, 199, 199, 0.38)',] }> */}
+                                    <View style={styles.timestampInner}>
                                     <Image source={play} style={{ width: 10, height: 10, resizeMode: "contain" }} />
                                     <Text style={[styles.instructorName, { color: "white", fontFamily: "Outfit-Regular" }]}>
                                         {formatDuration2(totalDuration)}
 
                                     </Text>
-                                    {/* </View> */}
+                                    </View>
                                 </LinearGradient>
                             </View>
                         </View>
@@ -390,12 +390,27 @@ const getStyles = (theme) => StyleSheet.create({
         marginRight: 7,
         marginBottom: 10,
         borderRadius: 20,
-        marginTop: 20,
+        marginTop: 10,
+        borderRadius: 50,
+        // backgroundColor: 'rgba(199, 199, 199, 0.7)',
+        // flexDirection: "row",
+        // gap: 9,
+        // paddingVertical: 5,
+        // paddingHorizontal: 10,
+        // backgroundColor: "",
+        // justifyContent: "center",
+        // alignItems: "center",
+    },
+    timestampInner: {
+        // marginRight: 7,
+        // marginBottom: 10,
+        borderRadius: 20,
+        // marginTop: 20,
         borderRadius: 50,
         backgroundColor: 'rgba(199, 199, 199, 0.7)',
         flexDirection: "row",
         gap: 9,
-        paddingVertical: 5,
+        paddingVertical: 10,
         paddingHorizontal: 10,
         backgroundColor: "",
         justifyContent: "center",

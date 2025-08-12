@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useState, useEffect } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground,
-    Dimensions, SafeAreaView, Alert
+    Dimensions, SafeAreaView, Alert, Linking
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,7 +20,7 @@ import { updateUserData } from '../../../redux/slice/authSlice';
 
 const { height, width } = Dimensions.get('window');
 
-// ✅ Duration formatter
+// ✅ Duration formatter (legacy minutes support if needed elsewhere)
 const getDurationText = (minutes) => {
     if (minutes < 0 || isNaN(minutes)) return '';
     const hours = Math.floor(minutes / 60);
@@ -32,22 +32,46 @@ const getDurationText = (minutes) => {
     }
 };
 
-const PlanCard = ({ title, price, description, durationMinutes, onPress, isSelected, onEnroll, styles, theme }) => (
+// ✅ Subscription helpers
+const formatSubscriptionLength = (count, unit) => {
+    if (!count || !unit) return null;
+    const unitMap = { DAY: 'Day', WEEK: 'Week', MONTH: 'Month', YEAR: 'Year' };
+    const base = unitMap[unit] || String(unit).toString();
+    return `${count} ${base}${count > 1 ? 's' : ''}`;
+};
+
+const formatPricePer = (priceString, count, unit) => {
+    if (!priceString) return '';
+    if (!unit) return priceString;
+    const unitMap = { DAY: 'day', WEEK: 'week', MONTH: 'month', YEAR: 'year' };
+    const base = unitMap[unit] || String(unit).toLowerCase();
+    if (count && count !== 1) return `${priceString}/${count} ${base}s`;
+    return `${priceString}/${base}`;
+};
+
+const PlanCard = ({ title, price, description, durationMinutes, periodCount, periodUnit, onPress, isSelected, onEnroll, styles, theme }) => (
     <TouchableOpacity
         style={[styles.planCard, isSelected && styles.planCardSelected]}
         onPress={onPress}
         activeOpacity={0.9}
     >
         <View style={{ flexDirection: 'column', justifyContent: 'space-between', width: "100%" }}>
-            <Text style={[styles.planTitle, { textTransform: "capitalize" }]}>{title.replace("(trader 365)", "")}</Text>
-            <Text style={styles.planPrice}>{price}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={[styles.planTitle, { textTransform: "capitalize" }]}>{title.replace("(trader 365)", "")}</Text>
+                <Text style={[styles.planTitle, { textTransform: "capitalize", fontSize: 12, fontFamily: 'Outfit-Medium', color: theme.subTextColor }]}>(Monthly Subscription)</Text>
+            </View>
+            <Text style={styles.planPrice}>{formatPricePer(price, periodCount, periodUnit)}</Text>
         </View>
         <View style={styles.divider} />
 
         {!!description && (
             <Text style={styles.description}>
-                {durationMinutes ? `${description} • ${getDurationText(durationMinutes)}` : description}
+                {description} 
             </Text>
+        )}
+
+        {!!formatSubscriptionLength(periodCount, periodUnit) && (
+            <Text style={styles.planMeta}>Length: {formatSubscriptionLength(periodCount, periodUnit)}</Text>
         )}
 
         <View style={styles.featuresContainer}>
@@ -57,6 +81,16 @@ const PlanCard = ({ title, price, description, durationMinutes, onPress, isSelec
                     <Text style={styles.featureText}>{feature}</Text>
                 </View>
             ))}
+        </View>
+
+        <View style={styles.linkRow}>
+            <TouchableOpacity onPress={() => Linking.openURL('https://trader365.co.uk/privacy-policy-for-trader365/') }>
+                <Text style={styles.linkText}>Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text style={styles.dotSeparator}> • </Text>
+            <TouchableOpacity onPress={() => Linking.openURL('https://trader365.co.uk/trader365-end-user-license-agreement-eula/') }>
+                <Text style={styles.linkText}>Terms of Use</Text>
+            </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.checkoutButton} onPress={onEnroll}>
@@ -108,7 +142,10 @@ const PlansScreen = () => {
                         title: pkg.product.title.replace(/\s*\(.*?\)\s*/g, "").trim(),
                         description: pkg.product.description,
                         price: pkg.product.priceString,
-                        durationMinutes: pkg.product.subscriptionPeriodUnit === 'MONTH' ? null : pkg.product.subscriptionPeriodNumberOfUnits, // or however your API provides minutes
+                        // Subscription period details surfaced by RevenueCat
+                        periodUnit: pkg.product.subscriptionPeriodUnit, // DAY | WEEK | MONTH | YEAR
+                        periodCount: pkg.product.subscriptionPeriodNumberOfUnits, // number of units
+                        durationMinutes: null, // legacy field not used for subscriptions
                         package: pkg
                     }))
                 );
@@ -152,11 +189,11 @@ const PlansScreen = () => {
             await Purchases.purchasePackage(packagee);
             const { entitlements, originalAppUserId, managementURL } = await Purchases.getCustomerInfo();
             const entitlement = entitlements.active["premium_subscription"];
-
+            console.log(entitlement);
             if (!entitlement) {
                 Alert.alert("Purchase Failed", "Purchase succeeded but entitlement was not confirmed.");
                 return;
-            }            
+            }
 
             const data = {
                 userId: studentId,
@@ -187,7 +224,7 @@ const PlansScreen = () => {
         try {
             dispatch(startLoading());
             const customerInfo = await Purchases.restorePurchases();
-            if (customerInfo.entitlements.active["premium_subscription"]) {
+            if (customerInfo.entitlements.active["Premium Courses Access"]) {
                 Alert.alert("Success", "Your purchases have been restored!");
             } else {
                 Alert.alert("No Purchases Found", "No active purchases were found to restore.");
@@ -251,6 +288,8 @@ const PlansScreen = () => {
                                             price={plan.price}
                                             description={plan.description}
                                             durationMinutes={plan.durationMinutes}
+                                            periodUnit={plan.periodUnit}
+                                            periodCount={plan.periodCount}
                                             onPress={() => setSelectedPlan(plan)}
                                             isSelected={selectedPlan?.id === plan.id}
                                             onEnroll={() => handleEnroll(plan.package)}
@@ -285,13 +324,17 @@ const getStyles = (theme) => StyleSheet.create({
     },
     planCardSelected: { borderColor: theme.primaryColor },
     planTitle: { color: theme.textColor, fontSize: 15, fontFamily: 'Outfit-Bold', marginBottom: 10 },
-    planPrice: { color: theme.primaryColor, fontSize: 13, fontFamily: 'Outfit-Bold', marginBottom: 15, textAlign: "right" },
+    planPrice: { color: theme.primaryColor, fontSize: 16, fontFamily: 'Outfit-Bold', marginBottom: 15, textAlign: "right" },
     divider: { width: '100%', marginBottom: 15, borderWidth: 0.7, borderColor: theme.borderColor },
     description: { color: theme.textColor, fontSize: 14, marginBottom: 15 },
+    planMeta: { color: theme.subTextColor, fontSize: 13, marginBottom: 12, fontFamily: 'Outfit-Medium' },
     featuresContainer: { marginBottom: 20 },
     featureItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
     checkIcon: { width: 20, height: 20, resizeMode: 'contain' },
     featureText: { color: theme.textColor, fontSize: 14, marginLeft: 10 },
+    linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', marginTop: 4, marginBottom: 12 },
+    linkText: { color: theme.primaryColor, fontSize: 13, textDecorationLine: 'underline', fontFamily: 'Outfit-SemiBold' },
+    dotSeparator: { color: theme.subTextColor, fontSize: 13, marginHorizontal: 8 },
     checkoutButton: { backgroundColor: theme.primaryColor, width: '100%', padding: 12, borderRadius: 11, marginTop: 20, alignItems: 'center' },
     checkoutButtonText: { color: '#fff', fontSize: 15, fontFamily: 'Outfit-SemiBold' },
     restoreButton: { marginTop: 20, alignSelf: 'center' },

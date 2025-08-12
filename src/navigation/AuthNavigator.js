@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/Auth/loginScreen/LoginScreen';
 import ForgetPassword from '../screens/Auth/forgetPassword/ForgetPassword';
@@ -12,11 +12,13 @@ import AffiliateDashboardScreen from '../screens/Affiliate/Dashboard/AffiliateDa
 import WithdrawScreen from '../screens/Affiliate/winthdraw/WithdrawScreen';
 import AreasScreen from '../screens/Profile/areasScreen/AreasScreen';
 import HomeSplash from '../screens/splashScreen/HomeSplash';
+import { ThemeContext } from '../context/ThemeProvider';
 const Stack = createNativeStackNavigator();
 
 const AuthNavigator = () => {
+    const { isDarkMode } = useContext(ThemeContext);
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }} >
+        <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: isDarkMode ? '#080E17' : '#FFFFFF' } }} >
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="GenderScreen" component={GenderScreen} />
             <Stack.Screen name="AgeScreen" component={AgeScreen} />

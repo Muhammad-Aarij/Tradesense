@@ -17,6 +17,7 @@ const { width } = Dimensions.get('window');
 const CHART_HEIGHT = 220;
 const HORIZONTAL_PADDING = 20;
 
+/** utils: make a local YYYY-MM-DD (no timezone shifting) */
 const ymdLocal = (d) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -24,6 +25,7 @@ const ymdLocal = (d) => {
   return `${y}-${m}-${day}`;
 };
 
+/** If API gives "2025-08-09", parse as local midnight, not UTC */
 const parseAPIDateLocal = (yyyyMmDd) => {
   const [y, m, d] = yyyyMmDd.split('-').map((n) => parseInt(n, 10));
   return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);

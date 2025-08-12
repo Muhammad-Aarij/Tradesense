@@ -397,7 +397,7 @@ const DiscoverScreen = ({ navigation }) => {
                         isVisible={showMusicInfo}
                         onClose={() => setShowMusicInfo(false)}
                         title="Music for You"
-                        message="Enjoy specially selected audio tracks designed to help you focus, relax, or energize your trading day. These tracks align with your mood and trading rhythm."
+                        message="Enjoy specially selected content tracks designed to help you focus, relax, or energize your trading day. These tracks align with your mood and trading rhythm."
                         position="center"
                     />
 

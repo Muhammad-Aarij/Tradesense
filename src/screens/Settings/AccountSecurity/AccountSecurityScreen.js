@@ -128,6 +128,8 @@ const AccountSecurityScreen = () => {
                 reason: deletionReason,
             });
 
+            console.log('response in delete account ++++?>>>>>>>', response);
+
             if (response?._id && response?.createdAt) {
                 setModalType('success');
                 setModalMessage('Your account deletion request has been successfully submitted.');
@@ -235,26 +237,29 @@ const AccountSecurityScreen = () => {
                                     colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
                                     style={styles.securityItem2}
                                 >
-                                    <View style={styles.passwordContainer}>
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="New Password"
-                                            placeholderTextColor={theme.subTextColor}
-                                            secureTextEntry
-                                            value={newPassword}
-                                            onChangeText={setNewPassword}
-                                        />
-                                        <TextInput
-                                            style={styles.input}
-                                            placeholder="Confirm Password"
-                                            placeholderTextColor={theme.subTextColor}
-                                            secureTextEntry
-                                            value={confirmPassword}
-                                            onChangeText={setConfirmPassword}
-                                        />
-                                        <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
-                                            <Text style={styles.saveButtonText}>Save Password</Text>
-                                        </TouchableOpacity>
+                                    <View style={styles.securityItem2Inner }>
+
+                                        <View style={styles.passwordContainer}>
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder="New Password"
+                                                placeholderTextColor={theme.subTextColor}
+                                                secureTextEntry
+                                                value={newPassword}
+                                                onChangeText={setNewPassword}
+                                            />
+                                            <TextInput
+                                                style={styles.input}
+                                                placeholder="Confirm Password"
+                                                placeholderTextColor={theme.subTextColor}
+                                                secureTextEntry
+                                                value={confirmPassword}
+                                                onChangeText={setConfirmPassword}
+                                            />
+                                            <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
+                                                <Text style={styles.saveButtonText}>Save Password</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
                                 </LinearGradient>
                             )}
@@ -268,16 +273,16 @@ const AccountSecurityScreen = () => {
                                 }}
                             />
                             {showDeleteAccount && (
-                                <LinearGradient
-                                    start={{ x: 0, y: 0.95 }}
-                                    end={{ x: 1, y: 1 }}
-                                    colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
-                                    style={styles.securityItem2}
-                                >
+                                // <LinearGradient
+                                //     start={{ x: 0, y: 0.95 }}
+                                //     end={{ x: 1, y: 1 }}
+                                //     colors={['rgba(126, 126, 126, 0.12)', 'rgba(255,255,255,0)']}
+                                //     style={styles.securityItem2}
+                                // >
                                     <View style={styles.passwordContainer}>
                                         <TextInput
                                             style={[styles.input, { height: verticalScale(150), textAlignVertical: 'top', padding: 20, }]}
-                                            placeholder="Why you wanted to delete your account?"
+                                            placeholder="Please tell us why you want to delete your account?"
                                             placeholderTextColor={theme.subTextColor}
                                             value={deletionReason}
                                             onChangeText={setDeletionReason}
@@ -287,7 +292,7 @@ const AccountSecurityScreen = () => {
                                             <Text style={styles.saveButtonText}>Delete Account</Text>
                                         </TouchableOpacity>
                                     </View>
-                                </LinearGradient>
+                                // </LinearGradient>
                             )}
                         </View>
                     </ScrollView>
@@ -324,6 +329,12 @@ const getStyles = (theme) =>
             paddingHorizontal: 18,
         },
         securityItem2: {
+            // borderColor: theme.borderColor,
+            // borderWidth: 1,
+            borderRadius: scale(12),
+            // padding: 18,
+        },
+        securityItem2Inner: {
             borderColor: theme.borderColor,
             borderWidth: 1,
             borderRadius: scale(12),

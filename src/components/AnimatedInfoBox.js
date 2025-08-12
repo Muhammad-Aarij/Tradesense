@@ -1,13 +1,11 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import {
     View,
     Text,
     TouchableOpacity,
-    Animated,
     StyleSheet,
     Dimensions,
     Modal,
-    Platform,
 } from 'react-native';
 import { ThemeContext } from '../context/ThemeProvider';
 
@@ -22,69 +20,6 @@ const AnimatedInfoBox = ({
     maxWidth = width * 0.8,
 }) => {
     const { theme, isDarkMode } = useContext(ThemeContext);
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.8)).current;
-    const slideAnim = useRef(new Animated.Value(-20)).current;
-
-    useEffect(() => {
-        if (isVisible) {
-            if (Platform.OS === 'android') {
-                // Reset animations
-                fadeAnim.setValue(0);
-                scaleAnim.setValue(0.8);
-                slideAnim.setValue(-20);
-
-                Animated.parallel([
-                    Animated.timing(fadeAnim, {
-                        toValue: 1,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }),
-                    Animated.spring(scaleAnim, {
-                        toValue: 1,
-                        tension: 100,
-                        friction: 8,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(slideAnim, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }),
-                ]).start();
-            } else {
-                // Instantly show on iOS
-                fadeAnim.setValue(1);
-                scaleAnim.setValue(1);
-                slideAnim.setValue(0);
-            }
-        } else {
-            if (Platform.OS === 'android') {
-                Animated.parallel([
-                    Animated.timing(fadeAnim, {
-                        toValue: 0,
-                        duration: 200,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(scaleAnim, {
-                        toValue: 0.8,
-                        duration: 200,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(slideAnim, {
-                        toValue: -20,
-                        duration: 200,
-                        useNativeDriver: true,
-                    }),
-                ]).start();
-            } else {
-                // Instantly hide on iOS
-                fadeAnim.setValue(0);
-                scaleAnim.setValue(0.8);
-                slideAnim.setValue(-20);
-            }
-        }
-    }, [isVisible]);
 
     const getPositionStyle = () => {
         switch (position) {
@@ -112,15 +47,10 @@ const AnimatedInfoBox = ({
                 activeOpacity={1}
                 onPress={onClose}
             >
-                <Animated.View
+                <View
                     style={[
                         styles.infoBox,
                         {
-                            opacity: fadeAnim,
-                            transform: [
-                                { scale: scaleAnim },
-                                { translateY: slideAnim }
-                            ],
                             backgroundColor: isDarkMode ? '#000000' : "#FFFFFF",
                             borderColor: '#333333',
                             maxWidth,
@@ -157,7 +87,7 @@ const AnimatedInfoBox = ({
                             Close
                         </Text>
                     </TouchableOpacity>
-                </Animated.View>
+                </View>
             </TouchableOpacity>
         </Modal>
     );

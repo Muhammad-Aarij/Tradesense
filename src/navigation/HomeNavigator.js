@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
 
@@ -22,11 +22,13 @@ import MiniPlayer from '../components/MiniPlayer';
 import { useNavigationState } from '@react-navigation/native';
 import NotificationsScreen from '../screens/notificationsScreen/NotificationsScreen';
 import HomeSplash from '../screens/splashScreen/HomeSplash';
+import { ThemeContext } from '../context/ThemeProvider';
 
 
 const Home = createNativeStackNavigator();
 
 const HomeNavigator = () => {
+  const { isDarkMode } = useContext(ThemeContext);
 
   const routeName = useNavigationState(state => {
     const route = state?.routes[state?.index];
@@ -37,7 +39,7 @@ const HomeNavigator = () => {
 
   return (
     <>
-      <Home.Navigator screenOptions={{ headerShown: false }} >
+      <Home.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: isDarkMode ? '#080E17' : '#FFFFFF' } }} >
         {/* <Home.Screen name="HomeSplash" component={HomeSplash} /> */}
         <Home.Screen name="BottomTabs" component={BottomNavigator} />
         <Home.Screen name="CoursesStack" component={CoursesNavigator} />

@@ -514,7 +514,7 @@ const PlayerScreen = ({ route }) => {
         onClose={() => setIsDisclaimerVisible(false)}
         title="Disclaimer"
         message={
-          'This audio is for educational and informational purposes only. It is not financial advice. Please consult a professional before making any investment decisions.'
+          'This content is for educational and informational purposes only. It is not financial advice. Please consult a professional before making any investment decisions.'
         }
         position="center"
         maxWidth={width * 0.85}

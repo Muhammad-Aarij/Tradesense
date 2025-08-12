@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Platform, AppState } from "react-native"; // Import AppState
+import { Platform, AppState } from "react-native"; 
 import store from "./src/redux/store/store";
 import { Provider } from "react-redux";
 import AppNavContainer from "./src/navigation";

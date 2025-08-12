@@ -96,7 +96,8 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         paddingHorizontal: 30, // Horizontal padding
-        paddingTop: height * 0.05, // Padding from top for content below status bar
+        paddingTop: height * 0.05, // Padding from top for content below status bar,
+        justifyContent: 'center',
     },
     logo: {
         alignSelf: "center",
